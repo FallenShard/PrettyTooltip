@@ -21,8 +21,20 @@ Each stat value uses a deeper, richer color, while its name uses a lighter, less
 
 Recognized slot/type pairs are shown together, such as `Two-Hand · Staff` or `Chest · Cloth`. Solo slots such as `Finger` stay as they are. Equipment tooltips show item level directly below the item name when the game supplies it. Short `Equip: +8 Attack Power.` text becomes `+8 Attack Power`.
 
+## V2 presentation
+
+The item tooltip has a slim frame and a small item icon beside the name. Common items use a graphite frame; uncommon, rare, epic, and legendary items tint the frame and a custom silver filigree corner to match their quality. A small texture marks each recognized stat, so the marker works with fonts that lack diamond characters. For weapons with the game's usual damage, speed, and DPS rows, DPS becomes the prominent first row; damage and speed follow on the next row. This keeps the same number of tooltip rows and leaves all unrecognized and addon supplied lines in place.
+
+The filigree source is `art/quality-corner-source.png`; the game loads the scaled `art/quality-corner.tga`. The stat marker is `art/stat-marker.tga`.
+
+## V3 layout preview
+
+The addon renders an item panel with a quality-colored header, icon, quality-tinted silver corner ornament, ornamented dividers, grouped stats, an item-set block, and a footer. The original game tooltip remains available while ALT is held. Lines the layout cannot classify, including rows appended directly by other addons, appear in an **Additional Details** section in their original order. If tooltip values cannot be read safely, the original game tooltip is shown instead.
+
+Tooltip refreshes keep the previous panel visible until other addons finish appending their rows, then redraw it at the end of the frame. A clear or brief hide also keeps the panel visible through a same-frame rebuild.
+
 Hold **ALT** while viewing an item to see the original tooltip wording. The tooltip updates when ALT is pressed or released, even if it is already open.
-ALT swaps only PrettyTooltip's own rendered text, leaving lines from other addons in place.
+ALT also hides the frame and item icon and restores the original weapon row order, leaving lines from other addons in place.
 Unrecognized item lines are passed through unchanged. PrettyTooltip does not remove or replace the tooltip's line table.
 
 ## Install
@@ -31,4 +43,4 @@ Run `python deploy.py` from this folder to copy the game files to `D:\Programs\W
 
 If the `PrettyTooltip` folder was added while the game was running, restart the game so it discovers the new addon. After later edits to the Lua file, deploy again and type `/reload` in game. Enable **PrettyTooltip** on the character AddOns screen if needed.
 
-This first version targets the English WoW Forever 1.60.1 client (`## Interface: 16001`). The game's tooltip API may differ on other versions.
+This addon targets the English WoW Forever 1.60.1 client (`## Interface: 16001`). The game's tooltip API may differ on other versions.

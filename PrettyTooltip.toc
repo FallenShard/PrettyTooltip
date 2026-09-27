@@ -1,6 +1,7 @@
 ## Interface: 16001
 ## Title: PrettyTooltip
 ## Notes: Short, readable item stat lines for WoW Forever.
-## Version: 0.4.2
+## Version: 3.0.2
 
 PrettyTooltip.lua
+PrettyTooltipLayout.lua

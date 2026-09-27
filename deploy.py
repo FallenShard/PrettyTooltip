@@ -8,7 +8,13 @@ from shutil import copy2
 DEFAULT_ADDONS_DIR = Path(
     r"D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns"
 )
-GAME_FILES = ("PrettyTooltip.toc", "PrettyTooltip.lua")
+GAME_FILES = (
+    "PrettyTooltip.toc",
+    "PrettyTooltip.lua",
+    "PrettyTooltipLayout.lua",
+    "art/quality-corner.tga",
+    "art/stat-marker.tga",
+)
 
 
 def main() -> None:
@@ -28,8 +34,10 @@ def main() -> None:
     destination = args.addons_dir / "PrettyTooltip"
     destination.mkdir(exist_ok=True)
     for name in GAME_FILES:
-        copy2(source / name, destination / name)
-        print(f"Installed {destination / name}")
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        copy2(source / name, target)
+        print(f"Installed {target}")
 
 
 if __name__ == "__main__":
