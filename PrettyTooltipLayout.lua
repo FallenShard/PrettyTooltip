@@ -1,5 +1,6 @@
 -- Optional display layer. The game's tooltip stays intact underneath and is
 -- shown whenever ALT is held or a line cannot safely be read.
+local _, ns = ...
 if GetLocale() ~= "enUS" or not (TooltipDataProcessor and Enum and Enum.TooltipDataType) then
     return
 end
@@ -16,14 +17,17 @@ local MIN_WIDTH, MAX_WIDTH = 260, 408
 -- width at most; everything else must fit on one line.
 local PROSE_WIDTH = 270
 local PAD = 19
-local ICON_COLUMN = 63
 local COLUMN_GAP = 12
 local ICON_SIZE = 43
+-- Header text starts past the icon, which sits at the left.
+local HEADER_INDENT = ICON_SIZE + 10
 local ICON_TOP = 21
 local BADGE_GAP = 5
 local BADGE_HEIGHT = 16
 local EXTRA_COLOR = { .60, .60, .63 }
 local GOLD_RULE = { .78, .59, .32 }
+local QUEST_GOLD = { 1, .82, 0 }
+local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
 local DELTA_UP = { .42, .86, .42 }
 local DELTA_DOWN = { 1, .42, .36 }
 local DURABILITY_BAR = 54
@@ -183,6 +187,24 @@ end
 
 -- Level is checked directly. Skill, reputation, and other requirements trust
 -- the game, which colors an unmet requirement red.
+-- The game colors whatever the character cannot use red: an armor or weapon
+-- type, a class or race list, an unmet requirement. Nil when unreadable.
+local function isRed(color)
+    if isSecret(color) or type(color) ~= "table" then return nil end
+    local r, g = color.r, color.g
+    if isSecret(r) or isSecret(g) or type(r) ~= "number" or type(g) ~= "number" then
+        return nil
+    end
+    return r > .9 and g < .3
+end
+
+local UNUSABLE_COLOR = { 1, .34, .28 }
+
+local function unusable(text, color)
+    if isRed(color) then return "|cffFF5747" .. text .. "|r" end
+    return text
+end
+
 local function requirementMet(text, color)
     local level = text:match("^Requires Level (%d+)")
     if level then
@@ -191,12 +213,7 @@ local function requirementMet(text, color)
             return playerLevel >= tonumber(level)
         end
     end
-    if isSecret(color) or type(color) ~= "table" then return false end
-    local r, g = color.r, color.g
-    if isSecret(r) or isSecret(g) or type(r) ~= "number" or type(g) ~= "number" then
-        return false
-    end
-    return not (r > .9 and g < .3)
+    return isRed(color) == false
 end
 
 local COIN = "|TInterface\\MoneyFrame\\UI-%sIcon:0:0:2:0|t"
@@ -297,6 +314,30 @@ local function hasDialogueBackdrop()
     return ok and name ~= nil and reason ~= "MISSING"
 end
 
+-- Rows other addons append straight to the tooltip are absent from its data.
+-- Returns nil when one of them cannot be read.
+local function appendedRows(tooltip, lineIndices)
+    local rows = {}
+    local name = tooltip:GetName()
+    for index = 1, tooltip:NumLines() do
+        if not lineIndices[index] then
+            local leftFont = tooltip:GetLeftLine(index)
+            local rightFont = tooltip.GetRightLine and tooltip:GetRightLine(index)
+                or (name and _G[name .. "TextRight" .. index])
+            local left = leftFont and safeText(leftFont:GetText()) or ""
+            local right = rightFont and safeText(rightFont:GetText()) or ""
+            if not left or not right then return end
+            rows[#rows + 1] = {
+                left = left,
+                right = right,
+                color = leftFont and quietColor(leftFont:GetTextColor()) or EXTRA_COLOR,
+                rightColor = rightFont and quietColor(rightFont:GetTextColor()),
+            }
+        end
+    end
+    return rows
+end
+
 local function readModel(tooltip, data)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local itemInfo = getItemInfo(tooltip, data)
@@ -338,6 +379,9 @@ local function readModel(tooltip, data)
         local lineType = line.type
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
         local trimmed = left:match("^%s*(.-)%s*$")
+        if trimmed == "Quest Item" or trimmed:match("^This Item Begins a Quest") then
+            model.quest = true
+        end
         if isSecret(line.prettyTooltipDisplay) or isSecret(line.prettyTooltipOriginal) then return end
         local displayed = line.prettyTooltipDisplay or left
 
@@ -347,14 +391,17 @@ local function readModel(tooltip, data)
             local level = left:match("(%d+)")
             if level then model.level, model.levelLine = tonumber(level), true end
         elseif lineType == LINE.EquipSlot then
+            local slot = unusable(left, line.leftColor)
+            local kind = unusable(right, line.rightColor)
             if ARMOR_SLOTS[left] and right ~= "" and QUALITY_NAME[model.quality] then
-                model.slot = QUALITY_NAME[model.quality] .. " " .. right .. " " .. left
+                model.slot = QUALITY_NAME[model.quality] .. " " .. kind .. " " .. slot
             else
-                model.slot = right ~= "" and (left .. " \194\183 " .. right) or left
+                model.slot = right ~= "" and (slot .. " \194\183 " .. kind) or slot
             end
         elseif lineType == LINE.ItemBinding or trimmed:match("^Binds ")
             or trimmed == "Soulbound" or trimmed:match("^Unique") then
             add(model.header, left, right)
+            if isRed(line.leftColor) then model.header[#model.header].color = UNUSABLE_COLOR end
         elseif trimmed ~= "" then
             local setName, count, total = trimmed:match("^(.-) %((%d+)/(%d+)%)$")
             if setName and not model.setName then
@@ -372,9 +419,12 @@ local function readModel(tooltip, data)
                 local current, maximum = trimmed:match("(%d+) / (%d+)")
                 model.footerLeft[#model.footerLeft].durability =
                     { tonumber(current), tonumber(maximum) }
-            elseif trimmed:match("^Classes:") or trimmed:match("^You haven't collected")
-                or trimmed:match("^Appearance ") then
+            elseif trimmed:match("^Classes:") or trimmed:match("^Races:")
+                or trimmed:match("^You haven't collected") or trimmed:match("^Appearance ") then
                 add(model.footerLeft, left, right)
+                if isRed(line.leftColor) then
+                    model.footerLeft[#model.footerLeft].color = UNUSABLE_COLOR
+                end
             elseif inSet and trimmed:match("^%(%d+%) Set:") then
                 add(model.setBonuses, left, right)
                 model.setBonuses[#model.setBonuses].active = isActive(line.leftColor)
@@ -413,24 +463,14 @@ local function readModel(tooltip, data)
     end
 
     if not model.name or model.name == "" then return end
-    -- Rows appended directly by other addons are absent from data.lines.
-    for index = 1, tooltip:NumLines() do
-        if not model.lineIndices[index] then
-            local leftFont = tooltip:GetLeftLine(index)
-            local name = tooltip:GetName()
-            local rightFont = tooltip.GetRightLine and tooltip:GetRightLine(index)
-                or (name and _G[name .. "TextRight" .. index])
-            local left = leftFont and safeText(leftFont:GetText()) or ""
-            local right = rightFont and safeText(rightFont:GetText()) or ""
-            if not left or not right then return end
-            local trimmed = left:match("^%s*(.-)%s*$")
-            if trimmed:match("^Sell Price") then
-                model.hasSellPrice = true
-            elseif trimmed ~= "" or right ~= "" then
-                addExtra(model, left, right,
-                    leftFont and quietColor(leftFont:GetTextColor()) or EXTRA_COLOR,
-                    rightFont and quietColor(rightFont:GetTextColor()))
-            end
+    local appended = appendedRows(tooltip, model.lineIndices)
+    if not appended then return end
+    for _, row in ipairs(appended) do
+        local trimmed = row.left:match("^%s*(.-)%s*$")
+        if trimmed:match("^Sell Price") then
+            model.hasSellPrice = true
+        elseif trimmed ~= "" or row.right ~= "" then
+            model.extras[#model.extras + 1] = row
         end
     end
 
@@ -445,6 +485,10 @@ local function readModel(tooltip, data)
     end
     if model.sellPrice and model.sellPrice > 0 then
         add(model.footerRight, label, formatMoney(model.sellPrice))
+    end
+    if not model.quest and itemInfo and C_Item and C_Item.GetItemInfoInstant then
+        local ok, _, _, _, _, _, classID = pcall(C_Item.GetItemInfoInstant, itemInfo)
+        model.quest = ok and not isSecret(classID) and classID == QUEST_CLASS
     end
     local deltas = getDeltas(tooltip, itemInfo)
     if deltas then attachDeltas(model, deltas) end
@@ -525,7 +569,6 @@ local function getPanel(tooltip)
     panel.footer:SetVertexColor(.10, .075, .08, panel.textured and .6 or .95)
     panel.icon = makeTexture(panel, "OVERLAY")
     panel.icon:SetSize(ICON_SIZE, ICON_SIZE)
-    panel.icon:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -19, -ICON_TOP)
     panel.iconBorder = makeTexture(panel, "OVERLAY")
     panel.iconBorder:SetSize(45, 45)
     panel.iconBorder:SetPoint("CENTER", panel.icon, "CENTER")
@@ -694,9 +737,10 @@ local function fitWidth(panel, model, title)
             consider(width + extra)
         end
     end
-    consider(measure(panel, title, 19, TITLE_FONT) + ICON_COLUMN)
-    if model.slot then consider(measure(panel, model.slot, 13) + ICON_COLUMN) end
-    group(model.header, 12, ICON_COLUMN)
+    local indent = model.icon and HEADER_INDENT or 0
+    consider(measure(panel, title, 19, TITLE_FONT) + indent)
+    if model.slot then consider(measure(panel, model.slot, 13) + indent) end
+    group(model.header, 12, indent)
     if model.weaponDps then
         local width = measure(panel, valueLabel(model.weaponDps, "Damage per Second"), 18)
         if model.weaponDpsDelta then
@@ -832,17 +876,14 @@ local function getEquippedTag(panel)
     return tag
 end
 
-local function render(panel, tooltip, model)
-    panel:Show()
-    clearPool(panel)
-    local title = model.name:find("|", 1, true) and model.name or model.name:upper()
-    panel.width = fitWidth(panel, model, title)
-    panel:SetWidth(panel.width)
-    local quality = QUALITY[model.quality] or QUALITY[1]
+-- Backdrop, tint, header band, icon, badge, close button, and tag shared by
+-- every kind of panel. Returns the header height the icon and badge need.
+local function drawChrome(panel, tooltip, style)
+    local color = style.color
     panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
-    -- Common and poor items keep the neutral body.
-    local tint = model.quality >= 2 and quality or { .5, .5, .5 }
-    local strength = model.quality >= 2 and 1 or 0
+    -- Untinted panels (common items, spells without a cost) keep a neutral body.
+    local tint = style.tint or { .5, .5, .5 }
+    local strength = style.tint and (style.strength or 1) or 0
     if panel.textured then
         panel.background:SetVertexColor(1 - .45 * strength + .45 * strength * tint[1],
             1 - .45 * strength + .45 * strength * tint[2],
@@ -857,72 +898,109 @@ local function render(panel, tooltip, model)
                 .050 + tint[3] * .06 * strength, 1))
     end
     if strength > 0 then
-        panel.halo:SetVertexColor(tint[1], tint[2], tint[3], .55)
+        panel.halo:SetVertexColor(tint[1], tint[2], tint[3], .55 * strength)
     else
         panel.halo:SetVertexColor(.6, .6, .6, .18)
     end
     local headerAlpha = panel.textured and .72 or .96
     panel.header:SetGradient("VERTICAL",
-        CreateColor(quality[1] * .12, quality[2] * .12, quality[3] * .12, headerAlpha),
-        CreateColor(quality[1] * .38, quality[2] * .38, quality[3] * .38, headerAlpha))
+        CreateColor(color[1] * .12, color[2] * .12, color[3] * .12, headerAlpha),
+        CreateColor(color[1] * .38, color[2] * .38, color[3] * .38, headerAlpha))
     for index, edge in ipairs(panel.edges) do
-        local strength = index == 1 and .8 or .36
-        edge:SetVertexColor(quality[1] * strength, quality[2] * strength,
-            quality[3] * strength, .95)
+        local edgeStrength = index == 1 and .8 or .36
+        edge:SetVertexColor(color[1] * edgeStrength, color[2] * edgeStrength,
+            color[3] * edgeStrength, .95)
     end
-    panel.iconBorder:SetVertexColor(quality[1], quality[2], quality[3], .85)
+    panel.iconBorder:SetVertexColor(color[1], color[2], color[3], .85)
     local native = nativeCloseButton(tooltip)
     if native and native:IsShown() then
         getCloseButton(panel, tooltip):Show()
     elseif panel.close then
         panel.close:Hide()
     end
-    if isComparison(tooltip) then
+    if style.tag then
         local tag = getEquippedTag(panel)
-        tag.text:SetText(isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH")
+        tag.text:SetText(style.tag)
         tag:SetWidth(tag.text:GetStringWidth() + 16)
         tag:Show()
     elseif panel.equipped then
         panel.equipped:Hide()
     end
-    if model.icon then
-        panel.icon:SetTexture(model.icon)
+    local iconSize = style.iconSize or ICON_SIZE
+    panel.icon:SetSize(iconSize, iconSize)
+    panel.icon:ClearAllPoints()
+    panel.icon:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -ICON_TOP)
+    panel.iconBorder:SetSize(iconSize + 2, iconSize + 2)
+    if style.icon then
+        panel.icon:SetTexture(style.icon)
         panel.icon:Show()
         panel.iconBorder:Show()
     else
         panel.icon:Hide()
         panel.iconBorder:Hide()
     end
-
-    local y = 19
-    local inner = panel.width - 2 * PAD
-    y = y + textAt(panel, title, PAD, y, inner - ICON_COLUMN,
-        19, quality, TITLE_FONT) + 4
-    if model.slot and model.slot ~= "" then
-        y = y + textAt(panel, model.slot, PAD, y, inner - ICON_COLUMN,
-            13, quality) + 4
-    end
-    local headerMin = model.icon and ICON_TOP + ICON_SIZE + 12 or 0
-    if model.level and (model.slot or model.levelLine) then
+    local headerMin = style.icon and ICON_TOP + iconSize + 12 or 0
+    if style.badge then
         local badge = panel.badge
         panel.badgeText:SetFont(BODY_FONT, 10)
-        panel.badgeText:SetTextColor(quality[1] * .45 + .55, quality[2] * .45 + .55,
-            quality[3] * .45 + .55)
-        panel.badgeText:SetText("iLvl " .. model.level)
-        badge:SetSize(math.max(ICON_SIZE + 2, panel.badgeText:GetStringWidth() + 12),
+        panel.badgeText:SetTextColor(color[1] * .45 + .55, color[2] * .45 + .55,
+            color[3] * .45 + .55)
+        panel.badgeText:SetText(style.badge)
+        badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 12),
             BADGE_HEIGHT)
-        badge:SetVertexColor(quality[1] * .8, quality[2] * .8, quality[3] * .8, .9)
-        panel.badgeFill:SetVertexColor(quality[1] * .14, quality[2] * .14, quality[3] * .14, 1)
+        badge:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
+        panel.badgeFill:SetVertexColor(color[1] * .14, color[2] * .14, color[3] * .14, 1)
         badge:Show()
         panel.badgeFill:Show()
         panel.badgeText:Show()
-        headerMin = ICON_TOP + ICON_SIZE + BADGE_GAP + BADGE_HEIGHT + 10
+        headerMin = ICON_TOP + iconSize + BADGE_GAP + BADGE_HEIGHT + 10
     else
         panel.badge:Hide()
         panel.badgeFill:Hide()
         panel.badgeText:Hide()
     end
-    y = drawGroup(panel, model.header, y, 12, { .78, .72, .63 })
+    return headerMin
+end
+
+local function finishPanel(panel, tooltip, y)
+    panel:SetHeight(y + 17)
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT", tooltip, "TOPLEFT")
+    panel:Show()
+end
+
+local function render(panel, tooltip, model)
+    panel:Show()
+    clearPool(panel)
+    local title = model.name:find("|", 1, true) and model.name or model.name:upper()
+    panel.width = fitWidth(panel, model, title)
+    panel:SetWidth(panel.width)
+    local quality = QUALITY[model.quality] or QUALITY[1]
+    local tag
+    if isComparison(tooltip) then
+        tag = isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH"
+    end
+    -- Quest items are mostly common, so they take quest gold instead of rarity;
+    -- the title keeps the rarity color.
+    local accent = model.quest and QUEST_GOLD or quality
+    local headerMin = drawChrome(panel, tooltip, {
+        color = accent,
+        tint = (model.quest or model.quality >= 2) and accent or nil,
+        icon = model.icon,
+        badge = model.level and (model.slot or model.levelLine) and ("iLvl " .. model.level),
+        tag = tag,
+    })
+
+    local y = 19
+    local inner = panel.width - 2 * PAD
+    local indent = model.icon and HEADER_INDENT or 0
+    y = y + textAt(panel, title, PAD + indent, y, inner - indent,
+        19, quality, TITLE_FONT) + 4
+    if model.slot and model.slot ~= "" then
+        y = y + textAt(panel, model.slot, PAD + indent, y, inner - indent,
+            13, quality) + 4
+    end
+    y = drawGroup(panel, model.header, y, 12, { .78, .72, .63 }, indent)
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
 
@@ -1037,10 +1115,7 @@ local function render(panel, tooltip, model)
     else
         panel.footer:SetHeight(0)
     end
-    panel:SetHeight(y + 17)
-    panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", tooltip, "TOPLEFT")
-    panel:Show()
+    finishPanel(panel, tooltip, y)
 end
 
 -- Blizzard anchors comparison tooltips, slides away from screen edges, and
@@ -1082,7 +1157,7 @@ local function releaseNative(tooltip, panel)
     panel.nativeSize = nil
     -- After a hide or a switch to other content the game has already reset
     -- the size, and the tooltip's new owner may have set its own padding.
-    if base and tooltip:IsShown() and tooltip:IsTooltipType(ITEM) then
+    if base and panel.kind and tooltip:IsShown() and tooltip:IsTooltipType(panel.kind) then
         tooltip:SetPadding(base.right, base.bottom, base.left, base.top)
         tooltip:Show()
     end
@@ -1100,17 +1175,23 @@ local function restoreNative(tooltip)
     end
 end
 
+-- Each tooltip data type the panel draws: read(tooltip, data) -> model,
+-- render(panel, tooltip, model), and key(tooltip, data) naming what is shown.
+local KINDS = {}
+KINDS[ITEM] = { read = readModel, render = render, key = getItemInfo }
+
 local function update(tooltip, data)
     local panel = getPanel(tooltip)
-    if IsAltKeyDown() then restoreNative(tooltip); return end
-    local ok, model = pcall(readModel, tooltip, data)
+    local kind = KINDS[panel.kind]
+    if IsAltKeyDown() or not kind then restoreNative(tooltip); return end
+    local ok, model = pcall(kind.read, tooltip, data)
     if not ok or not model then restoreNative(tooltip); return end
     if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
-    local rendered = pcall(render, panel, tooltip, model)
+    local rendered = pcall(kind.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
     refitNative(tooltip, panel)
     panel.data = data
-    panel.itemKey = getItemInfo(tooltip, data)
+    panel.key = kind.key(tooltip, data)
     panel.lineCount = tooltip:NumLines()
     tooltip:SetAlpha(0)
 end
@@ -1135,16 +1216,17 @@ end
 -- tooltips never refresh on their own, so the owner redraws for its arrows.
 local function refreshOwner(owner)
     local panel = owner and panels[owner]
-    if panel and panel:IsShown() and panel.data and owner:IsShown()
+    if panel and panel.kind == ITEM and panel:IsShown() and panel.data and owner:IsShown()
         and owner:IsTooltipType(ITEM) then
         update(owner, panel.data)
     end
 end
 
-TooltipDataProcessor.AddTooltipPostCall(ITEM, function(tooltip, data)
+local function onTooltipData(dataType, tooltip, data)
     local panel = getPanel(tooltip)
-    local previousKey = panel.itemKey
-    local itemKey = getItemInfo(tooltip, data)
+    local previousKey, previousKind = panel.key, panel.kind
+    local key = KINDS[dataType].key(tooltip, data)
+    panel.kind = dataType
     panel.data = data
     panel.refreshToken = (panel.refreshToken or 0) + 1
     local token = panel.refreshToken
@@ -1194,7 +1276,7 @@ TooltipDataProcessor.AddTooltipPostCall(ITEM, function(tooltip, data)
             self.elapsed = 0
             if tooltip:IsShown() and self.data and tooltip:NumLines() ~= self.lineCount then
                 C_Timer.After(0, function()
-                    if tooltip:IsShown() and tooltip:IsTooltipType(ITEM)
+                    if tooltip:IsShown() and self.kind and tooltip:IsTooltipType(self.kind)
                         and self.data and tooltip:NumLines() ~= self.lineCount then
                         update(tooltip, self.data)
                     end
@@ -1208,7 +1290,7 @@ TooltipDataProcessor.AddTooltipPostCall(ITEM, function(tooltip, data)
     end
     -- The first render shows the new item promptly. On refresh, retain the
     -- complete old panel until other addons have appended their rows.
-    if not panel:IsShown() or (itemKey and itemKey ~= previousKey) then
+    if not panel:IsShown() or dataType ~= previousKind or (key and key ~= previousKey) then
         update(tooltip, data)
     else
         if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
@@ -1217,16 +1299,27 @@ TooltipDataProcessor.AddTooltipPostCall(ITEM, function(tooltip, data)
     end
     C_Timer.After(0, function()
         if panel.refreshToken == token and tooltip:IsShown()
-            and tooltip:IsTooltipType(ITEM) then
+            and tooltip:IsTooltipType(dataType) then
             update(tooltip, data)
         end
     end)
-    if isComparison(tooltip) then
+    if dataType == ITEM and isComparison(tooltip) then
         local owner = tooltip:GetOwner()
         if isSecret(owner) then owner = nil end
         panel.owner = owner
         C_Timer.After(0, function() refreshOwner(owner) end)
     end
+end
+
+local function registerKind(dataType, kind)
+    KINDS[dataType] = kind
+    TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip, data)
+        onTooltipData(dataType, tooltip, data)
+    end)
+end
+
+TooltipDataProcessor.AddTooltipPostCall(ITEM, function(tooltip, data)
+    onTooltipData(ITEM, tooltip, data)
 end)
 
 local modifier = CreateFrame("Frame")
@@ -1236,8 +1329,8 @@ modifier:SetScript("OnEvent", function(_, _, key)
         -- Shift toggles the comparison; redraw once it has been shown or hidden.
         C_Timer.After(0, function()
             for tooltip, panel in pairs(panels) do
-                if tooltip.shoppingTooltips and tooltip:IsShown() and panel:IsShown()
-                    and panel.data and tooltip:IsTooltipType(ITEM) then
+                if tooltip.shoppingTooltips and panel.kind == ITEM and tooltip:IsShown()
+                    and panel:IsShown() and panel.data and tooltip:IsTooltipType(ITEM) then
                     update(tooltip, panel.data)
                 end
             end
@@ -1246,7 +1339,7 @@ modifier:SetScript("OnEvent", function(_, _, key)
     end
     if key ~= "LALT" and key ~= "RALT" then return end
     for tooltip, panel in pairs(panels) do
-        if tooltip:IsShown() and tooltip:IsTooltipType(ITEM) then
+        if tooltip:IsShown() and panel.kind and tooltip:IsTooltipType(panel.kind) then
             if IsAltKeyDown() then
                 restoreNative(tooltip)
             elseif panel.data then
@@ -1255,3 +1348,35 @@ modifier:SetScript("OnEvent", function(_, _, key)
         end
     end
 end)
+
+-- Shared with PrettyTooltipSpell.lua, which loads after this file.
+ns.ui = {
+    isSecret = isSecret,
+    safeText = safeText,
+    add = add,
+    quietColor = quietColor,
+    colorOf = colorOf,
+    appendedRows = appendedRows,
+    requirementMet = requirementMet,
+    clearPool = clearPool,
+    textAt = textAt,
+    measure = measure,
+    rowWidth = rowWidth,
+    drawRow = drawRow,
+    drawGroup = drawGroup,
+    acquireTexture = acquireTexture,
+    rule = rule,
+    divider = divider,
+    drawChrome = drawChrome,
+    finishPanel = finishPanel,
+    registerKind = registerKind,
+    PAD = PAD,
+    MIN_WIDTH = MIN_WIDTH,
+    MAX_WIDTH = MAX_WIDTH,
+    PROSE_WIDTH = PROSE_WIDTH,
+    COLUMN_GAP = COLUMN_GAP,
+    BODY_FONT = BODY_FONT,
+    TITLE_FONT = TITLE_FONT,
+    EXTRA_COLOR = EXTRA_COLOR,
+    GOLD_RULE = GOLD_RULE,
+}

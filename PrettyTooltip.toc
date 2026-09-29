@@ -5,3 +5,4 @@
 
 PrettyTooltip.lua
 PrettyTooltipLayout.lua
+PrettyTooltipSpell.lua
