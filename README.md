@@ -29,7 +29,9 @@ The filigree source is `art/quality-corner-source.png`; the game loads the scale
 
 ## V3 layout preview
 
-The addon renders an item panel with a quality-colored header, icon, quality-tinted silver corner ornament, ornamented dividers, grouped stats, an item-set block, and a footer. The original game tooltip remains available while ALT is held. Lines the layout cannot classify, including rows appended directly by other addons, appear in an **Additional Details** section in their original order. If tooltip values cannot be read safely, the original game tooltip is shown instead.
+The addon renders an item panel with a quality-colored header, icon with an item level badge, ornamented dividers, grouped stats, an item-set block, and a footer with durability, requirements, and sell price. The original game tooltip remains available while ALT is held. Lines the layout cannot classify, including rows appended directly by other addons, appear below a thin rule in smaller, muted text, in their original order and keeping their own colors. If tooltip values cannot be read safely, the original game tooltip is shown instead.
+
+The panel is only as wide as its widest single-line content, between 260 and 408 pixels; effects, set bonuses, and other prose wrap. Set pieces you own and active set bonuses are highlighted, following the game's own coloring. While the game shows a comparison, each stat, armor, and DPS row carries its change against the compared item in green or red, and stats only the equipped item has are listed dimmed below. Durability is a small bar with its value. Dividers appear only between sections that have content. When DialogueUI is installed, its dark tooltip backdrop is used from its own folder; it is not copied into this addon. The hidden game tooltip is resized to cover the panel, so comparison tooltips, screen-edge sliding, and clamping follow the panel's real size.
 
 Tooltip refreshes keep the previous panel visible until other addons finish appending their rows, then redraw it at the end of the frame. A clear or brief hide also keeps the panel visible through a same-frame rebuild.
 
