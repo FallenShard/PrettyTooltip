@@ -371,7 +371,7 @@ local function renderSpell(panel, tooltip, model)
     })
 
     local inner = panel.width - 2 * PAD
-    local y = 19
+    local y = ui.TITLE_TOP
     local indent = model.icon and TEXT_INDENT or 0
     y = y + textAt(panel, title, PAD + indent, y, inner - indent, 17, TITLE_COLOR, TITLE_FONT) + 4
     local list = pills(model)

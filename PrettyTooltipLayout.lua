@@ -22,6 +22,9 @@ local ICON_SIZE = 43
 -- Header text starts past the icon, which sits at the left.
 local HEADER_INDENT = ICON_SIZE + 10
 local ICON_TOP = 21
+-- The title's text box starts level with the icon, so its capitals sit a
+-- few pixels below the icon's edge instead of almost touching it.
+local TITLE_TOP = ICON_TOP
 local BADGE_GAP = 5
 local BADGE_HEIGHT = 16
 local EXTRA_COLOR = { .60, .60, .63 }
@@ -991,7 +994,7 @@ local function render(panel, tooltip, model)
         tag = tag,
     })
 
-    local y = 19
+    local y = TITLE_TOP
     local inner = panel.width - 2 * PAD
     local indent = model.icon and HEADER_INDENT or 0
     y = y + textAt(panel, title, PAD + indent, y, inner - indent,
@@ -1371,6 +1374,7 @@ ns.ui = {
     finishPanel = finishPanel,
     registerKind = registerKind,
     PAD = PAD,
+    TITLE_TOP = TITLE_TOP,
     MIN_WIDTH = MIN_WIDTH,
     MAX_WIDTH = MAX_WIDTH,
     PROSE_WIDTH = PROSE_WIDTH,
