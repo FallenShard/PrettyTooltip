@@ -109,6 +109,10 @@ local ARMOR_SLOTS = {
     Head = true, Shoulder = true, Chest = true, Wrist = true,
     Hands = true, Waist = true, Legs = true, Feet = true,
 }
+-- Lines that say what an item is, shown with the slot and type in this order.
+local ITEM_KINDS = { "Crafting Reagent", "Scarce" }
+local ITEM_KIND_NAMES = {}
+for _, kind in ipairs(ITEM_KINDS) do ITEM_KIND_NAMES[kind:lower()] = kind end
 local panels = setmetatable({}, { __mode = "k" })
 
 local function safeText(value)
@@ -245,6 +249,24 @@ local function plainText(text)
     return (text:gsub("|T.-|t", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
 end
 
+-- These lines can arrive color coded, or appended outside the tooltip data.
+-- Each keeps the color it was given, inline or on the line.
+local function itemKind(left, right, color)
+    if right ~= "" then return end
+    local kind = ITEM_KIND_NAMES[plainText(left):match("^%s*(.-)%s*$"):lower()]
+    if not kind then return end
+    local code = left:match("|c(%x%x%x%x%x%x%x%x)")
+    if code then return kind, "|c" .. code .. kind .. "|r" end
+    if isSecret(color) or type(color) ~= "table" then return kind, kind end
+    local r, g, b = color.r or color[1], color.g or color[2], color.b or color[3]
+    if isSecret(r) or isSecret(g) or isSecret(b)
+        or type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then
+        return kind, kind
+    end
+    return kind, string.format("|cff%02X%02X%02X%s|r", math.floor(r * 255 + .5),
+        math.floor(g * 255 + .5), math.floor(b * 255 + .5), kind)
+end
+
 local function valueLabel(value, label)
     return "|cffF2E8D5" .. value .. "|r |cffA89F8E" .. label .. "|r"
 end
@@ -354,6 +376,7 @@ local function appendedRows(tooltip, lineIndices)
                 left = left,
                 right = right,
                 color = leftFont and quietColor(leftFont:GetTextColor()) or EXTRA_COLOR,
+                textColor = leftFont and { leftFont:GetTextColor() },
                 rightColor = rightFont and quietColor(rightFont:GetTextColor()),
             }
         end
@@ -382,6 +405,7 @@ local function readModel(tooltip, data)
         footerLeft = {},
         footerRight = {},
         lineIndices = {},
+        kinds = {},
     }
     local inSet, setTotal = false, 0
 
@@ -409,11 +433,13 @@ local function readModel(tooltip, data)
         local displayed = line.prettyTooltipDisplay or left
 
         if lineType == LINE.ItemName then
-            model.name = left
+            -- Recipes embed the crafted item's tooltip, name line included.
+            model.name = model.name or left
         elseif lineType == LINE.ItemLevel then
             local level = left:match("(%d+)")
             if level then model.level, model.levelLine = tonumber(level), true end
         elseif lineType == LINE.EquipSlot then
+            model.equippable = true
             local slot = unusable(left, line.leftColor)
             local kind = unusable(right, line.rightColor)
             if ARMOR_SLOTS[left] and right ~= "" and QUALITY_NAME[model.quality] then
@@ -425,6 +451,9 @@ local function readModel(tooltip, data)
             or trimmed == "Soulbound" or trimmed:match("^Unique") then
             add(model.header, left, right)
             if isRed(line.leftColor) then model.header[#model.header].color = UNUSABLE_COLOR end
+        elseif itemKind(left, right) then
+            local kind, text = itemKind(left, right, line.leftColor)
+            model.kinds[kind] = text
         elseif trimmed ~= "" then
             local setName, count, total = trimmed:match("^(.-) %((%d+)/(%d+)%)$")
             if setName and not model.setName then
@@ -492,9 +521,18 @@ local function readModel(tooltip, data)
         local trimmed = row.left:match("^%s*(.-)%s*$")
         if trimmed:match("^Sell Price") then
             model.hasSellPrice = true
+        elseif itemKind(row.left, row.right) then
+            local kind, text = itemKind(row.left, row.right, row.textColor)
+            model.kinds[kind] = text
         elseif trimmed ~= "" or row.right ~= "" then
             model.extras[#model.extras + 1] = row
         end
+    end
+    local shown = {}
+    for _, kind in ipairs(ITEM_KINDS) do shown[#shown + 1] = model.kinds[kind] end
+    if #shown > 0 then
+        local kinds = table.concat(shown, " \194\183 ")
+        model.slot = model.slot and model.slot ~= "" and (model.slot .. " \194\183 " .. kinds) or kinds
     end
 
     local label = "Sell Price"
@@ -1066,7 +1104,7 @@ local function render(panel, tooltip, model)
         color = accent,
         tint = (model.quest or model.quality >= 2) and accent or nil,
         icon = model.icon,
-        badge = model.level and (model.slot or model.levelLine) and ("iLvl " .. model.level),
+        badge = model.level and (model.equippable or model.levelLine) and ("iLvl " .. model.level),
         tag = tag,
     })
 

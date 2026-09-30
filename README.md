@@ -19,7 +19,7 @@ It also shortens common spell damage, attack power, hit, crit, avoidance, defens
 
 Each stat value uses a deeper, richer color, while its name uses a lighter, less saturated shade of the same hue. Categories are parchment for primary attributes, copper for physical offense, steel for defense, violet for general magic, green for healing, blue for mana regeneration, and distinct colors for the six spell schools. Existing short stat lines such as `+12 Strength` receive the same treatment.
 
-Recognized slot/type pairs are shown together, such as `Two-Hand · Staff` or `Chest · Cloth`. Solo slots such as `Finger` stay as they are. Equipment tooltips show item level directly below the item name when the game supplies it. Short `Equip: +8 Attack Power.` text becomes `+8 Attack Power`.
+Recognized slot/type pairs are shown together, such as `Two-Hand · Staff` or `Chest · Cloth`. Solo slots such as `Finger` stay as they are. `Crafting Reagent` and `Scarce` lines join that same line in their original colors, as in `Crafting Reagent · Scarce`. Equipment tooltips show item level directly below the item name when the game supplies it. Short `Equip: +8 Attack Power.` text becomes `+8 Attack Power`.
 
 ## V2 presentation
 
