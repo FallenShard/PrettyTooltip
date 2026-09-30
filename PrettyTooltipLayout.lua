@@ -997,11 +997,55 @@ local function drawChrome(panel, tooltip, style)
     return headerMin
 end
 
+-- The hidden tooltip is often wider than its panel, as long as its longest
+-- unwrapped line. Pin the panel to the side the tooltip itself is anchored
+-- by, so the spare width faces away from whatever it is attached to.
+local function alignPanel(panel, tooltip)
+    local point = tooltip:GetNumPoints() > 0 and tooltip:GetPoint(1)
+    local side = "LEFT"
+    if not isSecret(point) and type(point) == "string" and point:find("RIGHT") then
+        side = "RIGHT"
+    end
+    if panel.side == side and panel:GetNumPoints() > 0 then return end
+    panel.side = side
+    panel:ClearAllPoints()
+    panel:SetPoint("TOP" .. side, tooltip, "TOP" .. side)
+end
+
 local function finishPanel(panel, tooltip, y)
     panel:SetHeight(y + 17)
-    panel:ClearAllPoints()
-    panel:SetPoint("TOPLEFT", tooltip, "TOPLEFT")
+    alignPanel(panel, tooltip)
     panel:Show()
+end
+
+-- Re-points a tooltip's anchors through choose(frame), keeping the offsets.
+local function retarget(tooltip, choose)
+    local points, changed = {}, false
+    for index = 1, tooltip:GetNumPoints() do
+        local point, relativeTo, relativePoint, x, y = tooltip:GetPoint(index)
+        if isSecret(point) or isSecret(relativeTo) or isSecret(relativePoint)
+            or isSecret(x) or isSecret(y) then
+            return
+        end
+        local target = choose(relativeTo)
+        if target ~= relativeTo then changed = true end
+        points[index] = { point, target, relativePoint, x, y }
+    end
+    if not changed then return end
+    tooltip:ClearAllPoints()
+    for _, anchor in ipairs(points) do
+        tooltip:SetPoint(anchor[1], anchor[2], anchor[3], anchor[4], anchor[5])
+    end
+end
+
+-- Blizzard attaches comparisons to the hidden tooltips' edges, past the end
+-- of a narrower panel; attach them to the panels instead.
+local function anchorToPanels(comparison)
+    retarget(comparison, function(frame)
+        local target = frame and panels[frame]
+        if target and target:IsShown() then return target end
+        return frame
+    end)
 end
 
 local function render(panel, tooltip, model)
@@ -1209,6 +1253,14 @@ local function restoreNative(tooltip)
         tooltip:SetAlpha(panel.nativeAlpha)
         panel.nativeAlpha = nil
     end
+    -- With the game tooltip visible again, its comparisons go back beside it.
+    for comparison in pairs(panels) do
+        if isComparison(comparison) then
+            pcall(retarget, comparison, function(frame)
+                return frame == panel and tooltip or frame
+            end)
+        end
+    end
 end
 
 -- Each tooltip data type the panel draws: read(tooltip, data) -> model,
@@ -1281,6 +1333,9 @@ local function onTooltipData(dataType, tooltip, data)
         local function onNativeShown(shown)
             if not (panel.nativeSize and panel:IsShown()) then return end
             refitNative(shown, panel)
+            -- Comparisons are anchored after they are shown, so align here.
+            pcall(alignPanel, panel, shown)
+            if isComparison(shown) then pcall(anchorToPanels, shown) end
             if panel.nativeAlpha and shown:GetAlpha() ~= 0 then
                 shown:SetAlpha(0)
             end
