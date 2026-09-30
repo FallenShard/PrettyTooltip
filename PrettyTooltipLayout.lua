@@ -12,6 +12,9 @@ local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local BODY_FONT = "Fonts\\FRIZQT__.TTF"
 local TITLE_FONT = "Fonts\\MORPHEUS.TTF"
+-- Expressway is a commercial font, so like DialogueUI's art it is used from
+-- EllesmereUI's folder when that addon is installed, never copied here.
+local ELLESMERE_BOLD = "Interface\\AddOns\\EllesmereUI\\media\\fonts\\Expressway Bold.ttf"
 local MIN_WIDTH, MAX_WIDTH = 260, 408
 -- Wrapping prose (effects, set bonuses, flavor text) asks for this much inner
 -- width at most; everything else must fit on one line.
@@ -311,10 +314,27 @@ local function attachDeltas(model, deltas)
     table.sort(model.lost, function(a, b) return a.left < b.left end)
 end
 
-local function hasDialogueBackdrop()
+local function isInstalled(addon)
     if not (C_AddOns and C_AddOns.GetAddOnInfo) then return false end
-    local ok, name, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, "DialogueUI")
+    local ok, name, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, addon)
     return ok and name ~= nil and reason ~= "MISSING"
+end
+
+local function hasDialogueBackdrop()
+    return isInstalled("DialogueUI")
+end
+
+-- The font for item and spell names, and whether it needs the shadow bold.
+local titleFace, titleFakeBold
+local function titleFont()
+    if titleFace == nil then
+        if isInstalled("EllesmereUI") then
+            titleFace, titleFakeBold = ELLESMERE_BOLD, false
+        else
+            titleFace, titleFakeBold = TITLE_FONT, true
+        end
+    end
+    return titleFace, titleFakeBold
 end
 
 -- Rows other addons append straight to the tooltip are absent from its data.
@@ -616,7 +636,9 @@ local function clearPool(panel)
     panel.used, panel.texturesUsed = 0, 0
 end
 
-local function textAt(panel, content, x, y, width, size, color, fontPath, align)
+-- WoW fonts have no bold flag, and the face varies per install, so bold is
+-- a shadow in the text's own color one pixel to the right.
+local function textAt(panel, content, x, y, width, size, color, fontPath, align, bold)
     panel.used = panel.used + 1
     local font = panel.pool[panel.used]
     if not font then
@@ -630,6 +652,13 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align)
     font:SetJustifyH(align or "LEFT")
     font:SetJustifyV("TOP")
     font:SetTextColor(color[1], color[2], color[3])
+    if bold then
+        font:SetShadowColor(color[1], color[2], color[3], 1)
+        font:SetShadowOffset(1, 0)
+    else
+        font:SetShadowColor(0, 0, 0, 0)
+        font:SetShadowOffset(0, 0)
+    end
     font:SetText(content)
     font:Show()
     return math.max(size + 2, font:GetStringHeight() or 0)
@@ -741,7 +770,7 @@ local function fitWidth(panel, model, title)
         end
     end
     local indent = model.icon and HEADER_INDENT or 0
-    consider(measure(panel, title, 19, TITLE_FONT) + indent)
+    consider(measure(panel, title, 19, (titleFont())) + indent)
     if model.slot then consider(measure(panel, model.slot, 13) + indent) end
     group(model.header, 12, indent)
     if model.weaponDps then
@@ -934,6 +963,9 @@ local function drawChrome(panel, tooltip, style)
     panel.icon:ClearAllPoints()
     panel.icon:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -ICON_TOP)
     panel.iconBorder:SetSize(iconSize + 2, iconSize + 2)
+    -- Icons carry their own dark frame in the outer texels; cropping it lets
+    -- the art meet the panel's colored border directly.
+    panel.icon:SetTexCoord(.08, .92, .08, .92)
     if style.icon then
         panel.icon:SetTexture(style.icon)
         panel.icon:Show()
@@ -997,8 +1029,9 @@ local function render(panel, tooltip, model)
     local y = TITLE_TOP
     local inner = panel.width - 2 * PAD
     local indent = model.icon and HEADER_INDENT or 0
+    local face, fakeBold = titleFont()
     y = y + textAt(panel, title, PAD + indent, y, inner - indent,
-        19, quality, TITLE_FONT) + 4
+        19, quality, face, nil, fakeBold) + 4
     if model.slot and model.slot ~= "" then
         y = y + textAt(panel, model.slot, PAD + indent, y, inner - indent,
             13, quality) + 4
@@ -1381,6 +1414,7 @@ ns.ui = {
     COLUMN_GAP = COLUMN_GAP,
     BODY_FONT = BODY_FONT,
     TITLE_FONT = TITLE_FONT,
+    titleFont = titleFont,
     EXTRA_COLOR = EXTRA_COLOR,
     GOLD_RULE = GOLD_RULE,
 }

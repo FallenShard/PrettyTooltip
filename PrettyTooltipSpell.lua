@@ -9,7 +9,7 @@ end
 
 local isSecret, safeText, add = ui.isSecret, ui.safeText, ui.add
 local textAt, measure = ui.textAt, ui.measure
-local PAD, TITLE_FONT = ui.PAD, ui.TITLE_FONT
+local PAD = ui.PAD
 local TITLE_COLOR = { .96, .92, .84 }
 local NEUTRAL = { .62, .66, .74 }
 local DESCRIPTION_COLOR = { .92, .87, .76 }
@@ -126,9 +126,17 @@ local function hex(color)
     return string.format("%02X%02X%02X", byte(color[1]), byte(color[2]), byte(color[3]))
 end
 
--- The game's own escapes; digits inside them (color codes, icon sizes) must
--- not be recolored.
-local ESCAPES = { "|c%x%x%x%x%x%x%x%x", "|r", "|T.-|t", "|A.-|a", "|H.-|h", "|n" }
+-- The game's own escapes; digits inside them (color codes, icon sizes, the
+-- plural escape "|4hour:hrs;") must not be recolored.
+local ESCAPES = { "|c%x%x%x%x%x%x%x%x", "|r", "|T.-|t", "|A.-|a", "|H.-|h", "|K.-|k", "|4[^;]*;", "|n" }
+
+-- "1 |4hour:hrs;" picks its word from the number before it. Coloring that
+-- number would separate the two, so resolve the escape first: singular for 1.
+local function resolvePlurals(text)
+    return (text:gsub("(%d+)(%s*)|4([^:;]*):([^;]*);", function(number, space, one, many)
+        return number .. space .. (tonumber(number) == 1 and one or many)
+    end))
+end
 
 local function colorPlainNumbers(text, code)
     -- A number must start a word, so "x2" is left alone; a sentence's final
@@ -141,6 +149,7 @@ local function colorPlainNumbers(text, code)
 end
 
 local function colorNumbers(text, code)
+    text = resolvePlurals(text)
     local out, plainStart, pos = {}, 1, 1
     while true do
         local bar = text:find("|", pos, true)
@@ -150,13 +159,11 @@ local function colorNumbers(text, code)
             local _, stop = text:find("^" .. pattern, bar)
             if stop then escapeEnd = stop break end
         end
-        if escapeEnd then
-            out[#out + 1] = colorPlainNumbers(text:sub(plainStart, bar - 1), code)
-            out[#out + 1] = text:sub(bar, escapeEnd)
-            plainStart, pos = escapeEnd + 1, escapeEnd + 1
-        else
-            pos = bar + 1
-        end
+        -- An escape this list does not know still protects its first character.
+        escapeEnd = escapeEnd or math.min(bar + 1, #text)
+        out[#out + 1] = colorPlainNumbers(text:sub(plainStart, bar - 1), code)
+        out[#out + 1] = text:sub(bar, escapeEnd)
+        plainStart, pos = escapeEnd + 1, escapeEnd + 1
     end
     out[#out + 1] = colorPlainNumbers(text:sub(plainStart), code)
     return table.concat(out)
@@ -301,7 +308,7 @@ end
 
 local function fitWidth(panel, model, title, sentences)
     local indent = model.icon and TEXT_INDENT or 0
-    local need = measure(panel, title, 17, TITLE_FONT) + indent
+    local need = measure(panel, title, 17, (ui.titleFont())) + indent
     local list = pills(model)
     if #list > 0 then need = math.max(need, pillsWidth(panel, list) + indent) end
     local function consider(width) if width > need then need = width end end
@@ -373,7 +380,9 @@ local function renderSpell(panel, tooltip, model)
     local inner = panel.width - 2 * PAD
     local y = ui.TITLE_TOP
     local indent = model.icon and TEXT_INDENT or 0
-    y = y + textAt(panel, title, PAD + indent, y, inner - indent, 17, TITLE_COLOR, TITLE_FONT) + 4
+    local face, fakeBold = ui.titleFont()
+    y = y + textAt(panel, title, PAD + indent, y, inner - indent, 17, TITLE_COLOR,
+        face, nil, fakeBold) + 4
     local list = pills(model)
     if #list > 0 then y = drawPills(panel, list, PAD + indent, y + 1) + 4 end
     y = math.max(y + 6, headerMin)
