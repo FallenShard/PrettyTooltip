@@ -204,17 +204,17 @@ local function drawPills(panel, list, x, y)
     return y + PILL_HEIGHT
 end
 
--- No spell API names the school, so take the first school word in the
--- description, then in the name.
+-- No spell API names the school. A school word anywhere in the text misfires
+-- on physical abilities ("Rapid Fire"), so only "<School> damage" in the
+-- description counts, then a school leading the name ("Holy Light").
 local function detectSchool(model)
     for _, text in ipairs(model.description) do
-        for word in text:gmatch("%u%l+") do
-            if SCHOOL_COLORS[word] then return word end
+        for word in text:gmatch("(%a+) damage") do
+            if SCHOOL_COLORS[titleCase(word)] then return titleCase(word) end
         end
     end
-    for word in model.name:gmatch("%u%l+") do
-        if SCHOOL_COLORS[word] then return word end
-    end
+    local first = model.name:match("^(%a+)")
+    if first and SCHOOL_COLORS[titleCase(first)] then return titleCase(first) end
 end
 
 -- Descriptions come in the game's gold; without a readable color, a long

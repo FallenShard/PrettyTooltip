@@ -34,6 +34,7 @@ local EXTRA_COLOR = { .60, .60, .63 }
 local GOLD_RULE = { .78, .59, .32 }
 local QUEST_GOLD = { 1, .82, 0 }
 local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
+local CONSUMABLE_CLASS = Enum.ItemClass and Enum.ItemClass.Consumable or 0
 local DELTA_UP = { .42, .86, .42 }
 local DELTA_DOWN = { 1, .42, .36 }
 local DURABILITY_BAR = 54
@@ -99,15 +100,11 @@ local QUALITY = {
     [4] = { .72, .40, .94 },
     [5] = { 1.00, .57, .22 },
 }
-local QUALITY_NAME = {
-    [2] = "Uncommon",
-    [3] = "Rare",
-    [4] = "Epic",
-    [5] = "Legendary",
-}
-local ARMOR_SLOTS = {
-    Head = true, Shoulder = true, Chest = true, Wrist = true,
-    Hands = true, Waist = true, Legs = true, Feet = true,
+-- The first stat block, as on EllesmereUI's character sheet; every other stat
+-- follows under a divider, like its Secondary Stats.
+local PRIMARY_STATS = {
+    Strength = true, Agility = true, Stamina = true, Intellect = true, Spirit = true,
+    ["All Stats"] = true,
 }
 -- Lines that say what an item is, shown with the slot and type in this order.
 local ITEM_KINDS = { "Crafting Reagent", "Scarce" }
@@ -319,7 +316,7 @@ local function attachDeltas(model, deltas)
         end
         return value
     end
-    for _, list in ipairs({ model.armor, model.primary, model.magic }) do
+    for _, list in ipairs({ model.armor, model.primary, model.secondary }) do
         for _, row in ipairs(list) do
             local label = plainText(row.left):match("^%s*%+?[%d%.]+%%? (.+)$")
             if label then take(row, label) end
@@ -395,7 +392,7 @@ local function readModel(tooltip, data)
         header = {},
         armor = {},
         primary = {},
-        magic = {},
+        secondary = {},
         effects = {},
         flavor = {},
         lost = {},
@@ -442,11 +439,7 @@ local function readModel(tooltip, data)
             model.equippable = true
             local slot = unusable(left, line.leftColor)
             local kind = unusable(right, line.rightColor)
-            if ARMOR_SLOTS[left] and right ~= "" and QUALITY_NAME[model.quality] then
-                model.slot = QUALITY_NAME[model.quality] .. " " .. kind .. " " .. slot
-            else
-                model.slot = right ~= "" and (slot .. " \194\183 " .. kind) or slot
-            end
+            model.slot = right ~= "" and (kind .. " \194\183 " .. slot) or slot
         elseif lineType == LINE.ItemBinding or trimmed:match("^Binds ")
             or trimmed == "Soulbound" or trimmed:match("^Unique") then
             add(model.header, left, right)
@@ -492,13 +485,10 @@ local function readModel(tooltip, data)
                 add(model.armor, left, right)
                 model.armor[#model.armor].value = trimmed:match("^(%d+)")
             elseif line.prettyTooltipOriginal or trimmed:match("^%+[%d%.]+") then
-                local group = displayed:find("Spell", 1, true)
-                    or displayed:find("Mana", 1, true)
-                    or displayed:find("Healing", 1, true)
-                local list = group and model.magic or model.primary
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
-                    add(list, piece, right)
+                    local label = plainText(piece):match("^%s*%+?[%d%.]+%%? (.+)$")
+                    add(PRIMARY_STATS[label] and model.primary or model.secondary, piece, right)
                     right = ""
                 end
             elseif trimmed:match('^".+"$') then
@@ -528,7 +518,21 @@ local function readModel(tooltip, data)
             model.extras[#model.extras + 1] = row
         end
     end
+    local classID, className, subClassName
+    if itemInfo and C_Item and C_Item.GetItemInfoInstant then
+        local ok, _, itemType, itemSubType, _, _, itemClassID = pcall(C_Item.GetItemInfoInstant, itemInfo)
+        if ok and not isSecret(itemClassID) and not isSecret(itemType) and not isSecret(itemSubType) then
+            classID, className, subClassName = itemClassID, itemType, itemSubType
+        end
+    end
     local shown = {}
+    -- The game's tooltip never says an item is a consumable, or what kind.
+    if classID == CONSUMABLE_CLASS and type(className) == "string" and className ~= "" then
+        shown[1] = className
+        if type(subClassName) == "string" and subClassName ~= "" and subClassName ~= className then
+            shown[1] = className .. " \194\183 " .. subClassName
+        end
+    end
     for _, kind in ipairs(ITEM_KINDS) do shown[#shown + 1] = model.kinds[kind] end
     if #shown > 0 then
         local kinds = table.concat(shown, " \194\183 ")
@@ -547,10 +551,7 @@ local function readModel(tooltip, data)
     if model.sellPrice and model.sellPrice > 0 then
         add(model.footerRight, label, formatMoney(model.sellPrice))
     end
-    if not model.quest and itemInfo and C_Item and C_Item.GetItemInfoInstant then
-        local ok, _, _, _, _, _, classID = pcall(C_Item.GetItemInfoInstant, itemInfo)
-        model.quest = ok and not isSecret(classID) and classID == QUEST_CLASS
-    end
+    model.quest = model.quest or classID == QUEST_CLASS
     local deltas = getDeltas(tooltip, itemInfo)
     if deltas then attachDeltas(model, deltas) end
     return model
@@ -821,7 +822,7 @@ local function fitWidth(panel, model, title)
     if model.weaponDamage then consider(measure(panel, weaponText(model), 12) + 7) end
     group(model.armor, 16, 0)
     group(model.primary, 13, 0)
-    group(model.magic, 13, 0)
+    group(model.secondary, 13, 0)
     group(model.lost, 12, 0)
     group(model.effects, 13, 0, true)
     group(model.flavor, 12, 0, true)
@@ -1115,8 +1116,9 @@ local function render(panel, tooltip, model)
     y = y + textAt(panel, title, PAD + indent, y, inner - indent,
         19, quality, face, nil, fakeBold) + 4
     if model.slot and model.slot ~= "" then
-        y = y + textAt(panel, model.slot, PAD + indent, y, inner - indent,
-            13, quality) + 4
+        -- Halfway to white: the title already carries the full rarity color.
+        y = y + textAt(panel, model.slot, PAD + indent, y, inner - indent, 13,
+            { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 4
     end
     y = drawGroup(panel, model.header, y, 12, { .78, .72, .63 }, indent)
     y = math.max(y + 6, headerMin)
@@ -1125,7 +1127,7 @@ local function render(panel, tooltip, model)
     -- Dividers go only between sections that have content.
     local sectioned = false
     if model.weaponDps or model.weaponDamage or #model.armor > 0 or #model.primary > 0
-        or #model.magic > 0 or #model.lost > 0 or #model.effects > 0 or #model.flavor > 0 then
+        or #model.secondary > 0 or #model.lost > 0 or #model.effects > 0 or #model.flavor > 0 then
         y = divider(panel, y, GOLD_RULE)
         if model.weaponDps then
             local delta = model.weaponDpsDelta
@@ -1147,10 +1149,10 @@ local function render(panel, tooltip, model)
         end
         if #model.armor > 0 then y = y + 5 end
         y = drawGroup(panel, model.primary, y, 13, { .90, .85, .74 })
-        if #model.magic > 0 and #model.primary > 0 then
-            y = divider(panel, y + 3, { .56, .54, .74 })
+        if #model.secondary > 0 and #model.primary > 0 then
+            y = divider(panel, y + 3, GOLD_RULE)
         end
-        y = drawGroup(panel, model.magic, y, 13, { .73, .77, 1 })
+        y = drawGroup(panel, model.secondary, y, 13, { .90, .85, .74 })
         if #model.lost > 0 then
             y = drawGroup(panel, model.lost, y + 3, 12, { .50, .48, .45 })
         end

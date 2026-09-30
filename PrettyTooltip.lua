@@ -54,12 +54,15 @@ local schools = {
 }
 
 -- Values use richer colors; labels use lighter, softer shades of the same hue.
-local PRIMARY_COLOR = "DFBF6F"
-local PHYSICAL_COLOR = "E68728"
-local DEFENSE_COLOR = "7CA2B5"
-local MAGIC_COLOR = "706DFF"
-local HEALING_COLOR = "6FC869"
-local MANA_COLOR = "4DABDD"
+-- Primary, physical, defense, and magic follow EllesmereUI's character sheet
+-- defaults (Attributes, Attack, Defense, Secondary Stats). All but primary are
+-- mixed a quarter toward white to stay readable on the dark panel.
+local PRIMARY_COLOR = "0CD29D"
+local PHYSICAL_COLOR = "FF8357"
+local DEFENSE_COLOR = "6FBDFF"
+local MAGIC_COLOR = "9A71D6"
+local HEALING_COLOR = "93D68F"
+local MANA_COLOR = "7AC0E6"
 local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:0|t  "
 
 local schoolColors = {
@@ -72,12 +75,12 @@ local schoolColors = {
 }
 
 local labelColors = {
-    [PRIMARY_COLOR] = "EBDCB6",
-    [PHYSICAL_COLOR] = "E6A96C",
-    [DEFENSE_COLOR] = "AFC4CF",
-    [MAGIC_COLOR] = "CECDF9",
-    [HEALING_COLOR] = "A7D9A4",
-    [MANA_COLOR] = "91C7E4",
+    [PRIMARY_COLOR] = "79DCC2",
+    [PHYSICAL_COLOR] = "F5B8A1",
+    [DEFENSE_COLOR] = "ADD4F5",
+    [MAGIC_COLOR] = "C3AFE1",
+    [HEALING_COLOR] = "BDE2BB",
+    [MANA_COLOR] = "ACD5EB",
     [schoolColors.Arcane] = "F0ADE6",
     [schoolColors.Fire] = "EE9F72",
     [schoolColors.Frost] = "9EDCF5",
