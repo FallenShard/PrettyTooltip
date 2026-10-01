@@ -308,7 +308,7 @@ end
 
 local function fitWidth(panel, model, title, sentences)
     local indent = model.icon and TEXT_INDENT or 0
-    local need = measure(panel, title, 17, (ui.titleFont())) + indent
+    local need = measure(panel, title, 17, ui.titleFont()) + indent
     local list = pills(model)
     if #list > 0 then need = math.max(need, pillsWidth(panel, list) + indent) end
     local function consider(width) if width > need then need = width end end
@@ -380,11 +380,11 @@ local function renderSpell(panel, tooltip, model)
     local inner = panel.width - 2 * PAD
     local y = ui.TITLE_TOP
     local indent = model.icon and TEXT_INDENT or 0
-    local face, fakeBold = ui.titleFont()
-    y = y + textAt(panel, title, PAD + indent, y, inner - indent, 17, TITLE_COLOR,
-        face, nil, fakeBold) + 4
+    local leftIndent = ui.headerInsets(indent)
+    y = y + textAt(panel, title, PAD + leftIndent, y, inner - indent, 17, TITLE_COLOR,
+        ui.titleFont()) + 4
     local list = pills(model)
-    if #list > 0 then y = drawPills(panel, list, PAD + indent, y + 1) + 4 end
+    if #list > 0 then y = drawPills(panel, list, PAD + leftIndent, y + 1) + 4 end
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
     panel.footer:SetHeight(0)

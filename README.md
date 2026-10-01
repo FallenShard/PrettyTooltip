@@ -1,52 +1,95 @@
 # PrettyTooltip
 
-Shortens English item stat text in WoW Forever tooltips. For example:
+A full reskin of item and spell tooltips for WoW Forever. PrettyTooltip replaces the game's tooltip with a compact, ornamented panel: the item's icon and quality up front, stats in short colored rows grouped by kind, and the fine print gathered in a footer. Hold **ALT** at any time to see the game's own tooltip.
 
-```text
-Equip: Increases healing done by up to 48 and damage done by up to 16 for all magical spells and effects.
-```
+## Item tooltips
 
-becomes two tooltip lines:
+Top to bottom, an item panel shows:
 
-```text
-+48 Healing Power
-+16 Spell Damage Power
-```
+- **Header.** The icon with an item level badge, the name in its quality color, and a subtitle with the item's type and slot, such as `Mail · Head` or `Staff · Two-Hand`. The subtitle also names what the game leaves unsaid: `Consumable · Potion`, `Crafting Reagent`, `Scarce`. The binding sits below it, with the required level at the right, red while you are below it. The whole panel is tinted by quality; quest items, and items that begin a quest, are tinted quest gold.
+- **Weapon damage.** DPS as the prominent row, with damage and speed beneath it.
+- **Armor and stats.** Armor, then the stats in two blocks: the primary attributes, and everything else under a divider. Long stat wording is shortened (see below), and each stat is colored by kind.
+- **Equip effects and enchants.** Equip effects that are not a plain stat, such as a zone-limited speed bonus, join the stat list in green without the `Equip:` prefix. Enchants follow as green rows with a green marker, one per bonus: `Enchanted: Stamina +1 and Armor +8` becomes `+1 Stamina` and `+8 Armor`.
+- **Use effects and flavor text,** as the game words them.
+- **Item set.** The set name and how many pieces you own, the pieces you own highlighted, and the set bonuses, with active ones highlighted.
+- **Footer.** Durability as a small bar, the crafter's name for crafted items, other requirements such as skills or classes, and the sell price (per item for stacks).
 
-**Spell Damage Power** names damage-only magical bonuses, including the damage part of a combined healing/damage line. **Spell Power** names generic bonuses that apply to both damage and healing. School-specific damage bonuses use names such as **Fire Spell Damage Power**.
+While the game shows a comparison, each stat, armor, and DPS row carries its change against your equipped item in green or red, and stats only the equipped item has are listed dimmed. Comparison panels are tagged **Equipped**.
 
-It also shortens common spell damage, attack power, hit, crit, avoidance, defense, rating, regeneration, and similar Equip bonuses. Stat lines that are already short, item uses, procs, and unrecognized wording stay as the game displays them.
+Recipes take their own name as the title, so `Pattern: Blue Linen Vest` stays the pattern even though the game's tooltip includes the vest.
 
-Each stat value uses a deeper, richer color, while its name uses a lighter, less saturated shade of the same hue. Categories are teal for primary attributes, orange for physical offense, blue for defense, and purple for general magic, matching the defaults of EllesmereUI's character sheet; green for healing, blue for mana regeneration, and distinct colors for the six spell schools. Existing short stat lines such as `+12 Strength` receive the same treatment.
+### Shorter stats
 
-Recognized slot/type pairs are shown together, such as `Staff · Two-Hand` or `Cloth · Chest`. Solo slots such as `Finger` stay as they are. `Crafting Reagent` and `Scarce` lines join that same line in their original colors, as in `Crafting Reagent · Scarce`. Consumables, which the game never labels, start that line with their class and subclass, such as `Consumable · Potion`. Equipment tooltips show item level directly below the item name when the game supplies it. Short `Equip: +8 Attack Power.` text becomes `+8 Attack Power`.
+Common Equip wordings become short stat rows:
 
-## V2 presentation
+| The game says | PrettyTooltip shows |
+| --- | --- |
+| Equip: Increases healing done by up to 48 and damage done by up to 16 for all magical spells and effects. | +48 Healing Power<br>+16 Spell Damage Power |
+| Equip: Increases damage and healing done by magical spells and effects by up to 12. | +12 Spell Power |
+| Equip: Increases damage done by Fire spells and effects by up to 20. | +20 Fire Spell Damage Power |
+| Equip: Improves your chance to get a critical strike by 1%. | +1% Critical Strike Chance |
+| Equip: Increased Defense +2. | +2 Defense Skill |
+| Equip: Restores 3 mana per 5 sec. | +3 Mana per 5 sec |
 
-The item tooltip has a slim frame and a small item icon beside the name. Common items use a graphite frame; uncommon, rare, epic, and legendary items tint the frame and a custom silver filigree corner to match their quality. A small texture marks each recognized stat, so the marker works with fonts that lack diamond characters. For weapons with the game's usual damage, speed, and DPS rows, DPS becomes the prominent first row; damage and speed follow on the next row. This keeps the same number of tooltip rows and leaves all unrecognized and addon supplied lines in place.
+**Spell Power** is a bonus to both damage and healing; **Spell Damage Power** is damage only. Hit, crit, dodge, parry, block, ratings, attack power, health regeneration, and spell penetration are shortened the same way. Wording PrettyTooltip does not recognize is shown as the game writes it.
 
-The filigree source is `art/quality-corner-source.png`; the game loads the scaled `art/quality-corner.tga`. The stat marker is `art/stat-marker.tga`.
+### Colors
 
-## V3 layout preview
+Each stat value takes a rich color and its name a lighter shade of the same hue. The four main categories use the defaults of EllesmereUI's character sheet:
 
-The addon renders an item panel with a quality-colored header, icon with an item level badge, ornamented dividers, stats grouped as primary attributes and then everything else, an item-set block, and a footer with durability, requirements, and sell price. The original game tooltip remains available while ALT is held. Lines the layout cannot classify, including rows appended directly by other addons, appear below a thin rule in smaller, muted text, in their original order and keeping their own colors. If tooltip values cannot be read safely, the original game tooltip is shown instead.
-
-The panel is only as wide as its widest single-line content, between 260 and 408 pixels; effects, set bonuses, and other prose wrap. Set pieces you own and active set bonuses are highlighted, following the game's own coloring. Quest items, and items that begin a quest, are tinted quest gold instead of their rarity color; the title keeps the rarity color. While the game shows a comparison, each stat, armor, and DPS row carries its change against the compared item in green or red, and stats only the equipped item has are listed dimmed below. Durability is a small bar with its value. Dividers appear only between sections that have content. When DialogueUI is installed, its dark tooltip backdrop is used from its own folder; it is not copied into this addon. The hidden game tooltip is resized to cover the panel, so comparison tooltips, screen-edge sliding, and clamping follow the panel's real size.
-
-Tooltip refreshes keep the previous panel visible until other addons finish appending their rows, then redraw it at the end of the frame. A clear or brief hide also keeps the panel visible through a same-frame rebuild.
-
-Hold **ALT** while viewing an item to see the original tooltip wording. The tooltip updates when ALT is pressed or released, even if it is already open.
-ALT also hides the frame and item icon and restores the original weapon row order, leaving lines from other addons in place.
-Unrecognized item lines are passed through unchanged. PrettyTooltip does not remove or replace the tooltip's line table.
+| Category | Color |
+| --- | --- |
+| Primary attributes | Teal |
+| Attack: attack power, hit, crit, haste | Orange |
+| Defense: defense, dodge, parry, block | Blue |
+| Magic: spell power, spell hit and crit, penetration | Purple |
+| Healing | Green |
+| Mana regeneration | Light blue |
+| Spell schools and resistances | Arcane, Fire, Frost, Holy, Nature, and Shadow each in their own color |
 
 ## Spell tooltips
 
-Spell tooltips use the same panel. Cost, cast time, cooldown, and range sit in a centered strip under the header, the spell icon sits left of the name, small badges under the name give the school, in its color, and the rank, and the description is split into one sentence per line, with its numbers in the school's color. The panel is tinted by the spell's school, taken from the first damage its description names, such as `Fire damage`, or else from a school that starts its name, such as `Holy Light` (Arcane, Fire, Frost, Holy, Nature, Shadow), and otherwise by the resource it costs: blue for mana, red for rage, yellow for energy. The cost value keeps the resource color either way. Lines the layout cannot classify, and rows added by other addons, appear below in the muted style used for items. If the spell's lines cannot be read, such as while combat restricts them, the game's tooltip is shown instead.
+Spells use the same panel: the icon and name, small badges for the spell's school and rank, and a strip with cost, cast time, cooldown, and range. The description follows one sentence per line, with its numbers highlighted.
+
+The panel is tinted by the spell's school, read from the damage its description names (`Fire damage`) or a school that starts its name (`Holy Light`). Spells with neither are tinted by the resource they cost: blue for mana, red for rage, yellow for energy.
+
+## Working with other addons
+
+- Rows other addons add to a tooltip are kept, below a thin rule in smaller, muted text, in their original order and colors.
+- Comparison tooltips, screen-edge clamping, and anything anchored to the tooltip follow the panel's real size.
+- With **DialogueUI** installed, the panel uses its dark tooltip backdrop, unless turned off in the options. Text uses the game's own tooltip fonts, so a UI addon that changes the default font is followed; with **EllesmereUI** installed, names use its Expressway font. Both are used from those addons' own folders; nothing of theirs is bundled.
+- Whenever a tooltip cannot be read safely, such as spell details restricted during combat, the game's own tooltip is shown instead.
+
+## Options
+
+Open the game's options, then **AddOns > PrettyTooltip**, or type `/prettytooltip` (short: `/ptip`). Changes apply the next time a tooltip opens.
+
+- **Show the icon on the right** moves the icon and its item level badge to the right of the name.
+- **Show the item level badge** and **Show stat markers** turn those elements off.
+- **Use DialogueUI's backdrop** (on by default, only with DialogueUI installed): off, the panel uses its plain dark gradient.
+- **Color stats by category**: off, every stat is parchment.
+- **Tint the panel**: off, every panel is neutral; names keep their quality color.
+- **Restyle spell tooltips**: off, spells keep the game's tooltip.
+- **Original tooltip** picks the key that shows the game's own tooltip: ALT (default), CTRL, or none.
 
 ## Install
 
-Run `python deploy.py` from this folder to copy the game files to `D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns\PrettyTooltip`. For a different installation, run `python deploy.py --addons-dir "<path to Interface\AddOns>"`.
+1. Download the release and extract the `PrettyTooltip` folder into your WoW Forever installation's `Interface\AddOns` folder.
+2. Restart the game if it was running, and enable **PrettyTooltip** on the character select AddOns screen.
 
-If the `PrettyTooltip` folder was added while the game was running, restart the game so it discovers the new addon. After later edits to the Lua file, deploy again and type `/reload` in game. Enable **PrettyTooltip** on the character AddOns screen if needed.
+## Compatibility
 
-This addon targets the English WoW Forever 1.60.1 client (`## Interface: 16001`). The game's tooltip API may differ on other versions.
+- WoW Forever 1.60.1 (`## Interface: 16001`). Other clients may word their tooltips differently.
+- English clients only. On other languages the panel and stat rewriting stay off, though the options page still appears.
+
+## Known limitations
+
+- No game API names a spell's school, so it is read from the spell's text. A spell that never names its damage type may get no school, or the wrong one if its name starts with one.
+- Profession recipe spells show the crafted item as plain rows under the description.
+- Stat wordings not in the table above are shown unchanged.
+
+## Development
+
+`python deploy.py` copies the game files into `D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns\PrettyTooltip`; pass `--addons-dir "<path to Interface\AddOns>"` for another installation. After a deploy, `/reload` picks up Lua changes; changes to the `.toc` need a game restart.
+
+`art/README.md` describes each texture and how it is made.

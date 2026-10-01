@@ -10,11 +10,12 @@ DEFAULT_ADDONS_DIR = Path(
 )
 GAME_FILES = (
     "PrettyTooltip.toc",
+    "PrettyTooltipOptions.lua",
     "PrettyTooltip.lua",
     "PrettyTooltipLayout.lua",
     "PrettyTooltipSpell.lua",
     "art/glow.tga",
-    "art/quality-corner.tga",
+    "art/logo.tga",
     "art/stat-marker.tga",
 )
 

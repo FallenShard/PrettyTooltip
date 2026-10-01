@@ -1,0 +1,6 @@
+package-as: PrettyTooltip
+
+ignore:
+  - deploy.py
+  - art/*.py
+  - art/README.md
