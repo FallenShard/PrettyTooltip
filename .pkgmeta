@@ -4,3 +4,4 @@ ignore:
   - deploy.py
   - art/*.py
   - art/README.md
+  - art/logo-400.png

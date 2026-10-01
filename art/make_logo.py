@@ -1,12 +1,19 @@
-"""Generate art/logo.tga, the addon list icon: a miniature of the item panel."""
+"""Generate art/logo.tga, the addon list icon: a miniature of the item panel.
 
+--size and --out render other sizes, such as the CurseForge project avatar:
+python make_logo.py --size 400 --out logo-400.png
+"""
+
+from argparse import ArgumentParser
 from pathlib import Path
 
 from PIL import Image, ImageDraw
 
-SIZE = 64
-# Drawn large and scaled down so edges stay smooth at the list's ~20 px.
-SCALE = 8
+# Shapes are laid out on a 64-unit grid, whatever the output size.
+DESIGN = 64
+# Drawn this many times larger and scaled down, so edges stay smooth at the
+# addon list's ~20 px.
+SUPERSAMPLE = 8
 
 GOLD = (214, 170, 92, 255)
 GOLD_DARK = (150, 112, 58, 255)
@@ -20,19 +27,6 @@ TEAL = (12, 210, 157, 255)
 ORANGE = (255, 131, 87, 255)
 
 
-def px(value: float) -> int:
-    return round(value * SCALE)
-
-
-def box(x0: float, y0: float, x1: float, y1: float) -> tuple[int, int, int, int]:
-    return px(x0), px(y0), px(x1), px(y1)
-
-
-def diamond(draw: ImageDraw.ImageDraw, cx: float, cy: float, r: float, fill) -> None:
-    draw.polygon([(px(cx), px(cy - r)), (px(cx + r), px(cy)),
-                  (px(cx), px(cy + r)), (px(cx - r), px(cy))], fill=fill)
-
-
 def gradient(top, bottom, height: int) -> Image.Image:
     image = Image.new("RGBA", (1, height))
     for y in range(height):
@@ -41,8 +35,20 @@ def gradient(top, bottom, height: int) -> Image.Image:
     return image
 
 
-def main() -> None:
-    big = SIZE * SCALE
+def render(size: int) -> Image.Image:
+    big = size * SUPERSAMPLE
+    scale = big / DESIGN
+
+    def px(value: float) -> int:
+        return round(value * scale)
+
+    def box(x0: float, y0: float, x1: float, y1: float) -> tuple[int, int, int, int]:
+        return px(x0), px(y0), px(x1), px(y1)
+
+    def diamond(draw: ImageDraw.ImageDraw, cx: float, cy: float, r: float, fill) -> None:
+        draw.polygon([(px(cx), px(cy - r)), (px(cx + r), px(cy)),
+                      (px(cx), px(cy + r)), (px(cx - r), px(cy))], fill=fill)
+
     image = Image.new("RGBA", (big, big))
 
     # The card: gold rim, dark body, rounded like the panel's backdrop.
@@ -69,7 +75,16 @@ def main() -> None:
         diamond(draw, 13.5, y, 3, GOLD)
         draw.rounded_rectangle(box(20, y - 2.5, end, y + 2.5), radius=px(2.5), fill=color)
 
-    image.resize((SIZE, SIZE), Image.LANCZOS).save(Path(__file__).with_name("logo.tga"))
+    return image.resize((size, size), Image.LANCZOS)
+
+
+def main() -> None:
+    parser = ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument("--size", type=int, default=DESIGN, help="output width and height in pixels")
+    parser.add_argument("--out", type=Path, default=Path(__file__).with_name("logo.tga"),
+                        help="output file; the extension picks the format")
+    args = parser.parse_args()
+    render(args.size).save(args.out)
 
 
 if __name__ == "__main__":
