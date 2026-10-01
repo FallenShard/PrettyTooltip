@@ -3,6 +3,7 @@
 ## Notes: A full reskin of item and spell tooltips for WoW Forever.
 ## Author: FallenShard
 ## X-License: MIT
+## X-Curse-Project-ID: 1720719
 ## Version: 1.0.0
 ## IconTexture: Interface\AddOns\PrettyTooltip\art\logo
 ## SavedVariables: PrettyTooltipDB
