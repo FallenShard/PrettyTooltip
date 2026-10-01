@@ -370,7 +370,7 @@ local function attachDeltas(model, deltas)
     end
     for _, list in ipairs({ model.armor, model.primary, model.secondary }) do
         for _, row in ipairs(list) do
-            local label = plainText(row.left):match("^%s*%+?[%d%.]+%%? (.+)$")
+            local label = plainText(row.left):match("^%s*%+?[%d%.,]+%%? (.+)$")
             if label then take(row, label) end
         end
     end
@@ -530,17 +530,17 @@ local function readModel(tooltip, data)
                 and right == "" and trimmed:match("^[%a'%- ]+$") then
                 add(model.setItems, trimmed, right)
                 model.setItems[#model.setItems].active = isActive(line.leftColor)
-            elseif right:match("^Speed [%d%.]+$") and trimmed:match("^%d+%s*%-%s*%d+ Damage$") then
+            elseif right:match("^Speed [%d%.]+$") and trimmed:match("^[%d,]+%s*%-%s*[%d,]+ Damage$") then
                 model.weaponDamage, model.weaponSpeed = left, right
             elseif trimmed:match("^%([%d%.]+ damage per second%)$") then
                 model.weaponDps = trimmed:match("^%(([%d%.]+) damage per second%)$")
-            elseif trimmed:match("^%d+ Armor$") then
+            elseif trimmed:match("^[%d,]+ Armor$") then
                 add(model.armor, left, right)
-                model.armor[#model.armor].value = trimmed:match("^(%d+)")
+                model.armor[#model.armor].value = (trimmed:match("^([%d,]+)"):gsub(",", ""))
             elseif line.prettyTooltipOriginal or trimmed:match("^%+[%d%.]+") then
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
-                    local label = plainText(piece):match("^%s*%+?[%d%.]+%%? (.+)$")
+                    local label = plainText(piece):match("^%s*%+?[%d%.,]+%%? (.+)$")
                     add(PRIMARY_STATS[label] and model.primary or model.secondary, piece, right)
                     right = ""
                 end

@@ -137,8 +137,9 @@ local statColors = {
 }
 
 local function colorizeStat(text)
-    local amount, percent, label = text:match("^%+([%d%.]+)(%%?) (.+)$")
+    local amount, percent, label = text:match("^%+([%d%.,]+)(%%?) (.+)$")
     if not amount then return end
+    amount = amount:gsub(",", "")
 
     local color = statColors[label]
     if not color then
