@@ -108,6 +108,29 @@ local ITEM_KIND_NAMES = {}
 for _, kind in ipairs(ITEM_KINDS) do ITEM_KIND_NAMES[kind:lower()] = kind end
 local panels = setmetatable({}, { __mode = "k" })
 
+-- /ptip perf: how often the panel's work runs and how long it takes. While no
+-- capture runs, a probed call costs one check.
+local perf = { on = false, calls = {}, time = {} }
+
+local function count(name)
+    if perf.on then perf.calls[name] = (perf.calls[name] or 0) + 1 end
+end
+
+local function pack(...)
+    return { n = select("#", ...), ... }
+end
+
+local function probe(name, fn)
+    return function(...)
+        if not perf.on then return fn(...) end
+        local start = debugprofilestop()
+        local results = pack(fn(...))
+        perf.calls[name] = (perf.calls[name] or 0) + 1
+        perf.time[name] = (perf.time[name] or 0) + debugprofilestop() - start
+        return unpack(results, 1, results.n)
+    end
+end
+
 local function safeText(value)
     if isSecret(value) then return nil end
     if value == nil then return "" end
@@ -690,6 +713,7 @@ local function readModel(tooltip, data)
     end
     return model
 end
+readModel = probe("read item", readModel)
 
 local function makeTexture(parent, layer, path)
     local tex = parent:CreateTexture(nil, layer)
@@ -1065,6 +1089,7 @@ local function fitWidth(panel, model, title, styles)
     local width = math.ceil(need + 2 * PAD)
     return math.max(MIN_WIDTH, math.min(MAX_WIDTH, width))
 end
+fitWidth = probe("fit width", fitWidth)
 
 local function durabilityColor(current, maximum)
     local ratio = maximum > 0 and current / maximum or 0
@@ -1256,6 +1281,7 @@ local function drawChrome(panel, tooltip, style)
     end
     return headerMin
 end
+drawChrome = probe("chrome", drawChrome)
 
 -- The hidden tooltip is often wider than its panel, as long as its longest
 -- unwrapped line. Pin the panel to the side the tooltip itself is anchored
@@ -1271,6 +1297,7 @@ local function alignPanel(panel, tooltip)
     panel:ClearAllPoints()
     panel:SetPoint("TOP" .. side, tooltip, "TOP" .. side)
 end
+alignPanel = probe("align panel", alignPanel)
 
 local function finishPanel(panel, tooltip, y)
     panel:SetHeight(y + 17)
@@ -1306,12 +1333,17 @@ local function anchorToPanels(comparison)
         return frame
     end)
 end
+anchorToPanels = probe("anchor comparison", anchorToPanels)
 
 local function render(panel, tooltip, model)
     panel:Show()
     clearPool(panel)
     local styles = {}
-    for _, element in ipairs(ns.ELEMENTS) do styles[element.key] = styleOf(element.key) end
+    for _, element in ipairs(ns.ELEMENTS) do
+        if not element.kind or element.kind == "shared" then
+            styles[element.key] = styleOf(element.key)
+        end
+    end
     local title = model.name
     panel.width = fitWidth(panel, model, title, styles)
     panel:SetWidth(panel.width)
@@ -1463,6 +1495,7 @@ local function render(panel, tooltip, model)
     end
     finishPanel(panel, tooltip, y)
 end
+render = probe("render item", render)
 
 -- Blizzard anchors comparison tooltips, slides away from screen edges, and
 -- clamps using the native frame's bounds, so the hidden frame must cover the
@@ -1489,6 +1522,7 @@ local function fitNative(tooltip, panel)
         tooltip:SetPadding(right, bottom, base.left, base.top)
         tooltip:Show()
     end
+    panel.fittedWidth, panel.fittedHeight = tooltip:GetWidth(), tooltip:GetHeight()
 end
 
 local function refitNative(tooltip, panel)
@@ -1497,6 +1531,7 @@ local function refitNative(tooltip, panel)
     pcall(fitNative, tooltip, panel)
     panel.fitting = false
 end
+refitNative = probe("refit hidden tooltip", refitNative)
 
 local function releaseNative(tooltip, panel)
     local base = panel.nativeSize
@@ -1554,6 +1589,7 @@ local function update(tooltip, data)
     panel.lineCount = tooltip:NumLines()
     tooltip:SetAlpha(0)
 end
+update = probe("update", update)
 
 -- Some tooltip owners clear or briefly hide the tooltip while refreshing the
 -- same item. Keep the previous panel for that frame, and only tear it down if
@@ -1588,8 +1624,16 @@ local function onTooltipData(dataType, tooltip, data)
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
         local function onNativeShown(shown)
+            count(isComparison(shown) and "show hook (comparison)" or "show hook")
             if not (panel.nativeSize and panel:IsShown()) then return end
-            refitNative(shown, panel)
+            -- Comparisons are re-shown every frame while they are up; a refit
+            -- re-shows the tooltip twice and runs every addon's show hooks, so it
+            -- runs only when the game has changed the size the last fit left.
+            local width, height = shown:GetWidth(), shown:GetHeight()
+            if not panel.fittedWidth or math.abs(width - panel.fittedWidth) > .5
+                or math.abs(height - panel.fittedHeight) > .5 then
+                refitNative(shown, panel)
+            end
             -- Comparisons are anchored after they are shown, so align here.
             pcall(alignPanel, panel, shown)
             if isComparison(shown) then pcall(anchorToPanels, shown) end
@@ -1652,8 +1696,11 @@ local function onTooltipData(dataType, tooltip, data)
         end
     end)
 end
+onTooltipData = probe("tooltip data", onTooltipData)
 
 local function registerKind(dataType, kind)
+    kind.read = probe("read " .. dataType, kind.read)
+    kind.render = probe("render " .. dataType, kind.render)
     KINDS[dataType] = kind
     TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip, data)
         onTooltipData(dataType, tooltip, data)
@@ -1713,6 +1760,24 @@ local function previewByID(anchor, dataType, id)
     scanner:Hide()
     if not (ok and model) then return end
     return renderPreview(anchor, model, dataType)
+end
+
+function ns.perfCapture(seconds)
+    perf.calls, perf.time, perf.on = {}, {}, true
+    local memory = collectgarbage("count")
+    print("PrettyTooltip: measuring for " .. seconds .. " seconds; keep the tooltip open.")
+    C_Timer.After(seconds, function()
+        perf.on = false
+        local names = {}
+        for name in pairs(perf.calls) do names[#names + 1] = name end
+        table.sort(names, function(a, b) return (perf.time[a] or 0) > (perf.time[b] or 0) end)
+        print(string.format("PrettyTooltip perf over %d s (memory %+.0f KB):", seconds,
+            collectgarbage("count") - memory))
+        for _, name in ipairs(names) do
+            print(string.format("  %s: %d calls (%.0f/s), %.1f ms", name, perf.calls[name],
+                perf.calls[name] / seconds, perf.time[name] or 0))
+        end
+    end)
 end
 
 ns.ui = {

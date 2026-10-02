@@ -406,6 +406,10 @@ end
 
 SlashCmdList.PRETTYTOOLTIP = function(message)
     local wanted = (message or ""):match("^%s*(.-)%s*$"):lower()
+    if wanted == "perf" then
+        if ns.perfCapture then ns.perfCapture(5) end
+        return
+    end
     if wanted == "dump" then
         -- Secret values cannot be printed in some situations.
         if not pcall(dumpTooltip) then print("PrettyTooltip: this tooltip cannot be read right now.") end
