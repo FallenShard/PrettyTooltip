@@ -370,7 +370,7 @@ local function attachDeltas(model, deltas)
     end
     for _, list in ipairs({ model.armor, model.primary, model.secondary }) do
         for _, row in ipairs(list) do
-            local label = plainText(row.left):match("^%s*%+?[%d%.,]+%%? (.+)$")
+            local label = plainText(row.left):match("^%s*[%+%-]?[%d%.,]+%%? (.+)$")
             if label then take(row, label) end
         end
     end
@@ -540,7 +540,7 @@ local function readModel(tooltip, data)
             elseif line.prettyTooltipOriginal or trimmed:match("^%+[%d%.]+") then
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
-                    local label = plainText(piece):match("^%s*%+?[%d%.,]+%%? (.+)$")
+                    local label = plainText(piece):match("^%s*[%+%-]?[%d%.,]+%%? (.+)$")
                     add(PRIMARY_STATS[label] and model.primary or model.secondary, piece, right)
                     right = ""
                 end

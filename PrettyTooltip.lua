@@ -65,6 +65,7 @@ local DEFENSE_COLOR = "6FBDFF"
 local MAGIC_COLOR = "9A71D6"
 local HEALING_COLOR = "93D68F"
 local MANA_COLOR = "7AC0E6"
+local NEGATIVE_COLOR = "FF6B5C"
 local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  "
 
 local schoolColors = {
@@ -137,7 +138,7 @@ local statColors = {
 }
 
 local function colorizeStat(text)
-    local amount, percent, label = text:match("^%+([%d%.,]+)(%%?) (.+)$")
+    local sign, amount, percent, label = text:match("^([%+%-])([%d%.,]+)(%%?) (.+)$")
     if not amount then return end
     amount = amount:gsub(",", "")
 
@@ -152,7 +153,8 @@ local function colorizeStat(text)
 
     local value, name = color, labelColors[color] or color
     if not ns.option("statColors") then value, name = "F2E8D5", "A89F8E" end
-    return "|cff" .. value .. "+" .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
+    if sign == "-" then value = NEGATIVE_COLOR end
+    return "|cff" .. value .. sign .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
 end
 
 local chanceRules = {
