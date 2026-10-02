@@ -1720,6 +1720,11 @@ ns.ui = {
     previewByID = previewByID,
     defaultHeaderAlpha = defaultHeaderAlpha,
     styleOf = styleOf,
+    alignPanel = alignPanel,
+    shownPanel = function(tooltip)
+        local panel = panels[tooltip]
+        if panel and panel:IsShown() then return panel end
+    end,
     styledAt = styledAt,
     measureStyled = measureStyled,
     enchantRows = enchantRows,

@@ -53,6 +53,10 @@ Spells use the same panel: the icon and name, small badges for the spell's schoo
 
 The panel is tinted by the spell's school, read from the damage its description names (`Fire damage`) or a school that starts its name (`Holy Light`). Spells with neither are tinted by the resource they cost: blue for mana, red for rage, yellow for energy.
 
+## World objects
+
+Herbs, ore, chests, and quest objects get a panel too. A herb or ore node shows the herb or ore it yields, with its icon; the skill it needs and the level, in the game's skill-up color (red while your skill is too low), beside your own skill; and in the footer the yield's sell price and, with **Auctionator** installed, its auction price. Locked chests show the lock and the Lockpicking they need, and quest objects show their quests and objectives. Rows other addons add, such as Questie's, are kept below.
+
 ## Working with other addons
 
 - Rows other addons add to a tooltip are kept, below a thin rule in smaller, muted text, in their original order and colors.
@@ -62,7 +66,7 @@ The panel is tinted by the spell's school, read from the damage its description 
 
 ## Style editor
 
-Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items** and **Spells** switch between the two kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal) cover every part, and the editor switches to one that has the part you pick from its list.
+Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items**, **Spells**, and **Objects** switch between the kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal; for objects a herb, an ore node you cannot mine yet, a locked chest, and a quest object) cover every part, and the editor switches to one that has the part you pick from its list.
 
 To preview a real item or spell instead, type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
 
@@ -84,11 +88,11 @@ Tooltips use the new look the next time they open.
 
 ## Options
 
-Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look:
+Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look. `/ptip dump` prints the data of the tooltip you are hovering, to see what a kind of tooltip carries.
 
-- **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, mining and herb nodes, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, and achievements.
-  - **Restyle**: **Items** and **Spells** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
-  - **Follow cursor** (off by default, for every kind): the kind's mouse-over tooltip appears at the cursor and follows it. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
+- **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, and achievements.
+  - **Restyle**: **Items**, **Spells**, and **Herbs, ore, chests, and other objects** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
+  - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's mouse-over tooltip appears at the cursor and follows it. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never show default tooltip**.
 
 ## Install

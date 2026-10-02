@@ -6,6 +6,8 @@ local addonName, ns = ...
 local DEFAULTS = {
     iconRight = false,
     itemPanels = true,
+    objectPanels = true,
+    cursorObjects = true,
     statColors = true,
     qualityTint = true,
     statMarkers = true,
@@ -36,7 +38,7 @@ local function setOption(key, value)
 end
 ns.setOption = setOption
 
--- kind: "item" (default), "spell", or "both". color is where the picker starts
+-- kind: "item" (default), "spell", "object", or "shared" by all. color is where the picker starts
 -- while the color is automatic.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
@@ -61,7 +63,7 @@ ns.ELEMENTS = {
     { key = "setBonuses", label = "Set bonuses", size = 12, color = { .48, .88, .48 },
         note = "Active bonuses green, inactive ones grey, unless set." },
     { key = "extras", label = "Other addons' rows", size = 11, color = { .60, .60, .63 },
-        kind = "both" },
+        kind = "shared" },
     { key = "changes", label = "Stat changes if replaced", size = 12, color = { .90, .85, .74 },
         note = "On the Equipped panel; gains green, losses red, unless set." },
     { key = "footer", label = "Footer", size = 11, color = { .82, .78, .71 },
@@ -81,6 +83,17 @@ ns.ELEMENTS = {
         note = "Unmet requirements red, time remaining orange, unless set." },
     { key = "spellText", label = "Description", size = 12, color = { .92, .87, .76 },
         kind = "spell", note = "Numbers in the school color unless set." },
+    { key = "objectTitle", label = "Object name", size = 17, title = true,
+        color = { .96, .92, .84 }, kind = "object" },
+    { key = "objectKind", label = "Kind of object", size = 12, color = { .9, .9, .9 },
+        kind = "object", note = "Tinted by the skill it needs, unless set." },
+    { key = "objectDetails", label = "Skill and requirements", size = 12,
+        color = { .82, .78, .71 }, kind = "object",
+        note = "The skill in its skill-up color, unmet requirements red, unless set." },
+    { key = "objectQuests", label = "Quest lines", size = 12, color = { .90, .85, .74 },
+        kind = "object", note = "Quest names gold, finished objectives green, unless set." },
+    { key = "objectPrices", label = "Prices", size = 11, color = { .88, .78, .60 },
+        kind = "object", note = "The yielded item's sell price, and its auction price with Auctionator." },
 }
 -- types are Enum.TooltipDataType names; ones missing on this client are skipped.
 ns.TOOLTIP_KINDS = {
@@ -88,7 +101,8 @@ ns.TOOLTIP_KINDS = {
     { label = "Spells", restyle = "spellPanels", cursor = "cursorSpells", types = { "Spell" } },
     { label = "Players and NPCs", cursor = "cursorUnits", types = { "Unit", "Corpse" } },
     { label = "Buffs and debuffs", cursor = "cursorAuras", types = { "UnitAura" } },
-    { label = "Mining and herb nodes, chests", cursor = "cursorObjects", types = { "Object" } },
+    { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
+        cursor = "cursorObjects", types = { "Object" } },
     { label = "Quests", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
     { label = "Dungeon and raid lockouts", cursor = "cursorLockouts", types = { "InstanceLock" } },
@@ -356,8 +370,46 @@ end
 
 SLASH_PRETTYTOOLTIP1 = "/prettytooltip"
 SLASH_PRETTYTOOLTIP2 = "/ptip"
+-- Prints the shown tooltip's raw data, to see what a kind of tooltip carries.
+local function dumpTooltip()
+    local data = GameTooltip:IsShown() and GameTooltip.GetTooltipData and GameTooltip:GetTooltipData()
+    if type(data) ~= "table" then
+        print("PrettyTooltip: hover something first; there is no tooltip data to dump.")
+        return
+    end
+    local function names(enum)
+        local found = {}
+        for name, value in pairs(enum or {}) do found[value] = name end
+        return found
+    end
+    local types, lineTypes = names(Enum.TooltipDataType), names(Enum.TooltipDataLineType)
+    local function show(value)
+        if type(value) == "table" and value.GenerateHexColor then return "#" .. value:GenerateHexColor() end
+        if type(value) == "table" then return "{...}" end
+        return tostring(value)
+    end
+    local fields = {}
+    for key, value in pairs(data) do
+        if key ~= "lines" then fields[#fields + 1] = key .. "=" .. show(value) end
+    end
+    print("PrettyTooltip dump: " .. tostring(types[data.type] or data.type) .. "  " .. table.concat(fields, "  "))
+    for index, line in ipairs(data.lines or {}) do
+        local parts = {}
+        for key, value in pairs(line) do
+            if key ~= "type" then parts[#parts + 1] = key .. "=" .. show(value) end
+        end
+        table.sort(parts)
+        print(index .. ". " .. tostring(lineTypes[line.type] or line.type) .. "  " .. table.concat(parts, "  "))
+    end
+end
+
 SlashCmdList.PRETTYTOOLTIP = function(message)
     local wanted = (message or ""):match("^%s*(.-)%s*$"):lower()
+    if wanted == "dump" then
+        -- Secret values cannot be printed in some situations.
+        if not pcall(dumpTooltip) then print("PrettyTooltip: this tooltip cannot be read right now.") end
+        return
+    end
     if wanted ~= "options" and ns.openEditor then
         ns.openEditor()
     else

@@ -231,6 +231,55 @@ local SPELL_SAMPLES = {
     },
 }
 
+local function objectModel(fields)
+    for _, list in ipairs({ "details", "quests", "extras" }) do fields[list] = fields[list] or {} end
+    return ui.objectModel and ui.objectModel(fields) or fields
+end
+
+local OBJECT_SAMPLES = {
+    {
+        label = "Herb",
+        build = function()
+            return objectModel({ name = "Bruiseweed", skill = "Herbalism", skillColor = { 1, .5, .25 } })
+        end,
+    },
+    {
+        label = "Ore",
+        build = function()
+            return objectModel({
+                name = "Mithril Deposit", skill = "Mining", skillMet = false,
+                details = { { left = "Requires Mining", right = "", requirement = true, met = false } },
+                extras = { { left = "Gathered here 12 times", right = "", color = { .17, .51, .77 } } },
+            })
+        end,
+    },
+    {
+        label = "Chest",
+        build = function()
+            return objectModel({
+                name = "Battered Chest", skill = "Lockpicking",
+                details = {
+                    { left = "Locked", right = "" },
+                    { left = "Requires Lockpicking (25)", right = "", requirement = true, met = true },
+                },
+            })
+        end,
+    },
+    {
+        label = "Quest",
+        build = function()
+            return objectModel({
+                name = "Sealed Supply Crate",
+                quests = {
+                    { left = "Heavy Supplies", right = "", title = true },
+                    { left = "- Supply Crate: 2/5", right = "" },
+                    { left = "- Report to the quartermaster", right = "", completed = true },
+                },
+            })
+        end,
+    },
+}
+
 local KINDS = {
     item = { label = "Items", dataType = Enum.TooltipDataType.Item, samples = ITEM_SAMPLES,
         first = "title", noun = "item" },
@@ -238,7 +287,14 @@ local KINDS = {
         first = "spellTitle", noun = "spell" },
 }
 local KIND_ORDER = { "item", "spell" }
-local MAX_SAMPLES = math.max(#ITEM_SAMPLES, #SPELL_SAMPLES)
+-- Objects have no ID to look up.
+if Enum.TooltipDataType.Object and ui.objectModel then
+    KINDS.object = { label = "Objects", dataType = Enum.TooltipDataType.Object,
+        samples = OBJECT_SAMPLES, first = "objectTitle", noun = "object", noLookup = true }
+    KIND_ORDER[#KIND_ORDER + 1] = "object"
+end
+local MAX_SAMPLES = 0
+for _, kind in pairs(KINDS) do MAX_SAMPLES = math.max(MAX_SAMPLES, #kind.samples) end
 
 -- Building blocks -----------------------------------------------------------
 
@@ -364,17 +420,17 @@ anchor:SetSize(1, 1)
 anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN)
 local kindTabs = {}
 for index, kind in ipairs(KIND_ORDER) do
-    local tab = flatButton(editor, KINDS[kind].label, 62, function() switchKind(kind) end)
-    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 66, 6)
+    local tab = flatButton(editor, KINDS[kind].label, 58, function() switchKind(kind) end)
+    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 62, 6)
     kindTabs[kind] = tab
 end
 local sampleTabs = {}
 for index = 1, MAX_SAMPLES do
-    local tab = flatButton(editor, "", 72, function()
+    local tab = flatButton(editor, "", 64, function()
         state.sample, state.lookup = index, nil
         refresh()
     end)
-    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", 144 + (index - 1) * 78, 6)
+    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", #KIND_ORDER * 62 + 8 + (index - 1) * 68, 6)
     sampleTabs[index] = tab
 end
 
@@ -899,12 +955,15 @@ if ChatEdit_InsertLink then
 end
 
 refreshLookup = function()
+    local hidden = KINDS[state.kind].noLookup == true
+    lookupLabel:SetShown(not hidden)
+    lookupBox:SetShown(not hidden)
     lookupLabel:SetText(KINDS[state.kind].label:sub(1, -2) .. " ID")
     if not lookupBox:HasFocus() then
         lookupBox:SetText(state.lookup and tostring(state.lookup) or "")
         lookupPlaceholder:SetShown(state.lookup == nil)
     end
-    lookupClear:SetShown(state.lookup ~= nil)
+    lookupClear:SetShown(state.lookup ~= nil and not hidden)
 end
 
 -- The controls column ----------------------------------------------------------
@@ -932,7 +991,7 @@ local partPicker = dropdown(CONTROLS_WIDTH, function()
     local items = {}
     for _, element in ipairs(ns.ELEMENTS) do
         local kind = element.kind or "item"
-        if kind == state.kind or kind == "both" then
+        if kind == state.kind or kind == "shared" then
             items[#items + 1] = { value = element.key, text = element.label }
         end
     end

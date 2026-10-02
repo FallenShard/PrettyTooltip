@@ -10,13 +10,21 @@ end
 local OFFSET = 16
 local placing = false
 
+-- The panel hangs from the hidden tooltip's top, and refreshes briefly resize
+-- that tooltip; placing its top from the panel's height keeps the panel still.
 local function place()
     local x, y = GetCursorPosition()
     local scale = GameTooltip:GetEffectiveScale()
+    local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
+    local height = panel and panel:GetHeight() * panel:GetEffectiveScale() / scale
+        or GameTooltip:GetHeight()
     placing = true
     GameTooltip:ClearAllPoints()
-    GameTooltip:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", x / scale + OFFSET, y / scale + OFFSET)
+    GameTooltip:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale + OFFSET,
+        y / scale + OFFSET + height)
     placing = false
+    -- The panel took its side from the anchor the game set before this one.
+    if panel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
 end
 
 local follower = CreateFrame("Frame")
