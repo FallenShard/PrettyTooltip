@@ -276,7 +276,8 @@ kindsNote:SetWidth(560)
 kindsNote:SetJustifyH("LEFT")
 kindsNote:SetText("Restyle draws the PrettyTooltip panel; a kind that is off keeps the game's "
     .. "own tooltip, and greyed kinds are not restyled yet. Follow cursor moves the kind's "
-    .. "mouse-over tooltip to the cursor; off, its position is left to the game and other addons.")
+    .. "tooltip to the cursor when the game would show it in its default corner (bags and other "
+    .. "panels keep theirs); off, its position is left to the game and other addons.")
 y = y - kindsNote:GetStringHeight() - 10
 for index, heading in ipairs({ "Restyle", "Follow cursor" }) do
     local label = page:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")

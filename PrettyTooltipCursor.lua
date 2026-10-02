@@ -9,6 +9,22 @@ end
 
 local OFFSET = 16
 local placing = false
+local wasClamped
+
+-- The hidden tooltip is often larger than its panel and resizes as rows are
+-- added; kept on screen, every resize near an edge would shift the panel. The
+-- panel keeps itself on screen instead.
+local function unclamp()
+    if wasClamped ~= nil then return end
+    wasClamped = GameTooltip:IsClampedToScreen()
+    GameTooltip:SetClampedToScreen(false)
+end
+
+local function reclamp()
+    if wasClamped == nil then return end
+    GameTooltip:SetClampedToScreen(wasClamped)
+    wasClamped = nil
+end
 
 -- The panel hangs from the hidden tooltip's top, and refreshes briefly resize
 -- that tooltip; placing its top from the panel's height keeps the panel still.
@@ -18,6 +34,7 @@ local function place()
     local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
     local height = panel and panel:GetHeight() * panel:GetEffectiveScale() / scale
         or GameTooltip:GetHeight()
+    if panel then unclamp() else reclamp() end
     placing = true
     GameTooltip:ClearAllPoints()
     GameTooltip:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale + OFFSET,
@@ -33,14 +50,33 @@ follower:SetScript("OnUpdate", function(self)
     if GameTooltip:IsShown() then place() else self:Hide() end
 end)
 
--- Bag buttons re-anchor their tooltip after every refresh, about five times a
--- second; undone at once, it never draws at the button.
+-- Only tooltips the game places at its default anchor follow the cursor, as
+-- with EllesmereUI: units, world objects, action buttons. Bags and other
+-- frames anchor their tooltip to themselves and re-anchor it on every
+-- refresh, so they are left alone.
+local defaultAnchored = false
+hooksecurefunc(GameTooltip, "SetOwner", function() defaultAnchored = false end)
+hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip)
+    if tooltip == GameTooltip then defaultAnchored = true end
+end)
+
+-- The game re-places a default tooltip when it refreshes; undone at once.
 hooksecurefunc(GameTooltip, "SetPoint", function()
     if follower:IsShown() and not placing then place() end
 end)
 
+-- A world unit's tooltip fades out where it stands, which trails the cursor.
+if GameTooltip.FadeOut then
+    hooksecurefunc(GameTooltip, "FadeOut", function(self)
+        if follower:IsShown() then self:Hide() end
+    end)
+end
+
 -- Cleared before every new content, so a kind left off is not dragged along.
-local function stop() follower:Hide() end
+local function stop()
+    follower:Hide()
+    reclamp()
+end
 GameTooltip:HookScript("OnTooltipCleared", stop)
 GameTooltip:HookScript("OnHide", stop)
 
@@ -49,7 +85,7 @@ for _, kind in ipairs(ns.TOOLTIP_KINDS) do
         local dataType = TYPES[typeName]
         if dataType then
             TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip)
-                if tooltip == GameTooltip and ns.option(kind.cursor) then
+                if tooltip == GameTooltip and defaultAnchored and ns.option(kind.cursor) then
                     place()
                     follower:Show()
                 end
