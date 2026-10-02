@@ -14,6 +14,7 @@ GAME_FILES = (
     "PrettyTooltip.lua",
     "PrettyTooltipLayout.lua",
     "PrettyTooltipSpell.lua",
+    "PrettyTooltipEditor.lua",
     "art/glow.tga",
     "art/logo.tga",
     "art/stat-marker.tga",

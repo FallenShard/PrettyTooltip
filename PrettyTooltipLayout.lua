@@ -17,7 +17,15 @@ local function fontOf(object)
     local path = object and object.GetFont and object:GetFont()
     return path or STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 end
-local function bodyFont() return fontOf(GameTooltipText) end
+-- The font chosen for all text, else the game's.
+local function bodyFont() return ns.fontPath(ns.option("bodyFont")) or fontOf(GameTooltipText) end
+-- A font file that fails to load (a media addon's file gone missing) would
+-- leave the string without a font, and setting its text would then error.
+local function setFont(object, path, size, flags)
+    if not object:SetFont(path, size, flags or "") then
+        object:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF", size, flags or "")
+    end
+end
 -- Expressway is a commercial font, so like DialogueUI's art it is used from
 -- EllesmereUI's folder when that addon is installed, never copied here.
 local ELLESMERE_BOLD = "Interface\\AddOns\\EllesmereUI\\media\\fonts\\Expressway Bold.ttf"
@@ -45,7 +53,11 @@ local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
 local CONSUMABLE_CLASS = Enum.ItemClass and Enum.ItemClass.Consumable or 0
 local DELTA_UP = { .42, .86, .42 }
 local DELTA_DOWN = { 1, .42, .36 }
+local CHANGES_HEADING = "IF YOU REPLACE THIS ITEM"
+local CHANGES_GOLD = { .93, .80, .52 }
 local DURABILITY_BAR = 54
+-- The header band's default opacity on each backdrop.
+local HEADER_ALPHA_TEXTURED, HEADER_ALPHA_PLAIN = .72, .96
 local HALO_SPREAD = 16
 -- Must match MARGIN in art/make_glow.py.
 local HALO_MARGIN = 24
@@ -88,17 +100,6 @@ local STAT_LABELS = {
     RESISTANCE4_NAME = "Frost Resistance",
     RESISTANCE5_NAME = "Shadow Resistance",
     RESISTANCE6_NAME = "Arcane Resistance",
-}
--- Percentage lines on older items report through the matching rating key.
-local ROW_ALIASES = {
-    ["Hit Chance"] = "Hit Rating",
-    ["Critical Strike Chance"] = "Critical Strike Rating",
-    ["Spell Hit Chance"] = "Spell Hit Rating",
-    ["Spell Critical Strike Chance"] = "Spell Critical Strike Rating",
-    ["Defense Skill"] = "Defense Rating",
-    ["Dodge Chance"] = "Dodge Rating",
-    ["Parry Chance"] = "Parry Rating",
-    ["Block Chance"] = "Block Rating",
 }
 local QUALITY = {
     [0] = { .62, .62, .62 },
@@ -335,55 +336,79 @@ local function statLabel(key)
     return (label:gsub("(%a)([%w']*)", function(first, rest) return first:upper() .. rest end))
 end
 
--- Deltas against the item the game's own comparison tooltip is showing, so
--- the arrows appear exactly when the comparison does.
-local function getDeltas(tooltip, itemLink)
-    if not (C_Item and C_Item.GetItemStatDelta) or type(itemLink) ~= "string" then return end
-    local compare = tooltip.shoppingTooltips and tooltip.shoppingTooltips[1]
-    if not (compare and compare:IsShown() and compare.GetItem) then return end
-    local ok, _, equipped = pcall(compare.GetItem, compare)
-    if not ok or isSecret(equipped) or type(equipped) ~= "string" then return end
-    local found, deltas = pcall(C_Item.GetItemStatDelta, itemLink, equipped)
+-- Comparison tooltips are ShoppingTooltip1, ItemRefShoppingTooltip2, and so on.
+local function isComparison(tooltip)
+    local name = tooltip:GetName()
+    return name ~= nil and name:find("ShoppingTooltip%d$") ~= nil
+end
+
+-- The tooltip showing the item a comparison is compared against: its owner,
+-- else the main tooltip that lists it among its comparisons.
+local function comparedFrom(tooltip)
+    local owner = tooltip.GetOwner and tooltip:GetOwner()
+    if not isSecret(owner) and type(owner) == "table" and owner.GetItem then return owner end
+    for _, main in ipairs({ GameTooltip, ItemRefTooltip }) do
+        for _, shopping in ipairs(main and main.shoppingTooltips or {}) do
+            if shopping == tooltip then return main end
+        end
+    end
+end
+
+local function hexOf(color)
+    return string.format("%02X%02X%02X", math.floor(color[1] * 255 + .5),
+        math.floor(color[2] * 255 + .5), math.floor(color[3] * 255 + .5))
+end
+
+-- One stat change: the amount green or red, the stat in the row's color.
+local function changeRow(label, value)
+    return {
+        left = "|cff" .. hexOf(value > 0 and DELTA_UP or DELTA_DOWN) .. formatDelta(value)
+            .. "|r " .. label,
+        right = "",
+    }
+end
+
+local CHANGE_ORDER = {
+    Strength = 1, Agility = 2, Stamina = 3, Intellect = 4, Spirit = 5, Armor = 6,
+    ["Damage per Second"] = 7,
+}
+
+-- What changes if the hovered item replaces the equipped one a comparison
+-- shows. Each comparison panel lists its own, so two rings get two lists.
+-- Forever can report one stat under two names; it is listed once.
+local function replacementChanges(tooltip, equipped)
+    if not (C_Item and C_Item.GetItemStatDelta) or type(equipped) ~= "string" then return end
+    local main = comparedFrom(tooltip)
+    if not main then return end
+    local ok, _, hovered = pcall(main.GetItem, main)
+    if not ok or isSecret(hovered) or type(hovered) ~= "string" then return end
+    local found, deltas = pcall(C_Item.GetItemStatDelta, hovered, equipped)
     if not found or isSecret(deltas) or type(deltas) ~= "table" then return end
-    local byLabel = {}
+    local changes, seen = {}, {}
     for key, value in pairs(deltas) do
         if not isSecret(key) and not isSecret(value) and type(key) == "string"
             and type(value) == "number" and math.abs(value) > .0001 then
             local label = statLabel(key)
-            if byLabel[label] == nil then byLabel[label] = value end
+            if not seen[label:lower()] then
+                seen[label:lower()] = true
+                changes[#changes + 1] = { label = label, value = value }
+            end
         end
     end
-    return byLabel
+    table.sort(changes, function(x, y)
+        local first, second = CHANGE_ORDER[x.label] or 99, CHANGE_ORDER[y.label] or 99
+        if first ~= second then return first < second end
+        return x.label < y.label
+    end)
+    local rows = {}
+    for index, change in ipairs(changes) do rows[index] = changeRow(change.label, change.value) end
+    return rows
 end
 
-local function attachDeltas(model, deltas)
-    local function take(row, label)
-        label = ROW_ALIASES[label] or label
-        local value = deltas[label]
-        if value == nil then return end
-        deltas[label] = nil
-        if row and (not row.right or row.right == "") then
-            row.right = formatDelta(value)
-            row.rightColor = value > 0 and DELTA_UP or DELTA_DOWN
-        end
-        return value
-    end
-    for _, list in ipairs({ model.armor, model.primary, model.secondary }) do
-        for _, row in ipairs(list) do
-            local label = plainText(row.left):match("^%s*[%+%-]?[%d%.,]+%%? (.+)$")
-            if label then take(row, label) end
-        end
-    end
-    if model.weaponDps then model.weaponDpsDelta = take(nil, "Damage per Second") end
-    -- Stats only the equipped item has; a gain with no row is a wording mismatch.
-    for label, value in pairs(deltas) do
-        if value < 0 then
-            add(model.lost, label, formatDelta(value))
-            model.lost[#model.lost].rightColor = DELTA_DOWN
-        end
-    end
-    table.sort(model.lost, function(a, b) return a.left < b.left end)
-end
+-- The game words the same comparison under the equipped item. The panel
+-- draws its own, so the heading and the change lines under it are dropped.
+local STOCK_CHANGES = ITEM_DELTA_DESCRIPTION
+    or "If you replace this item, the following stat changes will occur:"
 
 local function isInstalled(addon)
     if not (C_AddOns and C_AddOns.GetAddOnInfo) then return false end
@@ -395,12 +420,33 @@ local function hasDialogueBackdrop()
     return isInstalled("DialogueUI")
 end
 
--- The font for item, spell, and set names: EllesmereUI's Expressway Bold when
--- it is installed, else the game's tooltip header font.
+-- The font for item, spell, and set names: the one chosen for names, else
+-- EllesmereUI's Expressway Bold when it is installed, else the game's
+-- tooltip header font.
 local hasEllesmere
 local function titleFont()
+    local chosen = ns.fontPath(ns.option("titleFont"))
+    if chosen then return chosen end
     if hasEllesmere == nil then hasEllesmere = isInstalled("EllesmereUI") end
     return hasEllesmere and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
+end
+
+-- An element's look from the editor, with its default font filled in.
+local function styleOf(key)
+    local style = ns.style(key)
+    style.customFont = style.font ~= nil
+    style.font = style.font or (style.title and titleFont() or bodyFont())
+    return style
+end
+
+-- Helpers shared with spells take a style or a plain size.
+local function asStyle(style)
+    if type(style) == "table" then return style end
+    return { size = style, font = bodyFont(), flags = "" }
+end
+
+local function uncolored(text)
+    return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
 end
 
 -- Rows other addons append straight to the tooltip are absent from its data.
@@ -444,7 +490,7 @@ local function readModel(tooltip, data)
         enchants = {},
         effects = {},
         flavor = {},
-        lost = {},
+        changes = {},
         setItems = {},
         setBonuses = {},
         extras = {},
@@ -454,6 +500,19 @@ local function readModel(tooltip, data)
         kinds = {},
     }
     local inSet, setTotal = false, 0
+    local inStockChanges = false
+    local function isStockChange(text)
+        local trimmed = plainText(text):match("^%s*(.-)%s*$")
+        if trimmed == STOCK_CHANGES or trimmed:find("^If you replace this item") then
+            inStockChanges = true
+            return true
+        end
+        if inStockChanges and (trimmed == "" or trimmed:match("^[%+%-][%d%.,]+%%? %S")) then
+            return true
+        end
+        inStockChanges = false
+        return false
+    end
 
     for _, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then
@@ -478,7 +537,9 @@ local function readModel(tooltip, data)
         if isSecret(line.prettyTooltipDisplay) or isSecret(line.prettyTooltipOriginal) then return end
         local displayed = line.prettyTooltipDisplay or left
 
-        if lineType == LINE.ItemName then
+        if isStockChange(left) then
+            -- The game's own comparison lines; the panel lists the changes itself.
+        elseif lineType == LINE.ItemName then
             -- Recipes embed the crafted item's tooltip, name line included.
             model.name = model.name or left
         elseif lineType == LINE.ItemLevel then
@@ -567,7 +628,9 @@ local function readModel(tooltip, data)
     if not appended then return end
     for _, row in ipairs(appended) do
         local trimmed = row.left:match("^%s*(.-)%s*$")
-        if trimmed:match("^Sell Price") then
+        if isStockChange(row.left) then
+            -- The game's own comparison lines; the panel lists the changes itself.
+        elseif trimmed:match("^Sell Price") then
             model.hasSellPrice = true
         elseif itemKind(row.left, row.right) then
             local kind, text = itemKind(row.left, row.right, row.textColor)
@@ -640,8 +703,10 @@ local function readModel(tooltip, data)
         add(model.footerRight, label, formatMoney(model.sellPrice))
     end
     model.quest = model.quest or classID == QUEST_CLASS
-    local deltas = getDeltas(tooltip, itemInfo)
-    if deltas then attachDeltas(model, deltas) end
+    if isComparison(tooltip) then
+        model.comparison = true
+        model.changes = replacementChanges(tooltip, itemInfo) or {}
+    end
     return model
 end
 
@@ -651,10 +716,8 @@ local function makeTexture(parent, layer, path)
     return tex
 end
 
-local function getPanel(tooltip)
-    local panel = panels[tooltip]
-    if panel then return panel end
-    panel = CreateFrame("Frame", nil, UIParent)
+local function createPanel(parent)
+    local panel = CreateFrame("Frame", nil, parent)
     panel:SetFrameStrata("TOOLTIP")
     panel.width = MAX_WIDTH
     panel:SetWidth(MAX_WIDTH)
@@ -742,6 +805,13 @@ local function getPanel(tooltip)
     panel.edges[4]:SetPoint("TOPRIGHT", panel, "TOPRIGHT")
     panel.edges[4]:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT")
     panel.edges[4]:SetWidth(1)
+    return panel
+end
+
+local function getPanel(tooltip)
+    local panel = panels[tooltip]
+    if panel then return panel end
+    panel = createPanel(UIParent)
     panels[tooltip] = panel
     return panel
 end
@@ -782,11 +852,12 @@ local function clearPool(panel)
     for _, font in ipairs(panel.pool) do font:Hide() end
     for _, tex in ipairs(panel.texturePool) do tex:Hide() end
     panel.used, panel.texturesUsed = 0, 0
+    if panel.hits then panel.hits = {} end
 end
 
 -- WoW fonts have no bold flag, and the face varies per install, so bold is
 -- a shadow in the text's own color one pixel to the right.
-local function textAt(panel, content, x, y, width, size, color, fontPath, align)
+local function textAt(panel, content, x, y, width, size, color, fontPath, align, flags)
     panel.used = panel.used + 1
     local font = panel.pool[panel.used]
     if not font then
@@ -796,7 +867,7 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align)
     font:ClearAllPoints()
     font:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -y)
     font:SetWidth(width)
-    font:SetFont(fontPath or bodyFont(), size)
+    setFont(font, fontPath or bodyFont(), size, flags)
     font:SetJustifyH(align or "LEFT")
     font:SetJustifyV("TOP")
     font:SetTextColor(color[1], color[2], color[3])
@@ -807,9 +878,22 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align)
     return math.max(size + 2, font:GetStringHeight() or 0)
 end
 
-local function measure(panel, text, size, fontPath)
+-- Text in an element's style. A custom color replaces every color the text
+-- would have had, inline codes included. The editor's preview keeps what
+-- each element drew, so a click on it can find the element.
+local function styledAt(panel, content, x, y, width, style, color, align)
+    if style.color then content, color = uncolored(content), style.color end
+    local height = textAt(panel, content, x, y, width, style.size, color, style.font, align,
+        style.flags)
+    if panel.hits and style.key then
+        panel.hits[#panel.hits + 1] = { key = style.key, region = panel.pool[panel.used] }
+    end
+    return height
+end
+
+local function measure(panel, text, size, fontPath, flags)
     local font = panel.measure
-    font:SetFont(fontPath or bodyFont(), size)
+    setFont(font, fontPath or bodyFont(), size, flags)
     font:SetText(text)
     local width = font.GetUnboundedStringWidth and font:GetUnboundedStringWidth()
         or font:GetStringWidth()
@@ -818,11 +902,16 @@ local function measure(panel, text, size, fontPath)
     return (width or 0) + textures * (size + 2)
 end
 
-local function rowWidth(panel, row, size)
-    local width = measure(panel, row.left, size)
+local function measureStyled(panel, text, style)
+    return measure(panel, text, style.size, style.font, style.flags)
+end
+
+local function rowWidth(panel, row, style)
+    style = asStyle(style)
+    local width = measureStyled(panel, row.left, style)
     if row.right and row.right ~= "" then
         -- The 2 matches the slack drawRow gives the right column.
-        return width + COLUMN_GAP + measure(panel, row.right, size) + 2
+        return width + COLUMN_GAP + measureStyled(panel, row.right, style) + 2
     end
     return width
 end
@@ -835,7 +924,8 @@ local function headerInsets(indent)
 end
 
 -- indent and rightIndent keep a row clear of the icon on either side.
-local function drawRow(panel, row, y, size, color, indent, gap, rightIndent)
+local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
+    style = asStyle(style)
     local left = row.left
     local right = row.right
     local leftColor = row.color or color
@@ -843,15 +933,15 @@ local function drawRow(panel, row, y, size, color, indent, gap, rightIndent)
     local w = panel.width - 2 * PAD - indent - rightIndent
     if right and right ~= "" then
         -- Half the row at most, unless a short left side leaves more room.
-        local rightWidth = math.min(measure(panel, right, size) + 2,
-            math.max(w * .5, w - measure(panel, left, size) - COLUMN_GAP))
-        local leftHeight = textAt(panel, left, PAD + indent, y,
-            w - rightWidth - COLUMN_GAP, size, leftColor)
-        local rightHeight = textAt(panel, right, panel.width - PAD - rightIndent - rightWidth, y,
-            rightWidth, size, row.rightColor or leftColor, nil, "RIGHT")
+        local rightWidth = math.min(measureStyled(panel, right, style) + 2,
+            math.max(w * .5, w - measureStyled(panel, left, style) - COLUMN_GAP))
+        local leftHeight = styledAt(panel, left, PAD + indent, y,
+            w - rightWidth - COLUMN_GAP, style, leftColor)
+        local rightHeight = styledAt(panel, right, panel.width - PAD - rightIndent - rightWidth, y,
+            rightWidth, style, row.rightColor or leftColor, "RIGHT")
         return y + math.max(leftHeight, rightHeight) + gap
     end
-    return y + textAt(panel, left, PAD + indent, y, w, size, leftColor) + gap
+    return y + styledAt(panel, left, PAD + indent, y, w, style, leftColor) + gap
 end
 
 -- Pool slots are reused for both plain lines and the marker, so every
@@ -894,27 +984,27 @@ local function divider(panel, y, color)
     return y + 18
 end
 
-local function drawGroup(panel, list, y, size, color, indent, gap, rightIndent)
+local function drawGroup(panel, list, y, style, color, indent, gap, rightIndent)
     for _, row in ipairs(list) do
-        y = drawRow(panel, row, y, size, color, indent, gap, rightIndent)
+        y = drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     end
     return y
 end
 
 -- Where stat text starts after an inline marker and its two spaces.
-local function markerIndent(panel)
+local function markerIndent(panel, style)
     if not ns.option("statMarkers") then return 0 end
-    return 9 + measure(panel, "a  a", 13) - measure(panel, "aa", 13)
+    return 9 + measureStyled(panel, "a  a", style) - measureStyled(panel, "aa", style)
 end
 
 -- The marker is drawn on its own so wrapped lines hang under the text, not
 -- under the diamond. Same size and offset as the inline markers above.
-local function drawEquipEffects(panel, list, y)
-    local hang = markerIndent(panel)
+local function drawEquipEffects(panel, list, y, style)
+    local hang = markerIndent(panel, style)
     local width = panel.width - 2 * PAD - hang
     for _, row in ipairs(list) do
-        if hang > 0 then textAt(panel, STAT_MARKER, PAD, y, hang, 13, EQUIP_EFFECT_COLOR) end
-        y = y + textAt(panel, row.left, PAD + hang, y, width, 13, EQUIP_EFFECT_COLOR) + 3
+        if hang > 0 then styledAt(panel, STAT_MARKER, PAD, y, hang, style, EQUIP_EFFECT_COLOR) end
+        y = y + styledAt(panel, row.left, PAD + hang, y, width, style, EQUIP_EFFECT_COLOR) + 3
     end
     return y
 end
@@ -930,13 +1020,23 @@ local function weaponText(model)
     return text
 end
 
+-- The set's piece count takes the set name's look, a little smaller, in the
+-- body font unless the set name has a font of its own.
+local function setCountStyle(setName)
+    local style = {}
+    for field, value in pairs(setName) do style[field] = value end
+    style.size = math.max(8, setName.size - 3)
+    if not setName.customFont then style.font = bodyFont() end
+    return style
+end
+
 -- Size the panel to its widest single-line content; prose wraps instead.
-local function fitWidth(panel, model, title)
+local function fitWidth(panel, model, title, styles)
     local need = 0
     local function consider(width) if width > need then need = width end end
-    local function group(list, size, extra, prose)
+    local function group(list, style, extra, prose)
         for _, row in ipairs(list) do
-            local width = rowWidth(panel, row, size)
+            local width = rowWidth(panel, row, style)
             if prose and (not row.right or row.right == "") then
                 width = math.min(width, PROSE_WIDTH)
             end
@@ -944,44 +1044,48 @@ local function fitWidth(panel, model, title)
         end
     end
     local indent = model.icon and HEADER_INDENT or 0
-    consider(measure(panel, title, 19, titleFont()) + indent)
-    if model.slot then consider(measure(panel, model.slot, 13) + indent) end
-    group(model.header, 12, indent)
+    consider(measureStyled(panel, title, styles.title) + indent)
+    if model.slot then consider(measureStyled(panel, model.slot, styles.subtitle) + indent) end
+    group(model.header, styles.header, indent)
     if model.weaponDps then
-        local width = measure(panel, valueLabel(model.weaponDps, "Damage per Second"), 18)
-        if model.weaponDpsDelta then
-            width = width + COLUMN_GAP + measure(panel, formatDelta(model.weaponDpsDelta), 18)
-        end
-        consider(width)
+        consider(measureStyled(panel, valueLabel(model.weaponDps, "Damage per Second"), styles.dps))
     end
-    if model.weaponDamage then consider(measure(panel, weaponText(model), 12) + 7) end
-    group(model.armor, 16, 0)
-    group(model.primary, 13, 0)
-    group(model.secondary, 13, 0)
+    if model.weaponDamage then
+        consider(measureStyled(panel, weaponText(model), styles.damage) + 7)
+    end
+    group(model.armor, styles.armor, 0)
+    group(model.primary, styles.stats, 0)
+    group(model.secondary, styles.stats, 0)
     for _, row in ipairs(model.equipEffects) do
-        consider(math.min(measure(panel, row.left, 13), PROSE_WIDTH) + markerIndent(panel))
+        consider(math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
+            + markerIndent(panel, styles.equipEffects))
     end
-    group(model.enchants, 13, 0)
-    group(model.lost, 12, 0)
-    group(model.effects, 13, 0, true)
-    group(model.flavor, 12, 0, true)
+    group(model.enchants, styles.enchants, 0)
+    group(model.effects, styles.effects, 0, true)
+    group(model.flavor, styles.flavor, 0, true)
     if model.setName then
-        consider(measure(panel, model.setName:upper(), 15, titleFont()) + 45)
-        group(model.setItems, 12, 20)
-        group(model.setBonuses, 12, 3, true)
+        local countWidth = measureStyled(panel, model.setCount or "", setCountStyle(styles.setName))
+        consider(measureStyled(panel, model.setName:upper(), styles.setName)
+            + math.max(45, countWidth + COLUMN_GAP))
+        group(model.setItems, styles.setItems, 20)
+        group(model.setBonuses, styles.setBonuses, 3, true)
     end
-    group(model.extras, 11, 0, true)
+    group(model.extras, styles.extras, 0, true)
+    if #model.changes > 0 then
+        consider(measureStyled(panel, CHANGES_HEADING, styles.changes))
+        group(model.changes, styles.changes, 0)
+    end
     for index = 1, math.max(#model.footerLeft, #model.footerRight) do
         local left, right = model.footerLeft[index], model.footerRight[index]
         local leftWidth = 0
         if left and left.durability then
-            leftWidth = DURABILITY_BAR + 7
-                + measure(panel, left.durability[1] .. " / " .. left.durability[2], 11)
+            leftWidth = DURABILITY_BAR + 7 + measureStyled(panel,
+                left.durability[1] .. " / " .. left.durability[2], styles.footer)
         elseif left then
-            leftWidth = measure(panel, left.left, 11)
+            leftWidth = measureStyled(panel, left.left, styles.footer)
         end
         consider(leftWidth + COLUMN_GAP
-            + (right and measure(panel, footerText(right), 11) or 0))
+            + (right and measureStyled(panel, footerText(right), styles.footer) or 0))
     end
     local width = math.ceil(need + 2 * PAD)
     return math.max(MIN_WIDTH, math.min(MAX_WIDTH, width))
@@ -995,11 +1099,12 @@ local function durabilityColor(current, maximum)
     return { .45, .80, .40 }
 end
 
-local function drawDurability(panel, durability, y)
+local function drawDurability(panel, durability, y, style)
     local current, maximum = durability[1], durability[2]
     local color = durabilityColor(current, maximum)
     local track = acquireTexture(panel, nil, 0)
-    track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -(y + 5))
+    -- Level with the middle of the text beside it.
+    track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -(y + math.floor(style.size / 2)))
     track:SetSize(DURABILITY_BAR, 4)
     track:SetVertexColor(.16, .14, .13, 1)
     local fill = acquireTexture(panel, nil, 1)
@@ -1009,8 +1114,8 @@ local function drawDurability(panel, durability, y)
     fill:SetVertexColor(color[1], color[2], color[3], 1)
     if width < 1 then fill:Hide() end
     local healthy = maximum > 0 and current / maximum >= .5
-    return textAt(panel, current .. " / " .. maximum, PAD + DURABILITY_BAR + 7, y, 90, 11,
-        healthy and { .82, .78, .71 } or color)
+    return styledAt(panel, current .. " / " .. maximum, PAD + DURABILITY_BAR + 7, y,
+        math.max(90, style.size * 8), style, healthy and { .82, .78, .71 } or color)
 end
 
 -- The chat-link tooltip's close button is a child of the hidden tooltip, so
@@ -1047,12 +1152,6 @@ local function getCloseButton(panel, tooltip)
     end)
     panel.close = close
     return close
-end
-
--- Blizzard's "Equipped" header is a child of the hidden comparison tooltip.
-local function isComparison(tooltip)
-    local name = tooltip:GetName()
-    return name ~= nil and name:find("ShoppingTooltip%d$") ~= nil
 end
 
 -- A shield or off-hand is also compared against the one-hander from the bags
@@ -1114,10 +1213,14 @@ local function drawChrome(panel, tooltip, style)
     else
         panel.halo:SetVertexColor(.6, .6, .6, .18)
     end
-    local headerAlpha = panel.textured and .72 or .96
+    -- The band's opacity at its top and bottom edges, set in the editor;
+    -- unset follows the backdrop.
+    local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
     panel.header:SetGradient("VERTICAL",
-        CreateColor(color[1] * .12, color[2] * .12, color[3] * .12, headerAlpha),
-        CreateColor(color[1] * .38, color[2] * .38, color[3] * .38, headerAlpha))
+        CreateColor(color[1] * .12, color[2] * .12, color[3] * .12,
+            ns.option("headerBottomAlpha") or headerAlpha),
+        CreateColor(color[1] * .38, color[2] * .38, color[3] * .38,
+            ns.option("headerTopAlpha") or headerAlpha))
     for index, edge in ipairs(panel.edges) do
         local edgeStrength = index == 1 and .8 or .36
         edge:SetVertexColor(color[1] * edgeStrength, color[2] * edgeStrength,
@@ -1161,18 +1264,22 @@ local function drawChrome(panel, tooltip, style)
     local headerMin = style.icon and ICON_TOP + iconSize + 12 or 0
     if style.badge then
         local badge = panel.badge
-        panel.badgeText:SetFont(bodyFont(), 10)
-        panel.badgeText:SetTextColor(color[1] * .45 + .55, color[2] * .45 + .55,
-            color[3] * .45 + .55)
+        local text = styleOf("badge")
+        local textColor = text.color or { color[1] * .45 + .55, color[2] * .45 + .55,
+            color[3] * .45 + .55 }
+        setFont(panel.badgeText, text.font, text.size, text.flags)
+        panel.badgeText:SetTextColor(textColor[1], textColor[2], textColor[3])
         panel.badgeText:SetText(style.badge)
-        badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 12),
-            BADGE_HEIGHT)
+        -- Grows with a larger text size; 16 at the default 10.
+        local height = math.max(BADGE_HEIGHT, text.size + 6)
+        badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 12), height)
         badge:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
         panel.badgeFill:SetVertexColor(color[1] * .14, color[2] * .14, color[3] * .14, 1)
         badge:Show()
         panel.badgeFill:Show()
         panel.badgeText:Show()
-        headerMin = ICON_TOP + iconSize + BADGE_GAP + BADGE_HEIGHT + 10
+        if panel.hits then panel.hits[#panel.hits + 1] = { key = "badge", region = badge } end
+        headerMin = ICON_TOP + iconSize + BADGE_GAP + height + 10
     else
         panel.badge:Hide()
         panel.badgeFill:Hide()
@@ -1235,12 +1342,14 @@ end
 local function render(panel, tooltip, model)
     panel:Show()
     clearPool(panel)
+    local styles = {}
+    for _, element in ipairs(ns.ELEMENTS) do styles[element.key] = styleOf(element.key) end
     local title = model.name:find("|", 1, true) and model.name or model.name:upper()
-    panel.width = fitWidth(panel, model, title)
+    panel.width = fitWidth(panel, model, title, styles)
     panel:SetWidth(panel.width)
     local quality = QUALITY[model.quality] or QUALITY[1]
     local tag
-    if isComparison(tooltip) then
+    if model.comparison then
         tag = isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH"
     end
     -- Quest items are mostly common, so they take quest gold instead of rarity;
@@ -1259,14 +1368,14 @@ local function render(panel, tooltip, model)
     local inner = panel.width - 2 * PAD
     local indent = model.icon and HEADER_INDENT or 0
     local leftIndent, rightIndent = headerInsets(indent)
-    y = y + textAt(panel, title, PAD + leftIndent, y, inner - indent,
-        19, quality, titleFont()) + 4
+    y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.title, quality) + 4
     if model.slot and model.slot ~= "" then
         -- Halfway to white: the title already carries the full rarity color.
-        y = y + textAt(panel, model.slot, PAD + leftIndent, y, inner - indent, 13,
+        y = y + styledAt(panel, model.slot, PAD + leftIndent, y, inner - indent, styles.subtitle,
             { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 4
     end
-    y = drawGroup(panel, model.header, y, 12, { .78, .72, .63 }, leftIndent, nil, rightIndent)
+    y = drawGroup(panel, model.header, y, styles.header, { .78, .72, .63 }, leftIndent, nil,
+        rightIndent)
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
 
@@ -1274,42 +1383,35 @@ local function render(panel, tooltip, model)
     local sectioned = false
     if model.weaponDps or model.weaponDamage or #model.armor > 0 or #model.primary > 0
         or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
-        or #model.lost > 0
         or #model.effects > 0 or #model.flavor > 0 then
         y = divider(panel, y, GOLD_RULE)
         if model.weaponDps then
-            local delta = model.weaponDpsDelta
             y = drawRow(panel, {
-                left = valueLabel(model.weaponDps, "Damage per Second"),
-                right = delta and formatDelta(delta) or "",
-                rightColor = delta and (delta > 0 and DELTA_UP or DELTA_DOWN),
-            }, y, 18, { .93, .87, .75 }) + 2
+                left = valueLabel(model.weaponDps, "Damage per Second"), right = "",
+            }, y, styles.dps, { .93, .87, .75 }) + 2
         end
         if model.weaponDamage then
-            y = y + textAt(panel, weaponText(model), PAD + 7, y, inner - 7,
-                12, { .71, .72, .73 }) + 7
+            y = y + styledAt(panel, weaponText(model), PAD + 7, y, inner - 7, styles.damage,
+                { .71, .72, .73 }) + 7
         end
         for _, row in ipairs(model.armor) do
             y = drawRow(panel, {
                 left = row.value and valueLabel(row.value, "Armor") or row.left,
                 right = row.right, rightColor = row.rightColor,
-            }, y, 16, { .93, .87, .75 })
+            }, y, styles.armor, { .93, .87, .75 })
         end
         if #model.armor > 0 then y = y + 5 end
-        y = drawGroup(panel, model.primary, y, 13, { .90, .85, .74 })
+        y = drawGroup(panel, model.primary, y, styles.stats, { .90, .85, .74 })
         if (#model.secondary > 0 or #model.equipEffects > 0) and #model.primary > 0 then
             y = divider(panel, y + 3, GOLD_RULE)
         end
-        y = drawGroup(panel, model.secondary, y, 13, { .90, .85, .74 })
-        y = drawEquipEffects(panel, model.equipEffects, y)
-        y = drawGroup(panel, model.enchants, y, 13, { .90, .85, .74 })
-        if #model.lost > 0 then
-            y = drawGroup(panel, model.lost, y + 3, 12, { .50, .48, .45 })
-        end
+        y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
+        y = drawEquipEffects(panel, model.equipEffects, y, styles.equipEffects)
+        y = drawGroup(panel, model.enchants, y, styles.enchants, { .90, .85, .74 })
         if #model.effects > 0 then y = y + 5 end
-        y = drawGroup(panel, model.effects, y, 13, { .48, .88, .48 })
+        y = drawGroup(panel, model.effects, y, styles.effects, { .48, .88, .48 })
         if #model.flavor > 0 then
-            y = drawGroup(panel, model.flavor, y + 5, 12, FLAVOR_GOLD)
+            y = drawGroup(panel, model.flavor, y + 5, styles.flavor, FLAVOR_GOLD)
         end
         sectioned = true
     end
@@ -1318,11 +1420,14 @@ local function render(panel, tooltip, model)
         y = divider(panel, sectioned and y + 11 or y, GOLD_RULE)
         sectioned = true
         local setTitle = model.setName:upper()
-        textAt(panel, setTitle, PAD, y, inner - 45, 15,
-            { 1, .76, .18 }, titleFont())
-        textAt(panel, model.setCount or "", panel.width - PAD - 42, y, 42, 12,
-            { 1, .76, .18 }, nil, "RIGHT")
-        y = y + 24
+        local countStyle = setCountStyle(styles.setName)
+        local count = model.setCount or ""
+        local countWidth = math.max(42, measureStyled(panel, count, countStyle) + 2)
+        local titleHeight = styledAt(panel, setTitle, PAD, y, inner - countWidth - 3,
+            styles.setName, { 1, .76, .18 })
+        local countHeight = styledAt(panel, count, panel.width - PAD - countWidth, y, countWidth,
+            countStyle, { 1, .76, .18 }, "RIGHT")
+        y = y + math.max(24, titleHeight + 7, countHeight + 7)
         for _, row in ipairs(model.setItems) do
             local bullet, color = "|cff756C60-  |r", { .61, .58, .54 }
             if row.active == true then
@@ -1331,7 +1436,7 @@ local function render(panel, tooltip, model)
                 bullet, color = "|cff4A4540-  |r", { .44, .42, .40 }
             end
             y = drawRow(panel, { left = bullet .. row.left, right = row.right },
-                y, 12, color, 5)
+                y, styles.setItems, color, 5)
         end
         if #model.setBonuses > 0 then y = y + 7 end
         for _, row in ipairs(model.setBonuses) do
@@ -1341,7 +1446,7 @@ local function render(panel, tooltip, model)
             elseif row.active == false then
                 color = { .44, .42, .40 }
             end
-            y = drawRow(panel, row, y, 12, color, 3)
+            y = drawRow(panel, row, y, styles.setBonuses, color, 3)
         end
     end
 
@@ -1351,12 +1456,20 @@ local function render(panel, tooltip, model)
         else
             y = y + 12
         end
-        y = drawGroup(panel, model.extras, y, 11, EXTRA_COLOR, 0, 2)
+        y = drawGroup(panel, model.extras, y, styles.extras, EXTRA_COLOR, 0, 2)
+    end
+
+    -- Below everything about the equipped item, as the game places it.
+    if #model.changes > 0 then
+        y = rule(panel, y + 10, GOLD_RULE)
+        y = y + styledAt(panel, CHANGES_HEADING, PAD, y, inner, styles.changes, CHANGES_GOLD) + 4
+        y = drawGroup(panel, model.changes, y, styles.changes, { .90, .85, .74 })
     end
 
     if #model.footerLeft > 0 or #model.footerRight > 0 then
         y = y + 9
         local footerStart = y
+        local footer = styles.footer
         local rows = math.max(#model.footerLeft, #model.footerRight)
         for index = 1, rows do
             local left = model.footerLeft[index]
@@ -1369,17 +1482,17 @@ local function render(panel, tooltip, model)
                 if right.requirement then
                     color = right.met and { 1, 1, 1 } or { 1, .34, .28 }
                 end
-                rightWidth = math.min(measure(panel, content, 11) + 2, inner * .6)
-                h2 = textAt(panel, content, panel.width - PAD - rightWidth, y,
-                    rightWidth, 11, color, nil, "RIGHT")
+                rightWidth = math.min(measureStyled(panel, content, footer) + 2, inner * .6)
+                h2 = styledAt(panel, content, panel.width - PAD - rightWidth, y,
+                    rightWidth, footer, color, "RIGHT")
             end
             if left and left.durability then
-                h1 = drawDurability(panel, left.durability, y)
+                h1 = drawDurability(panel, left.durability, y, footer)
             elseif left then
-                h1 = textAt(panel, left.left, PAD, y, inner - rightWidth - COLUMN_GAP,
-                    11, left.color or { .82, .78, .71 })
+                h1 = styledAt(panel, left.left, PAD, y, inner - rightWidth - COLUMN_GAP,
+                    footer, left.color or { .82, .78, .71 })
             end
-            y = y + math.max(h1, h2, 13) + 4
+            y = y + math.max(h1, h2, footer.size + 2) + 4
         end
         panel.footer:SetHeight(y - footerStart + 23)
     else
@@ -1496,17 +1609,9 @@ local function scheduleRestore(tooltip)
     end)
 end
 
--- A comparison can open after its owner's panel was drawn, and chat-link
--- tooltips never refresh on their own, so the owner redraws for its arrows.
-local function refreshOwner(owner)
-    local panel = owner and panels[owner]
-    if panel and panel.kind == ITEM and panel:IsShown() and panel.data and owner:IsShown()
-        and owner:IsTooltipType(ITEM) then
-        update(owner, panel.data)
-    end
-end
-
 local function onTooltipData(dataType, tooltip, data)
+    -- The editor reads this one itself.
+    if tooltip.prettyTooltipScanner then return end
     local panel = getPanel(tooltip)
     local previousKey, previousKind = panel.key, panel.kind
     local key = KINDS[dataType].key(tooltip, data)
@@ -1517,12 +1622,6 @@ local function onTooltipData(dataType, tooltip, data)
     panel.restorePending = false
     if not panel.hooked then
         tooltip:HookScript("OnHide", scheduleRestore)
-        if isComparison(tooltip) then
-            tooltip:HookScript("OnHide", function()
-                local owner = panel.owner
-                C_Timer.After(0, function() refreshOwner(owner) end)
-            end)
-        end
         tooltip:HookScript("OnTooltipCleared", scheduleRestore)
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
@@ -1590,12 +1689,6 @@ local function onTooltipData(dataType, tooltip, data)
             update(tooltip, data)
         end
     end)
-    if dataType == ITEM and isComparison(tooltip) then
-        local owner = tooltip:GetOwner()
-        if isSecret(owner) then owner = nil end
-        panel.owner = owner
-        C_Timer.After(0, function() refreshOwner(owner) end)
-    end
 end
 
 local function registerKind(dataType, kind)
@@ -1612,18 +1705,6 @@ end)
 local modifier = CreateFrame("Frame")
 modifier:RegisterEvent("MODIFIER_STATE_CHANGED")
 modifier:SetScript("OnEvent", function(_, _, key)
-    if key == "LSHIFT" or key == "RSHIFT" then
-        -- Shift toggles the comparison; redraw once it has been shown or hidden.
-        C_Timer.After(0, function()
-            for tooltip, panel in pairs(panels) do
-                if tooltip.shoppingTooltips and panel.kind == ITEM and tooltip:IsShown()
-                    and panel:IsShown() and panel.data and tooltip:IsTooltipType(ITEM) then
-                    update(tooltip, panel.data)
-                end
-            end
-        end)
-        return
-    end
     if not ns.isOriginalKey(key) then return end
     for tooltip, panel in pairs(panels) do
         if tooltip:IsShown() and panel.kind and tooltip:IsTooltipType(panel.kind) then
@@ -1636,8 +1717,62 @@ modifier:SetScript("OnEvent", function(_, _, key)
     end
 end)
 
--- Shared with PrettyTooltipSpell.lua, which loads after this file.
+-- The style editor's sample: a panel inside anchor, a plain frame standing in
+-- for the game's tooltip, drawn from a model of the given data type (items
+-- by default). It records what each element drew, so a click on the sample
+-- can find the element.
+local function renderPreview(anchor, model, dataType)
+    local panel = anchor.prettyTooltipPreview
+    if not panel then
+        panel = createPanel(anchor)
+        panel:SetFrameStrata(anchor:GetFrameStrata())
+        panel:SetClampedToScreen(false)
+        anchor.prettyTooltipPreview = panel
+    end
+    panel.hits = {}
+    KINDS[dataType or ITEM].render(panel, anchor, model)
+    return panel
+end
+
+-- The header band's opacity while none is set, for the editor's sliders.
+local function defaultHeaderAlpha()
+    if ns.option("dialogueBackdrop") and hasDialogueBackdrop() then return HEADER_ALPHA_TEXTURED end
+    return HEADER_ALPHA_PLAIN
+end
+
+-- A hidden tooltip the editor fills with a real item or spell by ID. It is
+-- read like the game's tooltips, stat wording included, but never gets a
+-- panel of its own.
+local scanner
+local function previewByID(anchor, dataType, id)
+    if not scanner then
+        scanner = CreateFrame("GameTooltip", "PrettyTooltipScanner", UIParent, "GameTooltipTemplate")
+        scanner.prettyTooltipScanner = true
+    end
+    scanner:SetOwner(UIParent, "ANCHOR_NONE")
+    if dataType == ITEM then scanner:SetItemByID(id) else scanner:SetSpellByID(id) end
+    local data = scanner:GetTooltipData()
+    local kind = KINDS[dataType]
+    local ok, model = pcall(kind.read, scanner, data)
+    scanner:Hide()
+    if not (ok and model) then return end
+    return renderPreview(anchor, model, dataType)
+end
+
+-- Shared with PrettyTooltipSpell.lua and PrettyTooltipEditor.lua, which load
+-- after this file.
 ns.ui = {
+    renderPreview = renderPreview,
+    previewByID = previewByID,
+    defaultHeaderAlpha = defaultHeaderAlpha,
+    styleOf = styleOf,
+    styledAt = styledAt,
+    measureStyled = measureStyled,
+    enchantRows = enchantRows,
+    formatMoney = formatMoney,
+    setFont = setFont,
+    changeRow = changeRow,
+    FLAVOR_GOLD = FLAVOR_GOLD,
     isSecret = isSecret,
     safeText = safeText,
     add = add,
@@ -1645,8 +1780,6 @@ ns.ui = {
     appendedRows = appendedRows,
     requirementMet = requirementMet,
     clearPool = clearPool,
-    textAt = textAt,
-    measure = measure,
     rowWidth = rowWidth,
     drawRow = drawRow,
     drawGroup = drawGroup,
@@ -1662,7 +1795,6 @@ ns.ui = {
     MIN_WIDTH = MIN_WIDTH,
     MAX_WIDTH = MAX_WIDTH,
     PROSE_WIDTH = PROSE_WIDTH,
-    titleFont = titleFont,
     EXTRA_COLOR = EXTRA_COLOR,
     GOLD_RULE = GOLD_RULE,
 }

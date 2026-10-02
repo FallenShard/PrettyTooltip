@@ -12,3 +12,4 @@ PrettyTooltipOptions.lua
 PrettyTooltip.lua
 PrettyTooltipLayout.lua
 PrettyTooltipSpell.lua
+PrettyTooltipEditor.lua

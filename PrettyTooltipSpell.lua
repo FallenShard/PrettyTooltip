@@ -8,14 +8,20 @@ if not (ui and SPELL) then
 end
 
 local isSecret, safeText, add = ui.isSecret, ui.safeText, ui.add
-local textAt, measure = ui.textAt, ui.measure
+local styledAt, measureStyled = ui.styledAt, ui.measureStyled
 local PAD = ui.PAD
+-- The parts of the spell panel the style editor can restyle.
+local PARTS = { "spellTitle", "spellBadges", "spellValues", "spellCaptions", "spellDetails",
+    "spellText", "extras" }
 local TITLE_COLOR = { .96, .92, .84 }
 local NEUTRAL = { .62, .66, .74 }
 local DESCRIPTION_COLOR = { .92, .87, .76 }
 local CAPTION_COLOR = { .60, .57, .52 }
 local PILL_HEIGHT = 16
 local PILL_GAP = 6
+-- Where the strip's captions start below its values, and its height, at the
+-- default text sizes; both grow with larger text.
+local CAPTION_OFFSET = 17
 local RANK_PILL = { .60, .56, .50 }
 local REMAINING_COLOR = { 1, .60, .25 }
 local UNMET_COLOR = { 1, .34, .28 }
@@ -176,32 +182,34 @@ local function pills(model)
     return list
 end
 
-local function pillsWidth(panel, list)
+local function pillsWidth(panel, list, style)
     local width = 0
     for index, pill in ipairs(list) do
-        width = width + measure(panel, pill[1], 10) + 12 + (index > 1 and PILL_GAP or 0)
+        width = width + measureStyled(panel, pill[1], style) + 12 + (index > 1 and PILL_GAP or 0)
     end
     return width
 end
 
--- Small tags under the name, drawn like the item level badge.
-local function drawPills(panel, list, x, y)
+-- Small tags under the name, drawn like the item level badge. They grow
+-- with a larger text size; 16 high at the default 10.
+local function drawPills(panel, list, x, y, style)
+    local height = math.max(PILL_HEIGHT, style.size + 6)
     for _, pill in ipairs(list) do
         local text, color = pill[1], pill[2]
-        local width = measure(panel, text, 10) + 12
+        local width = measureStyled(panel, text, style) + 12
         local border = ui.acquireTexture(panel, nil, -2)
         border:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -y)
-        border:SetSize(width, PILL_HEIGHT)
+        border:SetSize(width, height)
         border:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
         local fill = ui.acquireTexture(panel, nil, -1)
         fill:SetPoint("TOPLEFT", border, "TOPLEFT", 1, -1)
-        fill:SetSize(width - 2, PILL_HEIGHT - 2)
+        fill:SetSize(width - 2, height - 2)
         fill:SetVertexColor(color[1] * .14, color[2] * .14, color[3] * .14, 1)
-        textAt(panel, text, x, y + 3, width, 10,
-            { color[1] * .45 + .55, color[2] * .45 + .55, color[3] * .45 + .55 }, nil, "CENTER")
+        styledAt(panel, text, x, y + math.floor((height - style.size) / 2), width, style,
+            { color[1] * .45 + .55, color[2] * .45 + .55, color[3] * .45 + .55 }, "CENTER")
         x = x + width + PILL_GAP
     end
-    return y + PILL_HEIGHT
+    return y + height
 end
 
 -- No spell API names the school. A school word anywhere in the text misfires
@@ -306,36 +314,41 @@ local function splitSentences(text)
     return sentences
 end
 
-local function fitWidth(panel, model, title, sentences)
+local function fitWidth(panel, model, title, sentences, styles)
     local indent = model.icon and TEXT_INDENT or 0
-    local need = measure(panel, title, 17, ui.titleFont()) + indent
+    local need = measureStyled(panel, title, styles.spellTitle) + indent
     local list = pills(model)
-    if #list > 0 then need = math.max(need, pillsWidth(panel, list) + indent) end
+    if #list > 0 then
+        need = math.max(need, pillsWidth(panel, list, styles.spellBadges) + indent)
+    end
     local function consider(width) if width > need then need = width end end
     if #model.cells > 0 then
         local widest = 0
         for _, cell in ipairs(model.cells) do
-            widest = math.max(widest, measure(panel, cell[1], 13),
-                measure(panel, cell[2]:upper(), 9))
+            widest = math.max(widest, measureStyled(panel, cell[1], styles.spellValues),
+                measureStyled(panel, cell[2]:upper(), styles.spellCaptions))
         end
         consider((widest + 16) * #model.cells)
     end
     for _, list in ipairs({ model.details, model.requirements }) do
-        for _, row in ipairs(list) do consider(ui.rowWidth(panel, row, 11)) end
+        for _, row in ipairs(list) do consider(ui.rowWidth(panel, row, styles.spellDetails)) end
     end
     for _, sentence in ipairs(sentences) do
-        consider(math.min(measure(panel, sentence, 12), ui.PROSE_WIDTH))
+        consider(math.min(measureStyled(panel, sentence, styles.spellText), ui.PROSE_WIDTH))
     end
     for _, row in ipairs(model.extras) do
-        local width = ui.rowWidth(panel, row, 11)
+        local width = ui.rowWidth(panel, row, styles.extras)
         if not row.right or row.right == "" then width = math.min(width, ui.PROSE_WIDTH) end
         consider(width)
     end
     return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
 end
 
-local function drawStrip(panel, model, y, color)
+local function drawStrip(panel, model, y, color, styles)
+    local values, captions = styles.spellValues, styles.spellCaptions
     local cellWidth = (panel.width - 2 * PAD) / #model.cells
+    local captionOffset = math.max(CAPTION_OFFSET, values.size + 4)
+    local height = math.max(STRIP_HEIGHT, captionOffset + captions.size + 8)
     for index, cell in ipairs(model.cells) do
         local x = PAD + (index - 1) * cellWidth
         local valueColor = TITLE_COLOR
@@ -343,16 +356,17 @@ local function drawStrip(panel, model, y, color)
         if power then
             valueColor = { power[1] * .45 + .55, power[2] * .45 + .55, power[3] * .45 + .55 }
         end
-        textAt(panel, cell[1], x, y, cellWidth, 13, valueColor, nil, "CENTER")
-        textAt(panel, cell[2]:upper(), x, y + 17, cellWidth, 9, CAPTION_COLOR, nil, "CENTER")
+        styledAt(panel, cell[1], x, y, cellWidth, values, valueColor, "CENTER")
+        styledAt(panel, cell[2]:upper(), x, y + captionOffset, cellWidth, captions,
+            CAPTION_COLOR, "CENTER")
         if index > 1 then
             local separator = ui.acquireTexture(panel)
             separator:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -(y + 2))
-            separator:SetSize(1, STRIP_HEIGHT - 8)
+            separator:SetSize(1, height - 8)
             separator:SetVertexColor(color[1] * .6, color[2] * .6, color[3] * .6, .5)
         end
     end
-    return y + STRIP_HEIGHT
+    return y + height
 end
 
 local function renderSpell(panel, tooltip, model)
@@ -364,7 +378,9 @@ local function renderSpell(panel, tooltip, model)
         for _, sentence in ipairs(splitSentences(text)) do sentences[#sentences + 1] = sentence end
     end
     model.school = detectSchool(model)
-    panel.width = fitWidth(panel, model, title, sentences)
+    local styles = {}
+    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
+    panel.width = fitWidth(panel, model, title, sentences, styles)
     panel:SetWidth(panel.width)
     local power = model.power and POWER_COLORS[model.power]
     local accent = model.school and SCHOOL_COLORS[model.school] or power
@@ -381,10 +397,12 @@ local function renderSpell(panel, tooltip, model)
     local y = ui.TITLE_TOP
     local indent = model.icon and TEXT_INDENT or 0
     local leftIndent = ui.headerInsets(indent)
-    y = y + textAt(panel, title, PAD + leftIndent, y, inner - indent, 17, TITLE_COLOR,
-        ui.titleFont()) + 4
+    y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.spellTitle,
+        TITLE_COLOR) + 4
     local list = pills(model)
-    if #list > 0 then y = drawPills(panel, list, PAD + leftIndent, y + 1) + 4 end
+    if #list > 0 then
+        y = drawPills(panel, list, PAD + leftIndent, y + 1, styles.spellBadges) + 4
+    end
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
     panel.footer:SetHeight(0)
@@ -394,11 +412,12 @@ local function renderSpell(panel, tooltip, model)
         or #sentences > 0 then
         y = ui.divider(panel, y, ui.GOLD_RULE)
         if #model.cells > 0 then
-            y = drawStrip(panel, model, y, color) + 2
+            y = drawStrip(panel, model, y, color, styles) + 2
         end
         if #model.details > 0 or #model.requirements > 0 then
-            y = ui.drawGroup(panel, model.requirements, y + 2, 11, { .82, .78, .71 }, 0, 2)
-            y = ui.drawGroup(panel, model.details, y, 11, { .82, .78, .71 }, 0, 2)
+            y = ui.drawGroup(panel, model.requirements, y + 2, styles.spellDetails,
+                { .82, .78, .71 }, 0, 2)
+            y = ui.drawGroup(panel, model.details, y, styles.spellDetails, { .82, .78, .71 }, 0, 2)
         end
         if #sentences > 0 then
             if #model.cells > 0 or #model.details > 0 or #model.requirements > 0 then
@@ -410,7 +429,7 @@ local function renderSpell(panel, tooltip, model)
                 or "FFF6E4"
             for _, sentence in ipairs(sentences) do
                 y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
-                    y, 12, DESCRIPTION_COLOR, 0, 5)
+                    y, styles.spellText, DESCRIPTION_COLOR, 0, 5)
             end
         end
         sectioned = true
@@ -422,7 +441,7 @@ local function renderSpell(panel, tooltip, model)
         else
             y = y + 12
         end
-        y = ui.drawGroup(panel, model.extras, y, 11, ui.EXTRA_COLOR, 0, 2)
+        y = ui.drawGroup(panel, model.extras, y, styles.extras, ui.EXTRA_COLOR, 0, 2)
     end
     ui.finishPanel(panel, tooltip, y)
 end

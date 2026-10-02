@@ -14,7 +14,7 @@ Top to bottom, an item panel shows:
 - **Item set.** The set name and how many pieces you own, the pieces you own highlighted, and the set bonuses, with active ones highlighted.
 - **Footer.** Durability as a small bar, the crafter's name for crafted items, other requirements such as skills or classes, and the sell price (per item for stacks).
 
-While the game shows a comparison, each stat, armor, and DPS row carries its change against your equipped item in green or red, and stats only the equipped item has are listed dimmed. Comparison panels are tagged **Equipped**.
+While the game shows a comparison, the comparison panels are tagged **Equipped**, and each ends with what would change if the item you are looking at replaced it: gains in green, losses in red, as in the game's own comparison. Rings, trinkets, and one-handed weapons compare against both equipped items, each with its own list.
 
 Recipes take their own name as the title, so `Pattern: Blue Linen Vest` stays the pattern even though the game's tooltip includes the vest.
 
@@ -60,15 +60,30 @@ The panel is tinted by the spell's school, read from the damage its description 
 - With **DialogueUI** installed, the panel uses its dark tooltip backdrop, unless turned off in the options. Text uses the game's own tooltip fonts, so a UI addon that changes the default font is followed; with **EllesmereUI** installed, names use its Expressway font. Both are used from those addons' own folders; nothing of theirs is bundled.
 - Whenever a tooltip cannot be read safely, such as spell details restricted during combat, the game's own tooltip is shown instead.
 
+## Style editor
+
+Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items** and **Spells** switch between the two kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal) cover every part, and the editor switches to one that has the part you pick from its list.
+
+To preview a real item or spell instead, type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
+
+- **Font**: every font registered with LibSharedMedia, which includes EllesmereUI's fonts when it is installed, plus the game's own. **Global Settings** sets the font for everything at once, with a separate font for names; a part's own font overrides it.
+- **Color**: a custom color replaces every color the part would have had, including quality, category, and red or grey states. **Automatic** goes back to the normal colors.
+- **Reset this part** and **Reset all fonts and colors** go back to the defaults.
+
+Under **Layout and color** (hover one for its description):
+
+- **Icon on the right** moves the icon and its item level badge to the right of the name.
+- **Item level badge** and **Stat markers** turn those elements off.
+- **Stat colors**: off, every stat is parchment.
+- **Tint the panel**: off, every panel is neutral; names keep their quality color.
+- **DialogueUI backdrop** (on by default, only with DialogueUI installed): off, the panel uses its plain dark gradient.
+
+Tooltips use the new look the next time they open.
+
 ## Options
 
-Open the game's options, then **AddOns > PrettyTooltip**, or type `/prettytooltip` (short: `/ptip`). Changes apply the next time a tooltip opens.
+Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look:
 
-- **Show the icon on the right** moves the icon and its item level badge to the right of the name.
-- **Show the item level badge** and **Show stat markers** turn those elements off.
-- **Use DialogueUI's backdrop** (on by default, only with DialogueUI installed): off, the panel uses its plain dark gradient.
-- **Color stats by category**: off, every stat is parchment.
-- **Tint the panel**: off, every panel is neutral; names keep their quality color.
 - **Restyle spell tooltips**: off, spells keep the game's tooltip.
 - **Original tooltip** picks the key that shows the game's own tooltip: ALT (default), CTRL, or none.
 

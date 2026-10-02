@@ -157,6 +157,13 @@ local function colorizeStat(text)
     return "|cff" .. value .. sign .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
 end
 
+-- The style editor's sample items show their stats the way tooltips do.
+function ns.styleStat(text)
+    local colored = colorizeStat(text)
+    if not colored then return text end
+    return (ns.option("statMarkers") and STAT_MARKER or "") .. colored
+end
+
 local chanceRules = {
     { "^equip: improves your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },
     { "^equip: increases your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },
