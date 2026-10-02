@@ -10,7 +10,6 @@ end
 local isSecret, safeText, add = ui.isSecret, ui.safeText, ui.add
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
 local PAD = ui.PAD
--- The parts of the spell panel the style editor can restyle.
 local PARTS = { "spellTitle", "spellBadges", "spellValues", "spellCaptions", "spellDetails",
     "spellText", "extras" }
 local TITLE_COLOR = { .96, .92, .84 }
@@ -19,8 +18,6 @@ local DESCRIPTION_COLOR = { .92, .87, .76 }
 local CAPTION_COLOR = { .60, .57, .52 }
 local PILL_HEIGHT = 16
 local PILL_GAP = 6
--- Where the strip's captions start below its values, and its height, at the
--- default text sizes; both grow with larger text.
 local CAPTION_OFFSET = 17
 local RANK_PILL = { .60, .56, .50 }
 local REMAINING_COLOR = { 1, .60, .25 }
@@ -40,7 +37,6 @@ local SCHOOL_COLORS = {
     Nature = { .50, .80, .28 },
     Shadow = { .64, .31, .89 },
 }
--- Resource colors: the cost value, and the tint when no school is named.
 local POWER_COLORS = {
     Mana = { .25, .55, 1 },
     Rage = { .90, .22, .20 },
@@ -70,8 +66,6 @@ local function titleCase(text)
     return (text:gsub("(%a)([%w']*)", function(first, rest) return first:upper() .. rest end))
 end
 
--- Fills one strip cell from a cost, cast, cooldown, or range text. Matched
--- without regard to case; the value keeps the game's spelling.
 local function readStat(model, text)
     local lower = text:lower()
     local amount, power = lower:match("^([%d,]+) (%a[%a ]-)$")
@@ -190,8 +184,6 @@ local function pillsWidth(panel, list, style)
     return width
 end
 
--- Small tags under the name, drawn like the item level badge. They grow
--- with a larger text size; 16 high at the default 10.
 local function drawPills(panel, list, x, y, style)
     local height = math.max(PILL_HEIGHT, style.size + 6)
     for _, pill in ipairs(list) do
@@ -421,7 +413,7 @@ local function renderSpell(panel, tooltip, model)
         end
         if #sentences > 0 then
             if #model.cells > 0 or #model.details > 0 or #model.requirements > 0 then
-                y = ui.rule(panel, y + 6, { color[1] * .7, color[2] * .7, color[3] * .7 })
+                y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
             end
             local school = model.school and SCHOOL_COLORS[model.school]
             local numberCode = school
@@ -437,7 +429,7 @@ local function renderSpell(panel, tooltip, model)
 
     if #model.extras > 0 then
         if sectioned then
-            y = ui.rule(panel, y + 8, { .50, .50, .54 })
+            y = ui.rule(panel, y, { .50, .50, .54 }, 8)
         else
             y = y + 12
         end
@@ -446,4 +438,6 @@ local function renderSpell(panel, tooltip, model)
     ui.finishPanel(panel, tooltip, y)
 end
 
-ui.registerKind(SPELL, { read = readSpell, render = renderSpell, key = spellKey })
+ui.registerKind(SPELL, {
+    read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
+})

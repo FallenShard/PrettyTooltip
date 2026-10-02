@@ -76,6 +76,7 @@ Under **Layout and color** (hover one for its description):
 - **Item level badge** and **Stat markers** turn those elements off.
 - **Stat colors**: off, every stat is parchment.
 - **Tint the panel**: off, every panel is neutral; names keep their quality color.
+- **Separators**: off, the gold dividers between sections and the thin rules are hidden, along with the space around them.
 - **DialogueUI backdrop** (on by default, only with DialogueUI installed): off, the panel uses its plain dark gradient.
 
 Tooltips use the new look the next time they open.
@@ -84,8 +85,8 @@ Tooltips use the new look the next time they open.
 
 Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look:
 
-- **Restyle spell tooltips**: off, spells keep the game's tooltip.
-- **Original tooltip** picks the key that shows the game's own tooltip: ALT (default), CTRL, or none.
+- **Restyled Tooltips** lists every kind of tooltip the game has. **Items** and **Spells** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The rest (players and NPCs, buffs and debuffs, mining and herb nodes, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements) are greyed out until PrettyTooltip restyles them.
+- **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never show default tooltip**.
 
 ## Install
 

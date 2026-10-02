@@ -5,23 +5,21 @@ local addonName, ns = ...
 
 local DEFAULTS = {
     iconRight = false,
+    itemPanels = true,
     statColors = true,
     qualityTint = true,
     statMarkers = true,
     itemLevelBadge = true,
+    separators = true,
     spellPanels = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
-    -- Font names for all text and for names; unset follows the game's
-    -- tooltip fonts (Expressway Bold for names with EllesmereUI).
     bodyFont = nil,
     titleFont = nil,
     -- "NONE", "OUTLINE", or "THICKOUTLINE", for elements without their own.
     outline = "NONE",
-    -- The header band's opacity at its top and bottom edges, 0 to 1; unset
-    -- follows the backdrop.
     headerTopAlpha = nil,
     headerBottomAlpha = nil,
 }
@@ -38,10 +36,8 @@ local function setOption(key, value)
 end
 ns.setOption = setOption
 
--- Every text element the editor can restyle, in panel order. kind is the
--- panel it belongs to: "item" (the default), "spell", or "both". size is the
--- default; title elements default to the name font. color is only where the
--- color picker starts while the color is automatic.
+-- kind: "item" (default), "spell", or "both". color is where the picker starts
+-- while the color is automatic.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
         note = "Quality color unless set." },
@@ -90,9 +86,7 @@ local ELEMENT_BY_KEY = {}
 for _, element in ipairs(ns.ELEMENTS) do ELEMENT_BY_KEY[element.key] = element end
 ns.ELEMENT_BY_KEY = ELEMENT_BY_KEY
 
--- Fonts are saved by name and looked up at use, so a font from another addon
--- follows that addon. LibSharedMedia lists the game's faces too, under its
--- own names; these are for when no addon has loaded it.
+-- Saved by name; LibSharedMedia lists the game's faces too, under its own names.
 local GAME_FONTS = {
     { "Friz Quadrata", "Fonts\\FRIZQT__.TTF" },
     { "Arial Narrow", "Fonts\\ARIALN.TTF" },
@@ -115,7 +109,6 @@ function ns.fontNames()
     return names
 end
 
--- Nil for no name, or a font that is no longer installed.
 function ns.fontPath(name)
     if type(name) ~= "string" then return end
     local media = sharedMedia()
@@ -137,8 +130,6 @@ local function savedStyles(create)
     return PrettyTooltipDB.styles
 end
 
--- One saved field of an element (font, size, color, outline); nil follows
--- the default.
 function ns.elementSetting(key, field)
     local styles = savedStyles(false)
     local saved = styles and styles[key]
@@ -166,8 +157,6 @@ function ns.resetStyles()
     PrettyTooltipDB.headerTopAlpha, PrettyTooltipDB.headerBottomAlpha = nil, nil
 end
 
--- How an element draws: size, font path (nil for its default font), font
--- flags, and a custom color that replaces every color it would have had.
 function ns.style(key)
     local element = ELEMENT_BY_KEY[key]
     local outline = ns.elementSetting(key, "outline") or ns.option("outline")
@@ -190,7 +179,6 @@ function ns.originalKeyDown()
     return false
 end
 
--- Whether a MODIFIER_STATE_CHANGED key is the one that shows the original.
 function ns.isOriginalKey(key)
     local option = ns.option("originalKey")
     if option == "ALT" then return key == "LALT" or key == "RALT" end
@@ -215,8 +203,6 @@ local subtitle = page:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
 subtitle:SetText("A full reskin of item and spell tooltips. Changes apply the next time a tooltip opens.")
 
--- The style editor is its own window; PrettyTooltipEditor.lua defines
--- ns.openEditor, unless the panel is off for this client.
 local editorButton = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
 editorButton:SetSize(180, 24)
 editorButton:SetPoint("TOPLEFT", 16, -64)
@@ -241,40 +227,6 @@ local function section(text)
     y = y - 24
 end
 
-local function checkbox(label, description, isChecked, onClick)
-    local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-    button:SetSize(24, 24)
-    button:SetPoint("TOPLEFT", 20, y)
-    local text = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    text:SetPoint("LEFT", button, "RIGHT", 4, 1)
-    text:SetText(label)
-    y = y - 22
-    if description then
-        local note = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-        note:SetPoint("TOPLEFT", 48, y)
-        note:SetWidth(520)
-        note:SetJustifyH("LEFT")
-        note:SetText(description)
-        y = y - (note:GetStringHeight() + 10)
-    else
-        y = y - 6
-    end
-    button:SetScript("OnClick", function(self)
-        onClick(self:GetChecked() and true or false)
-        refreshControls()
-    end)
-    button.refresh = function()
-        button:SetChecked(isChecked())
-    end
-    controls[#controls + 1] = button
-end
-
-local function toggle(key, label, description)
-    checkbox(label, description,
-        function() return ns.option(key) end,
-        function(checked) setOption(key, checked) end)
-end
-
 local function isInstalled(addon)
     if not (C_AddOns and C_AddOns.GetAddOnInfo) then return false end
     local ok, name, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, addon)
@@ -282,21 +234,76 @@ local function isInstalled(addon)
 end
 ns.isInstalled = isInstalled
 
--- One of several values, drawn as checkboxes that behave as radio buttons.
-local function choice(key, value, label, description)
-    checkbox(label, description,
-        function() return ns.option(key) == value end,
-        function() setOption(key, value) end)
+-- Kinds without an option are not restyled yet and are drawn disabled.
+local TOOLTIP_KINDS = {
+    { "Items", "itemPanels" },
+    { "Spells", "spellPanels" },
+    { "Players and NPCs" },
+    { "Buffs and debuffs" },
+    { "Mining and herb nodes, chests" },
+    { "Quests" },
+    { "Currencies" },
+    { "Dungeon and raid lockouts" },
+    { "Pet abilities" },
+    { "Minimap" },
+    { "Mounts, toys, and pets" },
+    { "Achievements" },
+}
+
+section("Restyled Tooltips")
+local kindsNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+kindsNote:SetPoint("TOPLEFT", 20, y)
+kindsNote:SetWidth(560)
+kindsNote:SetJustifyH("LEFT")
+kindsNote:SetText("A kind that is off keeps the game's own tooltip. Greyed kinds are not "
+    .. "restyled yet.")
+y = y - 20
+for index, kind in ipairs(TOOLTIP_KINDS) do
+    local label, key = kind[1], kind[2]
+    local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    button:SetSize(24, 24)
+    local column = (index - 1) % 2
+    button:SetPoint("TOPLEFT", 20 + column * 280, y)
+    local text = button:CreateFontString(nil, "ARTWORK", key and "GameFontHighlight"
+        or "GameFontDisable")
+    text:SetPoint("LEFT", button, "RIGHT", 4, 1)
+    text:SetText(label)
+    if key then
+        button:SetScript("OnClick", function(self) setOption(key, self:GetChecked() and true or false) end)
+        button.refresh = function() button:SetChecked(ns.option(key)) end
+        controls[#controls + 1] = button
+    else
+        button:SetChecked(false)
+        button:Disable()
+    end
+    if column == 1 then y = y - 26 end
 end
+y = y - 12
 
-section("Spells")
-toggle("spellPanels", "Restyle spell tooltips",
-    "Off, spells keep the game's tooltip; items are still restyled.")
-
-section("Original tooltip")
-choice("originalKey", "ALT", "Hold ALT to see the original")
-choice("originalKey", "CTRL", "Hold CTRL to see the original")
-choice("originalKey", "NONE", "Never show the original")
+local MODIFIERS = { { "CTRL", "CTRL" }, { "ALT", "ALT" }, { "NONE", "Never show default tooltip" } }
+section("Default Tooltip Modifier")
+local modifierNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+modifierNote:SetPoint("TOPLEFT", 20, y)
+modifierNote:SetWidth(560)
+modifierNote:SetJustifyH("LEFT")
+modifierNote:SetText("Hold this key to see the game's own tooltip instead of the panel.")
+y = y - 20
+for index, modifier in ipairs(MODIFIERS) do
+    local value, label = modifier[1], modifier[2]
+    local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
+    button:SetPoint("TOPLEFT", 24 + (index - 1) * 120, y)
+    local text = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("LEFT", button, "RIGHT", 6, 0)
+    text:SetText(label)
+    button:SetHitRectInsets(0, -(text:GetStringWidth() + 8), 0, 0)
+    button:SetScript("OnClick", function()
+        setOption("originalKey", value)
+        refreshControls()
+    end)
+    button.refresh = function() button:SetChecked(ns.option("originalKey") == value) end
+    controls[#controls + 1] = button
+end
+y = y - 24
 
 page:SetScript("OnShow", refreshControls)
 -- Hooks the settings window calls on canvas pages: when it shows them, and
@@ -332,7 +339,6 @@ function ns.openSettings()
     end
 end
 
--- "/ptip" opens the style editor, "/ptip options" the settings page.
 SLASH_PRETTYTOOLTIP1 = "/prettytooltip"
 SLASH_PRETTYTOOLTIP2 = "/ptip"
 SlashCmdList.PRETTYTOOLTIP = function(message)

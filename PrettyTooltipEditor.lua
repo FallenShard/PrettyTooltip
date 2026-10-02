@@ -1,7 +1,4 @@
--- The style editor: a live sample item or spell panel on the left, or a real
--- one looked up by ID; on the right, the font, size, color, and outline of
--- whichever part of the sample was clicked, the fonts for all text, and the
--- options that change how the panel looks.
+-- The /ptip style editor: a live sample panel and the controls for its parts.
 local _, ns = ...
 local ui = ns.ui
 if not (ui and ui.renderPreview) then
@@ -9,7 +6,7 @@ if not (ui and ui.renderPreview) then
 end
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
-local WIDTH, HEIGHT = 820, 640
+local WIDTH, HEIGHT = 820, 666
 local PREVIEW_TOP = 80
 local PREVIEW_WIDTH = 460
 -- Room around the panel for its rarity halo and the Equipped tag above it.
@@ -52,7 +49,6 @@ local function spellIcon(spellID)
     return QUESTION_MARK
 end
 
--- A stat row as the tooltip shows it.
 local function stat(text)
     return { left = ns.styleStat and ns.styleStat(text) or text, right = "" }
 end
@@ -67,8 +63,6 @@ local function sampleModel(fields)
     return fields
 end
 
--- The strip shows cost, cast, cooldown, and range in that order, as the
--- spell panel's reader collects them.
 local function spellModel(fields)
     for _, list in ipairs({ "details", "requirements", "description", "extras" }) do
         fields[list] = fields[list] or {}
@@ -80,8 +74,7 @@ local function spellModel(fields)
     return fields
 end
 
--- Built on every draw, since the stat options change their text. Between
--- them the samples of each kind show every part of that kind.
+-- Built on every draw, since the stat options change their text.
 local ITEM_SAMPLES = {
     {
         label = "Weapon",
@@ -153,7 +146,6 @@ local ITEM_SAMPLES = {
         end,
     },
     {
-        -- The comparison panel beside the Weapon sample.
         label = "Equipped",
         build = function()
             local changes = {}
@@ -239,7 +231,6 @@ local SPELL_SAMPLES = {
     },
 }
 
--- What the editor can show. first is the part selected on the first visit.
 local KINDS = {
     item = { label = "Items", dataType = Enum.TooltipDataType.Item, samples = ITEM_SAMPLES,
         first = "title", noun = "item" },
@@ -258,14 +249,12 @@ local function fill(parent, layer, color, alpha)
     return tex
 end
 
--- A fill covering the whole frame, behind everything else on it.
 local function background(frame, color, alpha)
     local tex = fill(frame, "BACKGROUND", color, alpha)
     tex:SetAllPoints()
     return tex
 end
 
--- A one-pixel frame drawn inside the region's edges.
 local function outline(frame, color, alpha)
     local edges = {}
     for index, points in ipairs({
@@ -288,8 +277,7 @@ local function text(parent, template, value)
     return font
 end
 
--- A string given a font file keeps it through SetFontObject, so a menu row
--- that showed a font sample is set back to the plain font explicitly.
+-- A string given a font file keeps it through SetFontObject.
 local function plainFont(font)
     local path, size, flags = GameFontHighlightSmall:GetFont()
     ui.setFont(font, path, size, flags)
@@ -331,7 +319,6 @@ editor:RegisterForDrag("LeftButton")
 editor:SetScript("OnDragStart", editor.StartMoving)
 editor:SetScript("OnDragStop", editor.StopMovingOrSizing)
 editor:Hide()
--- Escape closes it.
 tinsert(UISpecialFrames, "PrettyTooltipEditor")
 background(editor, BACKGROUND)
 outline(editor, LINE)
@@ -344,8 +331,6 @@ subheading:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -4)
 local close = CreateFrame("Button", nil, editor, "UIPanelCloseButton")
 close:SetPoint("TOPRIGHT", -2, -2)
 
--- The kind shown, its sample, its selected part, and the ID looked up in place
--- of a sample. Switching kinds keeps each kind's choices in saved.
 local state = { kind = "item", sample = 1, selected = "title", saved = {} }
 local controls = {}
 local refresh, refreshLookup
@@ -373,8 +358,7 @@ host:SetSize(PREVIEW_WIDTH, HEIGHT - PREVIEW_TOP - 16)
 host:SetClipsChildren(true)
 background(host, { .02, .016, .02 })
 outline(host, LINE, .8)
--- Stands in for the game's tooltip: the panel pins itself to its top left.
--- The margin leaves room for the rarity halo around the panel.
+-- Stands in for the game's tooltip; the panel pins itself to it.
 local anchor = CreateFrame("Frame", nil, host)
 anchor:SetSize(1, 1)
 anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN)
@@ -384,7 +368,6 @@ for index, kind in ipairs(KIND_ORDER) do
     tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 66, 6)
     kindTabs[kind] = tab
 end
--- Relabeled for the kind shown.
 local sampleTabs = {}
 for index = 1, MAX_SAMPLES do
     local tab = flatButton(editor, "", 72, function()
@@ -395,8 +378,6 @@ for index = 1, MAX_SAMPLES do
     sampleTabs[index] = tab
 end
 
--- Clicks and hovers land on this layer above the panel; its highlights are
--- drawn over the text of the hovered and the selected part.
 local overlay = CreateFrame("Frame", nil, host)
 overlay:SetAllPoints()
 overlay:EnableMouse(true)
@@ -406,8 +387,6 @@ failure:SetWidth(PREVIEW_WIDTH - 24)
 local hint = text(overlay, "GameFontDisableSmall")
 hint:SetPoint("BOTTOMLEFT", 10, 8)
 
--- A panel taller than the preview (a set piece) scrolls: the mouse wheel over
--- it, or the bar along its right edge, which shows only when needed.
 local scrollBar = CreateFrame("Slider", nil, host)
 scrollBar:SetOrientation("VERTICAL")
 scrollBar:SetPoint("TOPRIGHT", -3, -3)
@@ -506,8 +485,7 @@ overlay:SetScript("OnUpdate", function(self)
     showHint()
 end)
 
--- An item the client has not seen yet is requested; the panel is drawn when
--- GET_ITEM_INFO_RECEIVED says it arrived. Returns why nothing can be drawn.
+-- Uncached items are requested; GET_ITEM_INFO_RECEIVED redraws.
 local function lookupProblem(kind, id)
     if kind.dataType ~= Enum.TooltipDataType.Item or not C_Item then return end
     if C_Item.DoesItemExistByID and C_Item.DoesItemExistByID(id) == false then
@@ -541,8 +519,6 @@ local function drawSample()
         overlay:SetFrameLevel(shown:GetFrameLevel() + 20)
         scrollBar:SetFrameLevel(overlay:GetFrameLevel() + 5)
     end
-    -- The scroll position holds while a part is restyled, and goes back to
-    -- the top for another sample.
     local showing = state.kind .. ":" .. state.sample .. ":" .. tostring(state.lookup)
     local offset = showing == scrolledFor and scrollBar:GetValue() or 0
     scrolledFor = showing
@@ -558,8 +534,6 @@ local function drawSample()
     scrollTo(offset)
 end
 
--- Shows a part, switching to a sample that has it when this one does not. A
--- looked-up item or spell stays, whatever parts it has.
 local function selectPart(key)
     state.selected = key
     if not hasPart(key) and not state.lookup then
@@ -580,7 +554,6 @@ end)
 
 -- Dropdowns ------------------------------------------------------------------
 
--- One list serves every dropdown. A click anywhere outside it closes it.
 local catcher = CreateFrame("Button", nil, editor)
 catcher:SetAllPoints(UIParent)
 catcher:SetFrameStrata("FULLSCREEN_DIALOG")
@@ -671,7 +644,6 @@ end)
 local function openMenu(owner)
     local items = owner.items()
     menu.owner, menu.items, menu.offset = owner, items, 0
-    -- Open scrolled to the current choice.
     for index, item in ipairs(items) do
         if item.value == owner.current() then
             menu.offset = math.max(0, math.min(index - 1, #items - MENU_ROWS))
@@ -735,7 +707,6 @@ end
 
 -- Other controls -------------------------------------------------------------
 
--- Whole numbers from low to high; suffix follows the shown value ("%").
 local function slider(width, current, set, low, high, suffix)
     local holder = CreateFrame("Frame", nil, editor)
     holder:SetSize(width, 22)
@@ -777,8 +748,7 @@ local function slider(width, current, set, low, high, suffix)
     return holder
 end
 
--- The game's color picker, in either of its two interfaces. Cancelling puts
--- back what was saved before it opened, automatic included.
+-- Both color picker interfaces; cancelling restores the saved color.
 local function pickColor(start, apply, restore)
     local function changed()
         local r, g, b = ColorPickerFrame:GetColorRGB()
@@ -847,7 +817,6 @@ local function colorControl()
     return holder
 end
 
--- The description shows in a tooltip while the box or its label is hovered.
 local function checkbox(label, key, description, isAvailable)
     local button = CreateFrame("CheckButton", nil, editor, "UICheckButtonTemplate")
     button:SetSize(22, 22)
@@ -877,8 +846,6 @@ end
 
 -- Looking up by ID -------------------------------------------------------------
 
--- An ID, or a link shift-clicked or pasted in. A link of the other kind
--- switches to it.
 local function applyLookup(entry)
     local kind = state.kind
     local id = entry:match("^%s*(%d+)%s*$")
@@ -922,8 +889,6 @@ local lookupClear = flatButton(editor, "Clear", 62, function()
 end)
 lookupClear:SetPoint("LEFT", lookupBox, "RIGHT", 8, 0)
 
--- Shift-clicking an item or spell while the box has focus looks it up, the
--- way it would put a link in chat.
 if ChatEdit_InsertLink then
     hooksecurefunc("ChatEdit_InsertLink", function(link)
         if lookupBox:HasFocus() and type(link) == "string" then
@@ -993,7 +958,6 @@ end))
 row("Size", slider(FIELD_WIDTH, function()
     return ns.elementSetting(state.selected, "size") or selectedElement().size
 end, function(size)
-    -- The default size is saved as no setting, so it follows future defaults.
     ns.setElementSetting(state.selected, "size", size ~= selectedElement().size and size or nil)
 end))
 
@@ -1049,6 +1013,9 @@ local TOGGLES = {
     { "Tint the panel", "qualityTint",
         "Washes the panel in the item's quality color, or the spell's school or resource. Off, "
             .. "every panel is neutral; the name keeps its quality color." },
+    { "Separators", "separators",
+        "The gold dividers between sections and the thin rules above other addons' rows. Off, "
+            .. "they are hidden along with the space around them." },
     { "DialogueUI backdrop", "dialogueBackdrop",
         "Draws the panel on DialogueUI's dark textured background, read from that addon's folder. "
             .. "Needs DialogueUI installed; off, or without it, the panel is a plain dark gradient.",
@@ -1058,13 +1025,11 @@ for index, toggle in ipairs(TOGGLES) do
     local box = checkbox(toggle[1], toggle[2], toggle[3], toggle[4])
     local column = (index - 1) % 2
     box:SetPoint("TOPLEFT", CONTROLS_X + column * (CONTROLS_WIDTH / 2), y)
-    if column == 1 then y = y - 26 end
+    if column == 1 or index == #TOGGLES then y = y - 26 end
 end
 y = y - 4
 
--- The header band's opacity at its top and bottom edges, in percent. The
--- backdrop's default is saved as no setting, so it keeps following the
--- backdrop.
+-- A default value is saved as no setting, so it keeps following the backdrop.
 local function bandOpacity(key)
     return slider(FIELD_WIDTH, function()
         return math.floor((ns.option(key) or ui.defaultHeaderAlpha()) * 100 + .5)

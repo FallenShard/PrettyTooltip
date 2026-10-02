@@ -55,10 +55,7 @@ local schools = {
     ["shadow"] = "Shadow Spell Damage Power",
 }
 
--- Values use richer colors; labels use lighter, softer shades of the same hue.
--- Primary, physical, defense, and magic follow EllesmereUI's character sheet
--- defaults (Attributes, Attack, Defense, Secondary Stats). All but primary are
--- mixed a quarter toward white to stay readable on the dark panel.
+-- Category colors follow EllesmereUI's character sheet; labels are lighter shades.
 local PRIMARY_COLOR = "0CD29D"
 local PHYSICAL_COLOR = "FF8357"
 local DEFENSE_COLOR = "6FBDFF"
@@ -157,7 +154,6 @@ local function colorizeStat(text)
     return "|cff" .. value .. sign .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
 end
 
--- The style editor's sample items show their stats the way tooltips do.
 function ns.styleStat(text)
     local colored = colorizeStat(text)
     if not colored then return text end
@@ -258,6 +254,7 @@ local activeLinesByTooltip = setmetatable({}, { __mode = "k" })
 local hookedTooltips = setmetatable({}, { __mode = "k" })
 
 local function onItemTooltip(_, data)
+    if not ns.option("itemPanels") then return end
     if isSecret(data) or not data then return end
     local lines = data.lines
     if isSecret(lines) or not lines then return end
@@ -339,14 +336,15 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tool
         end
     end
     activeLinesByTooltip[tooltip] = #rows > 0 and rows or nil
-    showOriginalText(tooltip, ns.originalKeyDown(), false)
+    -- Cached data can still carry wording rewritten before items were turned off.
+    showOriginalText(tooltip, ns.originalKeyDown() or not ns.option("itemPanels"), false)
 end)
 
 local modifierWatcher = CreateFrame("Frame")
 modifierWatcher:RegisterEvent("MODIFIER_STATE_CHANGED")
 modifierWatcher:SetScript("OnEvent", function(_, _, key)
     if not ns.isOriginalKey(key) then return end
-    local original = ns.originalKeyDown()
+    local original = ns.originalKeyDown() or not ns.option("itemPanels")
     for tooltip in pairs(activeLinesByTooltip) do
         if tooltip:IsShown() and tooltip:IsTooltipType(Enum.TooltipDataType.Item) then
             showOriginalText(tooltip, original, true)

@@ -1,6 +1,5 @@
--- The panel that replaces item tooltips (and, through PrettyTooltipSpell.lua,
--- spell tooltips). The game's tooltip stays intact underneath, hidden, and is
--- shown while the original-tooltip key is held or a line cannot safely be read.
+-- The panel that replaces item and spell tooltips. The game's tooltip stays
+-- underneath, hidden, and shows while the modifier is held or a line cannot be read.
 local _, ns = ...
 if GetLocale() ~= "enUS" or not (TooltipDataProcessor and Enum and Enum.TooltipDataType) then
     return
@@ -11,42 +10,33 @@ local ITEM = Enum.TooltipDataType.Item
 local LINE = Enum.TooltipDataLineType
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
 local WHITE = "Interface\\Buttons\\WHITE8X8"
--- The game's tooltip fonts, read at use time so a UI addon that replaces the
--- default font is followed. Friz Quadrata unless something changed it.
+-- Read at use time, so a UI addon's replacement font is followed.
 local function fontOf(object)
     local path = object and object.GetFont and object:GetFont()
     return path or STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 end
--- The font chosen for all text, else the game's.
 local function bodyFont() return ns.fontPath(ns.option("bodyFont")) or fontOf(GameTooltipText) end
--- A font file that fails to load (a media addon's file gone missing) would
--- leave the string without a font, and setting its text would then error.
+-- A file that fails to load leaves the string without a font, and SetText errors.
 local function setFont(object, path, size, flags)
     if not object:SetFont(path, size, flags or "") then
         object:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF", size, flags or "")
     end
 end
--- Expressway is a commercial font, so like DialogueUI's art it is used from
--- EllesmereUI's folder when that addon is installed, never copied here.
+-- A commercial font: used from EllesmereUI's folder, never copied here.
 local ELLESMERE_BOLD = "Interface\\AddOns\\EllesmereUI\\media\\fonts\\Expressway Bold.ttf"
 local MIN_WIDTH, MAX_WIDTH = 260, 408
--- Wrapping prose (effects, set bonuses, flavor text) asks for this much inner
--- width at most; everything else must fit on one line.
+-- Wrapping prose is capped at this inner width; other rows fit on one line.
 local PROSE_WIDTH = 270
 local PAD = 19
 local COLUMN_GAP = 12
 local ICON_SIZE = 43
--- Header text starts past the icon, which sits at the left.
 local HEADER_INDENT = ICON_SIZE + 10
 local ICON_TOP = 21
--- The title's text box starts level with the icon, so its capitals sit a
--- few pixels below the icon's edge instead of almost touching it.
 local TITLE_TOP = ICON_TOP
 local BADGE_GAP = 5
 local BADGE_HEIGHT = 16
 local EXTRA_COLOR = { .60, .60, .63 }
 local GOLD_RULE = { .78, .59, .32 }
--- Flavor text and the crafter's signature.
 local FLAVOR_GOLD = { .86, .74, .45 }
 local QUEST_GOLD = { 1, .82, 0 }
 local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
@@ -56,13 +46,11 @@ local DELTA_DOWN = { 1, .42, .36 }
 local CHANGES_HEADING = "IF YOU REPLACE THIS ITEM"
 local CHANGES_GOLD = { .93, .80, .52 }
 local DURABILITY_BAR = 54
--- The header band's default opacity on each backdrop.
 local HEADER_ALPHA_TEXTURED, HEADER_ALPHA_PLAIN = .72, .96
 local HALO_SPREAD = 16
 -- Must match MARGIN in art/make_glow.py.
 local HALO_MARGIN = 24
--- DialogueUI's art belongs to its author, so it is used where that addon is
--- installed rather than copied into this one.
+-- Another author's art: used from DialogueUI's folder, never copied here.
 local DIALOGUE_BACKDROP = "Interface\\AddOns\\DialogueUI\\Art\\Theme_Dark\\TooltipBackground-Temp.png"
 local STAT_LABELS = {
     ITEM_MOD_STRENGTH_SHORT = "Strength",
@@ -109,13 +97,10 @@ local QUALITY = {
     [4] = { .72, .40, .94 },
     [5] = { 1.00, .57, .22 },
 }
--- The first stat block, as on EllesmereUI's character sheet; every other stat
--- follows under a divider, like its Secondary Stats.
 local PRIMARY_STATS = {
     Strength = true, Agility = true, Stamina = true, Intellect = true, Spirit = true,
     ["All Stats"] = true,
 }
--- Lines that say what an item is, shown with the slot and type in this order.
 local ITEM_KINDS = { "Crafting Reagent", "Scarce" }
 local ITEM_KIND_NAMES = {}
 for _, kind in ipairs(ITEM_KINDS) do ITEM_KIND_NAMES[kind:lower()] = kind end
@@ -168,8 +153,6 @@ local function add(list, left, right)
     list[#list + 1] = { left = left, right = right }
 end
 
--- Other addons' rows are secondary: default white goes grey, and their own
--- accent colours are kept but muted.
 local function quietColor(r, g, b)
     if isSecret(r) or isSecret(g) or isSecret(b)
         or type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number"
@@ -201,10 +184,7 @@ local function addExtra(model, left, right, leftColor, rightColor)
     row.color, row.rightColor = leftColor, rightColor
 end
 
--- Level is checked directly. Skill, reputation, and other requirements trust
--- the game, which colors an unmet requirement red.
--- The game colors whatever the character cannot use red: an armor or weapon
--- type, a class or race list, an unmet requirement. Nil when unreadable.
+-- The game colors whatever the character cannot use red. Nil when unreadable.
 local function isRed(color)
     if isSecret(color) or type(color) ~= "table" then return nil end
     local r, g = color.r, color.g
@@ -255,8 +235,7 @@ local function plainText(text)
     return (text:gsub("|T.-|t", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
 end
 
--- These lines can arrive color coded, or appended outside the tooltip data.
--- Each keeps the color it was given, inline or on the line.
+-- Can arrive color coded, or appended outside the tooltip data.
 local function itemKind(left, right, color)
     if right ~= "" then return end
     local kind = ITEM_KIND_NAMES[plainText(left):match("^%s*(.-)%s*$"):lower()]
@@ -273,17 +252,13 @@ local function itemKind(left, right, color)
         math.floor(g * 255 + .5), math.floor(b * 255 + .5), kind)
 end
 
--- Enchants use the game's enchant green, marker included, so they read as
--- added to the item rather than part of it.
 local ENCHANT_VALUE, ENCHANT_LABEL = "4CE64C", "A6EBA6"
 -- Must match STAT_MARKER in PrettyTooltip.lua, minus its trailing spaces.
 local STAT_MARKER = "|T" .. ART .. "stat-marker:9:9:0:-2|t"
--- Equip effects with no stat wording: the game's equip green.
 local EQUIP_EFFECT_COLOR = { .48, .88, .48 }
 local ENCHANT_MARKER = "|T" .. ART .. "stat-marker:9:9:0:-2:32:32:0:32:0:32:90:230:60|t  "
 
--- "Stamina +1 and Armor +8" becomes one row per bonus, value first like the
--- stat rows. Named enchants ("Crusader") stay whole.
+-- One row per bonus; named enchants ("Crusader") stay whole.
 local function enchantRows(text)
     local rows = {}
     local marker = ns.option("statMarkers") and ENCHANT_MARKER or ""
@@ -299,8 +274,6 @@ local function enchantRows(text)
     return rows
 end
 
--- Lines about this copy of the item: its crafter and its enchant. Either can
--- arrive color coded, or appended outside the tooltip data.
 local function readCopyLine(model, left, right)
     if right ~= "" then return false end
     local text = plainText(left):match("^%s*(.-)%s*$")
@@ -336,14 +309,11 @@ local function statLabel(key)
     return (label:gsub("(%a)([%w']*)", function(first, rest) return first:upper() .. rest end))
 end
 
--- Comparison tooltips are ShoppingTooltip1, ItemRefShoppingTooltip2, and so on.
 local function isComparison(tooltip)
     local name = tooltip:GetName()
     return name ~= nil and name:find("ShoppingTooltip%d$") ~= nil
 end
 
--- The tooltip showing the item a comparison is compared against: its owner,
--- else the main tooltip that lists it among its comparisons.
 local function comparedFrom(tooltip)
     local owner = tooltip.GetOwner and tooltip:GetOwner()
     if not isSecret(owner) and type(owner) == "table" and owner.GetItem then return owner end
@@ -359,7 +329,6 @@ local function hexOf(color)
         math.floor(color[2] * 255 + .5), math.floor(color[3] * 255 + .5))
 end
 
--- One stat change: the amount green or red, the stat in the row's color.
 local function changeRow(label, value)
     return {
         left = "|cff" .. hexOf(value > 0 and DELTA_UP or DELTA_DOWN) .. formatDelta(value)
@@ -373,8 +342,6 @@ local CHANGE_ORDER = {
     ["Damage per Second"] = 7,
 }
 
--- What changes if the hovered item replaces the equipped one a comparison
--- shows. Each comparison panel lists its own, so two rings get two lists.
 -- Forever can report one stat under two names; it is listed once.
 local function replacementChanges(tooltip, equipped)
     if not (C_Item and C_Item.GetItemStatDelta) or type(equipped) ~= "string" then return end
@@ -405,8 +372,6 @@ local function replacementChanges(tooltip, equipped)
     return rows
 end
 
--- The game words the same comparison under the equipped item. The panel
--- draws its own, so the heading and the change lines under it are dropped.
 local STOCK_CHANGES = ITEM_DELTA_DESCRIPTION
     or "If you replace this item, the following stat changes will occur:"
 
@@ -420,9 +385,6 @@ local function hasDialogueBackdrop()
     return isInstalled("DialogueUI")
 end
 
--- The font for item, spell, and set names: the one chosen for names, else
--- EllesmereUI's Expressway Bold when it is installed, else the game's
--- tooltip header font.
 local hasEllesmere
 local function titleFont()
     local chosen = ns.fontPath(ns.option("titleFont"))
@@ -431,7 +393,6 @@ local function titleFont()
     return hasEllesmere and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
 end
 
--- An element's look from the editor, with its default font filled in.
 local function styleOf(key)
     local style = ns.style(key)
     style.customFont = style.font ~= nil
@@ -439,7 +400,6 @@ local function styleOf(key)
     return style
 end
 
--- Helpers shared with spells take a style or a plain size.
 local function asStyle(style)
     if type(style) == "table" then return style end
     return { size = style, font = bodyFont(), flags = "" }
@@ -449,8 +409,7 @@ local function uncolored(text)
     return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
 end
 
--- Rows other addons append straight to the tooltip are absent from its data.
--- Returns nil when one of them cannot be read.
+-- Rows other addons append are absent from the data. Nil when one is unreadable.
 local function appendedRows(tooltip, lineIndices)
     local rows = {}
     local name = tooltip:GetName()
@@ -648,8 +607,6 @@ local function readModel(tooltip, data)
             classID, className, subClassName = itemClassID, itemType, itemSubType
         end
     end
-    -- The level is the requirement that most often blocks an item, so it
-    -- sits in the header across from the binding.
     local level = model.levelRequirement
     if level then
         if #model.header == 0 then add(model.header, "", "") end
@@ -663,8 +620,6 @@ local function readModel(tooltip, data)
             entry.requirement, entry.met = true, level.met
         end
     end
-    -- Signed under the durability bar, which is where the footer starts to
-    -- describe this particular copy of the item.
     if model.madeBy then
         local at = 1
         for index, entry in ipairs(model.footerLeft) do
@@ -729,7 +684,6 @@ local function createPanel(parent)
     panel.pool, panel.used = {}, 0
     panel.texturePool, panel.texturesUsed = {}, 0
     if panel.SetIgnoreParentAlpha then panel:SetIgnoreParentAlpha(true) end
-    -- Soft rarity halo behind the body; the backdrop covers all but its rim.
     panel.halo = panel:CreateTexture(nil, "BACKGROUND", nil, -8)
     panel.halo:SetPoint("TOPLEFT", panel, "TOPLEFT", -HALO_SPREAD, HALO_SPREAD)
     panel.halo:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", HALO_SPREAD, -HALO_SPREAD)
@@ -740,11 +694,8 @@ local function createPanel(parent)
     panel.halo:SetBlendMode("ADD")
     panel.background = panel:CreateTexture(nil, "BACKGROUND", nil, -7)
     panel.background:SetAllPoints()
-    -- Both looks are built once; applyBackdrop shows one per render.
     if panel.background.SetTextureSliceMargins then
-        -- The backdrop is nearly black, so multiplying alone barely tints it.
-        -- An additive copy of the same texture carries the rarity glow and
-        -- keeps to its grain and brushed edge.
+        -- Multiplying barely tints the near-black backdrop; an additive copy carries the glow.
         panel.glow = panel:CreateTexture(nil, "BACKGROUND", nil, -6)
         panel.glow:SetAllPoints()
         panel.glow:SetTexture(DIALOGUE_BACKDROP)
@@ -752,7 +703,6 @@ local function createPanel(parent)
         panel.glow:SetTextureSliceMode(1)
         panel.glow:SetBlendMode("ADD")
     end
-    -- Inner shade along each edge so the plain panel reads as one raised object.
     local function shade(orientation, from, to, a1, a2)
         local tex = panel:CreateTexture(nil, "BORDER", nil, 2)
         tex:SetColorTexture(1, 1, 1, 1)
@@ -816,7 +766,6 @@ local function getPanel(tooltip)
     return panel
 end
 
--- DialogueUI's textured backdrop, or the plain gradient with drawn edges.
 -- Chosen per render so the option applies without a reload.
 local function applyBackdrop(panel)
     local textured = panel.glow ~= nil and ns.option("dialogueBackdrop") and hasDialogueBackdrop()
@@ -836,7 +785,6 @@ local function applyBackdrop(panel)
     end
     for _, region in ipairs(panel.shades) do region:SetShown(not textured) end
     for _, region in ipairs(panel.edges) do region:SetShown(not textured) end
-    -- The textured backdrop has a brushed edge; tint bands stay inside it.
     panel.inset = textured and 6 or 1
     local inset = panel.inset
     panel.header:ClearAllPoints()
@@ -855,8 +803,6 @@ local function clearPool(panel)
     if panel.hits then panel.hits = {} end
 end
 
--- WoW fonts have no bold flag, and the face varies per install, so bold is
--- a shadow in the text's own color one pixel to the right.
 local function textAt(panel, content, x, y, width, size, color, fontPath, align, flags)
     panel.used = panel.used + 1
     local font = panel.pool[panel.used]
@@ -878,9 +824,7 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align,
     return math.max(size + 2, font:GetStringHeight() or 0)
 end
 
--- Text in an element's style. A custom color replaces every color the text
--- would have had, inline codes included. The editor's preview keeps what
--- each element drew, so a click on it can find the element.
+-- A custom color replaces every color, inline codes included.
 local function styledAt(panel, content, x, y, width, style, color, align)
     if style.color then content, color = uncolored(content), style.color end
     local height = textAt(panel, content, x, y, width, style.size, color, style.font, align,
@@ -916,14 +860,11 @@ local function rowWidth(panel, row, style)
     return width
 end
 
--- The header's text clears the icon on whichever side it sits: returns the
--- left and right indents for an icon that takes `indent` pixels.
 local function headerInsets(indent)
     if ns.option("iconRight") then return 0, indent end
     return indent, 0
 end
 
--- indent and rightIndent keep a row clear of the icon on either side.
 local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     style = asStyle(style)
     local left = row.left
@@ -932,7 +873,6 @@ local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     indent, gap, rightIndent = indent or 0, gap or 3, rightIndent or 0
     local w = panel.width - 2 * PAD - indent - rightIndent
     if right and right ~= "" then
-        -- Half the row at most, unless a short left side leaves more room.
         local rightWidth = math.min(measureStyled(panel, right, style) + 2,
             math.max(w * .5, w - measureStyled(panel, left, style) - COLUMN_GAP))
         local leftHeight = styledAt(panel, left, PAD + indent, y,
@@ -944,8 +884,6 @@ local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     return y + styledAt(panel, left, PAD + indent, y, w, style, leftColor) + gap
 end
 
--- Pool slots are reused for both plain lines and the marker, so every
--- acquire sets the texture again.
 local function acquireTexture(panel, path, sublevel)
     panel.texturesUsed = panel.texturesUsed + 1
     local tex = panel.texturePool[panel.texturesUsed]
@@ -960,7 +898,10 @@ local function acquireTexture(panel, path, sublevel)
     return tex
 end
 
-local function rule(panel, y, color)
+-- before is the gap above a separator; a hidden one takes its gap with it.
+local function rule(panel, y, color, before)
+    if not ns.option("separators") then return y end
+    y = y + (before or 0)
     local line = acquireTexture(panel)
     line:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
     line:SetSize(panel.width - 2 * PAD, 1)
@@ -968,7 +909,9 @@ local function rule(panel, y, color)
     return y + 9
 end
 
-local function divider(panel, y, color)
+local function divider(panel, y, color, before)
+    if not ns.option("separators") then return y end
+    y = y + (before or 0)
     local left = acquireTexture(panel)
     left:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y - 5)
     left:SetSize((panel.width - 2 * PAD - 18) / 2, 1)
@@ -991,14 +934,12 @@ local function drawGroup(panel, list, y, style, color, indent, gap, rightIndent)
     return y
 end
 
--- Where stat text starts after an inline marker and its two spaces.
 local function markerIndent(panel, style)
     if not ns.option("statMarkers") then return 0 end
     return 9 + measureStyled(panel, "a  a", style) - measureStyled(panel, "aa", style)
 end
 
--- The marker is drawn on its own so wrapped lines hang under the text, not
--- under the diamond. Same size and offset as the inline markers above.
+-- Drawn apart from the text so wrapped lines hang under the text, not the marker.
 local function drawEquipEffects(panel, list, y, style)
     local hang = markerIndent(panel, style)
     local width = panel.width - 2 * PAD - hang
@@ -1020,8 +961,6 @@ local function weaponText(model)
     return text
 end
 
--- The set's piece count takes the set name's look, a little smaller, in the
--- body font unless the set name has a font of its own.
 local function setCountStyle(setName)
     local style = {}
     for field, value in pairs(setName) do style[field] = value end
@@ -1030,7 +969,6 @@ local function setCountStyle(setName)
     return style
 end
 
--- Size the panel to its widest single-line content; prose wraps instead.
 local function fitWidth(panel, model, title, styles)
     local need = 0
     local function consider(width) if width > need then need = width end end
@@ -1103,7 +1041,6 @@ local function drawDurability(panel, durability, y, style)
     local current, maximum = durability[1], durability[2]
     local color = durabilityColor(current, maximum)
     local track = acquireTexture(panel, nil, 0)
-    -- Level with the middle of the text beside it.
     track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -(y + math.floor(style.size / 2)))
     track:SetSize(DURABILITY_BAR, 4)
     track:SetVertexColor(.16, .14, .13, 1)
@@ -1185,13 +1122,11 @@ local function getEquippedTag(panel)
     return tag
 end
 
--- Backdrop, tint, header band, icon, badge, close button, and tag shared by
--- every kind of panel. Returns the header height the icon and badge need.
+-- Returns the header height the icon and badge need.
 local function drawChrome(panel, tooltip, style)
     applyBackdrop(panel)
     local color = style.color
     panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
-    -- Untinted panels (common items, spells without a cost) keep a neutral body.
     local tinted = style.tint and ns.option("qualityTint")
     local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
@@ -1213,8 +1148,6 @@ local function drawChrome(panel, tooltip, style)
     else
         panel.halo:SetVertexColor(.6, .6, .6, .18)
     end
-    -- The band's opacity at its top and bottom edges, set in the editor;
-    -- unset follows the backdrop.
     local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
     panel.header:SetGradient("VERTICAL",
         CreateColor(color[1] * .12, color[2] * .12, color[3] * .12,
@@ -1270,7 +1203,6 @@ local function drawChrome(panel, tooltip, style)
         setFont(panel.badgeText, text.font, text.size, text.flags)
         panel.badgeText:SetTextColor(textColor[1], textColor[2], textColor[3])
         panel.badgeText:SetText(style.badge)
-        -- Grows with a larger text size; 16 at the default 10.
         local height = math.max(BADGE_HEIGHT, text.size + 6)
         badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 12), height)
         badge:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
@@ -1309,7 +1241,6 @@ local function finishPanel(panel, tooltip, y)
     panel:Show()
 end
 
--- Re-points a tooltip's anchors through choose(frame), keeping the offsets.
 local function retarget(tooltip, choose)
     local points, changed = {}, false
     for index = 1, tooltip:GetNumPoints() do
@@ -1352,8 +1283,6 @@ local function render(panel, tooltip, model)
     if model.comparison then
         tag = isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH"
     end
-    -- Quest items are mostly common, so they take quest gold instead of rarity;
-    -- the title keeps the rarity color.
     local accent = model.quest and QUEST_GOLD or quality
     local headerMin = drawChrome(panel, tooltip, {
         color = accent,
@@ -1370,7 +1299,6 @@ local function render(panel, tooltip, model)
     local leftIndent, rightIndent = headerInsets(indent)
     y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.title, quality) + 4
     if model.slot and model.slot ~= "" then
-        -- Halfway to white: the title already carries the full rarity color.
         y = y + styledAt(panel, model.slot, PAD + leftIndent, y, inner - indent, styles.subtitle,
             { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 4
     end
@@ -1379,7 +1307,6 @@ local function render(panel, tooltip, model)
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
 
-    -- Dividers go only between sections that have content.
     local sectioned = false
     if model.weaponDps or model.weaponDamage or #model.armor > 0 or #model.primary > 0
         or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
@@ -1403,7 +1330,7 @@ local function render(panel, tooltip, model)
         if #model.armor > 0 then y = y + 5 end
         y = drawGroup(panel, model.primary, y, styles.stats, { .90, .85, .74 })
         if (#model.secondary > 0 or #model.equipEffects > 0) and #model.primary > 0 then
-            y = divider(panel, y + 3, GOLD_RULE)
+            y = divider(panel, y, GOLD_RULE, 3)
         end
         y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
         y = drawEquipEffects(panel, model.equipEffects, y, styles.equipEffects)
@@ -1417,7 +1344,7 @@ local function render(panel, tooltip, model)
     end
 
     if model.setName then
-        y = divider(panel, sectioned and y + 11 or y, GOLD_RULE)
+        y = divider(panel, y, GOLD_RULE, sectioned and 11 or 0)
         sectioned = true
         local setTitle = model.setName:upper()
         local countStyle = setCountStyle(styles.setName)
@@ -1452,16 +1379,15 @@ local function render(panel, tooltip, model)
 
     if #model.extras > 0 then
         if sectioned then
-            y = rule(panel, y + 10, { .50, .50, .54 })
+            y = rule(panel, y, { .50, .50, .54 }, 10)
         else
             y = y + 12
         end
         y = drawGroup(panel, model.extras, y, styles.extras, EXTRA_COLOR, 0, 2)
     end
 
-    -- Below everything about the equipped item, as the game places it.
     if #model.changes > 0 then
-        y = rule(panel, y + 10, GOLD_RULE)
+        y = rule(panel, y, GOLD_RULE, 10)
         y = y + styledAt(panel, CHANGES_HEADING, PAD, y, inner, styles.changes, CHANGES_GOLD) + 4
         y = drawGroup(panel, model.changes, y, styles.changes, { .90, .85, .74 })
     end
@@ -1556,7 +1482,6 @@ local function restoreNative(tooltip)
         tooltip:SetAlpha(panel.nativeAlpha)
         panel.nativeAlpha = nil
     end
-    -- With the game tooltip visible again, its comparisons go back beside it.
     for comparison in pairs(panels) do
         if isComparison(comparison) then
             pcall(retarget, comparison, function(frame)
@@ -1567,14 +1492,14 @@ local function restoreNative(tooltip)
 end
 
 -- Each tooltip data type the panel draws: read(tooltip, data) -> model,
--- render(panel, tooltip, model), and key(tooltip, data) naming what is shown.
+-- render(panel, tooltip, model), key(tooltip, data) naming what is shown,
+-- and option, the setting that turns the kind on.
 local KINDS = {}
-KINDS[ITEM] = { read = readModel, render = render, key = getItemInfo }
+KINDS[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels" }
 
--- The game's own tooltip shows while the chosen key is held, and for spells
--- when their panel is turned off.
 local function showsOriginal(panel)
-    return ns.originalKeyDown() or (panel.kind ~= ITEM and not ns.option("spellPanels"))
+    local kind = KINDS[panel.kind]
+    return ns.originalKeyDown() or not (kind and ns.option(kind.option))
 end
 
 local function update(tooltip, data)
@@ -1717,10 +1642,7 @@ modifier:SetScript("OnEvent", function(_, _, key)
     end
 end)
 
--- The style editor's sample: a panel inside anchor, a plain frame standing in
--- for the game's tooltip, drawn from a model of the given data type (items
--- by default). It records what each element drew, so a click on the sample
--- can find the element.
+-- The editor's sample, drawn inside anchor; hits record where each part landed.
 local function renderPreview(anchor, model, dataType)
     local panel = anchor.prettyTooltipPreview
     if not panel then
@@ -1734,15 +1656,12 @@ local function renderPreview(anchor, model, dataType)
     return panel
 end
 
--- The header band's opacity while none is set, for the editor's sliders.
 local function defaultHeaderAlpha()
     if ns.option("dialogueBackdrop") and hasDialogueBackdrop() then return HEADER_ALPHA_TEXTURED end
     return HEADER_ALPHA_PLAIN
 end
 
--- A hidden tooltip the editor fills with a real item or spell by ID. It is
--- read like the game's tooltips, stat wording included, but never gets a
--- panel of its own.
+-- The editor's lookup by ID reads this hidden tooltip; it never gets a panel.
 local scanner
 local function previewByID(anchor, dataType, id)
     if not scanner then
@@ -1759,8 +1678,6 @@ local function previewByID(anchor, dataType, id)
     return renderPreview(anchor, model, dataType)
 end
 
--- Shared with PrettyTooltipSpell.lua and PrettyTooltipEditor.lua, which load
--- after this file.
 ns.ui = {
     renderPreview = renderPreview,
     previewByID = previewByID,
