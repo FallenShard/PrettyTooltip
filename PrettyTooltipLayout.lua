@@ -50,6 +50,8 @@ local HEADER_ALPHA_TEXTURED, HEADER_ALPHA_PLAIN = .72, .96
 local HALO_SPREAD = 16
 -- Must match MARGIN in art/make_glow.py.
 local HALO_MARGIN = 24
+-- Must match --margin for band.tga in art/README.md's make_glow.py command.
+local BAND_MARGIN = 16
 -- Another author's art: used from DialogueUI's folder, never copied here.
 local DIALOGUE_BACKDROP = "Interface\\AddOns\\DialogueUI\\Art\\Theme_Dark\\TooltipBackground-Temp.png"
 local STAT_LABELS = {
@@ -782,6 +784,15 @@ local function applyBackdrop(panel)
         end
         panel.background:SetColorTexture(1, 1, 1, 1)
         if panel.glow then panel.glow:Hide() end
+    end
+    for _, band in ipairs({ panel.header, panel.footer }) do
+        if textured then
+            band:SetTexture(ART .. "band")
+            band:SetTextureSliceMargins(BAND_MARGIN, BAND_MARGIN, BAND_MARGIN, BAND_MARGIN)
+        else
+            if band.SetTextureSliceMargins then band:SetTextureSliceMargins(0, 0, 0, 0) end
+            band:SetTexture(WHITE)
+        end
     end
     for _, region in ipairs(panel.shades) do region:SetShown(not textured) end
     for _, region in ipairs(panel.edges) do region:SetShown(not textured) end
