@@ -8,6 +8,7 @@ if not (ui and SPELL) then
 end
 
 local isSecret, safeText, add = ui.isSecret, ui.safeText, ui.add
+local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
 local PAD = ui.PAD
 local PARTS = { "spellTitle", "spellBadges", "spellValues", "spellCaptions", "spellDetails",
@@ -16,6 +17,7 @@ local TITLE_COLOR = { .96, .92, .84 }
 local NEUTRAL = { .62, .66, .74 }
 local DESCRIPTION_COLOR = { .92, .87, .76 }
 local CAPTION_COLOR = { .60, .57, .52 }
+local DETAIL_COLOR = { .82, .78, .71 }
 local PILL_HEIGHT = 16
 local PILL_GAP = 6
 local CAPTION_OFFSET = 17
@@ -60,6 +62,14 @@ local function getSpellIcon(spellID)
     if not getter then return end
     local ok, icon = pcall(getter, spellID)
     if ok and not isSecret(icon) and icon then return icon end
+end
+
+local function getSpellName(spellID)
+    if isSecret(spellID) or type(spellID) ~= "number" then return end
+    local getter = C_Spell and C_Spell.GetSpellName or GetSpellInfo
+    if not getter then return end
+    local ok, name = pcall(getter, spellID)
+    if ok and not isSecret(name) and type(name) == "string" then return name end
 end
 
 local function titleCase(text)
@@ -231,59 +241,107 @@ local function isDescription(line, text, right)
     return right == "" and #text >= 40
 end
 
+local function newModel(icon)
+    return { cells = {}, details = {}, requirements = {}, description = {}, extras = {}, rank = "",
+        icon = icon }
+end
+
+local function plain(text)
+    return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+end
+
+-- A description can open with its own requirement, on a line of its own.
+local function readDescription(model, text)
+    local rest = {}
+    for paragraph in (text:gsub("\r\n", "\n") .. "\n"):gmatch("(.-)\n") do
+        local stripped = trim(paragraph)
+        if #rest == 0 and trim(plain(stripped)):match("^Requires ") then
+            add(model.requirements, stripped, "")
+        elseif stripped ~= "" then
+            rest[#rest + 1] = stripped
+        end
+    end
+    if #rest > 0 then model.description[#model.description + 1] = table.concat(rest, "\n") end
+end
+
+local function readLine(model, line, left, right)
+    local text, rightText = trim(left), trim(right)
+    if text == "" and rightText == "" then return end
+    if LINE.UsageRequirement and line.type == LINE.UsageRequirement then
+        add(model.requirements, text, rightText)
+        local usable = line.usable
+        if isSecret(usable) then usable = nil end
+        if usable == false or not ui.requirementMet(text, line.leftColor) then
+            model.requirements[#model.requirements].color = UNMET_COLOR
+        end
+        return
+    end
+    if rightText ~= "" and readStat(model, rightText) then rightText = "" end
+    if text ~= "" and readStat(model, text) then
+        if rightText ~= "" then add(model.details, rightText, "") end
+    elseif text:match("^Cooldown remaining") then
+        add(model.details, text, rightText)
+        model.details[#model.details].color = REMAINING_COLOR
+    elseif text:match("^Requires ") then
+        add(model.requirements, text, rightText)
+        local row = model.requirements[#model.requirements]
+        row.color = not ui.requirementMet(text, line.leftColor) and UNMET_COLOR or nil
+    elseif text:match("^Reagents:") or text:match("^Tools:") then
+        add(model.details, text, rightText)
+    elseif text ~= "" and ((LINE.SpellDescription and line.type == LINE.SpellDescription)
+        or isDescription(line, text, rightText)) then
+        readDescription(model, text)
+    else
+        add(model.extras, left, right)
+        local row = model.extras[#model.extras]
+        row.color, row.rightColor = ui.colorOf(line.leftColor), ui.colorOf(line.rightColor)
+    end
+end
+
 local function readSpell(tooltip, data)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    local model = {
-        cells = {},
-        details = {},
-        requirements = {},
-        description = {},
-        extras = {},
-        lineIndices = {},
-        icon = getSpellIcon(data.id),
-    }
+    local model = newModel(getSpellIcon(data.id))
+    model.lineIndices = {}
+    local current = model
     for _, line in ipairs(data.lines) do
-        if isSecret(line) or not line or isSecret(line.lineIndex) then return end
-        if line.lineIndex then
+        if isSecret(line) or not line or isSecret(line.lineIndex) or isSecret(line.type) then return end
+        if line.lineIndex then model.lineIndices[line.lineIndex] = true end
+        if LINE.NestedBlock and line.type == LINE.NestedBlock then
+            -- Another spell inside this one: another form's version, or a recipe's result.
+            local id = line.tooltipID
+            model.nested = newModel(not isSecret(id) and getSpellIcon(id) or nil)
+            current = model.nested
+        elseif line.lineIndex then
             local left, right = safeText(line.leftText), safeText(line.rightText)
             if not left or not right then return end
-            model.lineIndices[line.lineIndex] = true
             if right == "" then right = nativeRight(tooltip, line.lineIndex) end
-            local text, rightText = trim(left), trim(right)
-            if not model.name then
-                model.name, model.rank = text, rightText
-            elseif text ~= "" or rightText ~= "" then
-                if rightText ~= "" and readStat(model, rightText) then rightText = "" end
-                if text ~= "" and readStat(model, text) then
-                    if rightText ~= "" then add(model.details, rightText, "") end
-                elseif text:match("^Cooldown remaining") then
-                    add(model.details, text, rightText)
-                    model.details[#model.details].color = REMAINING_COLOR
-                elseif text:match("^Requires ") then
-                    add(model.requirements, text, rightText)
-                    local row = model.requirements[#model.requirements]
-                    row.color = not ui.requirementMet(text, line.leftColor) and UNMET_COLOR or nil
-                elseif text:match("^Reagents:") or text:match("^Tools:") then
-                    add(model.details, text, rightText)
-                elseif text ~= "" and isDescription(line, text, rightText) then
-                    model.description[#model.description + 1] = text
-                else
-                    add(model.extras, left, right)
-                    local row = model.extras[#model.extras]
-                    row.color, row.rightColor = ui.colorOf(line.leftColor), ui.colorOf(line.rightColor)
-                end
+            local isName = (LINE.SpellName and line.type == LINE.SpellName)
+                or (current == model and line.lineIndex == 1)
+            if isName and not current.name then
+                current.name, current.rank = trim(left), trim(right)
+            else
+                readLine(current, line, left, right)
             end
         end
     end
-    if not model.name or model.name == "" then return end
+    -- Talents, and spells with another nested in them, leave their name out of
+    -- the data; the game writes it on the tooltip's first line.
+    if not model.name or model.name == "" then
+        local font = tooltip:GetLeftLine(1)
+        model.name = getSpellName(data.id) or trim(font and safeText(font:GetText()) or "")
+        model.lineIndices[1] = true
+    end
+    if model.name == "" then return end
 
     local appended = ui.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
     end
-    for _, field in ipairs({ "cost", "cast", "cooldown", "range" }) do
-        if model[field] then model.cells[#model.cells + 1] = model[field] end
+    for _, part in ipairs({ model, model.nested }) do
+        for _, field in ipairs({ "cost", "cast", "cooldown", "range" }) do
+            if part[field] then part.cells[#part.cells + 1] = part[field] end
+        end
     end
     return model
 end
@@ -306,27 +364,48 @@ local function splitSentences(text)
     return sentences
 end
 
-local function fitWidth(panel, model, title, sentences, styles)
+local function sentencesOf(model)
+    local list = {}
+    for _, text in ipairs(model.description) do
+        for _, sentence in ipairs(splitSentences(text)) do list[#list + 1] = sentence end
+    end
+    return list
+end
+
+-- A nested spell's name, a step smaller than the panel's own.
+local function nestedTitleStyle(title)
+    local style = {}
+    for field, value in pairs(title) do style[field] = value end
+    style.size = math.max(10, title.size - 4)
+    return style
+end
+
+local function fitWidth(panel, model, styles)
     local indent = model.icon and TEXT_INDENT or 0
-    local need = measureStyled(panel, title, styles.spellTitle) + indent
+    local need = measureStyled(panel, model.name, styles.spellTitle) + indent
     local list = pills(model)
     if #list > 0 then
         need = math.max(need, pillsWidth(panel, list, styles.spellBadges) + indent)
     end
     local function consider(width) if width > need then need = width end end
-    if #model.cells > 0 then
-        local widest = 0
-        for _, cell in ipairs(model.cells) do
-            widest = math.max(widest, measureStyled(panel, cell[1], styles.spellValues),
-                measureStyled(panel, cell[2]:upper(), styles.spellCaptions))
+    for _, part in ipairs({ model, model.nested }) do
+        if #part.cells > 0 then
+            local widest = 0
+            for _, cell in ipairs(part.cells) do
+                widest = math.max(widest, measureStyled(panel, cell[1], styles.spellValues),
+                    measureStyled(panel, cell[2]:upper(), styles.spellCaptions))
+            end
+            consider((widest + 16) * #part.cells)
         end
-        consider((widest + 16) * #model.cells)
+        for _, rows in ipairs({ part.details, part.requirements }) do
+            for _, row in ipairs(rows) do consider(ui.rowWidth(panel, row, styles.spellDetails)) end
+        end
+        for _, sentence in ipairs(part.sentences) do
+            consider(math.min(measureStyled(panel, sentence, styles.spellText), ui.PROSE_WIDTH))
+        end
     end
-    for _, list in ipairs({ model.details, model.requirements }) do
-        for _, row in ipairs(list) do consider(ui.rowWidth(panel, row, styles.spellDetails)) end
-    end
-    for _, sentence in ipairs(sentences) do
-        consider(math.min(measureStyled(panel, sentence, styles.spellText), ui.PROSE_WIDTH))
+    if model.nested and model.nested.name then
+        consider(measureStyled(panel, model.nested.name, nestedTitleStyle(styles.spellTitle)))
     end
     for _, row in ipairs(model.extras) do
         local width = ui.rowWidth(panel, row, styles.extras)
@@ -361,18 +440,39 @@ local function drawStrip(panel, model, y, color, styles)
     return y + height
 end
 
+local function hasBody(part)
+    return #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #part.sentences > 0
+end
+
+-- The strip, requirements, and description of the spell or the one nested in it.
+local function drawBody(panel, part, y, color, styles, numberCode)
+    if #part.cells > 0 then
+        y = drawStrip(panel, part, y, color, styles) + 2
+    end
+    if #part.details > 0 or #part.requirements > 0 then
+        y = ui.drawGroup(panel, part.requirements, y + 2, styles.spellDetails, DETAIL_COLOR, 0, 2)
+        y = ui.drawGroup(panel, part.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
+    end
+    if #part.sentences > 0 then
+        if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 then
+            y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
+        end
+        for _, sentence in ipairs(part.sentences) do
+            y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
+                y, styles.spellText, DESCRIPTION_COLOR, 0, 5)
+        end
+    end
+    return y
+end
+
 local function renderSpell(panel, tooltip, model)
     panel:Show()
     ui.clearPool(panel)
-    local sentences = {}
-    for _, text in ipairs(model.description) do
-        for _, sentence in ipairs(splitSentences(text)) do sentences[#sentences + 1] = sentence end
-    end
+    for _, part in ipairs({ model, model.nested }) do part.sentences = sentencesOf(part) end
     model.school = detectSchool(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
-    local title = model.name
-    panel.width = fitWidth(panel, model, title, sentences, styles)
+    panel.width = fitWidth(panel, model, styles)
     panel:SetWidth(panel.width)
     local power = model.power and POWER_COLORS[model.power]
     local accent = model.school and SCHOOL_COLORS[model.school] or power
@@ -389,7 +489,7 @@ local function renderSpell(panel, tooltip, model)
     local y = ui.TITLE_TOP
     local indent = model.icon and TEXT_INDENT or 0
     local leftIndent = ui.headerInsets(indent)
-    y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.spellTitle,
+    y = y + styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.spellTitle,
         TITLE_COLOR) + 4
     local list = pills(model)
     if #list > 0 then
@@ -399,31 +499,21 @@ local function renderSpell(panel, tooltip, model)
     panel.header:SetHeight(y - panel.inset)
     panel.footer:SetHeight(0)
 
+    local school = model.school and SCHOOL_COLORS[model.school]
+    local numberCode = school
+        and hex({ school[1] * .7 + .3, school[2] * .7 + .3, school[3] * .7 + .3 })
+        or "FFF6E4"
     local sectioned = false
-    if #model.cells > 0 or #model.details > 0 or #model.requirements > 0
-        or #sentences > 0 then
-        y = ui.divider(panel, y, ui.GOLD_RULE)
-        if #model.cells > 0 then
-            y = drawStrip(panel, model, y, color, styles) + 2
-        end
-        if #model.details > 0 or #model.requirements > 0 then
-            y = ui.drawGroup(panel, model.requirements, y + 2, styles.spellDetails,
-                { .82, .78, .71 }, 0, 2)
-            y = ui.drawGroup(panel, model.details, y, styles.spellDetails, { .82, .78, .71 }, 0, 2)
-        end
-        if #sentences > 0 then
-            if #model.cells > 0 or #model.details > 0 or #model.requirements > 0 then
-                y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
-            end
-            local school = model.school and SCHOOL_COLORS[model.school]
-            local numberCode = school
-                and hex({ school[1] * .7 + .3, school[2] * .7 + .3, school[3] * .7 + .3 })
-                or "FFF6E4"
-            for _, sentence in ipairs(sentences) do
-                y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
-                    y, styles.spellText, DESCRIPTION_COLOR, 0, 5)
-            end
-        end
+    if hasBody(model) then
+        y = drawBody(panel, model, ui.divider(panel, y, ui.GOLD_RULE), color, styles, numberCode)
+        sectioned = true
+    end
+    local nested = model.nested
+    if nested and nested.name then
+        y = ui.divider(panel, y, ui.GOLD_RULE, sectioned and 8 or 0)
+        y = y + styledAt(panel, nested.name, PAD, y, inner, nestedTitleStyle(styles.spellTitle),
+            TITLE_COLOR) + 6
+        y = drawBody(panel, nested, y, color, styles, numberCode)
         sectioned = true
     end
 
