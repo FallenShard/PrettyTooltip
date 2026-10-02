@@ -82,6 +82,23 @@ ns.ELEMENTS = {
     { key = "spellText", label = "Description", size = 12, color = { .92, .87, .76 },
         kind = "spell", note = "Numbers in the school color unless set." },
 }
+-- types are Enum.TooltipDataType names; ones missing on this client are skipped.
+ns.TOOLTIP_KINDS = {
+    { label = "Items", restyle = "itemPanels", cursor = "cursorItems", types = { "Item" } },
+    { label = "Spells", restyle = "spellPanels", cursor = "cursorSpells", types = { "Spell" } },
+    { label = "Players and NPCs", cursor = "cursorUnits", types = { "Unit", "Corpse" } },
+    { label = "Buffs and debuffs", cursor = "cursorAuras", types = { "UnitAura" } },
+    { label = "Mining and herb nodes, chests", cursor = "cursorObjects", types = { "Object" } },
+    { label = "Quests", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
+    { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
+    { label = "Dungeon and raid lockouts", cursor = "cursorLockouts", types = { "InstanceLock" } },
+    { label = "Pet abilities", cursor = "cursorPetActions", types = { "PetAction" } },
+    { label = "Minimap", cursor = "cursorMinimap", types = { "MinimapMouseover" } },
+    { label = "Mounts, toys, and pets", cursor = "cursorCollections",
+        types = { "Mount", "Toy", "CompanionPet", "BattlePet" } },
+    { label = "Achievements", cursor = "cursorAchievements", types = { "Achievement" } },
+}
+
 local ELEMENT_BY_KEY = {}
 for _, element in ipairs(ns.ELEMENTS) do ELEMENT_BY_KEY[element.key] = element end
 ns.ELEMENT_BY_KEY = ELEMENT_BY_KEY
@@ -162,6 +179,9 @@ function ns.style(key)
     local outline = ns.elementSetting(key, "outline") or ns.option("outline")
     local color = ns.elementSetting(key, "color")
     if type(color) ~= "table" then color = nil end
+    -- Names are in capitals unless turned off; other parts only when turned on.
+    local caps = ns.elementSetting(key, "caps")
+    if caps == nil then caps = element.title == true end
     return {
         key = key,
         title = element.title,
@@ -169,6 +189,7 @@ function ns.style(key)
         font = ns.fontPath(ns.elementSetting(key, "font")),
         flags = (outline == "OUTLINE" or outline == "THICKOUTLINE") and outline or "",
         color = color and { color[1], color[2], color[3] },
+        caps = caps,
     }
 end
 
@@ -234,49 +255,43 @@ local function isInstalled(addon)
 end
 ns.isInstalled = isInstalled
 
--- Kinds without an option are not restyled yet and are drawn disabled.
-local TOOLTIP_KINDS = {
-    { "Items", "itemPanels" },
-    { "Spells", "spellPanels" },
-    { "Players and NPCs" },
-    { "Buffs and debuffs" },
-    { "Mining and herb nodes, chests" },
-    { "Quests" },
-    { "Currencies" },
-    { "Dungeon and raid lockouts" },
-    { "Pet abilities" },
-    { "Minimap" },
-    { "Mounts, toys, and pets" },
-    { "Achievements" },
-}
-
 section("Restyled Tooltips")
 local kindsNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
 kindsNote:SetPoint("TOPLEFT", 20, y)
 kindsNote:SetWidth(560)
 kindsNote:SetJustifyH("LEFT")
-kindsNote:SetText("A kind that is off keeps the game's own tooltip. Greyed kinds are not "
-    .. "restyled yet.")
-y = y - 20
-for index, kind in ipairs(TOOLTIP_KINDS) do
-    local label, key = kind[1], kind[2]
+kindsNote:SetText("Restyle draws the PrettyTooltip panel; a kind that is off keeps the game's "
+    .. "own tooltip, and greyed kinds are not restyled yet. Follow cursor moves the kind's "
+    .. "mouse-over tooltip to the cursor; off, its position is left to the game and other addons.")
+y = y - kindsNote:GetStringHeight() - 10
+for index, heading in ipairs({ "Restyle", "Follow cursor" }) do
+    local label = page:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+    label:SetPoint("TOPLEFT", 260 + (index - 1) * 90, y)
+    label:SetText(heading)
+end
+y = y - 16
+
+local function kindBox(x, key)
     local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
     button:SetSize(24, 24)
-    local column = (index - 1) % 2
-    button:SetPoint("TOPLEFT", 20 + column * 280, y)
-    local text = button:CreateFontString(nil, "ARTWORK", key and "GameFontHighlight"
-        or "GameFontDisable")
-    text:SetPoint("LEFT", button, "RIGHT", 4, 1)
-    text:SetText(label)
+    button:SetPoint("TOPLEFT", x, y + 4)
     if key then
         button:SetScript("OnClick", function(self) setOption(key, self:GetChecked() and true or false) end)
         button.refresh = function() button:SetChecked(ns.option(key)) end
         controls[#controls + 1] = button
     else
-        button:SetChecked(false)
         button:Disable()
     end
-    if column == 1 then y = y - 26 end
+end
+
+for _, kind in ipairs(ns.TOOLTIP_KINDS) do
+    local label = page:CreateFontString(nil, "ARTWORK",
+        kind.restyle and "GameFontHighlight" or "GameFontDisable")
+    label:SetPoint("TOPLEFT", 24, y - 1)
+    label:SetText(kind.label)
+    kindBox(270, kind.restyle)
+    kindBox(370, kind.cursor)
+    y = y - 22
 end
 y = y - 12
 

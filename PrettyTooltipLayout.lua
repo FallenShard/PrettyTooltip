@@ -402,6 +402,30 @@ local function styleOf(key)
     return style
 end
 
+-- Escape codes are case sensitive ("|r", "|t", link data), so only the text
+-- between them is uppercased.
+local ESCAPE_ENDS = { T = "|t", A = "|a", H = "|h", K = "|k", ["4"] = ";" }
+
+local function capitalize(text)
+    local out, pos = {}, 1
+    while true do
+        local bar = text:find("|", pos, true)
+        if not bar then break end
+        out[#out + 1] = text:sub(pos, bar - 1):upper()
+        local code, stop = text:sub(bar + 1, bar + 1), bar + 1
+        if code == "c" then
+            stop = bar + 9
+        elseif ESCAPE_ENDS[code] then
+            local _, found = text:find(ESCAPE_ENDS[code], bar + 2, true)
+            stop = found or #text
+        end
+        out[#out + 1] = text:sub(bar, stop)
+        pos = stop + 1
+    end
+    out[#out + 1] = text:sub(pos):upper()
+    return table.concat(out)
+end
+
 local function asStyle(style)
     if type(style) == "table" then return style end
     return { size = style, font = bodyFont(), flags = "" }
@@ -837,6 +861,7 @@ end
 
 -- A custom color replaces every color, inline codes included.
 local function styledAt(panel, content, x, y, width, style, color, align)
+    if style.caps then content = capitalize(content) end
     if style.color then content, color = uncolored(content), style.color end
     local height = textAt(panel, content, x, y, width, style.size, color, style.font, align,
         style.flags)
@@ -858,6 +883,7 @@ local function measure(panel, text, size, fontPath, flags)
 end
 
 local function measureStyled(panel, text, style)
+    if style.caps then text = capitalize(text) end
     return measure(panel, text, style.size, style.font, style.flags)
 end
 
@@ -1014,7 +1040,7 @@ local function fitWidth(panel, model, title, styles)
     group(model.flavor, styles.flavor, 0, true)
     if model.setName then
         local countWidth = measureStyled(panel, model.setCount or "", setCountStyle(styles.setName))
-        consider(measureStyled(panel, model.setName:upper(), styles.setName)
+        consider(measureStyled(panel, model.setName, styles.setName)
             + math.max(45, countWidth + COLUMN_GAP))
         group(model.setItems, styles.setItems, 20)
         group(model.setBonuses, styles.setBonuses, 3, true)
@@ -1286,7 +1312,7 @@ local function render(panel, tooltip, model)
     clearPool(panel)
     local styles = {}
     for _, element in ipairs(ns.ELEMENTS) do styles[element.key] = styleOf(element.key) end
-    local title = model.name:find("|", 1, true) and model.name or model.name:upper()
+    local title = model.name
     panel.width = fitWidth(panel, model, title, styles)
     panel:SetWidth(panel.width)
     local quality = QUALITY[model.quality] or QUALITY[1]
@@ -1357,7 +1383,7 @@ local function render(panel, tooltip, model)
     if model.setName then
         y = divider(panel, y, GOLD_RULE, sectioned and 11 or 0)
         sectioned = true
-        local setTitle = model.setName:upper()
+        local setTitle = model.setName
         local countStyle = setCountStyle(styles.setName)
         local count = model.setCount or ""
         local countWidth = math.max(42, measureStyled(panel, count, countStyle) + 2)

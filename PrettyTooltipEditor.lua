@@ -6,7 +6,7 @@ if not (ui and ui.renderPreview) then
 end
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
-local WIDTH, HEIGHT = 820, 666
+local WIDTH, HEIGHT = 820, 696
 local PREVIEW_TOP = 80
 local PREVIEW_WIDTH = 460
 -- Room around the panel for its rarity halo and the Equipped tag above it.
@@ -972,6 +972,29 @@ end, function()
 end, function(value)
     ns.setElementSetting(state.selected, "outline", value)
 end))
+
+-- The part's default is saved as no setting.
+local allCaps = CreateFrame("CheckButton", nil, editor, "UICheckButtonTemplate")
+allCaps:SetSize(22, 22)
+local allCapsLabel = text(allCaps, "GameFontHighlightSmall", "All caps")
+allCapsLabel:SetPoint("LEFT", allCaps, "RIGHT", 2, 1)
+allCaps:SetHitRectInsets(0, -(allCapsLabel:GetStringWidth() + 6), 0, 0)
+allCaps:SetScript("OnClick", function(self)
+    local checked = self:GetChecked() and true or false
+    if checked == (selectedElement().title == true) then
+        ns.setElementSetting(state.selected, "caps", nil)
+    else
+        ns.setElementSetting(state.selected, "caps", checked)
+    end
+    refresh()
+end)
+allCaps.refresh = function()
+    local caps = ns.elementSetting(state.selected, "caps")
+    if caps == nil then caps = selectedElement().title == true end
+    allCaps:SetChecked(caps)
+end
+controls[#controls + 1] = allCaps
+row("Letters", allCaps)
 
 local resetPart = flatButton(editor, "Reset this part", 120, function()
     ns.resetElement(state.selected)

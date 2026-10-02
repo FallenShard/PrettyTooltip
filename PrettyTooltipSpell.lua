@@ -364,7 +364,6 @@ end
 local function renderSpell(panel, tooltip, model)
     panel:Show()
     ui.clearPool(panel)
-    local title = model.name:find("|", 1, true) and model.name or model.name:upper()
     local sentences = {}
     for _, text in ipairs(model.description) do
         for _, sentence in ipairs(splitSentences(text)) do sentences[#sentences + 1] = sentence end
@@ -372,6 +371,7 @@ local function renderSpell(panel, tooltip, model)
     model.school = detectSchool(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
+    local title = model.name
     panel.width = fitWidth(panel, model, title, sentences, styles)
     panel:SetWidth(panel.width)
     local power = model.power and POWER_COLORS[model.power]
