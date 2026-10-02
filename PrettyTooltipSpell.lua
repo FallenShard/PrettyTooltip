@@ -98,8 +98,12 @@ local function readStat(model, text)
         model.cast = { "Instant", "Cast" }
         return true
     end
-    if lower == "channeled" or lower == "next melee" or lower == "passive" then
-        model.cast = { text, lower == "passive" and "Ability" or "Cast" }
+    if lower == "passive" then
+        model.passive = text
+        return true
+    end
+    if lower == "channeled" or lower == "next melee" then
+        model.cast = { text, "Cast" }
         return true
     end
     local cooldownLength = #(lower:match("^(.+) cooldown$") or "")
@@ -183,6 +187,7 @@ local function pills(model)
     local list = {}
     if model.school then list[#list + 1] = { model.school, SCHOOL_COLORS[model.school] } end
     if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_PILL } end
+    if model.passive then list[#list + 1] = { model.passive, RANK_PILL } end
     return list
 end
 
