@@ -94,6 +94,7 @@ Under **Layout and color** (hover one for its description):
 - **Tint the panel**: off, every panel is neutral; names keep their quality color.
 - **Separators**: off, the gold dividers between sections and the thin rules are hidden, along with the space around them.
 - **DialogueUI backdrop** (on by default, only with DialogueUI installed): off, the panel uses its plain dark gradient.
+- **Band top**, **Band bottom**, **Backdrop**, and **Glow** set, for the kind of tooltip shown, the opacity of the header band at its top and bottom edges, of the panel's body, and of the soft rarity glow around it.
 
 Tooltips use the new look the next time they open.
 

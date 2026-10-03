@@ -230,6 +230,8 @@ function ns.resetStyles()
     for _, suffix in pairs(ns.KIND_SUFFIX) do
         PrettyTooltipDB["headerTopAlpha" .. suffix] = nil
         PrettyTooltipDB["headerBottomAlpha" .. suffix] = nil
+        PrettyTooltipDB["backdropAlpha" .. suffix] = nil
+        PrettyTooltipDB["glowAlpha" .. suffix] = nil
     end
 end
 

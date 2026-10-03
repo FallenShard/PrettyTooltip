@@ -1074,23 +1074,26 @@ local function drawChrome(panel, tooltip, style)
     local tinted = style.tint and ns.option("qualityTint")
     local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
+    local suffix = ns.KIND_SUFFIX[style.kind] or ""
+    local body = ns.option("backdropAlpha" .. suffix) or 1
+    local glow = ns.option("glowAlpha" .. suffix) or 1
     if panel.textured then
         panel.background:SetVertexColor(1 - .45 * strength + .45 * strength * tint[1],
             1 - .45 * strength + .45 * strength * tint[2],
-            1 - .45 * strength + .45 * strength * tint[3], 1)
-        panel.glow:SetVertexColor(tint[1], tint[2], tint[3], .35 * strength)
+            1 - .45 * strength + .45 * strength * tint[3], body)
+        panel.glow:SetVertexColor(tint[1], tint[2], tint[3], .35 * strength * body)
         panel.glow:SetShown(strength > 0)
     else
         panel.background:SetGradient("VERTICAL",
             CreateColor(.016 + tint[1] * .02 * strength, .012 + tint[2] * .02 * strength,
-                .016 + tint[3] * .02 * strength, 1),
+                .016 + tint[3] * .02 * strength, body),
             CreateColor(.052 + tint[1] * .06 * strength, .040 + tint[2] * .06 * strength,
-                .050 + tint[3] * .06 * strength, 1))
+                .050 + tint[3] * .06 * strength, body))
     end
     if strength > 0 then
-        panel.halo:SetVertexColor(tint[1], tint[2], tint[3], .55 * strength)
+        panel.halo:SetVertexColor(tint[1], tint[2], tint[3], .55 * strength * glow)
     else
-        panel.halo:SetVertexColor(.6, .6, .6, .18)
+        panel.halo:SetVertexColor(.6, .6, .6, .18 * glow)
     end
     local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
     panel.header:SetGradient("VERTICAL",

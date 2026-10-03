@@ -6,7 +6,7 @@ if not (ui and ui.renderPreview) then
 end
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
-local WIDTH, HEIGHT = 820, 722
+local WIDTH, HEIGHT = 820, 782
 local PREVIEW_TOP = 106
 local PREVIEW_WIDTH = 460
 -- Room around the panel for its rarity halo and the Equipped tag above it.
@@ -1224,6 +1224,18 @@ local function bandOpacity(edge)
 end
 row("Band top", bandOpacity("Top"))
 row("Band bottom", bandOpacity("Bottom"))
+
+-- Full opacity is saved as no setting.
+local function kindOpacity(name)
+    local function key() return name .. ns.KIND_SUFFIX[state.kind] end
+    return slider(FIELD_WIDTH, function()
+        return math.floor((ns.option(key()) or 1) * 100 + .5)
+    end, function(percent)
+        ns.setOption(key(), percent < 100 and percent / 100 or nil)
+    end, 0, 100, "%")
+end
+row("Backdrop", kindOpacity("backdropAlpha"))
+row("Glow", kindOpacity("glowAlpha"))
 
 local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()
