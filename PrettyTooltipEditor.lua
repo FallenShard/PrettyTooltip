@@ -6,7 +6,7 @@ if not (ui and ui.renderPreview) then
 end
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
-local WIDTH, HEIGHT = 820, 782
+local WIDTH, HEIGHT = 820, 812
 local PREVIEW_TOP = 106
 local PREVIEW_WIDTH = 460
 -- Room around the panel for its rarity halo and the Equipped tag above it.
@@ -1301,6 +1301,7 @@ local function kindOpacity(name)
 end
 row("Backdrop", kindOpacity("backdropAlpha"))
 row("Glow", kindOpacity("glowAlpha"))
+row("Footer", kindOpacity("footerAlpha"))
 
 local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()

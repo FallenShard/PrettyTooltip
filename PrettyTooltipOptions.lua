@@ -253,6 +253,7 @@ function ns.resetStyles()
         PrettyTooltipDB["headerBottomAlpha" .. suffix] = nil
         PrettyTooltipDB["backdropAlpha" .. suffix] = nil
         PrettyTooltipDB["glowAlpha" .. suffix] = nil
+        PrettyTooltipDB["footerAlpha" .. suffix] = nil
     end
 end
 

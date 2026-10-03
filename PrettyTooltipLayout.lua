@@ -1317,6 +1317,8 @@ local function drawChrome(panel, tooltip, style)
     local suffix = ns.KIND_SUFFIX[style.kind] or ""
     local body = ns.option("backdropAlpha" .. suffix) or 1
     local glow = ns.option("glowAlpha" .. suffix) or 1
+    local footer = ns.option("footerAlpha" .. suffix) or 1
+    panel.footer:SetVertexColor(.10, .075, .08, (panel.textured and .6 or .95) * footer)
     if panel.textured then
         panel.background:SetVertexColor(1 - .45 * strength + .45 * strength * tint[1],
             1 - .45 * strength + .45 * strength * tint[2],
