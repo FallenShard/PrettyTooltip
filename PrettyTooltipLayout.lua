@@ -1385,9 +1385,41 @@ local function fitNative(tooltip, panel)
     end
     -- A hidden tooltip is fitted by the Show hook once Blizzard shows it.
     if not tooltip:IsShown() then return end
-    -- Every refresh resets the tooltip's size and the client does not report
-    -- padding back, so measure from the natural size each time. Nothing is
-    -- drawn between these calls.
+    -- A refresh asks for several refits; only a changed size needs one.
+    if panel.fittedWidth and math.abs(tooltip:GetWidth() - panel.fittedWidth) <= .5
+        and math.abs(tooltip:GetHeight() - panel.fittedHeight) <= .5
+        and math.abs(panel:GetWidth() - panel.fittedPanelWidth) <= .5
+        and math.abs(panel:GetHeight() - panel.fittedPanelHeight) <= .5 then
+        return
+    end
+    count("refit applied")
+    -- GetPadding reports the applied padding and SetPadding resizes at once, so
+    -- the natural size needs no layout pass to measure.
+    if tooltip.GetPadding then
+        local currentRight, currentBottom = tooltip:GetPadding()
+        if type(currentRight) == "number" and type(currentBottom) == "number" then
+            local panelWidth, panelHeight = panel:GetWidth(), panel:GetHeight()
+            local right = base.right + math.max(0, panelWidth
+                - (tooltip:GetWidth() - (currentRight - base.right)))
+            local bottom = base.bottom + math.max(0, panelHeight
+                - (tooltip:GetHeight() - (currentBottom - base.bottom)))
+            if math.abs(right - currentRight) > .01 or math.abs(bottom - currentBottom) > .01 then
+                tooltip:SetPadding(right, bottom, base.left, base.top)
+            end
+            local width, height = tooltip:GetWidth(), tooltip:GetHeight()
+            local widthFits = right > base.right and math.abs(width - panelWidth) <= 1
+                or right <= base.right and width >= panelWidth - .5
+            local heightFits = bottom > base.bottom and math.abs(height - panelHeight) <= 1
+                or bottom <= base.bottom and height >= panelHeight - .5
+            if widthFits and heightFits then
+                count("refit fast")
+                panel.fittedWidth, panel.fittedHeight = width, height
+                panel.fittedPanelWidth, panel.fittedPanelHeight = panelWidth, panelHeight
+                return
+            end
+            count("refit fallback")
+        end
+    end
     tooltip:SetPadding(base.right, base.bottom, base.left, base.top)
     tooltip:Show()
     local right = base.right + math.max(0, panel:GetWidth() - tooltip:GetWidth())
@@ -1397,6 +1429,7 @@ local function fitNative(tooltip, panel)
         tooltip:Show()
     end
     panel.fittedWidth, panel.fittedHeight = tooltip:GetWidth(), tooltip:GetHeight()
+    panel.fittedPanelWidth, panel.fittedPanelHeight = panel:GetWidth(), panel:GetHeight()
 end
 
 local function refitNative(tooltip, panel)
@@ -1409,7 +1442,7 @@ refitNative = probe("refit hidden tooltip", refitNative)
 
 local function releaseNative(tooltip, panel)
     local base = panel.nativeSize
-    panel.nativeSize = nil
+    panel.nativeSize, panel.fittedWidth = nil, nil
     -- After a hide or a switch to other content the game has already reset
     -- the size, and the tooltip's new owner may have set its own padding.
     if base and panel.kind and tooltip:IsShown() and tooltip:IsTooltipType(panel.kind) then
@@ -1500,14 +1533,7 @@ local function onTooltipData(dataType, tooltip, data)
         local function onNativeShown(shown)
             count(isComparison(shown) and "show hook (comparison)" or "show hook")
             if not (panel.nativeSize and panel:IsShown()) then return end
-            -- Comparisons are re-shown every frame while they are up; a refit
-            -- re-shows the tooltip twice and runs every addon's show hooks, so it
-            -- runs only when the game has changed the size the last fit left.
-            local width, height = shown:GetWidth(), shown:GetHeight()
-            if not panel.fittedWidth or math.abs(width - panel.fittedWidth) > .5
-                or math.abs(height - panel.fittedHeight) > .5 then
-                refitNative(shown, panel)
-            end
+            refitNative(shown, panel)
             -- Comparisons are anchored after they are shown, so align here.
             pcall(alignPanel, panel, shown)
             if isComparison(shown) then pcall(anchorToPanels, shown) end
@@ -1642,11 +1668,19 @@ function ns.perfCapture(seconds)
     print("PrettyTooltip: measuring for " .. seconds .. " seconds; keep the tooltip open.")
     C_Timer.After(seconds, function()
         perf.on = false
-        local names = {}
-        for name in pairs(perf.calls) do names[#names + 1] = name end
-        table.sort(names, function(a, b) return (perf.time[a] or 0) > (perf.time[b] or 0) end)
+        local names, counts = {}, {}
+        for name, calls in pairs(perf.calls) do
+            if perf.time[name] then
+                names[#names + 1] = name
+            else
+                counts[#counts + 1] = name .. " " .. calls
+            end
+        end
+        table.sort(names, function(a, b) return perf.time[a] > perf.time[b] end)
+        table.sort(counts)
         print(string.format("PrettyTooltip perf over %d s (memory %+.0f KB):", seconds,
             collectgarbage("count") - memory))
+        if #counts > 0 then print("  counts: " .. table.concat(counts, ", ")) end
         for _, name in ipairs(names) do
             print(string.format("  %s: %d calls (%.0f/s), %.1f ms", name, perf.calls[name],
                 perf.calls[name] / seconds, perf.time[name] or 0))
