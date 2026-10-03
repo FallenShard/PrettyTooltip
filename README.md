@@ -64,6 +64,10 @@ Units under the cursor get a panel with their portrait, the name in class color 
 
 Auras show their icon and name, badges for buff or debuff, the dispel type in the game's colors (Magic, Curse, Disease, Poison), and stacks, then the description one sentence per line, the time left with who cast it, and a bar that drains as the aura runs out.
 
+## Quests
+
+Quest links read like a page of the quest log: the quest's name and the dungeon it is in, then badges for its level in the game's difficulty color, tags such as Elite or Dungeon, and where it stands (in progress, ready to turn in, completed, failed, repeatable). Below sit the quest giver's words in quotes and the objectives as a checklist with their progress, ticked and green once finished, with a bar under those that count more than one. The header has no icon unless **Show icon** is turned on in the style editor. With **Questie** installed, which draws quest links itself, the panel is built from Questie's tooltip, both for a clicked link and for one hovered in chat; who starts or ends the quest and where follow as label and value rows.
+
 ## World objects
 
 Herbs, ore, chests, and quest objects get a panel too. A herb or ore node shows the herb or ore it yields, with its icon; the skill it needs and the level, in the game's skill-up color (red while your skill is too low), beside your own skill; and in the footer the yield's sell price and, with **Auctionator** installed, its auction price. Locked chests show the lock and the Lockpicking they need, and quest objects show their quests and objectives. Rows other addons add, such as Questie's, are kept below.
@@ -77,9 +81,9 @@ Herbs, ore, chests, and quest objects get a panel too. A herb or ore node shows 
 
 ## Style editor
 
-Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items**, **Spells**, **Objects**, **Units**, and **Buffs** switch between the kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal; for objects a herb, an ore node you cannot mine yet, a locked chest, and a quest object; for units a player, a hostile elite with a quest, a friendly innkeeper, and a rare; for buffs a buff, a curse, and a stacked poison) cover every part, and the editor switches to one that has the part you pick from its list.
+Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items**, **Spells**, **Objects**, **Units**, **Buffs**, and **Quests** switch between the kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal; for objects a herb, an ore node you cannot mine yet, a locked chest, and a quest object; for units a player, a hostile elite with a quest, a friendly innkeeper, and a rare; for buffs a buff, a curse, and a stacked poison; for quests one in progress, one ready to turn in, and one not taken) cover every part, and the editor switches to one that has the part you pick from its list.
 
-To preview a real item or spell instead (objects, units, and auras have no ID), type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
+To preview a real item or spell instead (objects, units, auras, and quests have no ID), type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
 
 - **Font**: every font registered with LibSharedMedia, which includes EllesmereUI's fonts when it is installed, plus the game's own. **Global Settings** sets the font for everything at once, with a separate font for names; a part's own font overrides it.
 - **Color**: a custom color replaces every color the part would have had, including quality, category, and red or grey states. **Automatic** goes back to the normal colors.
@@ -104,7 +108,7 @@ Tooltips use the new look the next time they open.
 Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look.
 
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
-  - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, and **Herbs, ore, chests, and other objects** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
+  - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
 - **Item Details**: **Disenchant results** shows or hides the disenchant section on items.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never show default tooltip**.
@@ -130,6 +134,6 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 
 `python deploy.py` copies the game files into `D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns\PrettyTooltip`; pass `--addons-dir "<path to Interface\AddOns>"` for another installation. After a deploy, `/reload` picks up Lua changes; changes to the `.toc` need a game restart.
 
-`/ptip dump` prints the raw data of the tooltip you are hovering, to see what a kind of tooltip carries. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes.
+`/ptip dump` prints the raw data of the tooltip you are hovering, to see what a kind of tooltip carries, or the lines shown when an addon filled it without data. A link clicked in chat is dumped when nothing is hovered. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes.
 
 `art/README.md` describes each texture and how it is made.

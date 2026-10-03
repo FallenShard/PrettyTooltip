@@ -9,11 +9,13 @@ local DEFAULTS = {
     objectPanels = true,
     unitPanels = true,
     auraPanels = true,
+    questPanels = true,
     iconItems = true,
     iconSpells = true,
     iconObjects = true,
     iconUnits = true,
     iconAuras = true,
+    iconQuests = false,
     cursorObjects = true,
     statColors = true,
     qualityTint = true,
@@ -21,9 +23,9 @@ local DEFAULTS = {
     itemLevelBadge = true,
     separators = true,
     spellPanels = true,
+    disenchant = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
-    disenchant = true,
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
     bodyFont = nil,
@@ -46,7 +48,7 @@ local function setOption(key, value)
 end
 ns.setOption = setOption
 
--- kind: "item" (default), "spell", "object", "unit", "aura", or "shared" by all. color is where the picker starts
+-- kind: "item" (default), "spell", "object", "unit", "aura", "quest", or "shared" by all. color is where the picker starts
 -- while the color is automatic.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
@@ -75,10 +77,10 @@ ns.ELEMENTS = {
     { key = "footer", label = "Footer", size = 11, color = { .82, .78, .71 },
         note = "Durability, crafter, requirements, and sell price." },
     { key = "badge", label = "Item level badge", size = 10, color = { .9, .9, .9 } },
-    { key = "spellTitle", label = "Spell name", size = 17, title = true,
-        color = { .96, .92, .84 }, kind = "spell" },
     { key = "disenchant", label = "Disenchant results", size = 11, color = { .82, .78, .71 },
         note = "The Enchanting needed red while yours is too low, grey without Enchanting, unless set." },
+    { key = "spellTitle", label = "Spell name", size = 17, title = true,
+        color = { .96, .92, .84 }, kind = "spell" },
     { key = "spellBadges", label = "School and rank badges", size = 10, color = { .9, .9, .9 },
         kind = "spell", note = "Colored by school unless set." },
     { key = "spellValues", label = "Cost, cast, cooldown, range", size = 13,
@@ -122,6 +124,16 @@ ns.ELEMENTS = {
         kind = "aura", note = "Numbers in the aura's color unless set." },
     { key = "auraTime", label = "Time and caster", size = 11, color = { .88, .78, .60 },
         kind = "aura" },
+    { key = "questTitle", label = "Quest name", size = 16, title = true, color = { .96, .92, .84 },
+        kind = "quest" },
+    { key = "questInfo", label = "Dungeon", size = 12, color = { .82, .78, .71 }, kind = "quest" },
+    { key = "questBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, kind = "quest",
+        note = "The level in its difficulty color, tags, and where the quest stands." },
+    { key = "questText", label = "Description", size = 12, color = { .86, .74, .45 }, kind = "quest" },
+    { key = "questCaption", label = "Section caption", size = 9, color = { .60, .57, .52 },
+        kind = "quest", caps = true },
+    { key = "questObjectives", label = "Objectives", size = 12, color = { .90, .85, .74 },
+        kind = "quest", note = "Finished objectives green unless set." },
 }
 -- types are Enum.TooltipDataType names; ones missing on this client are skipped.
 ns.TOOLTIP_KINDS = {
@@ -133,7 +145,7 @@ ns.TOOLTIP_KINDS = {
         types = { "UnitAura" } },
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
-    { label = "Quests", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
+    { label = "Quests", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
     { label = "Dungeon and raid lockouts", cursor = "cursorLockouts", types = { "InstanceLock" } },
     { label = "Pet abilities", cursor = "cursorPetActions", types = { "PetAction" } },
@@ -214,7 +226,7 @@ function ns.resetElement(key)
 end
 
 -- Settings kept per kind of panel are named with these, as iconItems.
-ns.KIND_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras" }
+ns.KIND_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests" }
 
 -- The header band's opacity at an edge ("Top" or "Bottom") for a kind; a kind
 -- without its own follows the setting shared by all, and nil means the default.
@@ -245,7 +257,7 @@ function ns.style(key)
     if type(color) ~= "table" then color = nil end
     -- Names are in capitals unless turned off; other parts only when turned on.
     local caps = ns.elementSetting(key, "caps")
-    if caps == nil then caps = element.title == true end
+    if caps == nil then caps = element.caps or element.title == true end
     return {
         key = key,
         title = element.title,
@@ -444,9 +456,20 @@ SLASH_PRETTYTOOLTIP2 = "/ptip"
 local function dumpTooltip()
     -- A clicked chat link opens in its own tooltip.
     local tooltip = GameTooltip:IsShown() and GameTooltip or ItemRefTooltip
-    local data = tooltip and tooltip:IsShown() and tooltip.GetTooltipData and tooltip:GetTooltipData()
+    if not (tooltip and tooltip:IsShown()) then
+        print("PrettyTooltip: hover something first; there is no tooltip to dump.")
+        return
+    end
+    local data = tooltip.GetTooltipData and tooltip:GetTooltipData()
     if type(data) ~= "table" then
-        print("PrettyTooltip: hover something first; there is no tooltip data to dump.")
+        -- Filled by an addon with lines alone, as Questie's quest links.
+        print("PrettyTooltip dump: no tooltip data; the lines shown:")
+        for index = 1, tooltip:NumLines() do
+            local left = _G[tooltip:GetName() .. "TextLeft" .. index]
+            local right = _G[tooltip:GetName() .. "TextRight" .. index]
+            local text = (left and left:GetText() or "") .. (right and right:GetText() and "  ||  " .. right:GetText() or "")
+            print(index .. ". " .. text:gsub("|", "||"))
+        end
         return
     end
     local function names(enum)
@@ -483,7 +506,8 @@ SlashCmdList.PRETTYTOOLTIP = function(message)
     end
     if wanted == "dump" then
         -- Secret values cannot be printed in some situations.
-        if not pcall(dumpTooltip) then print("PrettyTooltip: this tooltip cannot be read right now.") end
+        local ok, problem = pcall(dumpTooltip)
+        if not ok then print("PrettyTooltip: this tooltip cannot be read right now (" .. tostring(problem) .. ").") end
         return
     end
     if wanted ~= "options" and ns.openEditor then

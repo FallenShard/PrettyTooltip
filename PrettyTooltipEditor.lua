@@ -389,6 +389,47 @@ if Enum.TooltipDataType.UnitAura and ui.auraModel then
         samples = AURA_SAMPLES, first = "auraName", noun = "aura", noLookup = true }
     KIND_ORDER[#KIND_ORDER + 1] = "aura"
 end
+local QUEST_SAMPLES = {
+    {
+        label = "Active",
+        build = function()
+            return ui.questModel({
+                name = "The Fury Runs Deep", level = 27, tags = { "Dungeon" }, zone = "The Stockade",
+                active = true,
+                description = { "Motley Garmason wants Kam Deepfury's head brought to him at Dun Modr." },
+                objectives = { { left = "Head of Deepfury", right = "0/1", completed = false } },
+            })
+        end,
+    },
+    {
+        label = "Ready",
+        build = function()
+            return ui.questModel({
+                name = "Wolves Across the Border", level = 6, active = true, ready = true,
+                description = { "Eliminate the wolves to the east of Northshire and bring their paws to Eagan Peltskinner." },
+                objectives = { { left = "Tough Wolf Meat", right = "8/8", completed = true } },
+                extras = { { left = "Ended by", right = "Eagan Peltskinner" } },
+            })
+        end,
+    },
+    {
+        label = "New",
+        build = function()
+            return ui.questModel({
+                name = "Arugal Must Die", level = 27, tags = { "Dungeon" }, zone = "Shadowfang Keep",
+                description = { "Dalar Dawnweaver wants Arugal dead and his head brought to him." },
+                objectives = { { left = "Head of Arugal" } },
+                extras = { { left = "Started by", right = "Dalar Dawnweaver" },
+                    { left = "Found in", right = "Silverpine Forest" } },
+            })
+        end,
+    },
+}
+if Enum.TooltipDataType.Quest and ui.questModel then
+    KINDS.quest = { label = "Quests", dataType = Enum.TooltipDataType.Quest,
+        samples = QUEST_SAMPLES, first = "questTitle", noun = "quest", noLookup = true }
+    KIND_ORDER[#KIND_ORDER + 1] = "quest"
+end
 local MAX_SAMPLES = 0
 for _, kind in pairs(KINDS) do MAX_SAMPLES = math.max(MAX_SAMPLES, #kind.samples) end
 

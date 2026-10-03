@@ -1496,12 +1496,20 @@ local function refitNative(tooltip, panel)
 end
 refitNative = probe("refit hidden tooltip", refitNative)
 
+-- Panels drawn from another addon's lines have no data type; their lines
+-- last until the tooltip is cleared.
+local function showsKind(tooltip, panel)
+    if not panel.kind then return false end
+    if panel.data and panel.data.fromLines then return true end
+    return tooltip:IsTooltipType(panel.kind)
+end
+
 local function releaseNative(tooltip, panel)
     local base = panel.nativeSize
     panel.nativeSize, panel.fittedWidth = nil, nil
     -- After a hide or a switch to other content the game has already reset
     -- the size, and the tooltip's new owner may have set its own padding.
-    if base and panel.kind and tooltip:IsShown() and tooltip:IsTooltipType(panel.kind) then
+    if base and tooltip:IsShown() and showsKind(tooltip, panel) then
         tooltip:SetPadding(base.right, base.bottom, base.left, base.top)
         tooltip:Show()
     end
@@ -1560,6 +1568,7 @@ update = probe("update", update)
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
     if not panel then return end
+    if panel.data and panel.data.fromLines then panel.data = nil end
     panel.restorePending = true
     panel.refreshToken = (panel.refreshToken or 0) + 1
     local token = panel.refreshToken
@@ -1624,7 +1633,7 @@ local function onTooltipData(dataType, tooltip, data)
             self.elapsed = 0
             if tooltip:IsShown() and self.data and tooltip:NumLines() ~= self.lineCount then
                 C_Timer.After(0, function()
-                    if tooltip:IsShown() and self.kind and tooltip:IsTooltipType(self.kind)
+                    if tooltip:IsShown() and showsKind(tooltip, self)
                         and self.data and tooltip:NumLines() ~= self.lineCount then
                         update(tooltip, self.data)
                     end
@@ -1647,7 +1656,7 @@ local function onTooltipData(dataType, tooltip, data)
     end
     C_Timer.After(0, function()
         if panel.refreshToken == token and tooltip:IsShown()
-            and tooltip:IsTooltipType(dataType) then
+            and showsKind(tooltip, panel) then
             update(tooltip, data)
         end
     end)
@@ -1672,7 +1681,7 @@ modifier:RegisterEvent("MODIFIER_STATE_CHANGED")
 modifier:SetScript("OnEvent", function(_, _, key)
     if not ns.isOriginalKey(key) then return end
     for tooltip, panel in pairs(panels) do
-        if tooltip:IsShown() and panel.kind and tooltip:IsTooltipType(panel.kind) then
+        if tooltip:IsShown() and showsKind(tooltip, panel) then
             if showsOriginal(panel) then
                 restoreNative(tooltip)
             elseif panel.data then
@@ -1777,6 +1786,11 @@ ns.ui = {
     drawChrome = drawChrome,
     finishPanel = finishPanel,
     registerKind = registerKind,
+    -- Draws a kind from a tooltip another addon filled with lines alone.
+    renderLines = function(tooltip, dataType, id)
+        onTooltipData(dataType, tooltip, { type = dataType, id = id, lines = {}, fromLines = true })
+    end,
+    uncolored = uncolored,
     PAD = PAD,
     TITLE_TOP = TITLE_TOP,
     MIN_WIDTH = MIN_WIDTH,

@@ -18,6 +18,7 @@ GAME_FILES = (
     "PrettyTooltipObject.lua",
     "PrettyTooltipUnit.lua",
     "PrettyTooltipAura.lua",
+    "PrettyTooltipQuest.lua",
     "PrettyTooltipEditor.lua",
     "PrettyTooltipCursor.lua",
     "art/band.tga",
