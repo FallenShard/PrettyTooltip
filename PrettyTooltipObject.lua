@@ -1,5 +1,4 @@
--- World objects (herbs, ore, chests, quest objects) as a panel: the name, the
--- skill a node needs, what it yields and is worth, and its quest lines.
+-- World objects (herbs, ore, chests, quest objects) as a panel.
 local _, ns = ...
 local ui = ns.ui
 local OBJECT = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Object
@@ -101,8 +100,6 @@ local function auctionPrice(itemID)
     if ok and type(price) == "number" and price > 0 then return price end
 end
 
--- Fills in what the tooltip lines cannot say: the node's skill level, the
--- player's own, the item it yields, and that item's prices.
 local function completeModel(model)
     local node = NODES[(model.name:gsub("^Ooze Covered ", ""))]
     model.look = model.skill and SKILLS[model.skill] or (#model.quests > 0 and QUEST) or nil

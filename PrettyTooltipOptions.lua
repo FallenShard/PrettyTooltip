@@ -7,6 +7,7 @@ local DEFAULTS = {
     iconRight = false,
     itemPanels = true,
     objectPanels = true,
+    unitPanels = true,
     cursorObjects = true,
     statColors = true,
     qualityTint = true,
@@ -38,7 +39,7 @@ local function setOption(key, value)
 end
 ns.setOption = setOption
 
--- kind: "item" (default), "spell", "object", or "shared" by all. color is where the picker starts
+-- kind: "item" (default), "spell", "object", "unit", or "shared" by all. color is where the picker starts
 -- while the color is automatic.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
@@ -92,12 +93,25 @@ ns.ELEMENTS = {
         kind = "object", note = "Quest names gold, finished objectives green, unless set." },
     { key = "objectPrices", label = "Prices", size = 11, color = { .88, .78, .60 },
         kind = "object", note = "The yielded item's sell price, and its auction price with Auctionator." },
+    { key = "unitName", label = "Name", size = 17, title = true, color = { 1, 1, 1 },
+        kind = "unit", note = "Class color for players, reaction color for NPCs, unless set." },
+    { key = "unitGuild", label = "Guild or role", size = 12, color = { .9, .9, .9 }, kind = "unit" },
+    { key = "unitInfo", label = "Level, race, and class", size = 12, color = { .82, .78, .71 },
+        kind = "unit", note = "The level in its difficulty color, unless set." },
+    { key = "unitBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, kind = "unit",
+        note = "Elite, rare, faction, PvP, AFK, and dead." },
+    { key = "unitHealth", label = "Health", size = 11, color = { .82, .78, .71 }, kind = "unit" },
+    { key = "unitDetails", label = "Target and owner", size = 11, color = { .82, .78, .71 },
+        kind = "unit" },
+    { key = "unitQuests", label = "Quest lines", size = 12, color = { .90, .85, .74 },
+        kind = "unit", note = "Quest names gold, finished objectives green, unless set." },
 }
 -- types are Enum.TooltipDataType names; ones missing on this client are skipped.
 ns.TOOLTIP_KINDS = {
     { label = "Items", restyle = "itemPanels", cursor = "cursorItems", types = { "Item" } },
     { label = "Spells", restyle = "spellPanels", cursor = "cursorSpells", types = { "Spell" } },
-    { label = "Players and NPCs", cursor = "cursorUnits", types = { "Unit", "Corpse" } },
+    { label = "Players and NPCs", restyle = "unitPanels", cursor = "cursorUnits",
+        types = { "Unit", "Corpse" } },
     { label = "Buffs and debuffs", cursor = "cursorAuras", types = { "UnitAura" } },
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },

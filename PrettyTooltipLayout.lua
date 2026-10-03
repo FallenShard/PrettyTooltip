@@ -1067,6 +1067,8 @@ end
 -- Returns the header height the icon and badge need.
 local function drawChrome(panel, tooltip, style)
     applyBackdrop(panel)
+    -- Panels are shared across kinds; the kind that wants a watermark shows it.
+    if panel.watermark then panel.watermark:Hide() end
     local color = style.color
     panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
     local tinted = style.tint and ns.option("qualityTint")

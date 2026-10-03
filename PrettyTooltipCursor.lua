@@ -1,5 +1,4 @@
--- Follow cursor: a mouse-over tooltip of an enabled kind moves to the cursor once
--- its content is known. A kind left off is never touched, so addons that place
+-- Follow cursor. A kind left off is never touched, so addons that place
 -- tooltips themselves keep doing so.
 local _, ns = ...
 local TYPES = Enum and Enum.TooltipDataType
@@ -11,9 +10,8 @@ local OFFSET = 16
 local placing = false
 local wasClamped
 
--- The hidden tooltip is often larger than its panel and resizes as rows are
--- added; kept on screen, every resize near an edge would shift the panel. The
--- panel keeps itself on screen instead.
+-- Kept on screen, every resize of the larger hidden tooltip near an edge would
+-- shift the panel; the panel keeps itself on screen instead.
 local function unclamp()
     if wasClamped ~= nil then return end
     wasClamped = GameTooltip:IsClampedToScreen()
@@ -50,10 +48,8 @@ follower:SetScript("OnUpdate", function(self)
     if GameTooltip:IsShown() then place() else self:Hide() end
 end)
 
--- Only tooltips the game places at its default anchor follow the cursor, as
--- with EllesmereUI: units, world objects, action buttons. Bags and other
--- frames anchor their tooltip to themselves and re-anchor it on every
--- refresh, so they are left alone.
+-- Only default-anchored tooltips follow, as with EllesmereUI; bags re-anchor
+-- theirs on every refresh.
 local defaultAnchored = false
 hooksecurefunc(GameTooltip, "SetOwner", function() defaultAnchored = false end)
 hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip)

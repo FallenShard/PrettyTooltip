@@ -279,6 +279,59 @@ local OBJECT_SAMPLES = {
     },
 }
 
+local function unitModel(fields)
+    return ui.unitModel and ui.unitModel(fields) or fields
+end
+
+local UNIT_SAMPLES = {
+    {
+        label = "Player",
+        build = function()
+            return unitModel({
+                name = "Somniferie", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_02",
+                isPlayer = true, level = 60, race = "Human", className = "Warrior",
+                classFile = "WARRIOR", guild = "Dawnbreakers", faction = "Alliance", pvp = true,
+                health = 4230, healthMax = 5100, target = "Ragnaros", targetColor = { 1, .27, .22 },
+                extras = { { left = "Item Level 61", right = "", color = { .60, .60, .63 } } },
+            })
+        end,
+    },
+    {
+        label = "Enemy",
+        build = function()
+            return unitModel({
+                name = "Defias Pillager", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_01",
+                level = 15, creature = "Humanoid", classification = "elite", reaction = 2,
+                health = 512, healthMax = 980, target = "Somniferie", targetIsYou = true,
+                quests = {
+                    { left = "The Defias Brotherhood", right = "", title = true },
+                    { left = "- Defias Pillager slain: 4/10", right = "" },
+                },
+            })
+        end,
+    },
+    {
+        label = "Vendor",
+        build = function()
+            return unitModel({
+                name = "Innkeeper Farley", iconPath = "Interface\\Icons\\INV_Misc_Head_Dwarf_01",
+                tag = "<Innkeeper>", level = 30, creature = "Humanoid", reaction = 5,
+                health = 1420, healthMax = 1420,
+            })
+        end,
+    },
+    {
+        label = "Rare",
+        build = function()
+            return unitModel({
+                name = "Mother Fang", iconPath = "Interface\\Icons\\Ability_Hunter_Pet_Spider",
+                level = 10, creature = "Beast", classification = "rare", reaction = 2,
+                health = 330, healthMax = 330,
+            })
+        end,
+    },
+}
+
 local KINDS = {
     item = { label = "Items", dataType = Enum.TooltipDataType.Item, samples = ITEM_SAMPLES,
         first = "title", noun = "item" },
@@ -291,6 +344,11 @@ if Enum.TooltipDataType.Object and ui.objectModel then
     KINDS.object = { label = "Objects", dataType = Enum.TooltipDataType.Object,
         samples = OBJECT_SAMPLES, first = "objectTitle", noun = "object", noLookup = true }
     KIND_ORDER[#KIND_ORDER + 1] = "object"
+end
+if Enum.TooltipDataType.Unit and ui.unitModel then
+    KINDS.unit = { label = "Units", dataType = Enum.TooltipDataType.Unit,
+        samples = UNIT_SAMPLES, first = "unitName", noun = "unit", noLookup = true }
+    KIND_ORDER[#KIND_ORDER + 1] = "unit"
 end
 local MAX_SAMPLES = 0
 for _, kind in pairs(KINDS) do MAX_SAMPLES = math.max(MAX_SAMPLES, #kind.samples) end
@@ -419,17 +477,17 @@ anchor:SetSize(1, 1)
 anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN)
 local kindTabs = {}
 for index, kind in ipairs(KIND_ORDER) do
-    local tab = flatButton(editor, KINDS[kind].label, 58, function() switchKind(kind) end)
-    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 62, 6)
+    local tab = flatButton(editor, KINDS[kind].label, 52, function() switchKind(kind) end)
+    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 56, 6)
     kindTabs[kind] = tab
 end
 local sampleTabs = {}
 for index = 1, MAX_SAMPLES do
-    local tab = flatButton(editor, "", 64, function()
+    local tab = flatButton(editor, "", 56, function()
         state.sample, state.lookup = index, nil
         refresh()
     end)
-    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", #KIND_ORDER * 62 + 8 + (index - 1) * 68, 6)
+    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", #KIND_ORDER * 56 + 8 + (index - 1) * 60, 6)
     sampleTabs[index] = tab
 end
 
