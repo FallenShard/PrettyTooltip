@@ -136,12 +136,17 @@ local function completeModel(model, unit)
             model.targetColor = unitColor(target)
         end
     end
-    -- The guild also arrives as a line.
-    if model.guild then
-        for index = #model.extras, 1, -1 do
-            if trim(model.extras[index].left):gsub("^<(.*)>$", "%1") == model.guild then
-                table.remove(model.extras, index)
-            end
+    -- Forever puts the guild, unbracketed, and the class on lines of their own;
+    -- the header already shows them.
+    local shown = {}
+    for _, value in ipairs({ model.guild or false, model.className or false, model.race or false,
+        model.creature or false }) do
+        if value then shown[value] = true end
+    end
+    for index = #model.extras, 1, -1 do
+        local row = model.extras[index]
+        if (row.right or "") == "" and shown[(trim(row.left):gsub("^<(.*)>$", "%1"))] then
+            table.remove(model.extras, index)
         end
     end
     if model.isPlayer then
