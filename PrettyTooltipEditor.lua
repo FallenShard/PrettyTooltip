@@ -185,6 +185,29 @@ local ITEM_SAMPLES = {
             })
         end,
     },
+    {
+        label = "Recipe",
+        build = function()
+            return sampleModel({
+                name = "Plans: Veteran's Gloves", quality = 2, icon = "Interface\\Icons\\INV_Scroll_03",
+                slot = "Plans \194\183 Blacksmithing",
+                header = { { left = "Binds when picked up", right = "Requires Blacksmithing 80",
+                    rightColor = { .95, .93, .88 } } },
+                created = sampleModel({
+                    name = "Veteran's Gloves", quality = 2, icon = "Interface\\Icons\\INV_Gauntlets_05",
+                    slot = "Mail \194\183 Hands", levelRequirement = { text = "Requires Level 15", met = true },
+                    armor = { { left = "115 Armor", right = "", value = "115" } },
+                    primary = { stat("+5 Strength"), stat("+3 Agility"), stat("+5 Stamina") },
+                }),
+                reagents = {
+                    { name = "Bronze Bar", count = 10, have = 4, icon = itemIcon(2841) },
+                    { name = "Rough Grinding Stone", count = 4, have = 4, icon = itemIcon(3470) },
+                    { name = "Small Lustrous Pearl", count = 3, have = 1, icon = itemIcon(5498) },
+                },
+                footerRight = { { left = "Sell Price", right = ui.formatMoney(400) } },
+            })
+        end,
+    },
 }
 
 local SPELL_SAMPLES = {

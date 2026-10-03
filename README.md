@@ -17,7 +17,7 @@ Top to bottom, an item panel shows:
 
 While the game shows a comparison, the comparison panels are tagged **Equipped**, and the game's own "If you replace this item" stat changes appear among the rows at the bottom, in their usual green and red.
 
-Recipes take their own name as the title, so `Pattern: Blue Linen Vest` stays the pattern even though the game's tooltip includes the vest.
+Recipes are the recipe first: their own icon and name, `Plans · Blacksmithing` beneath, and the skill they need beside the binding, red while yours is too low. The item they craft follows under **Creates** as a smaller card with its icon, name, slot, required level, and its own armor, stats, and effects, then the **Reagents** with their icons and how many you carry (`4 / 10`, red while short).
 
 ### Shorter stats
 

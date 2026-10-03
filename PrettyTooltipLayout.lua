@@ -370,14 +370,55 @@ local function appendedRows(tooltip, lineIndices)
     return rows
 end
 
-local function readModel(tooltip, data)
-    if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    local itemInfo = getItemInfo(tooltip, data)
-    local model = {
-        link = itemInfo,
-        quality = getQuality(itemInfo, data),
-        icon = getIcon(itemInfo),
-        level = getLevel(itemInfo),
+local PROFESSIONS = {
+    Alchemy = true, Blacksmithing = true, Enchanting = true, Engineering = true,
+    Leatherworking = true, Tailoring = true, Cooking = true, ["First Aid"] = true, Fishing = true,
+    Mining = true, Herbalism = true, Skinning = true, Jewelcrafting = true, Inscription = true,
+}
+
+local function rawColor(color)
+    if isSecret(color) or type(color) ~= "table" then return end
+    local r, g, b = color.r, color.g, color.b
+    if isSecret(r) or isSecret(g) or isSecret(b) or type(r) ~= "number" then return end
+    return { r, g, b }
+end
+
+-- "Requires Blacksmithing (80)": the profession and level a recipe needs.
+local function professionRequirement(text)
+    local name, level = text:match("^Requires (.-) %((%d+)%)$")
+    if name and PROFESSIONS[name] then return name, tonumber(level) end
+end
+
+-- "Requires Bronze Bar (10), Sulfuric Acid (2)": a recipe's reagents.
+local function reagentList(text)
+    text = plainText(text):gsub("^%s*Requires%s+", "")
+    if not text:find("%(%d+%)") then return end
+    local list = {}
+    for piece in (text .. ","):gmatch("%s*(.-)%s*,") do
+        if piece == "" then return end
+        local name, count = piece:match("^(.-)%s*%((%d+)%)$")
+        list[#list + 1] = { name = name or piece, count = tonumber(count) or 1 }
+    end
+    return list
+end
+
+-- Only items the client has seen resolve by name.
+local function itemByName(name)
+    if not (C_Item and C_Item.GetItemInfo) then return end
+    local ok, _, link, quality, _, _, _, _, _, _, icon = pcall(C_Item.GetItemInfo, name)
+    if ok and not isSecret(link) and link and not isSecret(quality) and not isSecret(icon) then
+        return link, quality, icon
+    end
+end
+
+local function itemCount(item)
+    if not (C_Item and C_Item.GetItemCount) then return end
+    local ok, have = pcall(C_Item.GetItemCount, item)
+    if ok and not isSecret(have) and type(have) == "number" then return have end
+end
+
+local function newItemModel()
+    return {
         header = {},
         armor = {},
         primary = {},
@@ -391,9 +432,74 @@ local function readModel(tooltip, data)
         extras = {},
         footerLeft = {},
         footerRight = {},
-        lineIndices = {},
         kinds = {},
     }
+end
+
+-- A recipe's lines hold the crafted item's whole tooltip, from its name line
+-- to the reagents; those go into model.created.
+local function finishRecipe(tooltip, model, data)
+    local recipeID = not isSecret(data.id) and data.id or nil
+    if recipeID then
+        model.link, model.icon = recipeID, getIcon(recipeID) or model.icon
+        model.quality, model.level = getQuality(recipeID, data), getLevel(recipeID)
+    end
+    model.levelLine = nil
+    if model.skill then
+        local text = "Requires " .. model.skill.name .. " " .. model.skill.level
+        if model.levelRequirement then
+            add(model.footerRight, text, "")
+            local entry = model.footerRight[#model.footerRight]
+            entry.requirement, entry.met = true, model.skill.met
+        else
+            model.levelRequirement = { text = text, met = model.skill.met }
+        end
+        model.slot = (model.name:match("^(%a+):") or "Recipe") .. " \194\183 " .. model.skill.name
+    end
+    local created = model.created
+    if created then
+        local link, quality, icon = itemByName(created.name)
+        if not link and tooltip.GetItem then
+            -- The game reports the crafted item as the tooltip's item, under the
+            -- recipe's name; its link names it, and gives the icon before it loads.
+            local ok, _, itemLink = pcall(tooltip.GetItem, tooltip)
+            if ok and not isSecret(itemLink) and type(itemLink) == "string"
+                and itemLink:match("%[(.-)%]") == created.name then
+                link, icon = itemLink, getIcon(itemLink)
+                local loaded = itemByName(itemLink)
+                if loaded then quality = getQuality(itemLink, {}) end
+            end
+        end
+        created.link, created.icon = link, icon
+        created.quality = type(quality) == "number" and quality or nil
+        -- The crafted item's binding usually repeats the recipe's.
+        local recipeBinding = model.header[1] and model.header[1].left
+        local bindings = {}
+        for _, row in ipairs(created.header) do
+            if row.left ~= recipeBinding then bindings[#bindings + 1] = plainText(row.left) end
+        end
+        created.binding = #bindings > 0 and table.concat(bindings, " \194\183 ") or nil
+    elseif model.teaches then
+        add(model.effects, model.teaches.left, model.teaches.right)
+    end
+    for _, reagent in ipairs(model.reagents or {}) do
+        local link, _, icon = itemByName(reagent.name)
+        reagent.icon = icon
+        reagent.have = itemCount(link or reagent.name)
+    end
+end
+
+local function readModel(tooltip, data)
+    if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
+    local itemInfo = getItemInfo(tooltip, data)
+    local model = newItemModel()
+    model.link = itemInfo
+    model.quality = getQuality(itemInfo, data)
+    model.icon = getIcon(itemInfo)
+    model.level = getLevel(itemInfo)
+    model.lineIndices = {}
+    -- Lines go to the recipe or, inside its embedded tooltip, the crafted item.
+    local m = model
     local inSet, setTotal = false, 0
     local inStockChanges = false
     local function isStockChange(text)
@@ -415,9 +521,9 @@ local function readModel(tooltip, data)
         end
         -- The amount is drawn by a money frame, not as text, so take it from the data.
         if LINE.SellPrice and line.type == LINE.SellPrice then
-            model.hasSellPrice = true
+            m.hasSellPrice = true
             if not isSecret(line.price) and type(line.price) == "number" then
-                model.sellPrice = line.price
+                m.sellPrice = line.price
             end
         end
         if line.lineIndex then
@@ -427,92 +533,105 @@ local function readModel(tooltip, data)
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
         local trimmed = left:match("^%s*(.-)%s*$")
         if trimmed == "Quest Item" or trimmed:match("^This Item Begins a Quest") then
-            model.quest = true
+            m.quest = true
         end
         if isSecret(line.prettyTooltipDisplay) or isSecret(line.prettyTooltipOriginal) then return end
         local displayed = line.prettyTooltipDisplay or left
 
         if isStockChange(left) then
-            addExtra(model, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
+            addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
+        elseif trimmed:match("^Use: Teaches you how to") then
+            model.teaches = { left = left, right = right }
+        elseif m == model and professionRequirement(trimmed) then
+            local name, level = professionRequirement(trimmed)
+            model.skill = { name = name, level = level, text = left, met = requirementMet(trimmed, line.leftColor) }
+        elseif model.created and not model.reagents and reagentList(trimmed) then
+            model.reagents, m = reagentList(trimmed), model
         elseif lineType == LINE.ItemName then
-            -- Recipes embed the crafted item's tooltip, name line included.
-            model.name = model.name or left
+            if not model.name then
+                model.name, model.nameColor = left, rawColor(line.leftColor)
+            elseif not model.created then
+                model.created = newItemModel()
+                -- Its name line starts with a line break.
+                model.created.name, model.created.nameColor = trimmed, rawColor(line.leftColor)
+                m = model.created
+            end
         elseif lineType == LINE.ItemLevel then
             local level = left:match("(%d+)")
-            if level then model.level, model.levelLine = tonumber(level), true end
+            if level then m.level, m.levelLine = tonumber(level), true end
         elseif lineType == LINE.EquipSlot then
-            model.equippable = true
+            m.equippable = true
             local slot = unusable(left, line.leftColor)
             local kind = unusable(right, line.rightColor)
-            model.slot = right ~= "" and (kind .. " \194\183 " .. slot) or slot
+            m.slot = right ~= "" and (kind .. " \194\183 " .. slot) or slot
         elseif lineType == LINE.ItemBinding or trimmed:match("^Binds ")
             or trimmed == "Soulbound" or trimmed:match("^Unique") then
-            add(model.header, left, right)
-            if isRed(line.leftColor) then model.header[#model.header].color = UNUSABLE_COLOR end
+            add(m.header, left, right)
+            if isRed(line.leftColor) then m.header[#m.header].color = UNUSABLE_COLOR end
         elseif itemKind(left, right) then
             local kind, text = itemKind(left, right, line.leftColor)
-            model.kinds[kind] = text
+            m.kinds[kind] = text
         elseif trimmed ~= "" then
             local setName, count, total = trimmed:match("^(.-) %((%d+)/(%d+)%)$")
-            if setName and not model.setName then
-                model.setName, model.setCount = setName, count .. "/" .. total
+            if setName and not m.setName then
+                m.setName, m.setCount = setName, count .. "/" .. total
                 inSet, setTotal = true, tonumber(total)
             elseif LINE.SellPrice and lineType == LINE.SellPrice then
-                model.hasSellPrice = true
+                m.hasSellPrice = true
             elseif trimmed:match("^Requires Level %d+$") and right == "" then
-                model.levelRequirement = {
+                m.levelRequirement = {
                     text = trimmed, met = requirementMet(trimmed, line.leftColor),
                 }
             elseif trimmed:match("^Requires ") then
-                add(model.footerRight, left, right)
-                local entry = model.footerRight[#model.footerRight]
+                add(m.footerRight, left, right)
+                local entry = m.footerRight[#m.footerRight]
                 entry.requirement = true
                 entry.met = requirementMet(trimmed, line.leftColor)
             elseif trimmed:match("^Durability %d+ / %d+$") then
-                add(model.footerLeft, trimmed, right)
+                add(m.footerLeft, trimmed, right)
                 local current, maximum = trimmed:match("(%d+) / (%d+)")
-                model.footerLeft[#model.footerLeft].durability =
+                m.footerLeft[#m.footerLeft].durability =
                     { tonumber(current), tonumber(maximum) }
             elseif trimmed:match("^Classes:") or trimmed:match("^Races:")
                 or trimmed:match("^You haven't collected") or trimmed:match("^Appearance ") then
-                add(model.footerLeft, left, right)
+                add(m.footerLeft, left, right)
                 if isRed(line.leftColor) then
-                    model.footerLeft[#model.footerLeft].color = UNUSABLE_COLOR
+                    m.footerLeft[#m.footerLeft].color = UNUSABLE_COLOR
                 end
             elseif inSet and trimmed:match("^%(%d+%) Set:") then
-                add(model.setBonuses, left, right)
-                model.setBonuses[#model.setBonuses].active = isActive(line.leftColor)
-            elseif inSet and #model.setItems < setTotal
+                add(m.setBonuses, left, right)
+                m.setBonuses[#m.setBonuses].active = isActive(line.leftColor)
+            elseif inSet and #m.setItems < setTotal
                 and right == "" and trimmed:match("^[%a'%- ]+$") then
-                add(model.setItems, trimmed, right)
-                model.setItems[#model.setItems].active = isActive(line.leftColor)
+                add(m.setItems, trimmed, right)
+                m.setItems[#m.setItems].active = isActive(line.leftColor)
             elseif right:match("^Speed [%d%.]+$") and trimmed:match("^[%d,]+%s*%-%s*[%d,]+ Damage$") then
-                model.weaponDamage, model.weaponSpeed = left, right
+                m.weaponDamage, m.weaponSpeed = left, right
             elseif trimmed:match("^%([%d%.]+ damage per second%)$") then
-                model.weaponDps = trimmed:match("^%(([%d%.]+) damage per second%)$")
+                m.weaponDps = trimmed:match("^%(([%d%.]+) damage per second%)$")
             elseif trimmed:match("^[%d,]+ Armor$") then
-                add(model.armor, left, right)
-                model.armor[#model.armor].value = (trimmed:match("^([%d,]+)"):gsub(",", ""))
+                add(m.armor, left, right)
+                m.armor[#m.armor].value = (trimmed:match("^([%d,]+)"):gsub(",", ""))
             elseif line.prettyTooltipOriginal or trimmed:match("^%+[%d%.]+") then
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
                     local label = plainText(piece):match("^%s*[%+%-]?[%d%.,]+%%? (.+)$")
-                    add(PRIMARY_STATS[label] and model.primary or model.secondary, piece, right)
+                    add(PRIMARY_STATS[label] and m.primary or m.secondary, piece, right)
                     right = ""
                 end
             elseif trimmed:match('^".+"$') then
-                add(model.flavor, left, right)
-            elseif readCopyLine(model, left, right) then
+                add(m.flavor, left, right)
+            elseif readCopyLine(m, left, right) then
                 -- Crafter or enchant, taken into their own rows.
             elseif trimmed:match("^<.+>$") then
-                add(model.effects, left, right)
+                add(m.effects, left, right)
             elseif trimmed:match("^Equip:") and right == "" then
                 -- Unparsed equip effects join the stats; the list implies "Equip:".
-                add(model.equipEffects, (trimmed:gsub("^Equip:%s*", "")), "")
+                add(m.equipEffects, (trimmed:gsub("^Equip:%s*", "")), "")
             elseif trimmed:match("^Equip:") or trimmed:match("^Use:") then
-                add(model.effects, left, right)
+                add(m.effects, left, right)
             else
-                addExtra(model, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
+                addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
             end
         end
         end
@@ -525,6 +644,8 @@ local function readModel(tooltip, data)
         local trimmed = row.left:match("^%s*(.-)%s*$")
         if isStockChange(row.left) then
             model.extras[#model.extras + 1] = row
+        elseif model.created and not model.reagents and reagentList(trimmed) then
+            model.reagents = reagentList(trimmed)
         elseif trimmed:match("^Sell Price") then
             model.hasSellPrice = true
         elseif itemKind(row.left, row.right) then
@@ -536,6 +657,19 @@ local function readModel(tooltip, data)
             model.extras[#model.extras + 1] = row
         end
     end
+    -- Crafted gear can need a profession too; only a recipe teaches.
+    local recipe = model.created or (model.skill and model.teaches)
+    if recipe then
+        finishRecipe(tooltip, model, data)
+        itemInfo = model.link
+    else
+        if model.skill then
+            add(model.footerRight, model.skill.text, "")
+            local entry = model.footerRight[#model.footerRight]
+            entry.requirement, entry.met = true, model.skill.met
+        end
+        if model.teaches then add(model.effects, model.teaches.left, model.teaches.right) end
+    end
     local classID, className, subClassName, equipLoc, itemID
     if itemInfo and C_Item and C_Item.GetItemInfoInstant then
         local ok, id, itemType, itemSubType, itemEquipLoc, _, itemClassID = pcall(C_Item.GetItemInfoInstant, itemInfo)
@@ -544,7 +678,7 @@ local function readModel(tooltip, data)
             classID, className, subClassName, equipLoc, itemID = itemClassID, itemType, itemSubType, itemEquipLoc, id
         end
     end
-    if ns.disenchantFor and classID then
+    if ns.disenchantFor and classID and not recipe then
         local itemLevel = model.level
         if itemInfo and C_Item and C_Item.GetDetailedItemLevelInfo then
             local ok, detailed = pcall(C_Item.GetDetailedItemLevelInfo, itemInfo)
@@ -847,6 +981,8 @@ local function acquireTexture(panel, path, sublevel)
     end
     tex:SetDrawLayer("OVERLAY", sublevel or 0)
     tex:SetTexture(path or WHITE)
+    tex:SetTexCoord(0, 1, 0, 1)
+    tex:SetVertexColor(1, 1, 1, 1)
     tex:ClearAllPoints()
     tex:Show()
     return tex
@@ -879,6 +1015,26 @@ local function divider(panel, y, color, before)
     center:SetSize(10, 10)
     center:SetVertexColor(.9, .76, .48, .9)
     return y + 18
+end
+
+local CAPTION_COLOR = { .60, .57, .52 }
+
+-- A section's name centered between two rules.
+local function caption(panel, y, text, style, color)
+    y = y + 4
+    local width = measureStyled(panel, text, style) + 2
+    styledAt(panel, text, (panel.width - width) / 2, y, width, style, color or CAPTION_COLOR, "CENTER")
+    if ns.option("separators") then
+        local side = (panel.width - 2 * PAD - width) / 2 - 8
+        local middle = y + math.floor(style.size / 2) + 1
+        for _, point in ipairs({ { "TOPLEFT", PAD }, { "TOPRIGHT", -PAD } }) do
+            local line = acquireTexture(panel)
+            line:SetPoint(point[1], panel, point[1], point[2], -middle)
+            line:SetSize(side, 1)
+            line:SetVertexColor(GOLD_RULE[1] * .52, GOLD_RULE[2] * .52, GOLD_RULE[3] * .52, .8)
+        end
+    end
+    return y + style.size + 9
 end
 
 local function drawGroup(panel, list, y, style, color, indent, gap, rightIndent)
@@ -952,6 +1108,30 @@ local function disenchantRows(result)
     return rows
 end
 
+local CREATED_ICON = 26
+
+local function reagentRows(model)
+    local rows = {}
+    for _, reagent in ipairs(model.reagents or {}) do
+        local icon = reagent.icon and ("|T" .. reagent.icon .. ":0|t ") or ""
+        local row = { left = icon .. reagent.name, right = tostring(reagent.count) }
+        if reagent.have then
+            row.right = reagent.have .. " / " .. reagent.count
+            if reagent.have < reagent.count then row.rightColor = UNUSABLE_COLOR end
+        end
+        rows[#rows + 1] = row
+    end
+    return rows
+end
+
+local function createdSubtitle(created)
+    local parts = {}
+    if created.slot and created.slot ~= "" then parts[#parts + 1] = created.slot end
+    if created.binding then parts[#parts + 1] = created.binding end
+    if created.levelRequirement then parts[#parts + 1] = created.levelRequirement.text end
+    if #parts > 0 then return table.concat(parts, " \194\183 ") end
+end
+
 local function fitWidth(panel, model, title, styles)
     local need = 0
     local function consider(width) if width > need then need = width end end
@@ -995,6 +1175,24 @@ local function fitWidth(panel, model, title, styles)
         consider(rowWidth(panel, disenchantHeading(model.disenchant), styles.disenchant))
         group(disenchantRows(model.disenchant), styles.disenchant, 0)
     end
+    if model.created then
+        local created = model.created
+        consider(measureStyled(panel, created.name, styles.createdName) + CREATED_ICON + 8)
+        local subtitle = createdSubtitle(created)
+        if subtitle then consider(math.min(measureStyled(panel, subtitle, styles.subtitle), PROSE_WIDTH) + CREATED_ICON + 8) end
+        local body = { "armor", "primary", "secondary", "enchants" }
+        for _, key in ipairs(body) do group(created[key], styles[key == "armor" and "armor" or key == "enchants" and "enchants" or "stats"], 0) end
+        group(created.effects, styles.effects, 0, true)
+        group(created.flavor, styles.flavor, 0, true)
+        for _, row in ipairs(created.equipEffects) do
+            consider(math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
+                + markerIndent(panel, styles.equipEffects))
+        end
+        if created.weaponDps then
+            consider(measureStyled(panel, valueLabel(created.weaponDps, "Damage per Second"), styles.dps))
+        end
+    end
+    group(reagentRows(model), styles.reagents, 0)
     group(model.extras, styles.extras, 0, true)
     for index = 1, math.max(#model.footerLeft, #model.footerRight) do
         local left, right = model.footerLeft[index], model.footerRight[index]
@@ -1262,54 +1460,13 @@ local function anchorToPanels(comparison)
 end
 anchorToPanels = probe("anchor comparison", anchorToPanels)
 
-local function render(panel, tooltip, model)
-    panel:Show()
-    clearPool(panel)
-    local styles = {}
-    for _, element in ipairs(ns.ELEMENTS) do
-        if not element.kind or element.kind == "shared" then
-            styles[element.key] = styleOf(element.key)
-        end
-    end
-    if not ns.option("iconItems") then model.icon = nil end
-    local title = model.name
-    panel.width = fitWidth(panel, model, title, styles)
-    panel:SetWidth(panel.width)
-    local quality = QUALITY[model.quality] or QUALITY[1]
-    local tag
-    if model.comparison then
-        tag = isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH"
-    end
-    local accent = model.quest and QUEST_GOLD or quality
-    local headerMin = drawChrome(panel, tooltip, {
-        kind = "item",
-        color = accent,
-        tint = (model.quest or model.quality >= 2) and accent or nil,
-        icon = model.icon,
-        badge = model.icon and ns.option("itemLevelBadge") and model.level
-            and (model.equippable or model.levelLine) and ("iLvl " .. model.level),
-        tag = tag,
-    })
-
-    local y = TITLE_TOP
-    local inner = panel.width - 2 * PAD
-    local indent = model.icon and HEADER_INDENT or 0
-    local leftIndent, rightIndent = headerInsets(indent)
-    y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.title, quality) + 4
-    if model.slot and model.slot ~= "" then
-        y = y + styledAt(panel, model.slot, PAD + leftIndent, y, inner - indent, styles.subtitle,
-            { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 4
-    end
-    y = drawGroup(panel, model.header, y, styles.header, { .78, .72, .63 }, leftIndent, nil,
-        rightIndent)
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
-
+-- Stats, effects, and the set, below a header; opened skips the first divider.
+local function drawBody(panel, model, styles, y, inner, opened)
     local sectioned = false
     if model.weaponDps or model.weaponDamage or #model.armor > 0 or #model.primary > 0
         or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
         or #model.effects > 0 or #model.flavor > 0 then
-        y = divider(panel, y, GOLD_RULE)
+        if not opened then y = divider(panel, y, GOLD_RULE) end
         if model.weaponDps then
             y = drawRow(panel, {
                 left = valueLabel(model.weaponDps, "Damage per Second"), right = "",
@@ -1373,6 +1530,91 @@ local function render(panel, tooltip, model)
             end
             y = drawRow(panel, row, y, styles.setBonuses, color, 3)
         end
+    end
+    return y, sectioned
+end
+
+-- The item a recipe crafts: a small header, then its own stats and effects.
+local function drawCreated(panel, created, styles, y, inner)
+    local quality = QUALITY[created.quality] or created.nameColor or QUALITY[1]
+    local indent = 0
+    local top = y
+    if created.icon then
+        local border = acquireTexture(panel, nil, 0)
+        border:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
+        border:SetSize(CREATED_ICON + 2, CREATED_ICON + 2)
+        border:SetVertexColor(quality[1] * .8, quality[2] * .8, quality[3] * .8, 1)
+        local icon = acquireTexture(panel, created.icon, 1)
+        icon:SetPoint("TOPLEFT", border, "TOPLEFT", 1, -1)
+        icon:SetSize(CREATED_ICON, CREATED_ICON)
+        icon:SetTexCoord(.08, .92, .08, .92)
+        indent = CREATED_ICON + 10
+    end
+    y = y + styledAt(panel, created.name, PAD + indent, y, inner - indent, styles.createdName, quality) + 2
+    local subtitle = createdSubtitle(created)
+    if subtitle then
+        local unmet = created.levelRequirement and not created.levelRequirement.met
+        y = y + styledAt(panel, subtitle, PAD + indent, y, inner - indent, styles.subtitle,
+            unmet and UNUSABLE_COLOR or { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 2
+    end
+    y = math.max(y, top + CREATED_ICON + 2) + 8
+    return (drawBody(panel, created, styles, y, inner, true))
+end
+
+local function render(panel, tooltip, model)
+    panel:Show()
+    clearPool(panel)
+    local styles = {}
+    for _, element in ipairs(ns.ELEMENTS) do
+        if not element.kind or element.kind == "shared" then
+            styles[element.key] = styleOf(element.key)
+        end
+    end
+    if not ns.option("iconItems") then model.icon = nil end
+    local title = model.name
+    panel.width = fitWidth(panel, model, title, styles)
+    panel:SetWidth(panel.width)
+    local quality = QUALITY[model.quality] or QUALITY[1]
+    local tag
+    if model.comparison then
+        tag = isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH"
+    end
+    local accent = model.quest and QUEST_GOLD or quality
+    local headerMin = drawChrome(panel, tooltip, {
+        kind = "item",
+        color = accent,
+        tint = (model.quest or model.quality >= 2) and accent or nil,
+        icon = model.icon,
+        badge = model.icon and ns.option("itemLevelBadge") and model.level
+            and (model.equippable or model.levelLine) and ("iLvl " .. model.level),
+        tag = tag,
+    })
+
+    local y = TITLE_TOP
+    local inner = panel.width - 2 * PAD
+    local indent = model.icon and HEADER_INDENT or 0
+    local leftIndent, rightIndent = headerInsets(indent)
+    y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.title, quality) + 4
+    if model.slot and model.slot ~= "" then
+        y = y + styledAt(panel, model.slot, PAD + leftIndent, y, inner - indent, styles.subtitle,
+            { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 4
+    end
+    y = drawGroup(panel, model.header, y, styles.header, { .78, .72, .63 }, leftIndent, nil,
+        rightIndent)
+    y = math.max(y + 6, headerMin)
+    panel.header:SetHeight(y - panel.inset)
+
+    local sectioned
+    y, sectioned = drawBody(panel, model, styles, y, inner, false)
+    if model.created then
+        y = caption(panel, y + (sectioned and 6 or 0), "Creates", styles.caption)
+        y = drawCreated(panel, model.created, styles, y, inner)
+        sectioned = true
+    end
+    if model.reagents then
+        y = caption(panel, y + 4, "Reagents", styles.caption)
+        y = drawGroup(panel, reagentRows(model), y, styles.reagents, { .90, .85, .74 }, 0, 3)
+        sectioned = true
     end
 
     if model.disenchant and ns.option("disenchant") then
@@ -1786,6 +2028,7 @@ ns.ui = {
     drawChrome = drawChrome,
     finishPanel = finishPanel,
     registerKind = registerKind,
+    caption = caption,
     -- Draws a kind from a tooltip another addon filled with lines alone.
     renderLines = function(tooltip, dataType, id)
         onTooltipData(dataType, tooltip, { type = dataType, id = id, lines = {}, fromLines = true })

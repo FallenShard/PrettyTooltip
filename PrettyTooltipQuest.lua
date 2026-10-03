@@ -234,24 +234,6 @@ local function fitWidth(panel, model, styles, paragraphs)
     return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
 end
 
--- A section's name centered between two rules.
-local function caption(panel, y, text, style)
-    y = y + 4
-    local width = ui.measureStyled(panel, text, style) + 2
-    ui.styledAt(panel, text, (panel.width - width) / 2, y, width, style, CAPTION_COLOR, "CENTER")
-    if ns.option("separators") then
-        local side = (panel.width - 2 * PAD - width) / 2 - 8
-        local middle = y + math.floor(style.size / 2) + 1
-        for _, point in ipairs({ { "TOPLEFT", PAD }, { "TOPRIGHT", -PAD } }) do
-            local line = ui.acquireTexture(panel)
-            line:SetPoint(point[1], panel, point[1], point[2], -middle)
-            line:SetSize(side, 1)
-            line:SetVertexColor(ui.GOLD_RULE[1] * .52, ui.GOLD_RULE[2] * .52, ui.GOLD_RULE[3] * .52, .8)
-        end
-    end
-    return y + style.size + 9
-end
-
 local function checkbox(panel, y, done, size)
     local top = y + math.max(0, math.floor((size - CHECK_SIZE) / 2)) + 1
     local border = ui.acquireTexture(panel, nil, 0)
@@ -332,7 +314,7 @@ local function renderQuest(panel, tooltip, model)
         sectioned = true
     end
     if #model.objectives > 0 then
-        y = caption(panel, y + (sectioned and 4 or 0), "Objectives", styles.questCaption)
+        y = ui.caption(panel, y + (sectioned and 4 or 0), "Objectives", styles.questCaption, CAPTION_COLOR)
         for _, row in ipairs(model.objectives) do
             checkbox(panel, y, row.completed, styles.questObjectives.size)
             local have, need = progressOf(row)
