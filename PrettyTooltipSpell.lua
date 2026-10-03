@@ -536,6 +536,8 @@ local function renderSpell(panel, tooltip, model)
 end
 
 ui.drawPills, ui.pillsWidth = drawPills, pillsWidth
+ui.splitSentences, ui.colorNumbers, ui.hex = splitSentences, colorNumbers, hex
+ui.getSpellIcon = getSpellIcon
 ui.registerKind(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
 })

@@ -6,8 +6,8 @@ if not (ui and ui.renderPreview) then
 end
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
-local WIDTH, HEIGHT = 820, 696
-local PREVIEW_TOP = 80
+local WIDTH, HEIGHT = 820, 722
+local PREVIEW_TOP = 106
 local PREVIEW_WIDTH = 460
 -- Room around the panel for its rarity halo and the Equipped tag above it.
 local PREVIEW_MARGIN = 26
@@ -350,6 +350,44 @@ if Enum.TooltipDataType.Unit and ui.unitModel then
         samples = UNIT_SAMPLES, first = "unitName", noun = "unit", noLookup = true }
     KIND_ORDER[#KIND_ORDER + 1] = "unit"
 end
+local AURA_SAMPLES = {
+    {
+        label = "Buff",
+        build = function()
+            return ui.auraModel({
+                name = "Power Word: Fortitude", icon = spellIcon(1245), dispel = "Magic",
+                harmful = false, text = "Increases Stamina by 26.", remaining = "17 minutes remaining",
+                duration = 1800, expires = GetTime() + 1020, caster = "Somniferie",
+            })
+        end,
+    },
+    {
+        label = "Curse",
+        build = function()
+            return ui.auraModel({
+                name = "Curse of Agony", icon = spellIcon(980), dispel = "Curse", harmful = true,
+                text = "Causes 84 Shadow damage over 24 sec. This damage is dealt slowly at first, "
+                    .. "and builds up as the Curse reaches its full duration.",
+                remaining = "16 seconds remaining", duration = 24, expires = GetTime() + 16,
+            })
+        end,
+    },
+    {
+        label = "Poison",
+        build = function()
+            return ui.auraModel({
+                name = "Deadly Poison", icon = spellIcon(2818), dispel = "Poison", harmful = true,
+                stacks = 3, text = "Inflicts 9 Nature damage every 3 sec.",
+                remaining = "9 seconds remaining", duration = 12, expires = GetTime() + 9,
+            })
+        end,
+    },
+}
+if Enum.TooltipDataType.UnitAura and ui.auraModel then
+    KINDS.aura = { label = "Buffs", dataType = Enum.TooltipDataType.UnitAura,
+        samples = AURA_SAMPLES, first = "auraName", noun = "aura", noLookup = true }
+    KIND_ORDER[#KIND_ORDER + 1] = "aura"
+end
 local MAX_SAMPLES = 0
 for _, kind in pairs(KINDS) do MAX_SAMPLES = math.max(MAX_SAMPLES, #kind.samples) end
 
@@ -477,8 +515,8 @@ anchor:SetSize(1, 1)
 anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN)
 local kindTabs = {}
 for index, kind in ipairs(KIND_ORDER) do
-    local tab = flatButton(editor, KINDS[kind].label, 52, function() switchKind(kind) end)
-    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 56, 6)
+    local tab = flatButton(editor, KINDS[kind].label, 64, function() switchKind(kind) end)
+    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 68, 34)
     kindTabs[kind] = tab
 end
 local sampleTabs = {}
@@ -487,7 +525,7 @@ for index = 1, MAX_SAMPLES do
         state.sample, state.lookup = index, nil
         refresh()
     end)
-    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", #KIND_ORDER * 56 + 8 + (index - 1) * 60, 6)
+    tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 60, 6)
     sampleTabs[index] = tab
 end
 

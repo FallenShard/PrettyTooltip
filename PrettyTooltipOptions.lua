@@ -8,10 +8,12 @@ local DEFAULTS = {
     itemPanels = true,
     objectPanels = true,
     unitPanels = true,
+    auraPanels = true,
     iconItems = true,
     iconSpells = true,
     iconObjects = true,
     iconUnits = true,
+    iconAuras = true,
     cursorObjects = true,
     statColors = true,
     qualityTint = true,
@@ -43,7 +45,7 @@ local function setOption(key, value)
 end
 ns.setOption = setOption
 
--- kind: "item" (default), "spell", "object", "unit", or "shared" by all. color is where the picker starts
+-- kind: "item" (default), "spell", "object", "unit", "aura", or "shared" by all. color is where the picker starts
 -- while the color is automatic.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
@@ -109,6 +111,14 @@ ns.ELEMENTS = {
         kind = "unit" },
     { key = "unitQuests", label = "Quest lines", size = 12, color = { .90, .85, .74 },
         kind = "unit", note = "Quest names gold, finished objectives green, unless set." },
+    { key = "auraName", label = "Name", size = 15, title = true, color = { .96, .92, .84 },
+        kind = "aura" },
+    { key = "auraBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, kind = "aura",
+        note = "Buff or debuff, dispel type in the game's colors, and stacks." },
+    { key = "auraText", label = "Description", size = 12, color = { .92, .87, .76 },
+        kind = "aura", note = "Numbers in the aura's color unless set." },
+    { key = "auraTime", label = "Time and caster", size = 11, color = { .88, .78, .60 },
+        kind = "aura" },
 }
 -- types are Enum.TooltipDataType names; ones missing on this client are skipped.
 ns.TOOLTIP_KINDS = {
@@ -116,7 +126,8 @@ ns.TOOLTIP_KINDS = {
     { label = "Spells", restyle = "spellPanels", cursor = "cursorSpells", types = { "Spell" } },
     { label = "Players and NPCs", restyle = "unitPanels", cursor = "cursorUnits",
         types = { "Unit", "Corpse" } },
-    { label = "Buffs and debuffs", cursor = "cursorAuras", types = { "UnitAura" } },
+    { label = "Buffs and debuffs", restyle = "auraPanels", cursor = "cursorAuras",
+        types = { "UnitAura" } },
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
     { label = "Quests", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
@@ -127,6 +138,8 @@ ns.TOOLTIP_KINDS = {
     { label = "Mounts, toys, and pets", cursor = "cursorCollections",
         types = { "Mount", "Toy", "CompanionPet", "BattlePet" } },
     { label = "Achievements", cursor = "cursorAchievements", types = { "Achievement" } },
+    { label = "Totems", cursor = "cursorTotems", types = { "Totem" } },
+    { label = "Flyout buttons", cursor = "cursorFlyouts", types = { "Flyout" } },
 }
 
 local ELEMENT_BY_KEY = {}
@@ -198,7 +211,7 @@ function ns.resetElement(key)
 end
 
 -- Settings kept per kind of panel are named with these, as iconItems.
-ns.KIND_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units" }
+ns.KIND_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras" }
 
 -- The header band's opacity at an edge ("Top" or "Bottom") for a kind; a kind
 -- without its own follows the setting shared by all, and nil means the default.
@@ -405,7 +418,9 @@ SLASH_PRETTYTOOLTIP1 = "/prettytooltip"
 SLASH_PRETTYTOOLTIP2 = "/ptip"
 -- Prints the shown tooltip's raw data, to see what a kind of tooltip carries.
 local function dumpTooltip()
-    local data = GameTooltip:IsShown() and GameTooltip.GetTooltipData and GameTooltip:GetTooltipData()
+    -- A clicked chat link opens in its own tooltip.
+    local tooltip = GameTooltip:IsShown() and GameTooltip or ItemRefTooltip
+    local data = tooltip and tooltip:IsShown() and tooltip.GetTooltipData and tooltip:GetTooltipData()
     if type(data) ~= "table" then
         print("PrettyTooltip: hover something first; there is no tooltip data to dump.")
         return
