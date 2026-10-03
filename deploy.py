@@ -13,6 +13,7 @@ GAME_FILES = (
     "PrettyTooltipOptions.lua",
     "PrettyTooltip.lua",
     "PrettyTooltipLayout.lua",
+    "PrettyTooltipDisenchant.lua",
     "PrettyTooltipSpell.lua",
     "PrettyTooltipObject.lua",
     "PrettyTooltipUnit.lua",

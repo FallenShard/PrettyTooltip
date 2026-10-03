@@ -23,6 +23,7 @@ local DEFAULTS = {
     spellPanels = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
+    disenchant = true,
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
     bodyFont = nil,
@@ -76,6 +77,8 @@ ns.ELEMENTS = {
     { key = "badge", label = "Item level badge", size = 10, color = { .9, .9, .9 } },
     { key = "spellTitle", label = "Spell name", size = 17, title = true,
         color = { .96, .92, .84 }, kind = "spell" },
+    { key = "disenchant", label = "Disenchant results", size = 11, color = { .82, .78, .71 },
+        note = "The Enchanting needed red while yours is too low, grey without Enchanting, unless set." },
     { key = "spellBadges", label = "School and rank badges", size = 10, color = { .9, .9, .9 },
         kind = "spell", note = "Colored by school unless set." },
     { key = "spellValues", label = "Cost, cast, cooldown, range", size = 13,
@@ -380,7 +383,26 @@ for index, modifier in ipairs(MODIFIERS) do
     button.refresh = function() button:SetChecked(ns.option("originalKey") == value) end
     controls[#controls + 1] = button
 end
-y = y - 24
+y = y - 36
+
+section("Item Details")
+local disenchantBox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+disenchantBox:SetSize(24, 24)
+disenchantBox:SetPoint("TOPLEFT", 20, y + 4)
+local disenchantLabel = disenchantBox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+disenchantLabel:SetPoint("LEFT", disenchantBox, "RIGHT", 4, 0)
+disenchantLabel:SetText("Disenchant results")
+disenchantBox:SetHitRectInsets(0, -(disenchantLabel:GetStringWidth() + 8), 0, 0)
+disenchantBox:SetScript("OnClick", function(self) setOption("disenchant", self:GetChecked() and true or false) end)
+disenchantBox.refresh = function() disenchantBox:SetChecked(ns.option("disenchant")) end
+controls[#controls + 1] = disenchantBox
+local disenchantNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+disenchantNote:SetPoint("TOPLEFT", 48, y - 20)
+disenchantNote:SetWidth(530)
+disenchantNote:SetJustifyH("LEFT")
+disenchantNote:SetText("Green, blue, and purple armor and weapons list what they disenchant into, "
+    .. "with each result's chance and the Enchanting it needs; with Auctionator, the expected value.")
+y = y - 44
 
 page:SetScript("OnShow", refreshControls)
 -- Hooks the settings window calls on canvas pages: when it shows them, and

@@ -536,12 +536,21 @@ local function readModel(tooltip, data)
             model.extras[#model.extras + 1] = row
         end
     end
-    local classID, className, subClassName
+    local classID, className, subClassName, equipLoc, itemID
     if itemInfo and C_Item and C_Item.GetItemInfoInstant then
-        local ok, _, itemType, itemSubType, _, _, itemClassID = pcall(C_Item.GetItemInfoInstant, itemInfo)
-        if ok and not isSecret(itemClassID) and not isSecret(itemType) and not isSecret(itemSubType) then
-            classID, className, subClassName = itemClassID, itemType, itemSubType
+        local ok, id, itemType, itemSubType, itemEquipLoc, _, itemClassID = pcall(C_Item.GetItemInfoInstant, itemInfo)
+        if ok and not isSecret(itemClassID) and not isSecret(itemType) and not isSecret(itemSubType)
+            and not isSecret(itemEquipLoc) and not isSecret(id) then
+            classID, className, subClassName, equipLoc, itemID = itemClassID, itemType, itemSubType, itemEquipLoc, id
         end
+    end
+    if ns.disenchantFor and classID then
+        local itemLevel = model.level
+        if itemInfo and C_Item and C_Item.GetDetailedItemLevelInfo then
+            local ok, detailed = pcall(C_Item.GetDetailedItemLevelInfo, itemInfo)
+            if ok and not isSecret(detailed) and type(detailed) == "number" then itemLevel = detailed end
+        end
+        model.disenchant = ns.disenchantFor(classID, model.quality, tonumber(itemLevel), equipLoc, itemID)
     end
     local level = model.levelRequirement
     if level then
@@ -914,6 +923,35 @@ local function setCountStyle(setName)
     return style
 end
 
+local DISENCHANT_GREY = { .55, .53, .50 }
+
+local function disenchantHeading(result)
+    local row = { left = "Disenchant", right = "Requires Enchanting " .. result.skill }
+    if not result.player then
+        row.rightColor = DISENCHANT_GREY
+    elseif result.player < result.skill then
+        row.rightColor = UNUSABLE_COLOR
+    end
+    return row
+end
+
+local function disenchantRows(result)
+    local rows = {}
+    for _, entry in ipairs(result.rows) do
+        local count = entry.count[1] == entry.count[2] and (entry.count[1] > 1 and entry.count[1] .. " " or "")
+            or (entry.count[1] .. "\226\128\147" .. entry.count[2] .. " ")
+        local icon = entry.icon and ("|T" .. entry.icon .. ":0|t ") or ""
+        rows[#rows + 1] = {
+            left = icon .. count .. (entry.name or "?"),
+            right = string.format("%g%%", math.floor(entry.chance * 10 + .5) / 10),
+        }
+    end
+    if result.value then
+        rows[#rows + 1] = { left = "Expected value", right = formatMoney(result.value), color = DISENCHANT_GREY }
+    end
+    return rows
+end
+
 local function fitWidth(panel, model, title, styles)
     local need = 0
     local function consider(width) if width > need then need = width end end
@@ -952,6 +990,10 @@ local function fitWidth(panel, model, title, styles)
             + math.max(45, countWidth + COLUMN_GAP))
         group(model.setItems, styles.setItems, 20)
         group(model.setBonuses, styles.setBonuses, 3, true)
+    end
+    if model.disenchant and ns.option("disenchant") then
+        consider(rowWidth(panel, disenchantHeading(model.disenchant), styles.disenchant))
+        group(disenchantRows(model.disenchant), styles.disenchant, 0)
     end
     group(model.extras, styles.extras, 0, true)
     for index = 1, math.max(#model.footerLeft, #model.footerRight) do
@@ -1331,6 +1373,13 @@ local function render(panel, tooltip, model)
             end
             y = drawRow(panel, row, y, styles.setBonuses, color, 3)
         end
+    end
+
+    if model.disenchant and ns.option("disenchant") then
+        y = divider(panel, y, GOLD_RULE, sectioned and 8 or 0)
+        sectioned = true
+        y = drawRow(panel, disenchantHeading(model.disenchant), y, styles.disenchant, FLAVOR_GOLD, 0, 4)
+        y = drawGroup(panel, disenchantRows(model.disenchant), y, styles.disenchant, { .88, .84, .76 }, 0, 2)
     end
 
     if #model.extras > 0 then

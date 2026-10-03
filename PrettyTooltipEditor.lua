@@ -97,6 +97,7 @@ local ITEM_SAMPLES = {
                     { left = "Made by Lorelei", right = "", color = ui.FLAVOR_GOLD },
                 },
                 footerRight = { { left = "Sell Price", right = ui.formatMoney(64218) } },
+                disenchant = ns.disenchantFor and ns.disenchantFor(2, 4, 63, "INVTYPE_2HWEAPON"),
             })
         end,
     },

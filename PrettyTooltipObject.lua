@@ -67,21 +67,7 @@ local function rgbOf(color)
     return { r, g, b }
 end
 
--- Older clients list skills; newer ones, like Forever's, only list professions.
-local function playerSkill(name)
-    if GetNumSkillLines and GetSkillLineInfo then
-        for index = 1, GetNumSkillLines() do
-            local skillName, isHeader, _, rank = GetSkillLineInfo(index)
-            if not isHeader and skillName == name and type(rank) == "number" then return rank end
-        end
-    end
-    if GetProfessions and GetProfessionInfo then
-        for _, index in pairs({ GetProfessions() }) do
-            local skillName, _, rank = GetProfessionInfo(index)
-            if skillName == name and type(rank) == "number" then return rank end
-        end
-    end
-end
+local playerSkill = ui.playerSkill
 
 local function itemInfo(itemID)
     local _, name, icon, price
