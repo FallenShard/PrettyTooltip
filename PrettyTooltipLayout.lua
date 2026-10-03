@@ -75,6 +75,13 @@ local function count(name)
     if perf.on then perf.calls[name] = (perf.calls[name] or 0) + 1 end
 end
 
+-- Adds the time since start, from debugprofilestop, to a part of a call.
+local function timed(name, start)
+    if not (perf.on and start) then return end
+    perf.calls[name] = (perf.calls[name] or 0) + 1
+    perf.time[name] = (perf.time[name] or 0) + debugprofilestop() - start
+end
+
 local function pack(...)
     return { n = select("#", ...), ... }
 end
@@ -1453,12 +1460,16 @@ end
 
 -- Blizzard attaches comparisons to the hidden tooltips' edges, past the end
 -- of a narrower panel; attach them to the panels instead.
+local anchoring = false
 local function anchorToPanels(comparison)
-    retarget(comparison, function(frame)
+    if anchoring then return end
+    anchoring = true
+    pcall(retarget, comparison, function(frame)
         local target = frame and panels[frame]
         if target and target:IsShown() then return target end
         return frame
     end)
+    anchoring = false
 end
 anchorToPanels = probe("anchor comparison", anchorToPanels)
 
@@ -1674,6 +1685,23 @@ render = probe("render item", render)
 -- Blizzard anchors comparison tooltips, slides away from screen edges, and
 -- clamps using the native frame's bounds, so the hidden frame must cover the
 -- panel or the comparisons land on top of it.
+local refitNative
+
+-- Refits next frame, once the game has finished laying the tooltip out; this
+-- one fits whatever size it finds.
+local function recheckNextFrame(tooltip, panel)
+    if panel.recheckPending then return end
+    panel.recheckPending = true
+    C_Timer.After(0, function()
+        panel.recheckPending = false
+        if panel:IsShown() and tooltip:IsShown() then
+            panel.forceFit = true
+            refitNative(tooltip, panel)
+            panel.forceFit = false
+        end
+    end)
+end
+
 local function fitNative(tooltip, panel)
     if not tooltip.SetPadding then return end
     local base = panel.nativeSize
@@ -1686,12 +1714,16 @@ local function fitNative(tooltip, panel)
     -- A hidden tooltip is fitted by the Show hook once Blizzard shows it.
     if not tooltip:IsShown() then return end
     -- A refresh asks for several refits; only a changed size needs one.
+    local start = perf.on and debugprofilestop()
     if panel.fittedWidth and math.abs(tooltip:GetWidth() - panel.fittedWidth) <= .5
         and math.abs(tooltip:GetHeight() - panel.fittedHeight) <= .5
         and math.abs(panel:GetWidth() - panel.fittedPanelWidth) <= .5
         and math.abs(panel:GetHeight() - panel.fittedPanelHeight) <= .5 then
+        timed("refit part: size check (unchanged)", start)
         return
     end
+    timed("refit part: size check (changed)", start)
+    start = perf.on and debugprofilestop()
     count("refit applied")
     -- GetPadding reports the applied padding and SetPadding resizes at once, so
     -- the natural size needs no layout pass to measure.
@@ -1699,27 +1731,35 @@ local function fitNative(tooltip, panel)
         local currentRight, currentBottom = tooltip:GetPadding()
         if type(currentRight) == "number" and type(currentBottom) == "number" then
             local panelWidth, panelHeight = panel:GetWidth(), panel:GetHeight()
-            local right = base.right + math.max(0, panelWidth
-                - (tooltip:GetWidth() - (currentRight - base.right)))
-            local bottom = base.bottom + math.max(0, panelHeight
-                - (tooltip:GetHeight() - (currentBottom - base.bottom)))
-            if math.abs(right - currentRight) > .01 or math.abs(bottom - currentBottom) > .01 then
-                tooltip:SetPadding(right, bottom, base.left, base.top)
-            end
-            local width, height = tooltip:GetWidth(), tooltip:GetHeight()
-            local widthFits = right > base.right and math.abs(width - panelWidth) <= 1
-                or right <= base.right and width >= panelWidth - .5
-            local heightFits = bottom > base.bottom and math.abs(height - panelHeight) <= 1
-                or bottom <= base.bottom and height >= panelHeight - .5
-            if widthFits and heightFits then
-                count("refit fast")
-                panel.fittedWidth, panel.fittedHeight = width, height
-                panel.fittedPanelWidth, panel.fittedPanelHeight = panelWidth, panelHeight
+            local naturalWidth = tooltip:GetWidth() - (currentRight - base.right)
+            local naturalHeight = tooltip:GetHeight() - (currentBottom - base.bottom)
+            -- Right after Show the game can report the size before it has laid
+            -- out everything; a size below the largest seen for this item waits.
+            local largestWidth, largestHeight = panel.naturalWidth or 0, panel.naturalHeight or 0
+            panel.naturalWidth = math.max(largestWidth, naturalWidth)
+            panel.naturalHeight = math.max(largestHeight, naturalHeight)
+            if not panel.forceFit and (naturalWidth < largestWidth - .5 or naturalHeight < largestHeight - .5) then
+                count("refit skipped (smaller)")
+                recheckNextFrame(tooltip, panel)
                 return
             end
-            count("refit fallback")
+            local right = base.right + math.max(0, panelWidth - naturalWidth)
+            local bottom = base.bottom + math.max(0, panelHeight - naturalHeight)
+            if math.abs(right - currentRight) > .01 or math.abs(bottom - currentBottom) > .01 then
+                count("padding set")
+                tooltip:SetPadding(right, bottom, base.left, base.top)
+            end
+            -- Reading the size back would make the game lay the tooltip out a
+            -- second time this frame; a wrong guess fails the next size check.
+            panel.fittedWidth = naturalWidth + (right - base.right)
+            panel.fittedHeight = naturalHeight + (bottom - base.bottom)
+            panel.fittedPanelWidth, panel.fittedPanelHeight = panelWidth, panelHeight
+            timed("refit part: fast path", start)
+            count("refit fast")
+            return
         end
     end
+    start = perf.on and debugprofilestop()
     tooltip:SetPadding(base.right, base.bottom, base.left, base.top)
     tooltip:Show()
     local right = base.right + math.max(0, panel:GetWidth() - tooltip:GetWidth())
@@ -1730,15 +1770,31 @@ local function fitNative(tooltip, panel)
     end
     panel.fittedWidth, panel.fittedHeight = tooltip:GetWidth(), tooltip:GetHeight()
     panel.fittedPanelWidth, panel.fittedPanelHeight = panel:GetWidth(), panel:GetHeight()
+    timed("refit part: fallback", start)
 end
 
-local function refitNative(tooltip, panel)
+function refitNative(tooltip, panel)
     if panel.fitting then return end
     panel.fitting = true
     pcall(fitNative, tooltip, panel)
     panel.fitting = false
 end
 refitNative = probe("refit hidden tooltip", refitNative)
+
+-- Each refresh re-sets a shown tooltip with the item's lines, then adds the
+-- comparison lines; fitting the shorter step would set the padding twice, a
+-- full layout each. A tooltip shorter than the most lines it has shown for this
+-- item keeps its padding, and is checked next frame in case the lines never come.
+local function refitUnlessPartial(tooltip, panel)
+    local lines = tooltip:NumLines()
+    if lines > (panel.fullLines or 0) then panel.fullLines = lines end
+    if lines < panel.fullLines then
+        count("refit skipped (partial)")
+        recheckNextFrame(tooltip, panel)
+        return
+    end
+    refitNative(tooltip, panel)
+end
 
 -- Panels drawn from another addon's lines have no data type; their lines
 -- last until the tooltip is cleared.
@@ -1765,6 +1821,7 @@ local function restoreNative(tooltip)
     panel.restorePending = false
     pcall(releaseNative, tooltip, panel)
     panel:Hide()
+    panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil
     if panel.nativeAlpha then
         tooltip:SetAlpha(panel.nativeAlpha)
         panel.nativeAlpha = nil
@@ -1789,6 +1846,34 @@ local function showsOriginal(panel)
     return ns.originalKeyDown() or not (kind and ns.option(kind.option))
 end
 
+-- What the tooltip shows, as one string; nil when a line cannot be read.
+local function fingerprint(tooltip, data)
+    local parts = { ns.settingsVersion or 0, isComparison(tooltip) and 1 or 0 }
+    local name = tooltip:GetName()
+    for index = 1, tooltip:NumLines() do
+        local left = tooltip:GetLeftLine(index)
+        local right = tooltip.GetRightLine and tooltip:GetRightLine(index)
+            or (name and _G[name .. "TextRight" .. index])
+        for _, font in ipairs({ left, right }) do
+            if font and font:IsShown() then
+                local text = font:GetText()
+                local r, g, b = font:GetTextColor()
+                if isSecret(text) or isSecret(r) or isSecret(g) or isSecret(b) then return end
+                parts[#parts + 1] = text or ""
+                parts[#parts + 1] = r
+                parts[#parts + 1] = g
+                parts[#parts + 1] = b
+            end
+        end
+    end
+    -- Sell prices are drawn by a money frame, not as text.
+    for _, line in ipairs(data.lines or {}) do
+        if isSecret(line) or isSecret(line.price) then return end
+        if line.price then parts[#parts + 1] = line.price end
+    end
+    return table.concat(parts, "\031")
+end
+
 local function update(tooltip, data)
     local panel = getPanel(tooltip)
     local kind = KINDS[panel.kind]
@@ -1798,10 +1883,14 @@ local function update(tooltip, data)
     if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
     local rendered = pcall(kind.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
+    count("refit from render")
     refitNative(tooltip, panel)
     panel.data = data
-    panel.key = kind.key(tooltip, data)
+    local key = kind.key(tooltip, data)
+    if key ~= panel.key then panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil end
+    panel.key = key
     panel.lineCount = tooltip:NumLines()
+    panel.fingerprint = not kind.alwaysRedraw and fingerprint(tooltip, data) or nil
     tooltip:SetAlpha(0)
 end
 update = probe("update", update)
@@ -1839,10 +1928,11 @@ local function onTooltipData(dataType, tooltip, data)
         tooltip:HookScript("OnTooltipCleared", scheduleRestore)
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
-        local function onNativeShown(shown)
+        local function onNativeShown(shown, source)
             count(isComparison(shown) and "show hook (comparison)" or "show hook")
             if not (panel.nativeSize and panel:IsShown()) then return end
-            refitNative(shown, panel)
+            count("refit from " .. source)
+            refitUnlessPartial(shown, panel)
             -- Comparisons are anchored after they are shown, so align here.
             pcall(alignPanel, panel, shown)
             if isComparison(shown) then pcall(anchorToPanels, shown) end
@@ -1851,14 +1941,22 @@ local function onTooltipData(dataType, tooltip, data)
             end
         end
         hooksecurefunc(tooltip, "Show", function(shown)
-            if not panel.fitting then onNativeShown(shown) end
+            if not panel.fitting then onNativeShown(shown, "Show") end
         end)
         -- The comparison manager re-shows its tooltips with SetShown, which
         -- resets them the same way but never goes through Show.
         hooksecurefunc(tooltip, "SetShown", function(shown, visible)
-            if visible and not panel.fitting then onNativeShown(shown) end
+            if visible and not panel.fitting then onNativeShown(shown, "SetShown") end
         end)
-        tooltip:HookScript("OnShow", onNativeShown)
+        tooltip:HookScript("OnShow", function(shown) onNativeShown(shown, "OnShow") end)
+        -- The comparison code can re-anchor a shown comparison; it belongs
+        -- beside the panels, not the hidden tooltips under them.
+        hooksecurefunc(tooltip, "SetPoint", function(moved)
+            if not anchoring and panel:IsShown() and isComparison(moved) then
+                count("re-anchor after SetPoint")
+                anchorToPanels(moved)
+            end
+        end)
         hooksecurefunc(tooltip, "SetAlpha", function(faded, alpha)
             if panel.settingAlpha or alpha == 0 then return end
             if not (panel.nativeAlpha and panel:IsShown()) then return end
@@ -1896,11 +1994,18 @@ local function onTooltipData(dataType, tooltip, data)
     else
         if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
         tooltip:SetAlpha(0)
-        refitNative(tooltip, panel)
+        count("refit from same item's data")
+        refitUnlessPartial(tooltip, panel)
     end
     C_Timer.After(0, function()
         if panel.refreshToken == token and tooltip:IsShown()
             and showsKind(tooltip, panel) then
+            -- The game re-sets shown tooltips often, comparisons most; a panel
+            -- already showing the same text needs no new render.
+            if panel:IsShown() and panel.fingerprint and panel.fingerprint == fingerprint(tooltip, data) then
+                count("render skipped")
+                return
+            end
             update(tooltip, data)
         end
     end)
@@ -1969,6 +2074,40 @@ local function previewByID(anchor, dataType, id)
     scanner:Hide()
     if not (ok and model) then return end
     return renderPreview(anchor, model, dataType)
+end
+
+-- /ptip anchors: where each shown panel sits, left to right, and how its
+-- hidden tooltip is anchored.
+function ns.dumpAnchors()
+    local shown = {}
+    for tooltip, panel in pairs(panels) do
+        if panel:IsShown() and panel:GetLeft() then shown[#shown + 1] = { tooltip = tooltip, panel = panel } end
+    end
+    table.sort(shown, function(a, b) return a.panel:GetLeft() < b.panel:GetLeft() end)
+    local function nameOf(frame)
+        if not frame then return "nil" end
+        for tooltip, panel in pairs(panels) do
+            if frame == panel then return (tooltip:GetName() or "?") .. "'s panel" end
+        end
+        return frame:GetName() or tostring(frame)
+    end
+    for index, entry in ipairs(shown) do
+        local tooltip, panel = entry.tooltip, entry.panel
+        local line = ("%s: panel %.1f to %.1f (pinned %s), hidden %.1f to %.1f"):format(tooltip:GetName() or "?",
+            panel:GetLeft(), panel:GetRight(), tostring(panel.side), tooltip:GetLeft() or 0, tooltip:GetRight() or 0)
+        if index > 1 then
+            line = line .. (", gap %.1f"):format(panel:GetLeft() - shown[index - 1].panel:GetRight())
+        end
+        print(line)
+        for point = 1, tooltip:GetNumPoints() do
+            local from, relativeTo, to, x, y = tooltip:GetPoint(point)
+            if not isSecret(relativeTo) then
+                print(("    %s to %s %s, offset %s, %s"):format(tostring(from), nameOf(relativeTo), tostring(to),
+                    tostring(x), tostring(y)))
+            end
+        end
+    end
+    if #shown == 0 then print("PrettyTooltip: no panel is shown.") end
 end
 
 function ns.perfCapture(seconds)

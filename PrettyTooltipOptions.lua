@@ -42,9 +42,14 @@ function ns.option(key)
     return DEFAULTS[key]
 end
 
+-- Counts setting changes, so a panel drawn before one is drawn again.
+ns.settingsVersion = 0
+local function changed() ns.settingsVersion = ns.settingsVersion + 1 end
+
 local function setOption(key, value)
     if type(PrettyTooltipDB) ~= "table" then PrettyTooltipDB = {} end
     PrettyTooltipDB[key] = value
+    changed()
 end
 ns.setOption = setOption
 
@@ -224,11 +229,13 @@ function ns.setElementSetting(key, field, value)
     local saved = type(styles[key]) == "table" and styles[key] or {}
     saved[field] = value
     styles[key] = next(saved) and saved or nil
+    changed()
 end
 
 function ns.resetElement(key)
     local styles = savedStyles(false)
     if styles then styles[key] = nil end
+    changed()
 end
 
 -- Settings kept per kind of panel are named with these, as iconItems.
@@ -255,6 +262,7 @@ function ns.resetStyles()
         PrettyTooltipDB["glowAlpha" .. suffix] = nil
         PrettyTooltipDB["footerAlpha" .. suffix] = nil
     end
+    changed()
 end
 
 function ns.style(key)
@@ -429,6 +437,7 @@ page:SetScript("OnShow", refreshControls)
 page.OnRefresh = refreshControls
 page.OnDefault = function()
     PrettyTooltipDB = {}
+    changed()
     refreshControls()
 end
 
@@ -509,6 +518,10 @@ SlashCmdList.PRETTYTOOLTIP = function(message)
     local wanted = (message or ""):match("^%s*(.-)%s*$"):lower()
     if wanted == "perf" then
         if ns.perfCapture then ns.perfCapture(5) end
+        return
+    end
+    if wanted == "anchors" then
+        if ns.dumpAnchors then pcall(ns.dumpAnchors) end
         return
     end
     if wanted == "dump" then

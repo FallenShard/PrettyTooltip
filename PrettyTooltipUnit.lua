@@ -442,4 +442,5 @@ ui.unitModel = function(fields)
     for _, list in ipairs({ "quests", "extras" }) do fields[list] = fields[list] or {} end
     return completeModel(fields)
 end
-ui.registerKind(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels" })
+-- Its target, tapped, and dead rows come from the game, not the tooltip's text.
+ui.registerKind(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true })

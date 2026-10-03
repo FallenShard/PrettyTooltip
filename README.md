@@ -134,6 +134,6 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 
 `python deploy.py` copies the game files into `D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns\PrettyTooltip`; pass `--addons-dir "<path to Interface\AddOns>"` for another installation. After a deploy, `/reload` picks up Lua changes; changes to the `.toc` need a game restart.
 
-`/ptip dump` prints the raw data of the tooltip you are hovering, to see what a kind of tooltip carries, or the lines shown when an addon filled it without data. A link clicked in chat is dumped when nothing is hovered. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes.
+`/ptip dump` prints the raw data of the tooltip you are hovering, to see what a kind of tooltip carries, or the lines shown when an addon filled it without data. A link clicked in chat is dumped when nothing is hovered. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes. `/ptip anchors` prints where each shown panel sits, the gaps between them, and how the game's tooltips under them are anchored.
 
 `art/README.md` describes each texture and how it is made.
