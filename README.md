@@ -14,7 +14,7 @@ Top to bottom, an item panel shows:
 - **Item set.** The set name and how many pieces you own, the pieces you own highlighted, and the set bonuses, with active ones highlighted.
 - **Footer.** Durability as a small bar, the crafter's name for crafted items, other requirements such as skills or classes, and the sell price (per item for stacks).
 
-While the game shows a comparison, the comparison panels are tagged **Equipped**, and each ends with what would change if the item you are looking at replaced it: gains in green, losses in red, as in the game's own comparison. Rings, trinkets, and one-handed weapons compare against both equipped items, each with its own list.
+While the game shows a comparison, the comparison panels are tagged **Equipped**, and the game's own "If you replace this item" stat changes appear among the rows at the bottom, in their usual green and red.
 
 Recipes take their own name as the title, so `Pattern: Blue Linen Vest` stays the pattern even though the game's tooltip includes the vest.
 

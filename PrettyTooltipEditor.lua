@@ -55,7 +55,7 @@ end
 
 local LISTS = {
     "header", "armor", "primary", "secondary", "equipEffects", "enchants", "effects", "flavor",
-    "changes", "setItems", "setBonuses", "extras", "footerLeft", "footerRight",
+    "setItems", "setBonuses", "extras", "footerLeft", "footerRight",
 }
 
 local function sampleModel(fields)
@@ -148,13 +148,6 @@ local ITEM_SAMPLES = {
     {
         label = "Equipped",
         build = function()
-            local changes = {}
-            for index, change in ipairs({
-                { "Strength", -15 }, { "Stamina", 13 }, { "Damage per Second", 8.7 },
-                { "Attack Power", 62 },
-            }) do
-                changes[index] = ui.changeRow(change[1], change[2])
-            end
             return sampleModel({
                 name = "Blackhand Doomsaw", quality = 3, icon = itemIcon(12583), level = 63,
                 equippable = true, comparison = true,
@@ -164,7 +157,13 @@ local ITEM_SAMPLES = {
                 weaponDps = "45.1",
                 weaponDamage = "131 - 197 Damage", weaponSpeed = "Speed 3.60",
                 primary = { stat("+15 Strength") },
-                changes = changes,
+                extras = {
+                    { left = "If you replace this item, the following stat changes will occur:",
+                        right = "", color = { .85, .70, 0 } },
+                    { left = "-15 Strength", right = "", color = { .85, .13, .13 } },
+                    { left = "+13 Stamina", right = "", color = { .09, .85, .09 } },
+                    { left = "+62 Attack Power", right = "", color = { .09, .85, .09 } },
+                },
                 footerLeft = { { left = "Durability 100 / 100", right = "",
                     durability = { 100, 100 } } },
                 footerRight = { { left = "Sell Price", right = ui.formatMoney(41250) } },

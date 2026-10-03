@@ -64,8 +64,6 @@ ns.ELEMENTS = {
         note = "Active bonuses green, inactive ones grey, unless set." },
     { key = "extras", label = "Other addons' rows", size = 11, color = { .60, .60, .63 },
         kind = "shared" },
-    { key = "changes", label = "Stat changes if replaced", size = 12, color = { .90, .85, .74 },
-        note = "On the Equipped panel; gains green, losses red, unless set." },
     { key = "footer", label = "Footer", size = 11, color = { .82, .78, .71 },
         note = "Durability, crafter, requirements, and sell price." },
     { key = "badge", label = "Item level badge", size = 10, color = { .9, .9, .9 } },

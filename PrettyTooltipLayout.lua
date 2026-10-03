@@ -41,10 +41,6 @@ local FLAVOR_GOLD = { .86, .74, .45 }
 local QUEST_GOLD = { 1, .82, 0 }
 local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
 local CONSUMABLE_CLASS = Enum.ItemClass and Enum.ItemClass.Consumable or 0
-local DELTA_UP = { .42, .86, .42 }
-local DELTA_DOWN = { 1, .42, .36 }
-local CHANGES_HEADING = "IF YOU REPLACE THIS ITEM"
-local CHANGES_GOLD = { .93, .80, .52 }
 local DURABILITY_BAR = 54
 local HEADER_ALPHA_TEXTURED, HEADER_ALPHA_PLAIN = .72, .96
 local HALO_SPREAD = 16
@@ -54,43 +50,6 @@ local HALO_MARGIN = 24
 local BAND_MARGIN = 16
 -- Another author's art: used from DialogueUI's folder, never copied here.
 local DIALOGUE_BACKDROP = "Interface\\AddOns\\DialogueUI\\Art\\Theme_Dark\\TooltipBackground-Temp.png"
-local STAT_LABELS = {
-    ITEM_MOD_STRENGTH_SHORT = "Strength",
-    ITEM_MOD_AGILITY_SHORT = "Agility",
-    ITEM_MOD_STAMINA_SHORT = "Stamina",
-    ITEM_MOD_INTELLECT_SHORT = "Intellect",
-    ITEM_MOD_SPIRIT_SHORT = "Spirit",
-    ITEM_MOD_ATTACK_POWER_SHORT = "Attack Power",
-    ITEM_MOD_RANGED_ATTACK_POWER_SHORT = "Ranged Attack Power",
-    ITEM_MOD_SPELL_POWER_SHORT = "Spell Power",
-    ITEM_MOD_SPELL_DAMAGE_DONE_SHORT = "Spell Damage Power",
-    ITEM_MOD_SPELL_HEALING_DONE_SHORT = "Healing Power",
-    ITEM_MOD_SPELL_PENETRATION_SHORT = "Spell Penetration",
-    ITEM_MOD_HIT_RATING_SHORT = "Hit Rating",
-    ITEM_MOD_HIT_MELEE_RATING_SHORT = "Hit Rating",
-    ITEM_MOD_HIT_SPELL_RATING_SHORT = "Spell Hit Rating",
-    ITEM_MOD_CRIT_RATING_SHORT = "Critical Strike Rating",
-    ITEM_MOD_CRIT_MELEE_RATING_SHORT = "Critical Strike Rating",
-    ITEM_MOD_CRIT_SPELL_RATING_SHORT = "Spell Critical Strike Rating",
-    ITEM_MOD_HASTE_RATING_SHORT = "Haste Rating",
-    ITEM_MOD_DEFENSE_SKILL_RATING_SHORT = "Defense Rating",
-    ITEM_MOD_DODGE_RATING_SHORT = "Dodge Rating",
-    ITEM_MOD_PARRY_RATING_SHORT = "Parry Rating",
-    ITEM_MOD_BLOCK_RATING_SHORT = "Block Rating",
-    ITEM_MOD_BLOCK_VALUE_SHORT = "Shield Block Value",
-    ITEM_MOD_MANA_REGENERATION_SHORT = "Mana per 5 sec",
-    ITEM_MOD_POWER_REGEN0_SHORT = "Mana per 5 sec",
-    ITEM_MOD_HEALTH_REGEN_SHORT = "Health per 5 sec",
-    ITEM_MOD_HEALTH_REGENERATION_SHORT = "Health per 5 sec",
-    ITEM_MOD_DAMAGE_PER_SECOND_SHORT = "Damage per Second",
-    RESISTANCE0_NAME = "Armor",
-    RESISTANCE1_NAME = "Holy Resistance",
-    RESISTANCE2_NAME = "Fire Resistance",
-    RESISTANCE3_NAME = "Nature Resistance",
-    RESISTANCE4_NAME = "Frost Resistance",
-    RESISTANCE5_NAME = "Shadow Resistance",
-    RESISTANCE6_NAME = "Arcane Resistance",
-}
 local QUALITY = {
     [0] = { .62, .62, .62 },
     [1] = { .77, .77, .77 },
@@ -319,84 +278,13 @@ local function valueLabel(value, label)
     return "|cffF2E8D5" .. value .. "|r |cffA89F8E" .. label .. "|r"
 end
 
-local function formatDelta(value)
-    if math.abs(value - math.floor(value + .5)) > .001 then
-        return string.format("%+.1f", value)
-    end
-    return string.format("%+d", value >= 0 and math.floor(value + .5) or math.ceil(value - .5))
-end
-
-local function statLabel(key)
-    if STAT_LABELS[key] then return STAT_LABELS[key] end
-    if not key:find("^ITEM_MOD_") and not key:find("^RESISTANCE%d") then return key end
-    local label = key:gsub("^ITEM_MOD_", ""):gsub("_SHORT$", ""):gsub("_NAME$", "")
-        :gsub("_", " "):lower()
-    return (label:gsub("(%a)([%w']*)", function(first, rest) return first:upper() .. rest end))
-end
-
 local function isComparison(tooltip)
     local name = tooltip:GetName()
     return name ~= nil and name:find("ShoppingTooltip%d$") ~= nil
 end
 
-local function comparedFrom(tooltip)
-    local owner = tooltip.GetOwner and tooltip:GetOwner()
-    if not isSecret(owner) and type(owner) == "table" and owner.GetItem then return owner end
-    for _, main in ipairs({ GameTooltip, ItemRefTooltip }) do
-        for _, shopping in ipairs(main and main.shoppingTooltips or {}) do
-            if shopping == tooltip then return main end
-        end
-    end
-end
-
-local function hexOf(color)
-    return string.format("%02X%02X%02X", math.floor(color[1] * 255 + .5),
-        math.floor(color[2] * 255 + .5), math.floor(color[3] * 255 + .5))
-end
-
-local function changeRow(label, value)
-    return {
-        left = "|cff" .. hexOf(value > 0 and DELTA_UP or DELTA_DOWN) .. formatDelta(value)
-            .. "|r " .. label,
-        right = "",
-    }
-end
-
-local CHANGE_ORDER = {
-    Strength = 1, Agility = 2, Stamina = 3, Intellect = 4, Spirit = 5, Armor = 6,
-    ["Damage per Second"] = 7,
-}
-
--- Forever can report one stat under two names; it is listed once.
-local function replacementChanges(tooltip, equipped)
-    if not (C_Item and C_Item.GetItemStatDelta) or type(equipped) ~= "string" then return end
-    local main = comparedFrom(tooltip)
-    if not main then return end
-    local ok, _, hovered = pcall(main.GetItem, main)
-    if not ok or isSecret(hovered) or type(hovered) ~= "string" then return end
-    local found, deltas = pcall(C_Item.GetItemStatDelta, hovered, equipped)
-    if not found or isSecret(deltas) or type(deltas) ~= "table" then return end
-    local changes, seen = {}, {}
-    for key, value in pairs(deltas) do
-        if not isSecret(key) and not isSecret(value) and type(key) == "string"
-            and type(value) == "number" and math.abs(value) > .0001 then
-            local label = statLabel(key)
-            if not seen[label:lower()] then
-                seen[label:lower()] = true
-                changes[#changes + 1] = { label = label, value = value }
-            end
-        end
-    end
-    table.sort(changes, function(x, y)
-        local first, second = CHANGE_ORDER[x.label] or 99, CHANGE_ORDER[y.label] or 99
-        if first ~= second then return first < second end
-        return x.label < y.label
-    end)
-    local rows = {}
-    for index, change in ipairs(changes) do rows[index] = changeRow(change.label, change.value) end
-    return rows
-end
-
+-- The game's "If you replace this item" lines are kept as rows from another
+-- source; their "+5 Stamina" lines must not be read as the item's own stats.
 local STOCK_CHANGES = ITEM_DELTA_DESCRIPTION
     or "If you replace this item, the following stat changes will occur:"
 
@@ -498,7 +386,6 @@ local function readModel(tooltip, data)
         enchants = {},
         effects = {},
         flavor = {},
-        changes = {},
         setItems = {},
         setBonuses = {},
         extras = {},
@@ -546,7 +433,7 @@ local function readModel(tooltip, data)
         local displayed = line.prettyTooltipDisplay or left
 
         if isStockChange(left) then
-            -- The game's own comparison lines; the panel lists the changes itself.
+            addExtra(model, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
         elseif lineType == LINE.ItemName then
             -- Recipes embed the crafted item's tooltip, name line included.
             model.name = model.name or left
@@ -637,7 +524,7 @@ local function readModel(tooltip, data)
     for _, row in ipairs(appended) do
         local trimmed = row.left:match("^%s*(.-)%s*$")
         if isStockChange(row.left) then
-            -- The game's own comparison lines; the panel lists the changes itself.
+            model.extras[#model.extras + 1] = row
         elseif trimmed:match("^Sell Price") then
             model.hasSellPrice = true
         elseif itemKind(row.left, row.right) then
@@ -707,10 +594,7 @@ local function readModel(tooltip, data)
         add(model.footerRight, label, formatMoney(model.sellPrice))
     end
     model.quest = model.quest or classID == QUEST_CLASS
-    if isComparison(tooltip) then
-        model.comparison = true
-        model.changes = replacementChanges(tooltip, itemInfo) or {}
-    end
+    model.comparison = isComparison(tooltip)
     return model
 end
 readModel = probe("read item", readModel)
@@ -1070,10 +954,6 @@ local function fitWidth(panel, model, title, styles)
         group(model.setBonuses, styles.setBonuses, 3, true)
     end
     group(model.extras, styles.extras, 0, true)
-    if #model.changes > 0 then
-        consider(measureStyled(panel, CHANGES_HEADING, styles.changes))
-        group(model.changes, styles.changes, 0)
-    end
     for index = 1, math.max(#model.footerLeft, #model.footerRight) do
         local left, right = model.footerLeft[index], model.footerRight[index]
         local leftWidth = 0
@@ -1455,12 +1335,6 @@ local function render(panel, tooltip, model)
         y = drawGroup(panel, model.extras, y, styles.extras, EXTRA_COLOR, 0, 2)
     end
 
-    if #model.changes > 0 then
-        y = rule(panel, y, GOLD_RULE, 10)
-        y = y + styledAt(panel, CHANGES_HEADING, PAD, y, inner, styles.changes, CHANGES_GOLD) + 4
-        y = drawGroup(panel, model.changes, y, styles.changes, { .90, .85, .74 })
-    end
-
     if #model.footerLeft > 0 or #model.footerRight > 0 then
         y = y + 9
         local footerStart = y
@@ -1795,7 +1669,6 @@ ns.ui = {
     enchantRows = enchantRows,
     formatMoney = formatMoney,
     setFont = setFont,
-    changeRow = changeRow,
     FLAVOR_GOLD = FLAVOR_GOLD,
     isSecret = isSecret,
     safeText = safeText,
