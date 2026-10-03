@@ -943,12 +943,14 @@ local function checkbox(label, key, description, isAvailable)
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    -- A key can depend on the kind shown.
+    local function keyOf() return type(key) == "function" and key() or key end
     button:SetScript("OnClick", function(self)
-        ns.setOption(key, self:GetChecked() and true or false)
+        ns.setOption(keyOf(), self:GetChecked() and true or false)
         refresh()
     end)
     button.refresh = function()
-        button:SetChecked(ns.option(key))
+        button:SetChecked(ns.option(keyOf()))
         local available = not isAvailable or isAvailable()
         button:SetEnabled(available)
         caption:SetFontObject(available and "GameFontHighlightSmall" or "GameFontDisableSmall")
@@ -1140,6 +1142,8 @@ end))
 section("Layout and color")
 local function showingItems() return state.kind == "item" end
 local TOGGLES = {
+    { "Show icon", function() return "icon" .. ns.KIND_SUFFIX[state.kind] end,
+        "The icon or portrait in the header, for the kind of tooltip shown." },
     { "Icon on the right", "iconRight",
         "Moves the item or spell icon, and the item level badge under it, to the right of the name." },
     { "Item level badge", "itemLevelBadge", "The small iLvl box under an equipment icon.",
@@ -1169,16 +1173,19 @@ end
 y = y - 4
 
 -- A default value is saved as no setting, so it keeps following the backdrop.
-local function bandOpacity(key)
+local function bandOpacity(edge)
+    local function key() return "header" .. edge .. "Alpha" .. ns.KIND_SUFFIX[state.kind] end
+    -- What the kind shows with no setting of its own.
+    local function fallback() return ns.option("header" .. edge .. "Alpha") or ui.defaultHeaderAlpha() end
     return slider(FIELD_WIDTH, function()
-        return math.floor((ns.option(key) or ui.defaultHeaderAlpha()) * 100 + .5)
+        return math.floor((ns.headerAlpha(state.kind, edge) or ui.defaultHeaderAlpha()) * 100 + .5)
     end, function(percent)
         local alpha = percent / 100
-        ns.setOption(key, math.abs(alpha - ui.defaultHeaderAlpha()) > .001 and alpha or nil)
+        ns.setOption(key(), math.abs(alpha - fallback()) > .001 and alpha or nil)
     end, 0, 100, "%")
 end
-row("Band top", bandOpacity("headerTopAlpha"))
-row("Band bottom", bandOpacity("headerBottomAlpha"))
+row("Band top", bandOpacity("Top"))
+row("Band bottom", bandOpacity("Bottom"))
 
 local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()

@@ -256,7 +256,7 @@ local function healthRow(model)
 end
 
 local function fitWidth(panel, model, styles)
-    local indent = (model.unit or model.iconPath) and TEXT_INDENT or 0
+    local indent = not model.hideIcon and (model.unit or model.iconPath) and TEXT_INDENT or 0
     local need = ui.measureStyled(panel, model.name, styles.unitName) + indent
     local function consider(width) if width > need then need = width end end
     local guild, info = guildText(model), infoText(model)
@@ -343,18 +343,20 @@ local function renderUnit(panel, tooltip, model)
     live[panel] = nil
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
+    model.hideIcon = not ns.option("iconUnits")
     panel.width = fitWidth(panel, model, styles)
     panel:SetWidth(panel.width)
     local color = model.color or NEUTRAL
-    local hasIcon = model.unit or model.iconPath
+    local hasIcon = not model.hideIcon and (model.unit or model.iconPath)
     local headerMin = ui.drawChrome(panel, tooltip, {
+        kind = "unit",
         color = color,
         tint = model.color,
         strength = TINT_STRENGTH,
         icon = hasIcon and (model.iconPath or WHITE),
         iconSize = ICON_SIZE,
     })
-    if model.unit and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, model.unit) end
+    if hasIcon and model.unit and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, model.unit) end
 
     local inner = panel.width - 2 * PAD
     local indent = hasIcon and TEXT_INDENT or 0

@@ -197,7 +197,7 @@ local function skillText(skill)
 end
 
 local function fitWidth(panel, model, styles)
-    local indent = (model.icon or model.look) and TEXT_INDENT or 0
+    local indent = not model.hideIcon and (model.icon or model.look) and TEXT_INDENT or 0
     local need = ui.measureStyled(panel, model.name, styles.objectTitle) + indent
     local function consider(width) if width > need then need = width end end
     if model.look then consider(ui.measureStyled(panel, model.look.label, styles.objectKind) + indent) end
@@ -228,11 +228,13 @@ local function renderObject(panel, tooltip, model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local look = model.look
+    model.hideIcon = not ns.option("iconObjects")
     panel.width = fitWidth(panel, model, styles)
     panel:SetWidth(panel.width)
     local color = look and look.color or NEUTRAL
-    local icon = model.icon or (look and look.icon)
+    local icon = not model.hideIcon and (model.icon or (look and look.icon)) or nil
     local headerMin = ui.drawChrome(panel, tooltip, {
+        kind = "object",
         color = color,
         tint = look and look.color,
         strength = TINT_STRENGTH,

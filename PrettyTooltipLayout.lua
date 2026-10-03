@@ -1095,9 +1095,9 @@ local function drawChrome(panel, tooltip, style)
     local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
     panel.header:SetGradient("VERTICAL",
         CreateColor(color[1] * .12, color[2] * .12, color[3] * .12,
-            ns.option("headerBottomAlpha") or headerAlpha),
+            ns.headerAlpha(style.kind, "Bottom") or headerAlpha),
         CreateColor(color[1] * .38, color[2] * .38, color[3] * .38,
-            ns.option("headerTopAlpha") or headerAlpha))
+            ns.headerAlpha(style.kind, "Top") or headerAlpha))
     for index, edge in ipairs(panel.edges) do
         local edgeStrength = index == 1 and .8 or .36
         edge:SetVertexColor(color[1] * edgeStrength, color[2] * edgeStrength,
@@ -1226,6 +1226,7 @@ local function render(panel, tooltip, model)
             styles[element.key] = styleOf(element.key)
         end
     end
+    if not ns.option("iconItems") then model.icon = nil end
     local title = model.name
     panel.width = fitWidth(panel, model, title, styles)
     panel:SetWidth(panel.width)
@@ -1236,10 +1237,11 @@ local function render(panel, tooltip, model)
     end
     local accent = model.quest and QUEST_GOLD or quality
     local headerMin = drawChrome(panel, tooltip, {
+        kind = "item",
         color = accent,
         tint = (model.quest or model.quality >= 2) and accent or nil,
         icon = model.icon,
-        badge = ns.option("itemLevelBadge") and model.level
+        badge = model.icon and ns.option("itemLevelBadge") and model.level
             and (model.equippable or model.levelLine) and ("iLvl " .. model.level),
         tag = tag,
     })

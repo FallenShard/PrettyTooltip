@@ -8,6 +8,10 @@ local DEFAULTS = {
     itemPanels = true,
     objectPanels = true,
     unitPanels = true,
+    iconItems = true,
+    iconSpells = true,
+    iconObjects = true,
+    iconUnits = true,
     cursorObjects = true,
     statColors = true,
     qualityTint = true,
@@ -193,11 +197,27 @@ function ns.resetElement(key)
     if styles then styles[key] = nil end
 end
 
+-- Settings kept per kind of panel are named with these, as iconItems.
+ns.KIND_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units" }
+
+-- The header band's opacity at an edge ("Top" or "Bottom") for a kind; a kind
+-- without its own follows the setting shared by all, and nil means the default.
+function ns.headerAlpha(kind, edge)
+    local suffix = ns.KIND_SUFFIX[kind]
+    local own = suffix and ns.option("header" .. edge .. "Alpha" .. suffix)
+    if own ~= nil then return own end
+    return ns.option("header" .. edge .. "Alpha")
+end
+
 function ns.resetStyles()
     if type(PrettyTooltipDB) ~= "table" then return end
     PrettyTooltipDB.styles = nil
     PrettyTooltipDB.bodyFont, PrettyTooltipDB.titleFont, PrettyTooltipDB.outline = nil, nil, nil
     PrettyTooltipDB.headerTopAlpha, PrettyTooltipDB.headerBottomAlpha = nil, nil
+    for _, suffix in pairs(ns.KIND_SUFFIX) do
+        PrettyTooltipDB["headerTopAlpha" .. suffix] = nil
+        PrettyTooltipDB["headerBottomAlpha" .. suffix] = nil
+    end
 end
 
 function ns.style(key)

@@ -83,6 +83,7 @@ To preview a real item or spell instead (objects and units have no ID), type its
 
 Under **Layout and color** (hover one for its description):
 
+- **Show icon** turns the icon or portrait on or off for the kind of tooltip shown.
 - **Icon on the right** moves the icon and its item level badge to the right of the name.
 - **Item level badge** and **Stat markers** turn those elements off.
 - **Stat colors**: off, every stat is parchment.

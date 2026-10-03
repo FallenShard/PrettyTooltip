@@ -473,6 +473,7 @@ end
 local function renderSpell(panel, tooltip, model)
     panel:Show()
     ui.clearPool(panel)
+    if not ns.option("iconSpells") then model.icon = nil end
     for _, part in ipairs({ model, model.nested }) do part.sentences = sentencesOf(part) end
     model.school = detectSchool(model)
     local styles = {}
@@ -483,6 +484,7 @@ local function renderSpell(panel, tooltip, model)
     local accent = model.school and SCHOOL_COLORS[model.school] or power
     local color = accent or NEUTRAL
     local headerMin = ui.drawChrome(panel, tooltip, {
+        kind = "spell",
         color = color,
         tint = accent,
         strength = SPELL_TINT,
