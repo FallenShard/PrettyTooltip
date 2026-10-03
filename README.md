@@ -1,6 +1,6 @@
 # PrettyTooltip
 
-A full reskin of item and spell tooltips for WoW Forever. PrettyTooltip replaces the game's tooltip with a compact, ornamented panel: the item's icon and quality up front, stats in short colored rows grouped by kind, and the fine print gathered in a footer. Hold **ALT** at any time to see the game's own tooltip.
+A full reskin of tooltips for WoW Forever. PrettyTooltip replaces the game's tooltip with a compact, ornamented panel: the icon and name up front, the details in short colored rows grouped by kind, and the fine print gathered in a footer. Hold **ALT** (or the key you choose) at any time to see the game's own tooltip.
 
 ## Item tooltips
 
@@ -49,7 +49,7 @@ Each stat value takes a rich color and its name a lighter shade of the same hue.
 
 ## Spell tooltips
 
-Spells use the same panel: the icon and name, small badges for the spell's school and rank, and a strip with cost, cast time, cooldown, and range. The description follows one sentence per line, with its numbers highlighted.
+Spells use the same panel: the icon and name, small badges for the spell's school, its rank, and **Passive** for passive spells and talents, and a strip with cost, cast time, cooldown, and range. The description follows one sentence per line, with its numbers highlighted.
 
 The panel is tinted by the spell's school, read from the damage its description names (`Fire damage`) or a school that starts its name (`Holy Light`). Spells with neither are tinted by the resource they cost: blue for mana, red for rage, yellow for energy.
 
@@ -70,7 +70,7 @@ Herbs, ore, chests, and quest objects get a panel too. A herb or ore node shows 
 
 Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items**, **Spells**, and **Objects** switch between the kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal; for objects a herb, an ore node you cannot mine yet, a locked chest, and a quest object) cover every part, and the editor switches to one that has the part you pick from its list.
 
-To preview a real item or spell instead, type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
+To preview a real item or spell instead (objects have no ID), type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
 
 - **Font**: every font registered with LibSharedMedia, which includes EllesmereUI's fonts when it is installed, plus the game's own. **Global Settings** sets the font for everything at once, with a separate font for names; a part's own font overrides it.
 - **Color**: a custom color replaces every color the part would have had, including quality, category, and red or grey states. **Automatic** goes back to the normal colors.
@@ -90,7 +90,7 @@ Tooltips use the new look the next time they open.
 
 ## Options
 
-Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look. `/ptip dump` prints the data of the tooltip you are hovering, to see what a kind of tooltip carries.
+Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look.
 
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, and achievements.
   - **Restyle**: **Items**, **Spells**, and **Herbs, ore, chests, and other objects** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
@@ -110,11 +110,14 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 ## Known limitations
 
 - No game API names a spell's school, so it is read from the spell's text. A spell that never names its damage type may get no school, or the wrong one if its name starts with one.
-- Profession recipe spells show the crafted item as plain rows under the description.
+- Profession recipe spells do not show the crafted item as an item panel.
+- Herb and ore nodes show their yield, skill level, and prices only for the classic herbs and ores; other nodes show their skill alone. Chest and quest object tooltips are less tested.
 - Stat wordings not in the table above are shown unchanged.
 
 ## Development
 
 `python deploy.py` copies the game files into `D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns\PrettyTooltip`; pass `--addons-dir "<path to Interface\AddOns>"` for another installation. After a deploy, `/reload` picks up Lua changes; changes to the `.toc` need a game restart.
+
+`/ptip dump` prints the raw data of the tooltip you are hovering, to see what a kind of tooltip carries. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes.
 
 `art/README.md` describes each texture and how it is made.

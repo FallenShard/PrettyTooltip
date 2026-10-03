@@ -234,7 +234,7 @@ title:SetPoint("TOPLEFT", 16, -16)
 title:SetText("PrettyTooltip")
 local subtitle = page:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
 subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
-subtitle:SetText("A full reskin of item and spell tooltips. Changes apply the next time a tooltip opens.")
+subtitle:SetText("A full reskin of tooltips. Changes apply the next time a tooltip opens.")
 
 local editorButton = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
 editorButton:SetSize(180, 24)

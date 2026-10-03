@@ -1,6 +1,6 @@
 ## Interface: 16001
 ## Title: PrettyTooltip
-## Notes: A full reskin of item and spell tooltips for WoW Forever.
+## Notes: A full reskin of tooltips for WoW Forever.
 ## Author: FallenShard
 ## X-License: MIT
 ## X-Curse-Project-ID: 1720719

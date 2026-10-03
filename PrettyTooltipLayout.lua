@@ -1,4 +1,4 @@
--- The panel that replaces item and spell tooltips. The game's tooltip stays
+-- The panel that replaces tooltips. The game's tooltip stays
 -- underneath, hidden, and shows while the modifier is held or a line cannot be read.
 local _, ns = ...
 if GetLocale() ~= "enUS" or not (TooltipDataProcessor and Enum and Enum.TooltipDataType) then
