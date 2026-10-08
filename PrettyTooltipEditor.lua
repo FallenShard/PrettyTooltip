@@ -219,6 +219,7 @@ local SPELL_SAMPLES = {
                 name = "Fireball", rank = "Rank 1", icon = spellIcon(133),
                 cost = { "30", "Mana" }, power = "Mana", cast = { "1.5 sec", "Cast" },
                 range = { "35 yd", "Range" },
+                spellPower = 10,
                 description = { "Hurls a fiery ball that causes 16 to 25 Fire damage and an "
                     .. "additional 2 Fire damage over 4 sec." },
             })
@@ -248,6 +249,7 @@ local SPELL_SAMPLES = {
                 name = "Holy Light", rank = "Rank 1", icon = spellIcon(635),
                 cost = { "35", "Mana" }, power = "Mana", cast = { "2.5 sec", "Cast" },
                 range = { "40 yd", "Range" },
+                spellPower = 10,
                 description = { "Heals a friendly target for 42 to 51." },
                 extras = { { left = "Spell ID: 635", right = "", color = { .60, .60, .63 } } },
             })

@@ -60,6 +60,8 @@ The panel is tinted by the spell's school, read from the damage its description 
 
 A spell that carries another spell inside its tooltip, such as Feral Charge with its Cat Form version, shows the inner spell as a second section with its own name, strip, requirements, and description. Talents get the spell panel too.
 
+Spells that deal magic damage or heal show their spell power under the description: each amount's coefficient, one row for what lands at once and one for what comes over time, and the amount split into its base and what your spell power adds, as `85.7% Coefficient` and `441 to 595 + 120`. WoW Forever's tooltips already count your spell power in, so the base is the shown amount less spell power times the coefficient. No game API has coefficients. Forever's follow Classic's rules (cast time / 3.5, duration / 15) without Classic's cap on spells over time or its penalty for spells learned before level 20, and the well-known spells of each class, channeled ones included, are checked against Forever's spell data on [foreverchanges.pro](https://foreverchanges.pro/spellbook); a coefficient marked `~` is the rules' estimate for a spell outside that list, and a channeled spell outside it shows none. Turned off under **Spell Details** in the options.
+
 ## Players and NPCs
 
 Units under the cursor get a panel with their portrait, the name in class color (players) or reaction color (NPCs: red hostile, yellow neutral, green friendly, grey when tapped by someone else), the guild or an NPC's role, and the level, race, and class or creature type, the level in its difficulty color. Badges mark elites, rares, bosses, a player's faction, PvP, AFK, DND, and the dead. Below sit a live health bar with the exact numbers, what the unit is targeting (in red when it is you), and the unit's quest lines. Rows other addons add are kept below.
@@ -115,6 +117,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
   - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
 - **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with its Equip effects shortened and its stats colored (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items, and **Sell price** the sell price rows in the footer.
+- **Spell Details**: **Spell power breakdown** shows or hides the coefficients and the base and spell power split on spells.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never show default tooltip**.
 
 ## Install
@@ -130,6 +133,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 ## Known limitations
 
 - No game API names a spell's school, so it is read from the spell's text. A spell that never names its damage type may get no school, or the wrong one if its name starts with one.
+- Spell power coefficients are not read from the game. Those marked `~` are estimates, and a talent or effect that changes a spell's damage or healing makes its base off by that much.
 - Profession recipe spells do not show the crafted item as an item panel.
 - Herb and ore nodes show their yield, skill level, and prices only for the classic herbs and ores; other nodes show their skill alone. Chest and quest object tooltips are less tested.
 - Stat wordings not in the table above are shown unchanged.

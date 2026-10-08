@@ -27,6 +27,7 @@ local DEFAULTS = {
     spellPanels = true,
     disenchant = true,
     sellPrice = true,
+    spellPower = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
@@ -443,6 +444,11 @@ detailBox("disenchant", "Disenchant results", "Green, blue, and purple armor and
     .. "Auctionator, the expected value.")
 detailBox("sellPrice", "Sell price", "The vendor price in the footer; for a stack, the price of "
     .. "one and of the whole stack.")
+
+section("Spell Details")
+detailBox("spellPower", "Spell power breakdown", "Under the description, each amount's spell power "
+    .. "coefficient and its split into base and spell power. No game API has coefficients: they follow "
+    .. "Classic's rules, checked against Forever's spell data, and ones marked ~ are estimates.")
 
 page:SetScript("OnShow", refreshControls)
 -- Hooks the settings window calls on canvas pages: when it shows them, and

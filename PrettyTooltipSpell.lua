@@ -408,6 +408,9 @@ local function fitWidth(panel, model, styles)
         for _, sentence in ipairs(part.sentences) do
             consider(math.min(measureStyled(panel, sentence, styles.spellText), ui.PROSE_WIDTH))
         end
+        for _, row in ipairs(part.powerRows or {}) do
+            consider(ui.rowWidth(panel, row, styles.spellDetails))
+        end
     end
     if model.nested and model.nested.name then
         consider(measureStyled(panel, model.nested.name, nestedTitleStyle(styles.spellTitle)))
@@ -447,6 +450,7 @@ end
 
 local function hasBody(part)
     return #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #part.sentences > 0
+        or part.powerRows ~= nil
 end
 
 -- The strip, requirements, and description of the spell or the one nested in it.
@@ -467,6 +471,12 @@ local function drawBody(panel, part, y, color, styles, numberCode)
                 y, styles.spellText, DESCRIPTION_COLOR, 0, 5)
         end
     end
+    if part.powerRows then
+        if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #part.sentences > 0 then
+            y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
+        end
+        y = ui.drawGroup(panel, part.powerRows, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
+    end
     return y
 end
 
@@ -474,8 +484,16 @@ local function renderSpell(panel, tooltip, model)
     panel:Show()
     ui.clearPool(panel)
     if not ns.option("iconSpells") then model.icon = nil end
-    for _, part in ipairs({ model, model.nested }) do part.sentences = sentencesOf(part) end
     model.school = detectSchool(model)
+    local school = model.school and SCHOOL_COLORS[model.school]
+    local numberCode = school
+        and hex({ school[1] * .7 + .3, school[2] * .7 + .3, school[3] * .7 + .3 })
+        or "FFF6E4"
+    for _, part in ipairs({ model, model.nested }) do
+        part.sentences = sentencesOf(part)
+        part.powerRows = ns.option("spellPower") and ns.spellPowerRows
+            and ns.spellPowerRows(part, numberCode) or nil
+    end
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     panel.width = fitWidth(panel, model, styles)
@@ -506,10 +524,6 @@ local function renderSpell(panel, tooltip, model)
     panel.header:SetHeight(y - panel.inset)
     panel.footer:SetHeight(0)
 
-    local school = model.school and SCHOOL_COLORS[model.school]
-    local numberCode = school
-        and hex({ school[1] * .7 + .3, school[2] * .7 + .3, school[3] * .7 + .3 })
-        or "FFF6E4"
     local sectioned = false
     if hasBody(model) then
         y = drawBody(panel, model, ui.divider(panel, y, ui.GOLD_RULE), color, styles, numberCode)
