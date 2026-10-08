@@ -26,6 +26,7 @@ local DEFAULTS = {
     separators = true,
     spellPanels = true,
     disenchant = true,
+    sellPrice = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
@@ -440,6 +441,8 @@ detailBox("itemLite", "Lite item tooltips", "Keep the game's own item tooltip, w
 detailBox("disenchant", "Disenchant results", "Green, blue, and purple armor and weapons list what "
     .. "they disenchant into, with each result's chance and the Enchanting it needs; with "
     .. "Auctionator, the expected value.")
+detailBox("sellPrice", "Sell price", "The vendor price in the footer; for a stack, the price of "
+    .. "one and of the whole stack.")
 
 page:SetScript("OnShow", refreshControls)
 -- Hooks the settings window calls on canvas pages: when it shows them, and

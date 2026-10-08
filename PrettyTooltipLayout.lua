@@ -204,6 +204,8 @@ local function requirementMet(text, color)
 end
 
 local COIN = "|TInterface\\MoneyFrame\\UI-%sIcon:0:0:2:0|t"
+-- A stack's per-item price, beside its total: a muted shade of the footer's gold.
+local PRICE_DETAIL = "9E9485"
 
 local function formatMoney(copper)
     local format = C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString
@@ -441,6 +443,21 @@ local function newItemModel()
         footerRight = {},
         kinds = {},
     }
+end
+
+-- How many the shown stack holds: its bag slot knows, else the data line's
+-- price, which covers the stack, gives it away.
+local function stackCount(data, unitPrice, linePrice)
+    local guid = data.guid
+    if not isSecret(guid) and type(guid) == "string" and C_Item and C_Item.GetItemLocation
+        and C_Item.GetStackCount then
+        local ok, count = pcall(function() return C_Item.GetStackCount(C_Item.GetItemLocation(guid)) end)
+        if ok and not isSecret(count) and type(count) == "number" and count > 0 then return count end
+    end
+    if linePrice and linePrice > unitPrice and linePrice % unitPrice == 0 then
+        return linePrice / unitPrice
+    end
+    return 1
 end
 
 -- A recipe's lines hold the crafted item's whole tooltip, from its name line
@@ -731,17 +748,23 @@ local function readModel(tooltip, data)
         model.slot = model.slot and model.slot ~= "" and (model.slot .. " \194\183 " .. kinds) or kinds
     end
 
-    local label = "Sell Price"
-    if model.hasSellPrice and not model.sellPrice and itemInfo
-        and C_Item and C_Item.GetItemInfo then
-        -- The item's own price is per unit; the data line's covers the stack.
+    -- The item's own price is per unit; the data line's covers the stack.
+    local unitPrice
+    if model.hasSellPrice and itemInfo and C_Item and C_Item.GetItemInfo then
         local ok, price = pcall(function() return select(11, C_Item.GetItemInfo(itemInfo)) end)
-        if ok and not isSecret(price) and type(price) == "number" then
-            model.sellPrice, label = price, "Sell Price (each)"
-        end
+        if ok and not isSecret(price) and type(price) == "number" and price > 0 then unitPrice = price end
     end
-    if model.sellPrice and model.sellPrice > 0 then
-        add(model.footerRight, label, formatMoney(model.sellPrice))
+    -- The coins say what the amount is. A stack leads with its total, then the
+    -- count and one item's price, dimmed: 2g  (20 × 10s).
+    local count = unitPrice and stackCount(data, unitPrice, model.sellPrice) or 1
+    local price = count > 1 and unitPrice or model.sellPrice or unitPrice
+    if price and price > 0 then
+        local text = formatMoney(price * count)
+        if count > 1 then
+            text = text .. "  |cff" .. PRICE_DETAIL .. "(" .. count .. " \195\151 " .. formatMoney(price) .. ")|r"
+        end
+        add(model.footerRight, text, "")
+        model.footerRight[#model.footerRight].sellPrice = true
     end
     model.quest = model.quest or classID == QUEST_CLASS
     model.comparison = isComparison(tooltip)
@@ -1072,6 +1095,16 @@ local function footerText(row)
     return row.left
 end
 
+-- Read at draw time, so the editor's samples follow the setting too.
+local function shownFooterRight(model)
+    if ns.option("sellPrice") then return model.footerRight end
+    local rows = {}
+    for _, row in ipairs(model.footerRight) do
+        if not row.sellPrice then rows[#rows + 1] = row end
+    end
+    return rows
+end
+
 local function weaponText(model)
     local text = model.weaponDamage
     if model.weaponSpeed then text = text .. "  \194\183  " .. model.weaponSpeed end
@@ -1201,8 +1234,9 @@ local function fitWidth(panel, model, title, styles)
     end
     group(reagentRows(model), styles.reagents, 0)
     group(model.extras, styles.extras, 0, true)
-    for index = 1, math.max(#model.footerLeft, #model.footerRight) do
-        local left, right = model.footerLeft[index], model.footerRight[index]
+    local footerRight = shownFooterRight(model)
+    for index = 1, math.max(#model.footerLeft, #footerRight) do
+        local left, right = model.footerLeft[index], footerRight[index]
         local leftWidth = 0
         if left and left.durability then
             leftWidth = DURABILITY_BAR + 7 + measureStyled(panel,
@@ -1646,14 +1680,15 @@ local function render(panel, tooltip, model)
         y = drawGroup(panel, model.extras, y, styles.extras, EXTRA_COLOR, 0, 2)
     end
 
-    if #model.footerLeft > 0 or #model.footerRight > 0 then
+    local footerRight = shownFooterRight(model)
+    if #model.footerLeft > 0 or #footerRight > 0 then
         y = y + 9
         local footerStart = y
         local footer = styles.footer
-        local rows = math.max(#model.footerLeft, #model.footerRight)
+        local rows = math.max(#model.footerLeft, #footerRight)
         for index = 1, rows do
             local left = model.footerLeft[index]
-            local right = model.footerRight[index]
+            local right = footerRight[index]
             local h1, h2 = 0, 0
             local rightWidth = 0
             if right then

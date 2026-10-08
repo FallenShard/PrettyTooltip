@@ -13,7 +13,7 @@ Top to bottom, an item panel shows:
 - **Use effects and flavor text,** as the game words them.
 - **Item set.** The set name and how many pieces you own, the pieces you own highlighted, and the set bonuses, with active ones highlighted.
 - **Disenchant.** For green, blue, and purple armor and weapons: what the item disenchants into, each result with its icon, count, and chance, and the Enchanting it needs, red while your skill is too low and grey if you have no Enchanting. The chances are Classic's published tables (Warcraft Wiki's *Disenchanting tables*); the game has no way to ask. Turned off under **Item Details** in the options.
-- **Footer.** Durability as a small bar, the crafter's name for crafted items, other requirements such as skills or classes, and the sell price (per item for stacks).
+- **Footer.** Durability as a small bar, the crafter's name for crafted items, other requirements such as skills or classes, and the sell price as coins alone; a stack shows its total first, then the count and one item's price, dimmed (`2g  (20 × 10s)`), which can be turned off under **Item Details** in the options.
 
 While the game shows a comparison, the comparison panels are tagged **Equipped**, and the game's own "If you replace this item" stat changes appear among the rows at the bottom, in their usual green and red.
 
@@ -114,7 +114,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
   - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
-- **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with its Equip effects shortened and its stats colored (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items.
+- **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with its Equip effects shortened and its stats colored (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items, and **Sell price** the sell price rows in the footer.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never show default tooltip**.
 
 ## Install

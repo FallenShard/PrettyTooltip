@@ -96,7 +96,7 @@ local ITEM_SAMPLES = {
                     { left = "Durability 61 / 120", right = "", durability = { 61, 120 } },
                     { left = "Made by Lorelei", right = "", color = ui.FLAVOR_GOLD },
                 },
-                footerRight = { { left = "Sell Price", right = ui.formatMoney(64218) } },
+                footerRight = { { left = ui.formatMoney(64218), right = "", sellPrice = true } },
                 disenchant = ns.disenchantFor and ns.disenchantFor(2, 4, 63, "INVTYPE_2HWEAPON"),
             })
         end,
@@ -141,7 +141,7 @@ local ITEM_SAMPLES = {
                 footerRight = {
                     { left = "Requires Argent Dawn - Revered", right = "", requirement = true,
                         met = false },
-                    { left = "Sell Price", right = ui.formatMoney(123767) },
+                    { left = ui.formatMoney(123767), right = "", sellPrice = true },
                 },
             })
         end,
@@ -167,7 +167,7 @@ local ITEM_SAMPLES = {
                 },
                 footerLeft = { { left = "Durability 100 / 100", right = "",
                     durability = { 100, 100 } } },
-                footerRight = { { left = "Sell Price", right = ui.formatMoney(41250) } },
+                footerRight = { { left = ui.formatMoney(41250), right = "", sellPrice = true } },
             })
         end,
     },
@@ -181,7 +181,8 @@ local ITEM_SAMPLES = {
                     rightColor = { .95, .93, .88 } } },
                 effects = { { left = "Use: Restores 1050 to 1750 health. (2 Min Cooldown)",
                     right = "" } },
-                footerRight = { { left = "Sell Price (each)", right = ui.formatMoney(1000) } },
+                footerRight = { { left = ui.formatMoney(5000) .. "  |cff9E9485(5 \195\151 " .. ui.formatMoney(1000) .. ")|r",
+                    right = "", sellPrice = true } },
             })
         end,
     },
@@ -204,7 +205,7 @@ local ITEM_SAMPLES = {
                     { name = "Rough Grinding Stone", count = 4, have = 4, icon = itemIcon(3470) },
                     { name = "Small Lustrous Pearl", count = 3, have = 1, icon = itemIcon(5498) },
                 },
-                footerRight = { { left = "Sell Price", right = ui.formatMoney(400) } },
+                footerRight = { { left = ui.formatMoney(400), right = "", sellPrice = true } },
             })
         end,
     },
