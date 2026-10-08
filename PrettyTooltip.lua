@@ -269,9 +269,13 @@ local function onItemTooltip(_, data)
                 and not isSecret(rightText) and not rightText then
                 local replacements = rewrite(text)
                 local displayLines = replacements or { text }
+                -- Lite has the stat colors but no markers; with stat colors
+                -- off, the game's own.
+                local liteLines = {}
                 local styled = false
                 for displayIndex, displayText in ipairs(displayLines) do
                     local colored = colorizeStat(displayText)
+                    liteLines[displayIndex] = ns.option("statColors") and colored or displayText
                     if colored then
                         displayLines[displayIndex] = (ns.option("statMarkers") and STAT_MARKER or "") .. colored
                         styled = true
@@ -288,6 +292,7 @@ local function onItemTooltip(_, data)
                     copy.wrapText = copy.wrapText or #displayLines > 1
                     copy.prettyTooltipOriginal = text
                     copy.prettyTooltipDisplay = copy.leftText
+                    copy.prettyTooltipLite = table.concat(liteLines, "|n")
                     copy.lineIndex = nil
                     lines[index] = copy
                 end
@@ -298,13 +303,19 @@ end
 
 TooltipDataProcessor.AddTooltipPreCall(Enum.TooltipDataType.Item, onItemTooltip)
 
--- The rewrite above changes the game's own tooltip text too, so the original
--- wording goes back on its font strings while the original-tooltip key is held.
-local function showOriginalText(tooltip, original, relayout)
+-- The rewrite above changes the game's own tooltip text too, so its font
+-- strings get the wording that suits: the original while the original-tooltip
+-- key is held, lite mode's shortened and colored stats, else the panel's.
+local function wordingShown()
+    if ns.originalKeyDown() or not ns.option("itemPanels") then return "original" end
+    return ns.option("itemLite") and "lite" or "display"
+end
+
+local function showWording(tooltip, wording, relayout)
     local rows = activeLinesByTooltip[tooltip]
     if not rows then return end
     for _, row in ipairs(rows) do
-        row.fontString:SetText(original and row.original or row.display)
+        row.fontString:SetText(row[wording] or row.original)
     end
     if relayout then tooltip:Show() end
 end
@@ -331,23 +342,24 @@ TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tool
                     fontString = fontString,
                     original = line.prettyTooltipOriginal,
                     display = line.prettyTooltipDisplay,
+                    lite = line.prettyTooltipLite,
                 }
             end
         end
     end
     activeLinesByTooltip[tooltip] = #rows > 0 and rows or nil
     -- Cached data can still carry wording rewritten before items were turned off.
-    showOriginalText(tooltip, ns.originalKeyDown() or not ns.option("itemPanels"), false)
+    showWording(tooltip, wordingShown(), false)
 end)
 
 local modifierWatcher = CreateFrame("Frame")
 modifierWatcher:RegisterEvent("MODIFIER_STATE_CHANGED")
 modifierWatcher:SetScript("OnEvent", function(_, _, key)
     if not ns.isOriginalKey(key) then return end
-    local original = ns.originalKeyDown() or not ns.option("itemPanels")
+    local wording = wordingShown()
     for tooltip in pairs(activeLinesByTooltip) do
         if tooltip:IsShown() and tooltip:IsTooltipType(Enum.TooltipDataType.Item) then
-            showOriginalText(tooltip, original, true)
+            showWording(tooltip, wording, true)
         end
     end
 end)

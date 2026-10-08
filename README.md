@@ -34,6 +34,10 @@ Common Equip wordings become short stat rows:
 
 **Spell Power** is a bonus to both damage and healing; **Spell Damage Power** is damage only. Hit, crit, dodge, parry, block, ratings, attack power, health regeneration, and spell penetration are shortened the same way. Wording PrettyTooltip does not recognize is shown as the game writes it.
 
+### Lite item tooltips
+
+With **Lite item tooltips** turned on under **Item Details** in the options, items keep the game's own tooltip, with the Equip effects shortened as in the table above and the stats in their colors (see *Colors* below; with **Stat colors** off in the style editor, the game's own). Everything else, including the stat markers and the disenchant section, is left out.
+
 ### Colors
 
 Each stat value takes a rich color and its name a lighter shade of the same hue. The four main categories use the defaults of EllesmereUI's character sheet:
@@ -110,7 +114,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
   - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
-- **Item Details**: **Disenchant results** shows or hides the disenchant section on items.
+- **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with its Equip effects shortened and its stats colored (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never show default tooltip**.
 
 ## Install

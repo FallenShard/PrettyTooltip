@@ -1837,13 +1837,15 @@ end
 
 -- Each tooltip data type the panel draws: read(tooltip, data) -> model,
 -- render(panel, tooltip, model), key(tooltip, data) naming what is shown,
--- and option, the setting that turns the kind on.
+-- option, the setting that turns the kind on, and lite, a setting that keeps
+-- the game's tooltip with its stats shortened and colored.
 local KINDS = {}
-KINDS[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels" }
+KINDS[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels", lite = "itemLite" }
 
 local function showsOriginal(panel)
     local kind = KINDS[panel.kind]
     return ns.originalKeyDown() or not (kind and ns.option(kind.option))
+        or (kind.lite and ns.option(kind.lite))
 end
 
 -- What the tooltip shows, as one string; nil when a line cannot be read.

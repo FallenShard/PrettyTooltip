@@ -6,6 +6,8 @@ local addonName, ns = ...
 local DEFAULTS = {
     iconRight = false,
     itemPanels = true,
+    -- The game's item tooltip with shortened, colored stats, instead of the panel.
+    itemLite = false,
     objectPanels = true,
     unitPanels = true,
     auraPanels = true,
@@ -412,24 +414,32 @@ for index, modifier in ipairs(MODIFIERS) do
 end
 y = y - 36
 
+local function detailBox(key, label, note)
+    local box = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    box:SetSize(24, 24)
+    box:SetPoint("TOPLEFT", 20, y + 4)
+    local text = box:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    text:SetPoint("LEFT", box, "RIGHT", 4, 0)
+    text:SetText(label)
+    box:SetHitRectInsets(0, -(text:GetStringWidth() + 8), 0, 0)
+    box:SetScript("OnClick", function(self) setOption(key, self:GetChecked() and true or false) end)
+    box.refresh = function() box:SetChecked(ns.option(key)) end
+    controls[#controls + 1] = box
+    local noteText = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+    noteText:SetPoint("TOPLEFT", 48, y - 20)
+    noteText:SetWidth(530)
+    noteText:SetJustifyH("LEFT")
+    noteText:SetText(note)
+    y = y - 30 - noteText:GetStringHeight()
+end
+
 section("Item Details")
-local disenchantBox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-disenchantBox:SetSize(24, 24)
-disenchantBox:SetPoint("TOPLEFT", 20, y + 4)
-local disenchantLabel = disenchantBox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-disenchantLabel:SetPoint("LEFT", disenchantBox, "RIGHT", 4, 0)
-disenchantLabel:SetText("Disenchant results")
-disenchantBox:SetHitRectInsets(0, -(disenchantLabel:GetStringWidth() + 8), 0, 0)
-disenchantBox:SetScript("OnClick", function(self) setOption("disenchant", self:GetChecked() and true or false) end)
-disenchantBox.refresh = function() disenchantBox:SetChecked(ns.option("disenchant")) end
-controls[#controls + 1] = disenchantBox
-local disenchantNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-disenchantNote:SetPoint("TOPLEFT", 48, y - 20)
-disenchantNote:SetWidth(530)
-disenchantNote:SetJustifyH("LEFT")
-disenchantNote:SetText("Green, blue, and purple armor and weapons list what they disenchant into, "
-    .. "with each result's chance and the Enchanting it needs; with Auctionator, the expected value.")
-y = y - 44
+detailBox("itemLite", "Lite item tooltips", "Keep the game's own item tooltip, with its Equip effects "
+    .. "shortened, as +1% Critical Strike Chance, and its stats colored. Hold the modifier for the full wording. "
+    .. "The panel's item settings, such as disenchant results, do not apply.")
+detailBox("disenchant", "Disenchant results", "Green, blue, and purple armor and weapons list what "
+    .. "they disenchant into, with each result's chance and the Enchanting it needs; with "
+    .. "Auctionator, the expected value.")
 
 page:SetScript("OnShow", refreshControls)
 -- Hooks the settings window calls on canvas pages: when it shows them, and
