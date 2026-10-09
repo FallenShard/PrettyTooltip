@@ -323,24 +323,35 @@ local editorButton = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
 editorButton:SetSize(180, 24)
 editorButton:SetPoint("TOPLEFT", 16, -64)
 editorButton:SetText("Open the style editor")
-local editorNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-editorNote:SetPoint("LEFT", editorButton, "RIGHT", 10, 0)
-editorNote:SetWidth(380)
-editorNote:SetJustifyH("LEFT")
-editorNote:SetText("The look of the tooltip: fonts, sizes, and colors for every part, "
+
+-- Explanations show on hover, which keeps the page short.
+local function explain(widget, title, text)
+    widget:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText(title, 1, 1, 1)
+        GameTooltip:AddLine(text, nil, nil, nil, true)
+        GameTooltip:Show()
+    end)
+    widget:SetScript("OnLeave", function() GameTooltip:Hide() end)
+end
+
+explain(editorButton, "Style editor", "The look of the tooltip: fonts, sizes, and colors for every part, "
     .. "the icon side, the badge, markers, and tints, with a live sample. Also /ptip.")
 editorButton:SetScript("OnClick", function()
     if SettingsPanel and SettingsPanel:IsShown() then HideUIPanel(SettingsPanel) end
     if ns.openEditor then ns.openEditor() end
 end)
 
-local y = -102
+-- Two columns: the kinds of tooltip on the left, the other settings on the right.
+local COLUMNS_TOP = -100
+local leftColumn = { x = 16, y = COLUMNS_TOP }
+local rightColumn = { x = 440, y = COLUMNS_TOP }
 
-local function section(text)
+local function section(column, text)
     local header = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    header:SetPoint("TOPLEFT", 16, y)
+    header:SetPoint("TOPLEFT", column.x, column.y)
     header:SetText(text)
-    y = y - 24
+    column.y = column.y - 24
 end
 
 local function isInstalled(addon)
@@ -350,59 +361,54 @@ local function isInstalled(addon)
 end
 ns.isInstalled = isInstalled
 
-section("Restyled Tooltips")
-local kindsNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-kindsNote:SetPoint("TOPLEFT", 20, y)
-kindsNote:SetWidth(560)
-kindsNote:SetJustifyH("LEFT")
-kindsNote:SetText("Restyle draws the PrettyTooltip panel; a kind that is off keeps the game's "
-    .. "own tooltip, and greyed kinds are not restyled yet. Follow cursor moves the kind's "
-    .. "tooltip to the cursor when the game would show it in its default corner (bags and other "
-    .. "panels keep theirs); off, its position is left to the game and other addons.")
-y = y - kindsNote:GetStringHeight() - 10
+section(leftColumn, "Restyled Tooltips")
 for index, heading in ipairs({ "Restyle", "Follow cursor" }) do
     local label = page:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
-    label:SetPoint("TOPLEFT", 260 + (index - 1) * 90, y)
+    label:SetPoint("TOPLEFT", leftColumn.x + 244 + (index - 1) * 90, leftColumn.y)
     label:SetText(heading)
 end
-y = y - 16
+leftColumn.y = leftColumn.y - 16
 
-local function kindBox(x, key)
+local function kindBox(x, key, title, text)
     local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
     button:SetSize(24, 24)
-    button:SetPoint("TOPLEFT", x, y + 4)
+    button:SetPoint("TOPLEFT", x, leftColumn.y + 4)
     if key then
         button:SetScript("OnClick", function(self) setOption(key, self:GetChecked() and true or false) end)
         button.refresh = function() button:SetChecked(ns.option(key)) end
         controls[#controls + 1] = button
     else
         button:Disable()
+        -- A disabled button takes no hover unless told to; its tooltip still shows.
+        if button.SetMotionScriptsWhileDisabled then button:SetMotionScriptsWhileDisabled(true) end
     end
+    explain(button, title, text)
 end
 
 for _, kind in ipairs(ns.TOOLTIP_KINDS) do
     local label = page:CreateFontString(nil, "ARTWORK",
         kind.restyle and "GameFontHighlight" or "GameFontDisable")
-    label:SetPoint("TOPLEFT", 24, y - 1)
+    label:SetPoint("TOPLEFT", leftColumn.x + 8, leftColumn.y - 1)
     label:SetText(kind.label)
-    kindBox(270, kind.restyle)
-    kindBox(370, kind.cursor)
-    y = y - 22
+    kindBox(leftColumn.x + 254, kind.restyle, "Restyle " .. kind.label:lower(), kind.restyle
+        and "Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."
+        or "Not restyled yet; this kind keeps the game's own tooltip.")
+    kindBox(leftColumn.x + 354, kind.cursor, "Follow cursor", "Shows this kind's tooltip at the cursor "
+        .. "when the game would put it in its default corner; bags and other panels keep theirs. Off, "
+        .. "its position is left to the game and other addons.")
+    leftColumn.y = leftColumn.y - 22
 end
-y = y - 12
 
-local MODIFIERS = { { "CTRL", "CTRL" }, { "ALT", "ALT" }, { "NONE", "Never show default tooltip" } }
-section("Default Tooltip Modifier")
-local modifierNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-modifierNote:SetPoint("TOPLEFT", 20, y)
-modifierNote:SetWidth(560)
-modifierNote:SetJustifyH("LEFT")
-modifierNote:SetText("Hold this key to see the game's own tooltip instead of the panel.")
-y = y - 20
-for index, modifier in ipairs(MODIFIERS) do
-    local value, label = modifier[1], modifier[2]
+local MODIFIERS = {
+    { "CTRL", "CTRL", "Hold CTRL to see the game's own tooltip instead of the panel." },
+    { "ALT", "ALT", "Hold ALT to see the game's own tooltip instead of the panel." },
+    { "NONE", "Never", "Never show the game's own tooltip in place of the panel." },
+}
+section(rightColumn, "Default Tooltip Modifier")
+for _, modifier in ipairs(MODIFIERS) do
+    local value, label, note = modifier[1], modifier[2], modifier[3]
     local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
-    button:SetPoint("TOPLEFT", 24 + (index - 1) * 120, y)
+    button:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
     local text = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     text:SetPoint("LEFT", button, "RIGHT", 6, 0)
     text:SetText(label)
@@ -413,13 +419,15 @@ for index, modifier in ipairs(MODIFIERS) do
     end)
     button.refresh = function() button:SetChecked(ns.option("originalKey") == value) end
     controls[#controls + 1] = button
+    explain(button, label, note)
+    rightColumn.y = rightColumn.y - 22
 end
-y = y - 36
+rightColumn.y = rightColumn.y - 12
 
 local function detailBox(key, label, note)
     local box = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
     box:SetSize(24, 24)
-    box:SetPoint("TOPLEFT", 20, y + 4)
+    box:SetPoint("TOPLEFT", rightColumn.x + 4, rightColumn.y + 4)
     local text = box:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     text:SetPoint("LEFT", box, "RIGHT", 4, 0)
     text:SetText(label)
@@ -427,15 +435,11 @@ local function detailBox(key, label, note)
     box:SetScript("OnClick", function(self) setOption(key, self:GetChecked() and true or false) end)
     box.refresh = function() box:SetChecked(ns.option(key)) end
     controls[#controls + 1] = box
-    local noteText = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
-    noteText:SetPoint("TOPLEFT", 48, y - 20)
-    noteText:SetWidth(530)
-    noteText:SetJustifyH("LEFT")
-    noteText:SetText(note)
-    y = y - 30 - noteText:GetStringHeight()
+    explain(box, label, note)
+    rightColumn.y = rightColumn.y - 24
 end
 
-section("Item Details")
+section(rightColumn, "Item Details")
 detailBox("itemLite", "Lite item tooltips", "Keep the game's own item tooltip, with its Equip effects "
     .. "shortened, as +1% Critical Strike Chance, and its stats colored. Hold the modifier for the full wording. "
     .. "The panel's item settings, such as disenchant results, do not apply.")
@@ -444,8 +448,9 @@ detailBox("disenchant", "Disenchant results", "Green, blue, and purple armor and
     .. "Auctionator, the expected value.")
 detailBox("sellPrice", "Sell price", "The vendor price in the footer; for a stack, the price of "
     .. "one and of the whole stack.")
+rightColumn.y = rightColumn.y - 12
 
-section("Spell Details")
+section(rightColumn, "Spell Details")
 detailBox("spellPower", "Spell power breakdown", "Under the description, each amount's spell power "
     .. "coefficient and its split into base and spell power. No game API has coefficients: they follow "
     .. "Classic's rules, checked against Forever's spell data, and ones marked ~ are estimates.")
