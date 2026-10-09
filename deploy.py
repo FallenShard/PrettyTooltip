@@ -28,6 +28,8 @@ GAME_FILES = (
     "art/glow.tga",
     "art/logo.tga",
     "art/stat-marker.tga",
+    "art/marker-sword.tga",
+    "art/marker-sparkle.tga",
 )
 
 

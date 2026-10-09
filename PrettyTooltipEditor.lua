@@ -79,6 +79,10 @@ local ITEM_SAMPLES = {
     {
         label = "Weapon",
         build = function()
+            local enchants = {}
+            for _, row in ipairs(ui.enchantRows("+25 Agility")) do
+                enchants[#enchants + 1] = { left = row, right = "" }
+            end
             return sampleModel({
                 name = "Arcanite Reaper", quality = 4, icon = itemIcon(12784), level = 63,
                 equippable = true,
@@ -89,8 +93,11 @@ local ITEM_SAMPLES = {
                 weaponDamage = "153 - 256 Damage", weaponSpeed = "Speed 3.80",
                 primary = { stat("+13 Stamina") },
                 secondary = { stat("+62 Attack Power") },
-                equipEffects = { { left = "Your attacks have a chance to cleave a nearby enemy.",
-                    right = "" } },
+                equipEffects = {
+                    { left = "Your attacks have a chance to cleave a nearby enemy.", right = "" },
+                    { left = "Wounds the target for 40 to 60 damage.", right = "", onHit = true },
+                },
+                enchants = enchants,
                 flavor = { { left = "\"Sample flavor text sits here, in gold.\"", right = "" } },
                 footerLeft = {
                     { left = "Durability 61 / 120", right = "", durability = { 61, 120 } },
