@@ -55,7 +55,7 @@ end
 
 local LISTS = {
     "header", "armor", "primary", "secondary", "equipEffects", "enchants", "effects", "flavor",
-    "setItems", "setBonuses", "extras", "footerLeft", "footerRight",
+    "setItems", "setBonuses", "extras", "footerLeft", "footerRight", "weaponBonus",
 }
 
 local function sampleModel(fields)

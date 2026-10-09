@@ -160,6 +160,15 @@ function ns.styleStat(text)
     return (ns.option("statMarkers") and STAT_MARKER or "") .. colored
 end
 
+-- Weapon damage of a school in that school's stat colors: a wand's
+-- "64 - 120 Shadow Damage", or a bonus "+5 - 7 Fire Damage".
+function ns.styleDamage(text)
+    local amount, school = text:match("^%s*(%+?%s*[%d,]+%s*%-%s*[%d,]+) (%a+) Damage%s*$")
+    local color = school and schoolColors[school]
+    if not color or not ns.option("statColors") then return text end
+    return "|cff" .. color .. amount .. "|r |cff" .. labelColors[color] .. school .. " Damage|r"
+end
+
 local chanceRules = {
     { "^equip: improves your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },
     { "^equip: increases your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },

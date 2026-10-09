@@ -442,6 +442,7 @@ local function newItemModel()
         footerLeft = {},
         footerRight = {},
         kinds = {},
+        weaponBonus = {},
     }
 end
 
@@ -629,8 +630,13 @@ local function readModel(tooltip, data)
                 and right == "" and trimmed:match("^[%a'%- ]+$") then
                 add(m.setItems, trimmed, right)
                 m.setItems[#m.setItems].active = isActive(line.leftColor)
-            elseif right:match("^Speed [%d%.]+$") and trimmed:match("^[%d,]+%s*%-%s*[%d,]+ Damage$") then
+            -- A wand names its school: "64 - 120 Shadow Damage".
+            elseif right:match("^Speed [%d%.]+$") and (trimmed:match("^[%d,]+%s*%-%s*[%d,]+ Damage$")
+                or trimmed:match("^[%d,]+%s*%-%s*[%d,]+ %a+ Damage$")) then
                 m.weaponDamage, m.weaponSpeed = left, right
+            elseif trimmed:match("^%+%s*[%d,]+%s*%-%s*[%d,]+ %a+ Damage$") then
+                -- A weapon's bonus damage of a school, drawn under its base damage.
+                m.weaponBonus[#m.weaponBonus + 1] = trimmed
             elseif trimmed:match("^%([%d%.]+ damage per second%)$") then
                 m.weaponDps = trimmed:match("^%(([%d%.]+) damage per second%)$")
             elseif trimmed:match("^[%d,]+ Armor$") then
@@ -1105,8 +1111,13 @@ local function shownFooterRight(model)
     return rows
 end
 
+-- Damage of a school in its stat colors, from PrettyTooltip.lua.
+local function damageText(text)
+    return ns.styleDamage and ns.styleDamage(text) or text
+end
+
 local function weaponText(model)
-    local text = model.weaponDamage
+    local text = damageText(model.weaponDamage)
     if model.weaponSpeed then text = text .. "  \194\183  " .. model.weaponSpeed end
     return text
 end
@@ -1193,6 +1204,9 @@ local function fitWidth(panel, model, title, styles)
     end
     if model.weaponDamage then
         consider(measureStyled(panel, weaponText(model), styles.damage) + 7)
+    end
+    for _, bonus in ipairs(model.weaponBonus) do
+        consider(measureStyled(panel, damageText(bonus), styles.damage) + 7)
     end
     group(model.armor, styles.armor, 0)
     group(model.primary, styles.stats, 0)
@@ -1510,7 +1524,7 @@ anchorToPanels = probe("anchor comparison", anchorToPanels)
 -- Stats, effects, and the set, below a header; opened skips the first divider.
 local function drawBody(panel, model, styles, y, inner, opened)
     local sectioned = false
-    if model.weaponDps or model.weaponDamage or #model.armor > 0 or #model.primary > 0
+    if model.weaponDps or model.weaponDamage or #model.weaponBonus > 0 or #model.armor > 0 or #model.primary > 0
         or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
         or #model.effects > 0 or #model.flavor > 0 then
         if not opened then y = divider(panel, y, GOLD_RULE) end
@@ -1519,9 +1533,16 @@ local function drawBody(panel, model, styles, y, inner, opened)
                 left = valueLabel(model.weaponDps, "Damage per Second"), right = "",
             }, y, styles.dps, { .93, .87, .75 }) + 2
         end
-        if model.weaponDamage then
-            y = y + styledAt(panel, weaponText(model), PAD + 7, y, inner - 7, styles.damage,
-                { .71, .72, .73 }) + 7
+        if model.weaponDamage or #model.weaponBonus > 0 then
+            if model.weaponDamage then
+                y = y + styledAt(panel, weaponText(model), PAD + 7, y, inner - 7, styles.damage,
+                    { .71, .72, .73 })
+            end
+            for _, bonus in ipairs(model.weaponBonus) do
+                y = y + 2 + styledAt(panel, damageText(bonus), PAD + 7, y + 2, inner - 7, styles.damage,
+                    { .71, .72, .73 })
+            end
+            y = y + 7
         end
         for _, row in ipairs(model.armor) do
             y = drawRow(panel, {
@@ -1531,7 +1552,11 @@ local function drawBody(panel, model, styles, y, inner, opened)
         end
         if #model.armor > 0 then y = y + 5 end
         y = drawGroup(panel, model.primary, y, styles.stats, { .90, .85, .74 })
-        if (#model.secondary > 0 or #model.equipEffects > 0) and #model.primary > 0 then
+        -- The rest of the stats sit under a divider, whatever comes above them:
+        -- a wand often has its damage and no primary stats.
+        local above = #model.primary > 0 or #model.armor > 0 or model.weaponDps or model.weaponDamage
+            or #model.weaponBonus > 0
+        if (#model.secondary > 0 or #model.equipEffects > 0) and above then
             y = divider(panel, y, GOLD_RULE, 3)
         end
         y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
