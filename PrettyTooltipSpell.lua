@@ -306,6 +306,7 @@ end
 local function readSpell(tooltip, data)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local model = newModel(getSpellIcon(data.id))
+    model.spellID = not isSecret(data.id) and data.id or nil
     model.lineIndices = {}
     local current = model
     for _, line in ipairs(data.lines) do
@@ -314,7 +315,9 @@ local function readSpell(tooltip, data)
         if LINE.NestedBlock and line.type == LINE.NestedBlock then
             -- Another spell inside this one: another form's version, or a recipe's result.
             local id = line.tooltipID
-            model.nested = newModel(not isSecret(id) and getSpellIcon(id) or nil)
+            if isSecret(id) then id = nil end
+            model.nested = newModel(getSpellIcon(id))
+            model.nested.spellID = id
             current = model.nested
         elseif line.lineIndex then
             local left, right = safeText(line.leftText), safeText(line.rightText)
