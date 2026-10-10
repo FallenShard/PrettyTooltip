@@ -1342,7 +1342,6 @@ return {
             UnitAura = 7,
         },
     },
-    kind = "Spell",
     lines = {
         {
             left = {
@@ -1500,4 +1499,5 @@ return {
         },
     },
     tooltip = "GameTooltip",
+    tooltipType = "Spell",
 }

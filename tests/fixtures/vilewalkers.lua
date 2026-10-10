@@ -1729,7 +1729,6 @@ return {
             UnitAura = 7,
         },
     },
-    kind = "Item",
     lines = {
         {
             left = {
@@ -1999,4 +1998,5 @@ return {
         },
     },
     tooltip = "GameTooltip",
+    tooltipType = "Item",
 }

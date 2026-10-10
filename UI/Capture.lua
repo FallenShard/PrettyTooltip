@@ -195,7 +195,7 @@ local function recordObject(record, data)
     end
 end
 
--- The player, the same for every kind: level, spell power, and skills.
+-- The player, the same for every tooltip type: level, spell power, and skills.
 local function recordPlayer(record)
     for _, name in ipairs({ "UnitLevel", "UnitClass", "UnitRace", "UnitFactionGroup", "UnitName" }) do
         record(name, _G[name], "player")
@@ -243,7 +243,7 @@ local function captureTooltip(tooltip)
     else
         entry.data = copyOf(data)
         local dataType = not isSecret(data.type) and data.type or nil
-        entry.kind = typeName(dataType)
+        entry.tooltipType = typeName(dataType)
         if dataType == TYPES.Item then
             attempt("item", recordItem, record, tooltip, data)
         elseif dataType == TYPES.Spell then
@@ -313,7 +313,7 @@ function ns.capture(name)
     end
     local version, build = GetBuildInfo()
     entry.client = { version = version, build = build, locale = GetLocale() }
-    -- The client's numbers for the kinds of tooltip and line the readers compare against.
+    -- The client's numbers for the types of tooltip and line the readers compare against.
     entry.enums = copyOf({ TooltipDataType = Enum.TooltipDataType, TooltipDataLineType = Enum.TooltipDataLineType,
         ItemClass = Enum.ItemClass })
     entry.present = present()
@@ -323,7 +323,7 @@ function ns.capture(name)
     local replaced = PrettyTooltipCaptures[name] ~= nil
     PrettyTooltipCaptures[name] = entry
     entry.hidden = hidden
-    print(("PrettyTooltip: captured %s as %q%s%s%s; /reload to save it."):format(entry.kind or "a tooltip", name,
+    print(("PrettyTooltip: captured %s as %q%s%s%s; /reload to save it."):format(entry.tooltipType or "a tooltip", name,
         #entry.comparisons > 0 and (" with " .. #entry.comparisons .. " comparison") or "",
         hidden > 0 and (", " .. hidden .. " values hidden by the game") or "",
         replaced and ", replacing the last one" or ""))

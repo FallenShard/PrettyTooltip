@@ -1,6 +1,6 @@
 -- The harness's two entry points. fixture() runs one captured tooltip through
 -- the addon as the game would: loads its files in the .toc's order, lets the
--- item rewrite change the data, reads it with its kind's reader, and renders
+-- item rewrite change the data, reads it with its tooltip type's reader, and renders
 -- the model, returning the output text and the harness's notes. unit() runs
 -- a file of checks against parts of the addon loaded on their own.
 local main = {}
@@ -180,13 +180,13 @@ function main.fixture(fixture, enums, files, sources, serialize, makeWorld, opti
             sections[#sections + 1] = nativeLines(label, tooltip)
             return
         end
-        local kind = ns.ui and ns.ui.kinds and ns.ui.kinds[data.type]
-        if not kind then
-            sections[#sections + 1] = "== " .. label .. "\n(no panel for this kind of tooltip)"
+        local tooltipType = ns.TooltipTypes and ns.TooltipTypes[data.type]
+        if not tooltipType then
+            sections[#sections + 1] = "== " .. label .. "\n(no panel for this type of tooltip)"
             return
         end
         if profiles then world.counts = {} end
-        local ok, model = xpcall(function() return kind.read(tooltip, data) end, debug.traceback)
+        local ok, model = xpcall(function() return tooltipType.read(tooltip, data) end, debug.traceback)
         if not ok then error(label .. ": reading failed: " .. model, 0) end
         if profiles then
             profiles[#profiles + 1] = profileText(label .. " read", world.counts)
@@ -203,19 +203,19 @@ function main.fixture(fixture, enums, files, sources, serialize, makeWorld, opti
 end
 
 -- Every sample the style editor shows, each as a model and what the panel
--- drew of it, named "<kind>-<label>". Covers every kind without a capture.
+-- drew of it, named "<type>-<label>". Covers every tooltip type without a capture.
 function main.samples(enums, files, sources, serialize, makeWorld, settings)
     local notes, report = notesCollector()
     local world, ns = startAddon({}, enums, files, sources, makeWorld, report, settings)
     local results = {}
-    for _, kindKey in ipairs(ns.editorSamples.order) do
-        local kind = ns.editorSamples.kinds[kindKey]
-        for _, sample in ipairs(kind.samples) do
-            local name = kindKey .. "-" .. sample.label:lower():gsub("[^%w]+", "-")
+    for _, typeKey in ipairs(ns.editorSamples.order) do
+        local tooltipType = ns.editorSamples.tooltipTypes[typeKey]
+        for _, sample in ipairs(tooltipType.samples) do
+            local name = typeKey .. "-" .. sample.label:lower():gsub("[^%w]+", "-")
             local built, model = xpcall(sample.build, debug.traceback)
             if not built then error(name .. ": building the sample failed: " .. model, 0) end
             results[#results + 1] = { name = name,
-                text = describe("sample", ns, model, kind.dataType, serialize, world) .. "\n" }
+                text = describe("sample", ns, model, tooltipType.dataType, serialize, world) .. "\n" }
         end
     end
     return results, notes

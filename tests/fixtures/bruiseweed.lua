@@ -1278,7 +1278,6 @@ return {
         },
     },
     hidden = 0,
-    kind = "Object",
     lines = {
         {
             left = {
@@ -1357,4 +1356,5 @@ return {
         },
     },
     tooltip = "GameTooltip",
+    tooltipType = "Object",
 }

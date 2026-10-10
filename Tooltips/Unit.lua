@@ -340,7 +340,7 @@ local function renderUnit(panel, tooltip, model)
     local color = model.color or NEUTRAL
     local hasIcon = not model.hideIcon and (model.unit or model.iconPath)
     local headerMin = ui.drawChrome(panel, tooltip, {
-        kind = "unit",
+        tooltipType = "unit",
         color = color,
         tint = model.color,
         strength = TINT_STRENGTH,
@@ -429,4 +429,4 @@ ui.unitModel = function(fields)
     return completeModel(fields)
 end
 -- Its target, tapped, and dead rows come from the game, not the tooltip's text.
-ui.registerKind(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true })
+ui.registerTooltipType(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true })

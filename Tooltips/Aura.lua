@@ -195,7 +195,7 @@ local function renderAura(panel, tooltip, model)
     panel:SetWidth(panel.width)
     local color = model.color or { .62, .66, .74 }
     local headerMin = ui.drawChrome(panel, tooltip, {
-        kind = "aura",
+        tooltipType = "aura",
         color = color,
         tint = model.color,
         strength = TINT_STRENGTH,
@@ -264,4 +264,4 @@ ui.auraModel = function(fields)
     fields.extras = fields.extras or {}
     return completeModel(fields)
 end
-ui.registerKind(AURA, { read = readAura, render = renderAura, key = auraKey, option = "auraPanels" })
+ui.registerTooltipType(AURA, { read = readAura, render = renderAura, key = auraKey, option = "auraPanels" })

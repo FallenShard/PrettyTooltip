@@ -268,7 +268,7 @@ local function renderQuest(panel, tooltip, model)
     panel.width = fitWidth(panel, model, styles, paragraphs)
     panel:SetWidth(panel.width)
     local headerMin = ui.drawChrome(panel, tooltip, {
-        kind = "quest",
+        tooltipType = "quest",
         color = PARCHMENT,
         tint = PARCHMENT,
         strength = TINT_STRENGTH,
@@ -329,7 +329,7 @@ ui.questModel = function(fields)
     end
     return completeModel(fields)
 end
-ui.registerKind(QUEST, { read = readQuest, render = renderQuest, key = questKey, option = "questPanels" })
+ui.registerTooltipType(QUEST, { read = readQuest, render = renderQuest, key = questKey, option = "questPanels" })
 
 local function linkedQuest(link)
     if type(link) ~= "string" then return end

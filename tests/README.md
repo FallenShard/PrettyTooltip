@@ -23,13 +23,13 @@ A fixture is a real tooltip, captured in the game:
 3. `python tests/import_captures.py "<WoW folder>"` (the folder holding `WTF`, or the `SavedVariables/PrettyTooltip.lua` file itself). It writes `tests/fixtures/<name>.lua`; `--only` picks captures and `--rename old=new` renames them. Player and guild names are replaced unless `--keep-names` is given.
 4. `python tests/run.py`: a new fixture gets its first expected output in `tests/outputs/<name>.txt`. Read it once; it is what the test holds the code to from then on.
 
-Each fixture is run as the game would: the addon's files load in the `.toc`'s order, the item rewrite changes the data, the kind's reader turns it into a model, and the renderer draws it. The expected output holds the model and every string and texture drawn, with where it sits. When a change alters them, the run fails with a diff; if the change is meant, `--update` accepts it.
+Each fixture is run as the game would: the addon's files load in the `.toc`'s order, the item rewrite changes the data, the tooltip type's reader turns it into a model, and the renderer draws it. The expected output holds the model and every string and texture drawn, with where it sits. When a change alters them, the run fails with a diff; if the change is meant, `--update` accepts it.
 
 A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `UI/Capture.lua` and capture again.
 
 ### Settings variants
 
-`tests/variants.lua` lists, by kind of tooltip, other settings each fixture of that kind also runs with: items in lite mode, and items and spells with their optional parts turned off. A variant's expected output is `tests/outputs/<fixture>.<variant>.txt`. Lite mode leaves the game's tooltip showing, so its output is the game's tooltip, line by line, after every post-call.
+`tests/variants.lua` lists, by type of tooltip, other settings each fixture of that type also runs with: items in lite mode, and items and spells with their optional parts turned off. A variant's expected output is `tests/outputs/<fixture>.<variant>.txt`. Lite mode leaves the game's tooltip showing, so its output is the game's tooltip, line by line, after every post-call.
 
 ### The style editor's samples
 
@@ -47,7 +47,7 @@ The code falls into these kinds, by how far the tests can check it (counts from 
 
 | Kind | Share | Where | Checked how | Reach |
 |---|---|---|---|---|
-| Parsing: game data into a model | 18% | each kind's reader, the item rewrite | fixture outputs: the model, field by field | all of it, given a fixture for each case |
+| Parsing: game data into a model | 18% | each tooltip type's reader, the item rewrite | fixture outputs: the model, field by field | all of it, given a fixture for each case |
 | Conversion and formatting | 9% | stat wording and colors, money, coefficients, disenchant tables, settings and styles | unit checks and fixture outputs | all of it |
 | Rendering our panels | 25% | `fitWidth`, `render*`, `draw*`, the chrome | fixture outputs: every string and texture, with place, size, and color | all of it runs; the layout is checked under fixed text metrics, not as the game draws fonts |
 | Load-time code | 12% | data tables, frames made at file level | every test loads every file | all of it: a load error fails every test |

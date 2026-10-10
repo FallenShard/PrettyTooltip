@@ -221,7 +221,7 @@ local function renderObject(panel, tooltip, model)
     local color = look and look.color or NEUTRAL
     local icon = not model.hideIcon and (model.icon or (look and look.icon)) or nil
     local headerMin = ui.drawChrome(panel, tooltip, {
-        kind = "object",
+        tooltipType = "object",
         color = color,
         tint = look and look.color,
         strength = TINT_STRENGTH,
@@ -299,6 +299,6 @@ local function renderObject(panel, tooltip, model)
 end
 
 ui.objectModel = completeModel
-ui.registerKind(OBJECT, {
+ui.registerTooltipType(OBJECT, {
     read = readObject, render = renderObject, key = objectKey, option = "objectPanels",
 })

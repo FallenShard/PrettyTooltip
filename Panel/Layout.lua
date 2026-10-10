@@ -1391,14 +1391,14 @@ end
 -- Returns the header height the icon and badge need.
 local function drawChrome(panel, tooltip, style)
     applyBackdrop(panel)
-    -- Panels are shared across kinds; the kind that wants a watermark shows it.
+    -- Panels are shared across tooltip types; the one that wants a watermark shows it.
     if panel.watermark then panel.watermark:Hide() end
     local color = style.color
     panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
     local tinted = style.tint and ns.option("qualityTint")
     local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
-    local suffix = ns.KIND_SUFFIX[style.kind] or ""
+    local suffix = ns.TYPE_SUFFIX[style.tooltipType] or ""
     local body = ns.option("backdropAlpha" .. suffix) or 1
     local glow = ns.option("glowAlpha" .. suffix) or 1
     local footer = ns.option("footerAlpha" .. suffix) or 1
@@ -1424,9 +1424,9 @@ local function drawChrome(panel, tooltip, style)
     local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
     panel.header:SetGradient("VERTICAL",
         CreateColor(color[1] * .12, color[2] * .12, color[3] * .12,
-            ns.headerAlpha(style.kind, "Bottom") or headerAlpha),
+            ns.headerAlpha(style.tooltipType, "Bottom") or headerAlpha),
         CreateColor(color[1] * .38, color[2] * .38, color[3] * .38,
-            ns.headerAlpha(style.kind, "Top") or headerAlpha))
+            ns.headerAlpha(style.tooltipType, "Top") or headerAlpha))
     for index, edge in ipairs(panel.edges) do
         local edgeStrength = index == 1 and .8 or .36
         edge:SetVertexColor(color[1] * edgeStrength, color[2] * edgeStrength,
@@ -1667,7 +1667,7 @@ local function render(panel, tooltip, model)
     clearPool(panel)
     local styles = {}
     for _, element in ipairs(ns.ELEMENTS) do
-        if not element.kind or element.kind == "shared" then
+        if not element.tooltipType or element.tooltipType == "shared" then
             styles[element.key] = styleOf(element.key)
         end
     end
@@ -1682,7 +1682,7 @@ local function render(panel, tooltip, model)
     end
     local accent = model.quest and QUEST_GOLD or quality
     local headerMin = drawChrome(panel, tooltip, {
-        kind = "item",
+        tooltipType = "item",
         color = accent,
         tint = (model.quest or model.quality >= 2) and accent or nil,
         icon = model.icon,
@@ -1887,10 +1887,10 @@ end
 
 -- Panels drawn from another addon's lines have no data type; their lines
 -- last until the tooltip is cleared.
-local function showsKind(tooltip, panel)
-    if not panel.kind then return false end
+local function showsDataType(tooltip, panel)
+    if not panel.dataType then return false end
     if panel.data and panel.data.fromLines then return true end
-    return tooltip:IsTooltipType(panel.kind)
+    return tooltip:IsTooltipType(panel.dataType)
 end
 
 local function releaseNative(tooltip, panel)
@@ -1898,7 +1898,7 @@ local function releaseNative(tooltip, panel)
     panel.nativeSize, panel.fittedWidth = nil, nil
     -- After a hide or a switch to other content the game has already reset
     -- the size, and the tooltip's new owner may have set its own padding.
-    if base and tooltip:IsShown() and showsKind(tooltip, panel) then
+    if base and tooltip:IsShown() and showsDataType(tooltip, panel) then
         tooltip:SetPadding(base.right, base.bottom, base.left, base.top)
         tooltip:Show()
     end
@@ -1926,15 +1926,15 @@ end
 
 -- Each tooltip data type the panel draws: read(tooltip, data) -> model,
 -- render(panel, tooltip, model), key(tooltip, data) naming what is shown,
--- option, the setting that turns the kind on, and lite, a setting that keeps
+-- option, the setting that turns the tooltip type on, and lite, a setting that keeps
 -- the game's tooltip with its stats shortened and colored.
-local KINDS = {}
-KINDS[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels", lite = "itemLite" }
+local TooltipTypes = {}
+TooltipTypes[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels", lite = "itemLite" }
 
 local function showsOriginal(panel)
-    local kind = KINDS[panel.kind]
-    return ns.originalKeyDown() or not (kind and ns.option(kind.option))
-        or (kind.lite and ns.option(kind.lite))
+    local tooltipType = TooltipTypes[panel.dataType]
+    return ns.originalKeyDown() or not (tooltipType and ns.option(tooltipType.option))
+        or (tooltipType.lite and ns.option(tooltipType.lite))
 end
 
 -- What the tooltip shows, as one string; nil when a line cannot be read.
@@ -1967,21 +1967,21 @@ end
 
 local function update(tooltip, data)
     local panel = getPanel(tooltip)
-    local kind = KINDS[panel.kind]
-    if showsOriginal(panel) or not kind then restoreNative(tooltip); return end
-    local ok, model = pcall(kind.read, tooltip, data)
+    local tooltipType = TooltipTypes[panel.dataType]
+    if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
+    local ok, model = pcall(tooltipType.read, tooltip, data)
     if not ok or not model then restoreNative(tooltip); return end
     if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
-    local rendered = pcall(kind.render, panel, tooltip, model)
+    local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
     tally("refit from render")
     refitNative(tooltip, panel)
     panel.data = data
-    local key = kind.key(tooltip, data)
+    local key = tooltipType.key(tooltip, data)
     if key ~= panel.key then panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil end
     panel.key = key
     panel.lineCount = tooltip:NumLines()
-    panel.fingerprint = not kind.alwaysRedraw and fingerprint(tooltip, data) or nil
+    panel.fingerprint = not tooltipType.alwaysRedraw and fingerprint(tooltip, data) or nil
     tooltip:SetAlpha(0)
 end
 update = probe("update", update)
@@ -2007,9 +2007,9 @@ local function onTooltipData(dataType, tooltip, data)
     -- The editor reads this one itself.
     if tooltip.prettyTooltipScanner then return end
     local panel = getPanel(tooltip)
-    local previousKey, previousKind = panel.key, panel.kind
-    local key = KINDS[dataType].key(tooltip, data)
-    panel.kind = dataType
+    local previousKey, previousDataType = panel.key, panel.dataType
+    local key = TooltipTypes[dataType].key(tooltip, data)
+    panel.dataType = dataType
     panel.data = data
     panel.refreshToken = (panel.refreshToken or 0) + 1
     local token = panel.refreshToken
@@ -2066,7 +2066,7 @@ local function onTooltipData(dataType, tooltip, data)
             self.elapsed = 0
             if tooltip:IsShown() and self.data and tooltip:NumLines() ~= self.lineCount then
                 C_Timer.After(0, function()
-                    if tooltip:IsShown() and showsKind(tooltip, self)
+                    if tooltip:IsShown() and showsDataType(tooltip, self)
                         and self.data and tooltip:NumLines() ~= self.lineCount then
                         update(tooltip, self.data)
                     end
@@ -2080,7 +2080,7 @@ local function onTooltipData(dataType, tooltip, data)
     end
     -- The first render shows the new item promptly. On refresh, retain the
     -- complete old panel until other addons have appended their rows.
-    if not panel:IsShown() or dataType ~= previousKind or (key and key ~= previousKey) then
+    if not panel:IsShown() or dataType ~= previousDataType or (key and key ~= previousKey) then
         update(tooltip, data)
     else
         if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
@@ -2090,7 +2090,7 @@ local function onTooltipData(dataType, tooltip, data)
     end
     C_Timer.After(0, function()
         if panel.refreshToken == token and tooltip:IsShown()
-            and showsKind(tooltip, panel) then
+            and showsDataType(tooltip, panel) then
             -- The game re-sets shown tooltips often, comparisons most; a panel
             -- already showing the same text needs no new render.
             if panel:IsShown() and panel.fingerprint and panel.fingerprint == fingerprint(tooltip, data) then
@@ -2103,10 +2103,10 @@ local function onTooltipData(dataType, tooltip, data)
 end
 onTooltipData = probe("tooltip data", onTooltipData)
 
-local function registerKind(dataType, kind)
-    kind.read = probe("read " .. dataType, kind.read)
-    kind.render = probe("render " .. dataType, kind.render)
-    KINDS[dataType] = kind
+local function registerTooltipType(dataType, tooltipType)
+    tooltipType.read = probe("read " .. dataType, tooltipType.read)
+    tooltipType.render = probe("render " .. dataType, tooltipType.render)
+    TooltipTypes[dataType] = tooltipType
     TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip, data)
         onTooltipData(dataType, tooltip, data)
     end)
@@ -2121,7 +2121,7 @@ modifier:RegisterEvent("MODIFIER_STATE_CHANGED")
 modifier:SetScript("OnEvent", function(_, _, key)
     if not ns.isOriginalKey(key) then return end
     for tooltip, panel in pairs(panels) do
-        if tooltip:IsShown() and showsKind(tooltip, panel) then
+        if tooltip:IsShown() and showsDataType(tooltip, panel) then
             if showsOriginal(panel) then
                 restoreNative(tooltip)
             elseif panel.data then
@@ -2141,7 +2141,7 @@ local function renderPreview(anchor, model, dataType)
         anchor.prettyTooltipPreview = panel
     end
     panel.hits = {}
-    KINDS[dataType or ITEM].render(panel, anchor, model)
+    TooltipTypes[dataType or ITEM].render(panel, anchor, model)
     return panel
 end
 
@@ -2160,8 +2160,8 @@ local function previewByID(anchor, dataType, id)
     scanner:SetOwner(UIParent, "ANCHOR_NONE")
     if dataType == ITEM then scanner:SetItemByID(id) else scanner:SetSpellByID(id) end
     local data = scanner:GetTooltipData()
-    local kind = KINDS[dataType]
-    local ok, model = pcall(kind.read, scanner, data)
+    local tooltipType = TooltipTypes[dataType]
+    local ok, model = pcall(tooltipType.read, scanner, data)
     scanner:Hide()
     if not (ok and model) then return end
     return renderPreview(anchor, model, dataType)
@@ -2227,9 +2227,10 @@ function ns.perfCapture(seconds)
     end)
 end
 
+-- Each tooltip type's reader and renderer, by the game's tooltip data type.
+ns.TooltipTypes = TooltipTypes
+
 ns.ui = {
-    -- Each kind's reader and renderer by tooltip data type, for tests/.
-    kinds = KINDS,
     renderPreview = renderPreview,
     previewByID = previewByID,
     defaultHeaderAlpha = defaultHeaderAlpha,
@@ -2259,9 +2260,9 @@ ns.ui = {
     divider = divider,
     drawChrome = drawChrome,
     finishPanel = finishPanel,
-    registerKind = registerKind,
+    registerTooltipType = registerTooltipType,
     caption = caption,
-    -- Draws a kind from a tooltip another addon filled with lines alone.
+    -- Draws a tooltip type from a tooltip another addon filled with lines alone.
     renderLines = function(tooltip, dataType, id)
         onTooltipData(dataType, tooltip, { type = dataType, id = id, lines = {}, fromLines = true })
     end,

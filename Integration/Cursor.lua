@@ -1,8 +1,8 @@
--- Follow cursor. A kind left off is never touched, so addons that place
+-- Follow cursor. A tooltip type left off is never touched, so addons that place
 -- tooltips themselves keep doing so.
 local _, ns = ...
 local TYPES = Enum and Enum.TooltipDataType
-if not (TooltipDataProcessor and TYPES and ns.TOOLTIP_KINDS) then
+if not (TooltipDataProcessor and TYPES and ns.TOOLTIP_TYPES) then
     return
 end
 
@@ -68,7 +68,7 @@ if GameTooltip.FadeOut then
     end)
 end
 
--- Cleared before every new content, so a kind left off is not dragged along.
+-- Cleared before every new content, so a tooltip type left off is not dragged along.
 local function stop()
     follower:Hide()
     reclamp()
@@ -76,12 +76,12 @@ end
 GameTooltip:HookScript("OnTooltipCleared", stop)
 GameTooltip:HookScript("OnHide", stop)
 
-for _, kind in ipairs(ns.TOOLTIP_KINDS) do
-    for _, typeName in ipairs(kind.types) do
+for _, tooltipType in ipairs(ns.TOOLTIP_TYPES) do
+    for _, typeName in ipairs(tooltipType.types) do
         local dataType = TYPES[typeName]
         if dataType then
             TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip)
-                if tooltip == GameTooltip and defaultAnchored and ns.option(kind.cursor) then
+                if tooltip == GameTooltip and defaultAnchored and ns.option(tooltipType.cursor) then
                     place()
                     follower:Show()
                 end

@@ -57,7 +57,7 @@ local function setOption(key, value)
 end
 ns.setOption = setOption
 
--- kind: "item" (default), "spell", "object", "unit", "aura", "quest", or "shared" by all. color is where the picker starts
+-- tooltipType: "item" (default), "spell", "object", "unit", "aura", "quest", or "shared" by all. color is where the picker starts
 -- while the color is automatic.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
@@ -82,7 +82,7 @@ ns.ELEMENTS = {
     { key = "setBonuses", label = "Set bonuses", size = 12, color = { .48, .88, .48 },
         note = "Active bonuses green, inactive ones grey, unless set." },
     { key = "extras", label = "Other addons' rows", size = 11, color = { .60, .60, .63 },
-        kind = "shared" },
+        tooltipType = "shared" },
     { key = "footer", label = "Footer", size = 11, color = { .82, .78, .71 },
         note = "Durability, crafter, requirements, and sell price." },
     { key = "badge", label = "Item level badge", size = 10, color = { .9, .9, .9 } },
@@ -95,63 +95,63 @@ ns.ELEMENTS = {
     { key = "disenchant", label = "Disenchant results", size = 11, color = { .82, .78, .71 },
         note = "The Enchanting needed red while yours is too low, grey without Enchanting, unless set." },
     { key = "spellTitle", label = "Spell name", size = 17, title = true,
-        color = { .96, .92, .84 }, kind = "spell" },
+        color = { .96, .92, .84 }, tooltipType = "spell" },
     { key = "spellBadges", label = "School and rank badges", size = 10, color = { .9, .9, .9 },
-        kind = "spell", note = "Colored by school unless set." },
+        tooltipType = "spell", note = "Colored by school unless set." },
     { key = "spellValues", label = "Cost, cast, cooldown, range", size = 13,
-        color = { .96, .92, .84 }, kind = "spell",
+        color = { .96, .92, .84 }, tooltipType = "spell",
         note = "The cost takes its resource color unless set." },
     { key = "spellCaptions", label = "Strip captions", size = 9, color = { .60, .57, .52 },
-        kind = "spell" },
+        tooltipType = "spell" },
     { key = "spellDetails", label = "Requirements and details", size = 11,
-        color = { .82, .78, .71 }, kind = "spell",
+        color = { .82, .78, .71 }, tooltipType = "spell",
         note = "Unmet requirements red, time remaining orange, unless set." },
     { key = "spellText", label = "Description", size = 12, color = { .92, .87, .76 },
-        kind = "spell", note = "Numbers in the school color unless set." },
+        tooltipType = "spell", note = "Numbers in the school color unless set." },
     { key = "objectTitle", label = "Object name", size = 17, title = true,
-        color = { .96, .92, .84 }, kind = "object" },
+        color = { .96, .92, .84 }, tooltipType = "object" },
     { key = "objectKind", label = "Kind of object", size = 12, color = { .9, .9, .9 },
-        kind = "object", note = "Tinted by the skill it needs, unless set." },
+        tooltipType = "object", note = "Tinted by the skill it needs, unless set." },
     { key = "objectDetails", label = "Skill and requirements", size = 12,
-        color = { .82, .78, .71 }, kind = "object",
+        color = { .82, .78, .71 }, tooltipType = "object",
         note = "The skill in its skill-up color, unmet requirements red, unless set." },
     { key = "objectQuests", label = "Quest lines", size = 12, color = { .90, .85, .74 },
-        kind = "object", note = "Quest names gold, finished objectives green, unless set." },
+        tooltipType = "object", note = "Quest names gold, finished objectives green, unless set." },
     { key = "objectPrices", label = "Prices", size = 11, color = { .88, .78, .60 },
-        kind = "object", note = "The yielded item's sell price, and its auction price with Auctionator." },
+        tooltipType = "object", note = "The yielded item's sell price, and its auction price with Auctionator." },
     { key = "unitName", label = "Name", size = 17, title = true, color = { 1, 1, 1 },
-        kind = "unit", note = "Class color for players, reaction color for NPCs, unless set." },
-    { key = "unitGuild", label = "Guild or role", size = 12, color = { .9, .9, .9 }, kind = "unit" },
+        tooltipType = "unit", note = "Class color for players, reaction color for NPCs, unless set." },
+    { key = "unitGuild", label = "Guild or role", size = 12, color = { .9, .9, .9 }, tooltipType = "unit" },
     { key = "unitInfo", label = "Level, race, and class", size = 12, color = { .82, .78, .71 },
-        kind = "unit", note = "The level in its difficulty color, unless set." },
-    { key = "unitBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, kind = "unit",
+        tooltipType = "unit", note = "The level in its difficulty color, unless set." },
+    { key = "unitBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, tooltipType = "unit",
         note = "Elite, rare, faction, PvP, AFK, and dead." },
-    { key = "unitHealth", label = "Health", size = 11, color = { .82, .78, .71 }, kind = "unit" },
+    { key = "unitHealth", label = "Health", size = 11, color = { .82, .78, .71 }, tooltipType = "unit" },
     { key = "unitDetails", label = "Target and owner", size = 11, color = { .82, .78, .71 },
-        kind = "unit" },
+        tooltipType = "unit" },
     { key = "unitQuests", label = "Quest lines", size = 12, color = { .90, .85, .74 },
-        kind = "unit", note = "Quest names gold, finished objectives green, unless set." },
+        tooltipType = "unit", note = "Quest names gold, finished objectives green, unless set." },
     { key = "auraName", label = "Name", size = 15, title = true, color = { .96, .92, .84 },
-        kind = "aura" },
-    { key = "auraBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, kind = "aura",
+        tooltipType = "aura" },
+    { key = "auraBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, tooltipType = "aura",
         note = "Buff or debuff, dispel type in the game's colors, and stacks." },
     { key = "auraText", label = "Description", size = 12, color = { .92, .87, .76 },
-        kind = "aura", note = "Numbers in the aura's color unless set." },
+        tooltipType = "aura", note = "Numbers in the aura's color unless set." },
     { key = "auraTime", label = "Time and caster", size = 11, color = { .88, .78, .60 },
-        kind = "aura" },
+        tooltipType = "aura" },
     { key = "questTitle", label = "Quest name", size = 16, title = true, color = { .96, .92, .84 },
-        kind = "quest" },
-    { key = "questInfo", label = "Dungeon", size = 12, color = { .82, .78, .71 }, kind = "quest" },
-    { key = "questBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, kind = "quest",
+        tooltipType = "quest" },
+    { key = "questInfo", label = "Dungeon", size = 12, color = { .82, .78, .71 }, tooltipType = "quest" },
+    { key = "questBadges", label = "Badges", size = 10, color = { .9, .9, .9 }, tooltipType = "quest",
         note = "The level in its difficulty color, tags, and where the quest stands." },
-    { key = "questText", label = "Description", size = 12, color = { .86, .74, .45 }, kind = "quest" },
+    { key = "questText", label = "Description", size = 12, color = { .86, .74, .45 }, tooltipType = "quest" },
     { key = "questCaption", label = "Section caption", size = 9, color = { .60, .57, .52 },
-        kind = "quest", caps = true },
+        tooltipType = "quest", caps = true },
     { key = "questObjectives", label = "Objectives", size = 12, color = { .90, .85, .74 },
-        kind = "quest", note = "Finished objectives green unless set." },
+        tooltipType = "quest", note = "Finished objectives green unless set." },
 }
 -- types are Enum.TooltipDataType names; ones missing on this client are skipped.
-ns.TOOLTIP_KINDS = {
+ns.TOOLTIP_TYPES = {
     { label = "Items", restyle = "itemPanels", cursor = "cursorItems", types = { "Item" } },
     { label = "Spells", restyle = "spellPanels", cursor = "cursorSpells", types = { "Spell" } },
     { label = "Players and NPCs", restyle = "unitPanels", cursor = "cursorUnits",
@@ -242,13 +242,13 @@ function ns.resetElement(key)
     changed()
 end
 
--- Settings kept per kind of panel are named with these, as iconItems.
-ns.KIND_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests" }
+-- Settings kept per type of tooltip are named with these, as iconItems.
+ns.TYPE_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests" }
 
--- The header band's opacity at an edge ("Top" or "Bottom") for a kind; a kind
+-- The header band's opacity at an edge ("Top" or "Bottom") for a tooltip type; one
 -- without its own follows the setting shared by all, and nil means the default.
-function ns.headerAlpha(kind, edge)
-    local suffix = ns.KIND_SUFFIX[kind]
+function ns.headerAlpha(tooltipType, edge)
+    local suffix = ns.TYPE_SUFFIX[tooltipType]
     local own = suffix and ns.option("header" .. edge .. "Alpha" .. suffix)
     if own ~= nil then return own end
     return ns.option("header" .. edge .. "Alpha")
@@ -259,7 +259,7 @@ function ns.resetStyles()
     PrettyTooltipDB.styles = nil
     PrettyTooltipDB.bodyFont, PrettyTooltipDB.titleFont, PrettyTooltipDB.outline = nil, nil, nil
     PrettyTooltipDB.headerTopAlpha, PrettyTooltipDB.headerBottomAlpha = nil, nil
-    for _, suffix in pairs(ns.KIND_SUFFIX) do
+    for _, suffix in pairs(ns.TYPE_SUFFIX) do
         PrettyTooltipDB["headerTopAlpha" .. suffix] = nil
         PrettyTooltipDB["headerBottomAlpha" .. suffix] = nil
         PrettyTooltipDB["backdropAlpha" .. suffix] = nil
@@ -342,7 +342,7 @@ editorButton:SetScript("OnClick", function()
     if ns.openEditor then ns.openEditor() end
 end)
 
--- Two columns: the kinds of tooltip on the left, the other settings on the right.
+-- Two columns: the types of tooltip on the left, the other settings on the right.
 local COLUMNS_TOP = -100
 local leftColumn = { x = 16, y = COLUMNS_TOP }
 local rightColumn = { x = 440, y = COLUMNS_TOP }
@@ -369,7 +369,7 @@ for index, heading in ipairs({ "Restyle", "Follow cursor" }) do
 end
 leftColumn.y = leftColumn.y - 16
 
-local function kindBox(x, key, title, text)
+local function typeBox(x, key, title, text)
     local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
     button:SetSize(24, 24)
     button:SetPoint("TOPLEFT", x, leftColumn.y + 4)
@@ -385,15 +385,15 @@ local function kindBox(x, key, title, text)
     explain(button, title, text)
 end
 
-for _, kind in ipairs(ns.TOOLTIP_KINDS) do
+for _, tooltipType in ipairs(ns.TOOLTIP_TYPES) do
     local label = page:CreateFontString(nil, "ARTWORK",
-        kind.restyle and "GameFontHighlight" or "GameFontDisable")
+        tooltipType.restyle and "GameFontHighlight" or "GameFontDisable")
     label:SetPoint("TOPLEFT", leftColumn.x + 8, leftColumn.y - 1)
-    label:SetText(kind.label)
-    kindBox(leftColumn.x + 254, kind.restyle, "Restyle " .. kind.label:lower(), kind.restyle
+    label:SetText(tooltipType.label)
+    typeBox(leftColumn.x + 254, tooltipType.restyle, "Restyle " .. tooltipType.label:lower(), tooltipType.restyle
         and "Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."
         or "Not restyled yet; this kind keeps the game's own tooltip.")
-    kindBox(leftColumn.x + 354, kind.cursor, "Follow cursor", "Shows this kind's tooltip at the cursor "
+    typeBox(leftColumn.x + 354, tooltipType.cursor, "Follow cursor", "Shows this kind's tooltip at the cursor "
         .. "when the game would put it in its default corner; bags and other panels keep theirs. Off, "
         .. "its position is left to the game and other addons.")
     leftColumn.y = leftColumn.y - 22
@@ -492,7 +492,7 @@ end
 
 SLASH_PRETTYTOOLTIP1 = "/prettytooltip"
 SLASH_PRETTYTOOLTIP2 = "/ptip"
--- Prints the shown tooltip's raw data, to see what a kind of tooltip carries.
+-- Prints the shown tooltip's raw data, to see what a type of tooltip carries.
 local function dumpTooltip()
     -- A clicked chat link opens in its own tooltip.
     local tooltip = GameTooltip:IsShown() and GameTooltip or ItemRefTooltip

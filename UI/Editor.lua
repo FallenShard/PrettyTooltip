@@ -366,23 +366,23 @@ local UNIT_SAMPLES = {
     },
 }
 
-local KINDS = {
+local TOOLTIP_TYPES = {
     item = { label = "Items", dataType = Enum.TooltipDataType.Item, samples = ITEM_SAMPLES,
         first = "title", noun = "item" },
     spell = { label = "Spells", dataType = Enum.TooltipDataType.Spell, samples = SPELL_SAMPLES,
         first = "spellTitle", noun = "spell" },
 }
-local KIND_ORDER = { "item", "spell" }
+local TYPE_ORDER = { "item", "spell" }
 -- Objects have no ID to look up.
 if Enum.TooltipDataType.Object and ui.objectModel then
-    KINDS.object = { label = "Objects", dataType = Enum.TooltipDataType.Object,
+    TOOLTIP_TYPES.object = { label = "Objects", dataType = Enum.TooltipDataType.Object,
         samples = OBJECT_SAMPLES, first = "objectTitle", noun = "object", noLookup = true }
-    KIND_ORDER[#KIND_ORDER + 1] = "object"
+    TYPE_ORDER[#TYPE_ORDER + 1] = "object"
 end
 if Enum.TooltipDataType.Unit and ui.unitModel then
-    KINDS.unit = { label = "Units", dataType = Enum.TooltipDataType.Unit,
+    TOOLTIP_TYPES.unit = { label = "Units", dataType = Enum.TooltipDataType.Unit,
         samples = UNIT_SAMPLES, first = "unitName", noun = "unit", noLookup = true }
-    KIND_ORDER[#KIND_ORDER + 1] = "unit"
+    TYPE_ORDER[#TYPE_ORDER + 1] = "unit"
 end
 local AURA_SAMPLES = {
     {
@@ -418,9 +418,9 @@ local AURA_SAMPLES = {
     },
 }
 if Enum.TooltipDataType.UnitAura and ui.auraModel then
-    KINDS.aura = { label = "Buffs", dataType = Enum.TooltipDataType.UnitAura,
+    TOOLTIP_TYPES.aura = { label = "Buffs", dataType = Enum.TooltipDataType.UnitAura,
         samples = AURA_SAMPLES, first = "auraName", noun = "aura", noLookup = true }
-    KIND_ORDER[#KIND_ORDER + 1] = "aura"
+    TYPE_ORDER[#TYPE_ORDER + 1] = "aura"
 end
 local QUEST_SAMPLES = {
     {
@@ -459,14 +459,14 @@ local QUEST_SAMPLES = {
     },
 }
 if Enum.TooltipDataType.Quest and ui.questModel then
-    KINDS.quest = { label = "Quests", dataType = Enum.TooltipDataType.Quest,
+    TOOLTIP_TYPES.quest = { label = "Quests", dataType = Enum.TooltipDataType.Quest,
         samples = QUEST_SAMPLES, first = "questTitle", noun = "quest", noLookup = true }
-    KIND_ORDER[#KIND_ORDER + 1] = "quest"
+    TYPE_ORDER[#TYPE_ORDER + 1] = "quest"
 end
--- For tests/: every kind's samples, in the editor's order.
-ns.editorSamples = { kinds = KINDS, order = KIND_ORDER }
+-- For tests/: every tooltip type's samples, in the editor's order.
+ns.editorSamples = { tooltipTypes = TOOLTIP_TYPES, order = TYPE_ORDER }
 local MAX_SAMPLES = 0
-for _, kind in pairs(KINDS) do MAX_SAMPLES = math.max(MAX_SAMPLES, #kind.samples) end
+for _, tooltipType in pairs(TOOLTIP_TYPES) do MAX_SAMPLES = math.max(MAX_SAMPLES, #tooltipType.samples) end
 
 -- Building blocks -----------------------------------------------------------
 
@@ -559,21 +559,21 @@ subheading:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -4)
 local close = CreateFrame("Button", nil, editor, "UIPanelCloseButton")
 close:SetPoint("TOPRIGHT", -2, -2)
 
-local state = { kind = "item", sample = 1, selected = "title", saved = {} }
+local state = { tooltipType = "item", sample = 1, selected = "title", saved = {} }
 local controls = {}
 local refresh, refreshLookup
 
 local function samples()
-    return KINDS[state.kind].samples
+    return TOOLTIP_TYPES[state.tooltipType].samples
 end
 
-local function switchKind(kind)
-    if kind == state.kind then return end
-    state.saved[state.kind] = { sample = state.sample, selected = state.selected, lookup = state.lookup }
-    local saved = state.saved[kind] or {}
-    state.kind = kind
+local function switchTooltipType(tooltipType)
+    if tooltipType == state.tooltipType then return end
+    state.saved[state.tooltipType] = { sample = state.sample, selected = state.selected, lookup = state.lookup }
+    local saved = state.saved[tooltipType] or {}
+    state.tooltipType = tooltipType
     state.sample = saved.sample or 1
-    state.selected = saved.selected or KINDS[kind].first
+    state.selected = saved.selected or TOOLTIP_TYPES[tooltipType].first
     state.lookup = saved.lookup
     refresh()
 end
@@ -590,11 +590,11 @@ outline(host, LINE, .8)
 local anchor = CreateFrame("Frame", nil, host)
 anchor:SetSize(1, 1)
 anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN)
-local kindTabs = {}
-for index, kind in ipairs(KIND_ORDER) do
-    local tab = flatButton(editor, KINDS[kind].label, 64, function() switchKind(kind) end)
+local typeTabs = {}
+for index, tooltipType in ipairs(TYPE_ORDER) do
+    local tab = flatButton(editor, TOOLTIP_TYPES[tooltipType].label, 64, function() switchTooltipType(tooltipType) end)
     tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 68, 34)
-    kindTabs[kind] = tab
+    typeTabs[tooltipType] = tab
 end
 local sampleTabs = {}
 for index = 1, MAX_SAMPLES do
@@ -714,8 +714,8 @@ overlay:SetScript("OnUpdate", function(self)
 end)
 
 -- Uncached items are requested; GET_ITEM_INFO_RECEIVED redraws.
-local function lookupProblem(kind, id)
-    if kind.dataType ~= Enum.TooltipDataType.Item or not C_Item then return end
+local function lookupProblem(tooltipType, id)
+    if tooltipType.dataType ~= Enum.TooltipDataType.Item or not C_Item then return end
     if C_Item.DoesItemExistByID and C_Item.DoesItemExistByID(id) == false then
         return "There is no item with ID " .. id .. "."
     end
@@ -726,17 +726,17 @@ local function lookupProblem(kind, id)
 end
 
 local function drawSample()
-    local kind = KINDS[state.kind]
-    local problem = state.lookup and lookupProblem(kind, state.lookup)
+    local tooltipType = TOOLTIP_TYPES[state.tooltipType]
+    local problem = state.lookup and lookupProblem(tooltipType, state.lookup)
     if not problem then
         local ok, panel = pcall(function()
-            if state.lookup then return ui.previewByID(anchor, kind.dataType, state.lookup) end
-            return ui.renderPreview(anchor, kind.samples[state.sample].build(), kind.dataType)
+            if state.lookup then return ui.previewByID(anchor, tooltipType.dataType, state.lookup) end
+            return ui.renderPreview(anchor, tooltipType.samples[state.sample].build(), tooltipType.dataType)
         end)
         if not ok then
             problem = "The sample failed to draw: " .. tostring(panel)
         elseif not panel then
-            problem = "Nothing to show for " .. kind.noun .. " ID " .. state.lookup .. "."
+            problem = "Nothing to show for " .. tooltipType.noun .. " ID " .. state.lookup .. "."
         end
     end
     failure:SetText(problem or "")
@@ -746,7 +746,7 @@ local function drawSample()
         overlay:SetFrameLevel(shown:GetFrameLevel() + 20)
         scrollBar:SetFrameLevel(overlay:GetFrameLevel() + 5)
     end
-    local showing = state.kind .. ":" .. state.sample .. ":" .. tostring(state.lookup)
+    local showing = state.tooltipType .. ":" .. state.sample .. ":" .. tostring(state.lookup)
     local offset = showing == scrolledFor and scrollBar:GetValue() or 0
     scrolledFor = showing
     local content = (shown and shown:IsShown()) and shown:GetHeight() + 2 * PREVIEW_MARGIN or 0
@@ -1057,7 +1057,7 @@ local function checkbox(label, key, description, isAvailable)
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function() GameTooltip:Hide() end)
-    -- A key can depend on the kind shown.
+    -- A key can depend on the tooltip type shown.
     local function keyOf() return type(key) == "function" and key() or key end
     button:SetScript("OnClick", function(self)
         ns.setOption(keyOf(), self:GetChecked() and true or false)
@@ -1076,13 +1076,13 @@ end
 -- Looking up by ID -------------------------------------------------------------
 
 local function applyLookup(entry)
-    local kind = state.kind
+    local tooltipType = state.tooltipType
     local id = entry:match("^%s*(%d+)%s*$")
-    for _, candidate in ipairs(KIND_ORDER) do
-        local linked = entry:match(KINDS[candidate].noun .. ":(%d+)")
-        if linked then id, kind = linked, candidate break end
+    for _, candidate in ipairs(TYPE_ORDER) do
+        local linked = entry:match(TOOLTIP_TYPES[candidate].noun .. ":(%d+)")
+        if linked then id, tooltipType = linked, candidate break end
     end
-    if kind ~= state.kind then switchKind(kind) end
+    if tooltipType ~= state.tooltipType then switchTooltipType(tooltipType) end
     state.lookup = id and tonumber(id) or nil
     refresh()
 end
@@ -1128,10 +1128,10 @@ if ChatEdit_InsertLink then
 end
 
 refreshLookup = function()
-    local hidden = KINDS[state.kind].noLookup == true
+    local hidden = TOOLTIP_TYPES[state.tooltipType].noLookup == true
     lookupLabel:SetShown(not hidden)
     lookupBox:SetShown(not hidden)
-    lookupLabel:SetText(KINDS[state.kind].label:sub(1, -2) .. " ID")
+    lookupLabel:SetText(TOOLTIP_TYPES[state.tooltipType].label:sub(1, -2) .. " ID")
     if not lookupBox:HasFocus() then
         lookupBox:SetText(state.lookup and tostring(state.lookup) or "")
         lookupPlaceholder:SetShown(state.lookup == nil)
@@ -1163,8 +1163,8 @@ section("Selection Settings")
 local partPicker = dropdown(CONTROLS_WIDTH, function()
     local items = {}
     for _, element in ipairs(ns.ELEMENTS) do
-        local kind = element.kind or "item"
-        if kind == state.kind or kind == "shared" then
+        local tooltipType = element.tooltipType or "item"
+        if tooltipType == state.tooltipType or tooltipType == "shared" then
             items[#items + 1] = { value = element.key, text = element.label }
         end
     end
@@ -1254,9 +1254,9 @@ end, function(value)
 end))
 
 section("Layout and color")
-local function showingItems() return state.kind == "item" end
+local function showingItems() return state.tooltipType == "item" end
 local TOGGLES = {
-    { "Show icon", function() return "icon" .. ns.KIND_SUFFIX[state.kind] end,
+    { "Show icon", function() return "icon" .. ns.TYPE_SUFFIX[state.tooltipType] end,
         "The icon or portrait in the header, for the kind of tooltip shown." },
     { "Icon on the right", "iconRight",
         "Moves the item or spell icon, and the item level badge under it, to the right of the name." },
@@ -1288,11 +1288,11 @@ y = y - 4
 
 -- A default value is saved as no setting, so it keeps following the backdrop.
 local function bandOpacity(edge)
-    local function key() return "header" .. edge .. "Alpha" .. ns.KIND_SUFFIX[state.kind] end
-    -- What the kind shows with no setting of its own.
+    local function key() return "header" .. edge .. "Alpha" .. ns.TYPE_SUFFIX[state.tooltipType] end
+    -- What the tooltip type shows with no setting of its own.
     local function fallback() return ns.option("header" .. edge .. "Alpha") or ui.defaultHeaderAlpha() end
     return slider(FIELD_WIDTH, function()
-        return math.floor((ns.headerAlpha(state.kind, edge) or ui.defaultHeaderAlpha()) * 100 + .5)
+        return math.floor((ns.headerAlpha(state.tooltipType, edge) or ui.defaultHeaderAlpha()) * 100 + .5)
     end, function(percent)
         local alpha = percent / 100
         ns.setOption(key(), math.abs(alpha - fallback()) > .001 and alpha or nil)
@@ -1302,17 +1302,17 @@ row("Band top", bandOpacity("Top"))
 row("Band bottom", bandOpacity("Bottom"))
 
 -- Full opacity is saved as no setting.
-local function kindOpacity(name)
-    local function key() return name .. ns.KIND_SUFFIX[state.kind] end
+local function typeOpacity(name)
+    local function key() return name .. ns.TYPE_SUFFIX[state.tooltipType] end
     return slider(FIELD_WIDTH, function()
         return math.floor((ns.option(key()) or 1) * 100 + .5)
     end, function(percent)
         ns.setOption(key(), percent < 100 and percent / 100 or nil)
     end, 0, 100, "%")
 end
-row("Backdrop", kindOpacity("backdropAlpha"))
-row("Glow", kindOpacity("glowAlpha"))
-row("Footer", kindOpacity("footerAlpha"))
+row("Backdrop", typeOpacity("backdropAlpha"))
+row("Glow", typeOpacity("glowAlpha"))
+row("Footer", typeOpacity("footerAlpha"))
 
 local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()
@@ -1329,7 +1329,7 @@ moreOptions:SetPoint("BOTTOMRIGHT", editor, "BOTTOMRIGHT", -18, 16)
 
 refresh = function()
     drawSample()
-    for kind, tab in pairs(kindTabs) do tab:SetSelected(kind == state.kind) end
+    for tooltipType, tab in pairs(typeTabs) do tab:SetSelected(tooltipType == state.tooltipType) end
     for index, tab in ipairs(sampleTabs) do
         local sample = samples()[index]
         tab:SetShown(sample ~= nil)
@@ -1349,7 +1349,7 @@ editor:SetScript("OnShow", function() refresh() end)
 editor:SetScript("OnHide", closeMenu)
 editor:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 editor:SetScript("OnEvent", function(_, _, itemID)
-    if editor:IsShown() and state.kind == "item" and itemID == state.lookup then refresh() end
+    if editor:IsShown() and state.tooltipType == "item" and itemID == state.lookup then refresh() end
 end)
 
 function ns.openEditor()

@@ -115,21 +115,23 @@ def compare(name: str, text: str, notes, update: bool, show_notes: bool) -> bool
 
 
 def variant_names(load) -> dict[str, list[str]]:
-    """The variants in tests/variants.lua, by kind of tooltip."""
+    """The variants in tests/variants.lua, by type of tooltip."""
     path = TESTS / "variants.lua"
     if not path.exists():
         return {}
     variants = load(path.read_text(encoding="utf-8"), "variants.lua")
-    return {kind: sorted(byName.keys()) for kind, byName in variants.items()}
+    return {tooltip_type: sorted(byName.keys()) for tooltip_type, byName in variants.items()}
 
 
 def run_fixture(path: Path, files, args) -> list[bool]:
-    """The fixture with the default settings, then with each variant its kind
-    has. Each run gets a fresh runtime, as a run changes the fixture's data."""
+    """The fixture with the default settings, then with each variant its type
+    of tooltip has. Each run gets a fresh runtime, as a run changes the fixture's data."""
     results = []
     _, load, _ = new_runtime()
-    kind = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}").kind
-    for variant in [None] + variant_names(load).get(kind, []):
+    fixture = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}")
+    # Fixtures imported before the rename name it kind.
+    tooltip_type = fixture.tooltipType or fixture.kind
+    for variant in [None] + variant_names(load).get(tooltip_type, []):
         name = path.stem if variant is None else f"{path.stem}.{variant}"
         lua, load, harness = new_runtime()
         fixture = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}")
@@ -140,7 +142,7 @@ def run_fixture(path: Path, files, args) -> list[bool]:
             continue
         options = {"profile": args.profile and variant is None}
         if variant is not None:
-            chosen = load((TESTS / "variants.lua").read_text(encoding="utf-8"), "variants.lua")[kind][variant]
+            chosen = load((TESTS / "variants.lua").read_text(encoding="utf-8"), "variants.lua")[tooltip_type][variant]
             options["settings"], options["native"] = chosen.settings, chosen.native
         try:
             text, notes, profile_text = harness["main"].fixture(
@@ -281,7 +283,7 @@ def main() -> None:
         if args.pattern in path.stem:
             results += run_fixture(path, files, args)
     if not args.pattern or "samples" in args.pattern or any(
-            args.pattern in kind for kind in ("item", "spell", "object", "unit", "aura", "quest")):
+            args.pattern in name for name in ("item", "spell", "object", "unit", "aura", "quest")):
         results += run_samples(files, args)
     passed = results.count(True)
     print(f"\n{passed} passed, {len(results) - passed} failed")

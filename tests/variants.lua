@@ -1,4 +1,4 @@
--- Other settings each fixture of a kind also runs with, beside the defaults.
+-- Other settings each fixture of a type of tooltip also runs with, beside the defaults.
 -- A variant's output is compared against tests/outputs/<fixture>.<variant>.txt.
 -- settings: saved settings to run with. native: describe the game's own
 -- tooltip instead of the panel, for settings that leave the game's showing.

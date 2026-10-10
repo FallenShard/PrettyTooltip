@@ -38,6 +38,10 @@ return function(capture, keepNames)
             end
         end
     end
+    -- Captured before the rename, the type of tooltip was named kind.
+    if capture.kind ~= nil and capture.tooltipType == nil then
+        capture.tooltipType, capture.kind = capture.kind, nil
+    end
     restore(capture)
     for _, comparison in ipairs(capture.comparisons or {}) do restore(comparison) end
     if keepNames then return capture end
@@ -139,7 +143,7 @@ def main() -> None:
             header += f" on {capture.captured}"
         (FIXTURES / f"{target}.lua").write_text(f"{header}.\nreturn {serialize.lua(capture)}\n",
                                                  encoding="utf-8", newline="\n")
-        print(f"Wrote tests/fixtures/{target}.lua ({capture.kind or 'lines only'})")
+        print(f"Wrote tests/fixtures/{target}.lua ({capture.tooltipType or 'lines only'})")
         imported += 1
         if capture.enums is not None and (capture.captured or "") >= newest_time:
             newest_enums, newest_time = capture.enums, capture.captured or ""

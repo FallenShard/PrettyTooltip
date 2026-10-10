@@ -494,7 +494,7 @@ local function renderSpell(panel, tooltip, model)
     local accent = model.school and SCHOOL_COLORS[model.school] or power
     local color = accent or NEUTRAL
     local headerMin = ui.drawChrome(panel, tooltip, {
-        kind = "spell",
+        tooltipType = "spell",
         color = color,
         tint = accent,
         strength = SPELL_TINT,
@@ -544,6 +544,6 @@ end
 ui.drawPills, ui.pillsWidth = drawPills, pillsWidth
 ui.splitSentences, ui.colorNumbers = splitSentences, colorNumbers
 ui.getSpellIcon = getSpellIcon
-ui.registerKind(SPELL, {
+ui.registerTooltipType(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
 })
