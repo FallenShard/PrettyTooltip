@@ -631,6 +631,11 @@ local function readModel(tooltip, data)
             elseif trimmed:match("^[%d,]+ Armor$") then
                 add(m.armor, left, right)
                 m.armor[#m.armor].value = (trimmed:match("^([%d,]+)"):gsub(",", ""))
+            elseif trimmed:match("^Chance on hit:") and right == "" then
+                -- Rewritten proc text stays an effect, rather than a stat.
+                local text = line.prettyTooltipOriginal or trimmed
+                add(m.equipEffects, (text:gsub("^Chance on hit:%s*", "")), "")
+                m.equipEffects[#m.equipEffects].onHit = true
             elseif line.prettyTooltipOriginal or trimmed:match("^%+[%d%.]+") then
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
@@ -644,10 +649,6 @@ local function readModel(tooltip, data)
                 -- Crafter or enchant, taken into their own rows.
             elseif trimmed:match("^<.+>$") then
                 add(m.effects, left, right)
-            elseif trimmed:match("^Chance on hit:") and right == "" then
-                -- Joins the equip effects; its sword marker stands for the words.
-                add(m.equipEffects, (trimmed:gsub("^Chance on hit:%s*", "")), "")
-                m.equipEffects[#m.equipEffects].onHit = true
             elseif trimmed:match("^Equip:") and right == "" then
                 -- Unparsed equip effects join the stats; the list implies "Equip:".
                 add(m.equipEffects, (trimmed:gsub("^Equip:%s*", "")), "")
@@ -1091,6 +1092,7 @@ local function drawMarked(panel, list, y, style, color, marker)
     local width = panel.width - 2 * PAD - hang
     for _, row in ipairs(list) do
         local text = row.left
+        if row.onHit and ns.styleOnHit then text = ns.styleOnHit(text) end
         local stands = row.onHit and MARKED.onHit or row.use and MARKED.use
         if hang > 0 then
             styledAt(panel, stands and stands[1] or marker, PAD, y, hang, style, color)

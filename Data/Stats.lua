@@ -169,6 +169,15 @@ function ns.styleDamage(text)
     return "|cff" .. color .. amount .. "|r |cff" .. labelColors[color] .. school .. " Damage|r"
 end
 
+-- Proc descriptions use the same school detection and lighter number colors
+-- as spell descriptions, with the same neutral fallback.
+function ns.styleOnHit(text)
+    if not ns.option("statColors") then return text end
+    text = ns.util.uncolored(text)
+    local school = ns.Palette.detectSchool({ text })
+    return ns.util.colorNumbers(text, ns.Palette.numberCode(school))
+end
+
 local chanceRules = {
     { "^equip: improves your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },
     { "^equip: increases your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },
@@ -284,9 +293,14 @@ local function onItemTooltip(_, data)
                 local styled = false
                 for displayIndex, displayText in ipairs(displayLines) do
                     local colored = colorizeStat(displayText)
+                    local onHit = displayText:match("^Chance on hit:")
+                    if onHit then
+                        local effect = ns.styleOnHit(displayText)
+                        if effect ~= displayText then colored = effect end
+                    end
                     liteLines[displayIndex] = ns.option("statColors") and colored or displayText
                     if colored then
-                        displayLines[displayIndex] = (ns.option("statMarkers") and STAT_MARKER or "") .. colored
+                        displayLines[displayIndex] = (not onHit and ns.option("statMarkers") and STAT_MARKER or "") .. colored
                         styled = true
                     end
                 end

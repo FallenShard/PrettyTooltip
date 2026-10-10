@@ -30,6 +30,49 @@ function util.plainText(text)
     return (text:gsub("|T.-|t", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
 end
 
+-- The game's own escapes; digits inside them (color codes, icon sizes, the
+-- plural escape "|4hour:hrs;") must not be recolored.
+local ESCAPES = { "|c%x%x%x%x%x%x%x%x", "|r", "|T.-|t", "|A.-|a", "|H.-|h", "|K.-|k", "|4[^;]*;", "|n" }
+
+-- "1 |4hour:hrs;" picks its word from the number before it. Coloring that
+-- number would separate the two, so resolve the escape first: singular for 1.
+local function resolvePlurals(text)
+    return (text:gsub("(%d+)(%s*)|4([^:;]*):([^;]*);", function(number, space, one, many)
+        return number .. space .. (tonumber(number) == 1 and one or many)
+    end))
+end
+
+local function colorPlainNumbers(text, code)
+    -- A number must start a word, so "x2" is left alone; a sentence's final
+    -- period stays outside the color.
+    return (text:gsub("%f[%w](%d+%.?%d*%%?)", function(number)
+        local trailing = ""
+        if number:sub(-1) == "." then number, trailing = number:sub(1, -2), "." end
+        return "|cff" .. code .. number .. "|r" .. trailing
+    end))
+end
+
+function util.colorNumbers(text, code)
+    text = resolvePlurals(text)
+    local out, plainStart, pos = {}, 1, 1
+    while true do
+        local bar = text:find("|", pos, true)
+        if not bar then break end
+        local escapeEnd
+        for _, pattern in ipairs(ESCAPES) do
+            local _, stop = text:find("^" .. pattern, bar)
+            if stop then escapeEnd = stop break end
+        end
+        -- An escape this list does not know still protects its first character.
+        escapeEnd = escapeEnd or math.min(bar + 1, #text)
+        out[#out + 1] = colorPlainNumbers(text:sub(plainStart, bar - 1), code)
+        out[#out + 1] = text:sub(bar, escapeEnd)
+        plainStart, pos = escapeEnd + 1, escapeEnd + 1
+    end
+    out[#out + 1] = colorPlainNumbers(text:sub(plainStart), code)
+    return table.concat(out)
+end
+
 -- Values the game may hide ------------------------------------------------------
 
 -- The value, or nil when the game hides it.

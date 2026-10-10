@@ -241,7 +241,7 @@ function main.unit(testSource, testName, sources, serialize, makeWorld)
     local test = {}
     -- Loads the named addon files with a world answering from fixture's calls.
     function test.load(files, fixture)
-        local world = makeWorld(fixture or {}, {}, report)
+        local world = makeWorld(fixture or {}, fixture and fixture.enums or {}, report)
         return loadAddon(files, sources), world
     end
     function test.check(name, got, expected)

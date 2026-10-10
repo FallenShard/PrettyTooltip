@@ -8,7 +8,7 @@ if not (ui and SPELL) then
 end
 
 local util = ns.util
-local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
+local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
 local add = ui.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
@@ -32,15 +32,7 @@ local ICON_SIZE = 38
 local TEXT_INDENT = ICON_SIZE + 10
 -- Spells are tinted a little less than items; the school is only a hint.
 local SPELL_TINT = .7
--- Same hues as the school stat colors in Data/Stats.lua.
-local SCHOOL_COLORS = {
-    Arcane = { .92, .38, .84 },
-    Fire = { 1, .43, .11 },
-    Frost = { .30, .78, .97 },
-    Holy = { .98, .73, .22 },
-    Nature = { .50, .80, .28 },
-    Shadow = { .64, .31, .89 },
-}
+local SCHOOL_COLORS = ns.Palette.schools
 local POWER_COLORS = {
     Mana = { .25, .55, 1 },
     Rage = { .90, .22, .20 },
@@ -133,48 +125,7 @@ local function nativeRight(tooltip, lineIndex)
     return text or ""
 end
 
--- The game's own escapes; digits inside them (color codes, icon sizes, the
--- plural escape "|4hour:hrs;") must not be recolored.
-local ESCAPES = { "|c%x%x%x%x%x%x%x%x", "|r", "|T.-|t", "|A.-|a", "|H.-|h", "|K.-|k", "|4[^;]*;", "|n" }
-
--- "1 |4hour:hrs;" picks its word from the number before it. Coloring that
--- number would separate the two, so resolve the escape first: singular for 1.
-local function resolvePlurals(text)
-    return (text:gsub("(%d+)(%s*)|4([^:;]*):([^;]*);", function(number, space, one, many)
-        return number .. space .. (tonumber(number) == 1 and one or many)
-    end))
-end
-
-local function colorPlainNumbers(text, code)
-    -- A number must start a word, so "x2" is left alone; a sentence's final
-    -- period stays outside the color.
-    return (text:gsub("%f[%w](%d+%.?%d*%%?)", function(number)
-        local trailing = ""
-        if number:sub(-1) == "." then number, trailing = number:sub(1, -2), "." end
-        return "|cff" .. code .. number .. "|r" .. trailing
-    end))
-end
-
-local function colorNumbers(text, code)
-    text = resolvePlurals(text)
-    local out, plainStart, pos = {}, 1, 1
-    while true do
-        local bar = text:find("|", pos, true)
-        if not bar then break end
-        local escapeEnd
-        for _, pattern in ipairs(ESCAPES) do
-            local _, stop = text:find("^" .. pattern, bar)
-            if stop then escapeEnd = stop break end
-        end
-        -- An escape this list does not know still protects its first character.
-        escapeEnd = escapeEnd or math.min(bar + 1, #text)
-        out[#out + 1] = colorPlainNumbers(text:sub(plainStart, bar - 1), code)
-        out[#out + 1] = text:sub(bar, escapeEnd)
-        plainStart, pos = escapeEnd + 1, escapeEnd + 1
-    end
-    out[#out + 1] = colorPlainNumbers(text:sub(plainStart), code)
-    return table.concat(out)
-end
+local colorNumbers = util.colorNumbers
 
 local function pills(model)
     local list = {}
@@ -210,19 +161,6 @@ local function drawPills(panel, list, x, y, style)
         x = x + width + PILL_GAP
     end
     return y + height
-end
-
--- No spell API names the school. A school word anywhere in the text misfires
--- on physical abilities ("Rapid Fire"), so only "<School> damage" in the
--- description counts, then a school leading the name ("Holy Light").
-local function detectSchool(model)
-    for _, text in ipairs(model.description) do
-        for word in text:gmatch("(%a+) damage") do
-            if SCHOOL_COLORS[titleCase(word)] then return titleCase(word) end
-        end
-    end
-    local first = model.name:match("^(%a+)")
-    if first and SCHOOL_COLORS[titleCase(first)] then return titleCase(first) end
 end
 
 -- Descriptions come in the game's gold; without a readable color, a long
@@ -476,11 +414,8 @@ local function renderSpell(panel, tooltip, model)
     panel:Show()
     ui.clearPool(panel)
     if not ns.option("iconSpells") then model.icon = nil end
-    model.school = detectSchool(model)
-    local school = model.school and SCHOOL_COLORS[model.school]
-    local numberCode = school
-        and hex({ school[1] * .7 + .3, school[2] * .7 + .3, school[3] * .7 + .3 })
-        or "FFF6E4"
+    model.school = ns.Palette.detectSchool(model.description, model.name)
+    local numberCode = ns.Palette.numberCode(model.school)
     for _, part in ipairs({ model, model.nested }) do
         part.sentences = sentencesOf(part)
         part.powerRows = ns.option("spellPower") and ns.spellPowerRows
