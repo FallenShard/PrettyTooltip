@@ -249,14 +249,21 @@ local ENCHANT_VALUE, ENCHANT_LABEL = "4CE64C", "A6EBA6"
 -- Must match STAT_MARKER in PrettyTooltip.lua, minus its trailing spaces.
 local STAT_MARKER = "|T" .. ART .. "stat-marker:9:9:0:-2|t"
 local EQUIP_EFFECT_COLOR = { .48, .88, .48 }
--- A sword marks a chance on hit and a sparkle an enchant: white art from
--- art/make_markers.py, tinted here. Every row's text starts after a 9 px
--- marker, the size of the diamond in a stat's text. The sword and sparkle are
--- drawn apart from their text, two pixels larger and shifted one left, so
--- they center where the diamond does.
+-- A sword marks a chance on hit, a sparkle an enchant, and a gear a use
+-- effect: white art from art/make_markers.py, tinted here. Every row's text
+-- starts after a 9 px marker, the size of the diamond in a stat's text. These
+-- three are drawn apart from their text, two pixels larger and shifted one
+-- left, so they center where the diamond does.
 local MARKER_SIZE = 9
 local ON_HIT_MARKER = "|T" .. ART .. "marker-sword:11:11:-1:-2:32:32:0:32:0:32:200:210:225|t"
 local ENCHANT_MARKER = "|T" .. ART .. "marker-sparkle:11:11:-1:-2:32:32:0:32:0:32:90:230:60|t"
+local USE_MARKER = "|T" .. ART .. "marker-gear:11:11:-1:-2:32:32:0:32:0:32:240:200:90|t"
+-- Markers that stand in for a line's opening words, which come back while
+-- markers are off.
+local MARKED = {
+    onHit = { ON_HIT_MARKER, "Chance on hit: " },
+    use = { USE_MARKER, "Use: " },
+}
 
 -- One row per bonus; named enchants ("Crusader") stay whole.
 local function enchantRows(text)
@@ -668,6 +675,10 @@ local function readModel(tooltip, data)
             elseif trimmed:match("^Equip:") and right == "" then
                 -- Unparsed equip effects join the stats; the list implies "Equip:".
                 add(m.equipEffects, (trimmed:gsub("^Equip:%s*", "")), "")
+            elseif trimmed:match("^Use:") and right == "" then
+                -- Its gear marker stands for the words.
+                add(m.effects, (trimmed:gsub("^Use:%s*", "")), "")
+                m.effects[#m.effects].use = true
             elseif trimmed:match("^Equip:") or trimmed:match("^Use:") then
                 add(m.effects, left, right)
             else
@@ -1097,20 +1108,34 @@ local function markerIndent(panel, style)
     return MARKER_SIZE + measureStyled(panel, "a  a", style) - measureStyled(panel, "aa", style)
 end
 
--- Equip effects and enchants, each led by a marker (a chance on hit by the
--- sword) drawn apart from the text, so wrapped lines hang under the text.
+-- Equip effects, enchants, and use effects, each led by a marker (a chance on
+-- hit by the sword) drawn apart from the text, so wrapped lines hang under it.
 local function drawMarked(panel, list, y, style, color, marker)
     local hang = markerIndent(panel, style)
     local width = panel.width - 2 * PAD - hang
     for _, row in ipairs(list) do
         local text = row.left
+        local stands = row.onHit and MARKED.onHit or row.use and MARKED.use
         if hang > 0 then
-            styledAt(panel, row.onHit and ON_HIT_MARKER or marker, PAD, y, hang, style, color)
-        elseif row.onHit then
-            -- Without its sword, a chance on hit keeps its words.
-            text = "Chance on hit: " .. text
+            styledAt(panel, stands and stands[1] or marker, PAD, y, hang, style, color)
+        elseif stands then
+            -- Without its marker, the line keeps its words.
+            text = stands[2] .. text
         end
         y = y + styledAt(panel, text, PAD + hang, y, width, style, color) + 3
+    end
+    return y
+end
+
+-- Use effects are led by the gear; the group's other rows, such as
+-- "<Right Click to Open>", are drawn as they come.
+local function drawEffects(panel, list, y, style, color)
+    for _, row in ipairs(list) do
+        if row.use then
+            y = drawMarked(panel, { row }, y, style, color)
+        else
+            y = drawRow(panel, row, y, style, color)
+        end
     end
     return y
 end
@@ -1214,6 +1239,12 @@ local function fitWidth(panel, model, title, styles)
             consider(width + extra)
         end
     end
+    -- Use effects are indented past their gear.
+    local function effects(list)
+        for _, row in ipairs(list) do
+            group({ row }, styles.effects, row.use and markerIndent(panel, styles.effects) or 0, true)
+        end
+    end
     local indent = model.icon and HEADER_INDENT or 0
     consider(measureStyled(panel, title, styles.title) + indent)
     if model.slot then consider(measureStyled(panel, model.slot, styles.subtitle) + indent) end
@@ -1235,7 +1266,7 @@ local function fitWidth(panel, model, title, styles)
             + markerIndent(panel, styles.equipEffects))
     end
     group(model.enchants, styles.enchants, markerIndent(panel, styles.enchants))
-    group(model.effects, styles.effects, 0, true)
+    effects(model.effects)
     group(model.flavor, styles.flavor, 0, true)
     if model.setName then
         local countWidth = measureStyled(panel, model.setCount or "", setCountStyle(styles.setName))
@@ -1258,7 +1289,7 @@ local function fitWidth(panel, model, title, styles)
             local style = styles[key == "armor" and "armor" or key == "enchants" and "enchants" or "stats"]
             group(created[key], style, key == "enchants" and markerIndent(panel, style) or 0)
         end
-        group(created.effects, styles.effects, 0, true)
+        effects(created.effects)
         group(created.flavor, styles.flavor, 0, true)
         for _, row in ipairs(created.equipEffects) do
             consider(math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
@@ -1585,7 +1616,7 @@ local function drawBody(panel, model, styles, y, inner, opened)
         y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER)
         y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
         if #model.effects > 0 then y = y + 5 end
-        y = drawGroup(panel, model.effects, y, styles.effects, { .48, .88, .48 })
+        y = drawEffects(panel, model.effects, y, styles.effects, { .48, .88, .48 })
         if #model.flavor > 0 then
             y = drawGroup(panel, model.flavor, y + 5, styles.flavor, FLAVOR_GOLD)
         end

@@ -1,6 +1,7 @@
 """Generate the leading markers for magical effects on items.
 
-marker-sword.tga marks a chance on hit, and marker-sparkle.tga an enchant:
+marker-sword.tga marks a chance on hit, marker-sparkle.tga an enchant, and
+marker-gear.tga a use effect:
 32 x 32 white shapes, lit from the top left, which the addon tints. They are
 drawn at eight times the size and scaled down, for smooth edges at the
 11 px they are shown at.
@@ -59,6 +60,30 @@ def sparkle() -> Image.Image:
     return mask
 
 
+def gear() -> Image.Image:
+    """A gear with eight tapered teeth; with more, they blur together at 11 px."""
+    mask = Image.new("L", (CANVAS, CANVAS))
+    draw = ImageDraw.Draw(mask)
+    center = CANVAS / 2
+    teeth, body, root, tip, hole = 8, 84, 78, 120, 34
+    step = 2 * math.pi / teeth
+    # Each tooth narrows from its root on the body to its tip.
+    root_half, tip_half = body * step * 0.275, body * step * 0.17
+    for index in range(teeth):
+        angle = index * step - math.pi / 2
+        ux, uy = math.cos(angle), math.sin(angle)
+        tx, ty = -uy, ux
+        points = []
+        for radius, half, sides in ((root, root_half, (-1, 1)), (tip, tip_half, (1, -1))):
+            for side in sides:
+                points.append((center + ux * radius + tx * side * half,
+                               center + uy * radius + ty * side * half))
+        draw.polygon(points, fill=255)
+    draw.ellipse((center - body, center - body, center + body, center + body), fill=255)
+    draw.ellipse((center - hole, center - hole, center + hole, center + hole), fill=0)
+    return mask
+
+
 def shade(mask: Image.Image) -> Image.Image:
     """White lit from the top left, down to 70 percent at the bottom right."""
     light = Image.new("L", (CANVAS, CANVAS))
@@ -74,7 +99,12 @@ def main() -> None:
     parser = ArgumentParser(description=__doc__)
     parser.add_argument("--out-dir", type=Path, default=Path(__file__).resolve().parent)
     args = parser.parse_args()
-    for name, mask in (("marker-sword.tga", sword()), ("marker-sparkle.tga", sparkle())):
+    markers = (
+        ("marker-sword.tga", sword()),
+        ("marker-sparkle.tga", sparkle()),
+        ("marker-gear.tga", gear()),
+    )
+    for name, mask in markers:
         target = args.out_dir / name
         shade(mask).save(target)
         print(f"Wrote {target}")

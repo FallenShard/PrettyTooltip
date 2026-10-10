@@ -30,6 +30,7 @@ GAME_FILES = (
     "art/stat-marker.tga",
     "art/marker-sword.tga",
     "art/marker-sparkle.tga",
+    "art/marker-gear.tga",
 )
 
 

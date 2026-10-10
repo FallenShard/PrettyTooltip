@@ -186,8 +186,8 @@ local ITEM_SAMPLES = {
                 slot = "Consumable \194\183 Potion",
                 header = { { left = "", right = "Requires Level 45",
                     rightColor = { .95, .93, .88 } } },
-                effects = { { left = "Use: Restores 1050 to 1750 health. (2 Min Cooldown)",
-                    right = "" } },
+                effects = { { left = "Restores 1050 to 1750 health. (2 Min Cooldown)",
+                    right = "", use = true } },
                 footerRight = { { left = ui.formatMoney(5000) .. "  |cff9E9485(5 \195\151 " .. ui.formatMoney(1000) .. ")|r",
                     right = "", sellPrice = true } },
             })
