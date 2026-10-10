@@ -7,6 +7,7 @@
 ## Version: 1.0.0
 ## IconTexture: Interface\AddOns\PrettyTooltip\art\logo
 ## SavedVariables: PrettyTooltipDB, PrettyTooltipCaptures
+## OptionalDeps: Questie, Auctionator, DialogueUI, EllesmereUI, LibSharedMedia-3.0
 
 PrettyTooltipOptions.lua
 PrettyTooltip.lua
