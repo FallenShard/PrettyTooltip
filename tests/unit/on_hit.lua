@@ -106,4 +106,25 @@ return function(test)
     local font = renderedEffect()
     test.check("custom effect color removes inline colors", font:GetText(), "Chance on hit: " .. effect)
     test.check("custom effect color applies to proc", { font._color[1], font._color[2], font._color[3] }, { .2, .3, .4 })
+
+    -- A line the game marks as a proc is one without the English "Chance on hit:".
+    local marked = "Deals 40 Fire damage."
+    local markedCapture = {
+        enums = { TooltipDataType = { Item = 0, Spell = 1 },
+            TooltipDataLineType = { None = 0, ItemName = 1, ItemSpellTriggerOnProc = 46 } },
+        data = { type = 0, quality = 3, lines = {
+            { type = 1, lineIndex = 1, leftText = "Test Weapon" },
+            { type = 46, lineIndex = 2, leftText = marked },
+        } },
+        lines = { { left = { text = "Test Weapon" } }, { left = { text = marked } } },
+    }
+    ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+        "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua" }, markedCapture)
+    local markedData = markedCapture.data
+    test.check("a marked proc is read as an on-hit effect", ns.TooltipTypes[0].read(world.main, markedData, ns.Game)
+        .equipEffects[1], { left = marked, right = "", onHit = true })
+    ns.ItemLite.register()
+    world.preCalls[0][1](world.main, markedData)
+    test.check("a marked proc is colored on the game's tooltip", markedData.lines[2].prettyTooltipDisplay,
+        ns.Stats.styleOnHit(marked, true))
 end

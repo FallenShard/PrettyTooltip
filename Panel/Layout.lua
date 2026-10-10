@@ -593,7 +593,8 @@ local function readModel(tooltip, data, game)
             elseif trimmed:match("^[%d,]+ Armor$") then
                 add(m.armor, left, right)
                 m.armor[#m.armor].value = (trimmed:match("^([%d,]+)"):gsub(",", ""))
-            elseif trimmed:match("^Chance on hit:") and right == "" then
+            elseif ((LINE.ItemSpellTriggerOnProc and lineType == LINE.ItemSpellTriggerOnProc)
+                or trimmed:match("^Chance on hit:")) and right == "" then
                 -- Rewritten proc text stays an effect, rather than a stat.
                 local text = line.prettyTooltipOriginal or trimmed
                 add(m.equipEffects, (text:gsub("^Chance on hit:%s*", "")), "")

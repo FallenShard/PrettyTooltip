@@ -2,6 +2,7 @@
 local _, ns = ...
 local isSecret = ns.util.isSecret
 local stats = ns.Stats
+local LINE = Enum and Enum.TooltipDataLineType or {}
 ns.ItemLite = {}
 local registered = false
 
@@ -28,9 +29,12 @@ local function onItemTooltip(_, data)
                 -- off, the game's own.
                 local liteLines = {}
                 local styled = false
+                -- The game marks proc lines; the text is the fallback for clients that do not.
+                local proc = LINE.ItemSpellTriggerOnProc and not isSecret(source.type)
+                    and source.type == LINE.ItemSpellTriggerOnProc
                 for displayIndex, displayText in ipairs(displayLines) do
                     local display, colored = stats.styleStat(displayText, ns.option("statColors"), ns.option("statMarkers"))
-                    local onHit = displayText:match("^Chance on hit:")
+                    local onHit = proc or displayText:match("^Chance on hit:")
                     if onHit then
                         local effect = stats.styleOnHit(displayText, ns.option("statColors"))
                         if effect ~= displayText then display, colored = effect, effect end
