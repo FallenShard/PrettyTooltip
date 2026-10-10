@@ -10,16 +10,16 @@
 ## OptionalDeps: Questie, Auctionator, DialogueUI, EllesmereUI, LibSharedMedia-3.0
 
 Core\Util.lua
-PrettyTooltipOptions.lua
-PrettyTooltip.lua
-PrettyTooltipLayout.lua
-PrettyTooltipDisenchant.lua
-PrettyTooltipCoefficient.lua
-PrettyTooltipSpell.lua
-PrettyTooltipObject.lua
-PrettyTooltipUnit.lua
-PrettyTooltipAura.lua
-PrettyTooltipQuest.lua
-PrettyTooltipEditor.lua
-PrettyTooltipCursor.lua
-PrettyTooltipCapture.lua
+UI\Options.lua
+Data\Stats.lua
+Panel\Layout.lua
+Data\Disenchant.lua
+Data\Coefficients.lua
+Tooltips\Spell.lua
+Tooltips\Object.lua
+Tooltips\Unit.lua
+Tooltips\Aura.lua
+Tooltips\Quest.lua
+UI\Editor.lua
+Integration\Cursor.lua
+UI\Capture.lua

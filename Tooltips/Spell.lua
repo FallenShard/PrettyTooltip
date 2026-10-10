@@ -32,7 +32,7 @@ local ICON_SIZE = 38
 local TEXT_INDENT = ICON_SIZE + 10
 -- Spells are tinted a little less than items; the school is only a hint.
 local SPELL_TINT = .7
--- Same hues as the school stat colors in PrettyTooltip.lua.
+-- Same hues as the school stat colors in Data/Stats.lua.
 local SCHOOL_COLORS = {
     Arcane = { .92, .38, .84 },
     Fire = { 1, .43, .11 },

@@ -22,7 +22,7 @@ EPIC_BOTTOM = (62, 34, 104)
 CARD_TOP = (30, 24, 38)
 CARD_BOTTOM = (12, 10, 16)
 TITLE = (238, 226, 255, 255)
-# The stat colors from PrettyTooltip.lua: primary teal, attack orange.
+# The stat colors from Data/Stats.lua: primary teal, attack orange.
 TEAL = (12, 210, 157, 255)
 ORANGE = (255, 131, 87, 255)
 

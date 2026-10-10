@@ -25,7 +25,7 @@ A fixture is a real tooltip, captured in the game:
 
 Each fixture is run as the game would: the addon's files load in the `.toc`'s order, the item rewrite changes the data, the kind's reader turns it into a model, and the renderer draws it. The expected output holds the model and every string and texture drawn, with where it sits. When a change alters them, the run fails with a diff; if the change is meant, `--update` accepts it.
 
-A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `PrettyTooltipCapture.lua` and capture again.
+A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `UI/Capture.lua` and capture again.
 
 ### Settings variants
 

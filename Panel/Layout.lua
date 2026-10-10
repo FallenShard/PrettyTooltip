@@ -233,7 +233,7 @@ local function itemKind(left, right, color)
 end
 
 local ENCHANT_VALUE, ENCHANT_LABEL = "4CE64C", "A6EBA6"
--- Must match STAT_MARKER in PrettyTooltip.lua, minus its trailing spaces.
+-- Must match STAT_MARKER in Data/Stats.lua, minus its trailing spaces.
 local STAT_MARKER = "|T" .. ART .. "stat-marker:9:9:0:-2|t"
 local EQUIP_EFFECT_COLOR = { .48, .88, .48 }
 -- A sword marks a chance on hit, a sparkle an enchant, and a gear a use
@@ -1131,7 +1131,7 @@ local function shownFooterRight(model)
     return rows
 end
 
--- Damage of a school in its stat colors, from PrettyTooltip.lua.
+-- Damage of a school in its stat colors, from Data/Stats.lua.
 local function damageText(text)
     return ns.styleDamage and ns.styleDamage(text) or text
 end
