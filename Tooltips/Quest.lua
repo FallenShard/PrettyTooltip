@@ -7,6 +7,7 @@ if not (ui and QUEST and ui.drawPills) then
 end
 
 local util = ns.util
+local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local check = util.call
 local LINE = Enum.TooltipDataLineType or {}
@@ -17,13 +18,9 @@ local TINT_STRENGTH = .45
 local CHECK_SIZE = 10
 local OBJECTIVE_INDENT = CHECK_SIZE + 7
 local BAR_HEIGHT = 3
-local QUEST_GOLD = { 1, .82, 0 }
-local PARCHMENT = { .86, .74, .45 }
-local TITLE_COLOR = { .96, .92, .84 }
-local ZONE_COLOR = { .82, .78, .71 }
-local CAPTION_COLOR = { .60, .57, .52 }
-local OBJECTIVE_COLOR = { .90, .85, .74 }
-local DONE_COLOR = { .45, .80, .40 }
+local QUEST_GOLD = colors.quest
+local PARCHMENT = colors.flavor
+local DONE_COLOR = colors.done
 local FAILED_COLOR = { 1, .35, .30 }
 local REPEAT_COLOR = { .45, .70, 1 }
 local QUEST_ICON = "Interface\\Icons\\INV_Misc_Book_08"
@@ -281,10 +278,10 @@ local function renderQuest(panel, tooltip, model)
     local leftIndent = ui.headerInsets(indent)
     local y = ui.TITLE_TOP
     y = y + ui.styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.questTitle,
-        TITLE_COLOR) + 3
+        colors.title) + 3
     if model.zone then
         y = y + ui.styledAt(panel, model.zone, PAD + leftIndent, y, inner - indent, styles.questInfo,
-            ZONE_COLOR) + 3
+            colors.detail) + 3
     end
     local list = badges(model)
     if #list > 0 then y = ui.drawPills(panel, list, PAD + leftIndent, y + 3, styles.questBadges) + 4 end
@@ -301,13 +298,13 @@ local function renderQuest(panel, tooltip, model)
         sectioned = true
     end
     if #model.objectives > 0 then
-        y = ui.caption(panel, y + (sectioned and 4 or 0), "Objectives", styles.questCaption, CAPTION_COLOR)
+        y = ui.caption(panel, y + (sectioned and 4 or 0), "Objectives", styles.questCaption, colors.caption)
         for _, row in ipairs(model.objectives) do
             checkbox(panel, y, row.completed, styles.questObjectives.size)
             local have, need = progressOf(row)
             local bar = need and need > 1
             y = ui.drawRow(panel, row, y, styles.questObjectives,
-                row.completed and DONE_COLOR or OBJECTIVE_COLOR, OBJECTIVE_INDENT, bar and 3 or 5)
+                row.completed and DONE_COLOR or colors.objective, OBJECTIVE_INDENT, bar and 3 or 5)
             if bar then y = progressBar(panel, y, have, need, row.completed) end
         end
         sectioned = true

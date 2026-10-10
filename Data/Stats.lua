@@ -1,17 +1,7 @@
--- Short, colored stat wording. WoW Forever (1.60.x) uses the modern tooltip
--- data pipeline, so rewriting the item data before it is rendered reaches the
--- panel and the game's own tooltip alike, and gives split bonuses their own rows.
+-- Item wording and formatting rules. Settings are explicit arguments; no game hooks.
 local _, ns = ...
-if GetLocale() ~= "enUS" then
-    return
-end
-
-if not (TooltipDataProcessor and TooltipDataProcessor.AddTooltipPreCall
-    and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item) then
-    return
-end
-
-local isSecret = ns.util.isSecret
+local stats = {}
+ns.Stats = stats
 
 local function bonus(amount, label, percent)
     return "+" .. amount .. (percent and "% " or " ") .. label
@@ -134,7 +124,7 @@ local statColors = {
     Mana = MANA_COLOR,
 }
 
-local function colorizeStat(text)
+local function colorizeStat(text, colors)
     local sign, amount, percent, label = text:match("^([%+%-])([%d%.,]+)(%%?) (.+)$")
     if not amount then return end
     amount = amount:gsub(",", "")
@@ -149,33 +139,34 @@ local function colorizeStat(text)
     if not color then return end
 
     local value, name = color, labelColors[color] or color
-    if not ns.option("statColors") then value, name = "F2E8D5", "A89F8E" end
+    if not colors then value, name = "F2E8D5", "A89F8E" end
     if sign == "-" then value = NEGATIVE_COLOR end
     return "|cff" .. value .. sign .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
 end
 
-function ns.styleStat(text)
-    local colored = colorizeStat(text)
+function stats.styleStat(text, colors, markers)
+    local colored = colorizeStat(text, colors)
     if not colored then return text end
-    return (ns.option("statMarkers") and STAT_MARKER or "") .. colored
+    -- The second result supplies the marker-free wording for lite mode.
+    return (markers and STAT_MARKER or "") .. colored, colored
 end
 
 -- Weapon damage of a school in that school's stat colors: a wand's
 -- "64 - 120 Shadow Damage", or a bonus "+5 - 7 Fire Damage".
-function ns.styleDamage(text)
+function stats.styleDamage(text, colors)
     local amount, school = text:match("^%s*(%+?%s*[%d,]+%s*%-%s*[%d,]+) (%a+) Damage%s*$")
     local color = school and schoolColors[school]
-    if not color or not ns.option("statColors") then return text end
+    if not color or not colors then return text end
     return "|cff" .. color .. amount .. "|r |cff" .. labelColors[color] .. school .. " Damage|r"
 end
 
 -- Proc descriptions use the same school detection and lighter number colors
 -- as spell descriptions, with the same neutral fallback.
-function ns.styleOnHit(text)
-    if not ns.option("statColors") then return text end
+function stats.styleOnHit(text, colors)
+    if not colors then return text end
     text = ns.util.uncolored(text)
     local school = ns.Palette.detectSchool({ text })
-    return ns.util.colorNumbers(text, ns.Palette.numberCode(school))
+    return ns.util.colorNumbers(text, ns.Palette.numberCode(school and ns.Palette.schools[school]))
 end
 
 local chanceRules = {
@@ -198,9 +189,9 @@ local shortEquipStats = {
     ["healing power"] = "Healing Power",
 }
 
-local function rewrite(text)
+function stats.rewrite(text)
     if type(text) ~= "string" then return end
-    local line = text:match("^%s*(.-)%s*$"):lower()
+    local line = ns.util.trim(text):lower()
     local shortAmount, shortStat = line:match("^equip: %+(%d+) ([%a ]+)%.?$")
     if shortAmount and shortEquipStats[shortStat] then
         return { bonus(shortAmount, shortEquipStats[shortStat]) }
@@ -267,122 +258,3 @@ local function rewrite(text)
     amount = line:match("^equip: decreases the magical resistances of your spell targets by (%d+)%.?$")
     if amount then return { bonus(amount, "Spell Penetration") } end
 end
-
-local activeLinesByTooltip = setmetatable({}, { __mode = "k" })
-local hookedTooltips = setmetatable({}, { __mode = "k" })
-
-local function onItemTooltip(_, data)
-    if not ns.option("itemPanels") then return end
-    if isSecret(data) or not data then return end
-    local lines = data.lines
-    if isSecret(lines) or not lines then return end
-
-    -- Keep the line table and its length intact. Other addons may have added
-    -- rows to the same cached tooltip data since our previous pass.
-    for index, source in ipairs(lines) do
-        if not isSecret(source) and source and not source.prettyTooltipOriginal then
-            local text = source.leftText
-            local rightText = source.rightText
-            if not isSecret(text) and type(text) == "string"
-                and not isSecret(rightText) and not rightText then
-                local replacements = rewrite(text)
-                local displayLines = replacements or { text }
-                -- Lite has the stat colors but no markers; with stat colors
-                -- off, the game's own.
-                local liteLines = {}
-                local styled = false
-                for displayIndex, displayText in ipairs(displayLines) do
-                    local colored = colorizeStat(displayText)
-                    local onHit = displayText:match("^Chance on hit:")
-                    if onHit then
-                        local effect = ns.styleOnHit(displayText)
-                        if effect ~= displayText then colored = effect end
-                    end
-                    liteLines[displayIndex] = ns.option("statColors") and colored or displayText
-                    if colored then
-                        displayLines[displayIndex] = (not onHit and ns.option("statMarkers") and STAT_MARKER or "") .. colored
-                        styled = true
-                    end
-                end
-                if replacements or styled then
-                    local copy = {}
-                    for key, value in pairs(source) do
-                        copy[key] = value
-                    end
-                    -- A line break gives combined bonuses two visual lines
-                    -- while preserving every other addon's tooltip row.
-                    copy.leftText = table.concat(displayLines, "|n")
-                    copy.wrapText = copy.wrapText or #displayLines > 1
-                    copy.prettyTooltipOriginal = text
-                    copy.prettyTooltipDisplay = copy.leftText
-                    copy.prettyTooltipLite = table.concat(liteLines, "|n")
-                    copy.lineIndex = nil
-                    lines[index] = copy
-                end
-            end
-        end
-    end
-end
-
-TooltipDataProcessor.AddTooltipPreCall(Enum.TooltipDataType.Item, onItemTooltip)
-
--- The rewrite above changes the game's own tooltip text too, so its font
--- strings get the wording that suits: the original while the original-tooltip
--- key is held, lite mode's shortened and colored stats, else the panel's.
-local function wordingShown()
-    if ns.originalKeyDown() or not ns.option("itemPanels") then return "original" end
-    return ns.option("itemLite") and "lite" or "display"
-end
-
-local function showWording(tooltip, wording, relayout)
-    local rows = activeLinesByTooltip[tooltip]
-    if not rows then return end
-    for _, row in ipairs(rows) do
-        row.fontString:SetText(row[wording] or row.original)
-    end
-    if relayout then tooltip:Show() end
-end
-
-TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tooltip, data)
-    if isSecret(data) or not data then return end
-    local lines = data.lines
-    if isSecret(lines) or not lines then return end
-
-    if not hookedTooltips[tooltip] then
-        local function forget(cleared) activeLinesByTooltip[cleared] = nil end
-        tooltip:HookScript("OnHide", forget)
-        tooltip:HookScript("OnTooltipCleared", forget)
-        hookedTooltips[tooltip] = true
-    end
-
-    local info = tooltip:GetProcessingTooltipInfo()
-    local rows = (info and info.append and activeLinesByTooltip[tooltip]) or {}
-    for _, line in ipairs(lines) do
-        if not isSecret(line) and line and line.lineIndex and line.prettyTooltipOriginal then
-            local fontString = tooltip:GetLeftLine(line.lineIndex)
-            if fontString then
-                rows[#rows + 1] = {
-                    fontString = fontString,
-                    original = line.prettyTooltipOriginal,
-                    display = line.prettyTooltipDisplay,
-                    lite = line.prettyTooltipLite,
-                }
-            end
-        end
-    end
-    activeLinesByTooltip[tooltip] = #rows > 0 and rows or nil
-    -- Cached data can still carry wording rewritten before items were turned off.
-    showWording(tooltip, wordingShown(), false)
-end)
-
-local modifierWatcher = CreateFrame("Frame")
-modifierWatcher:RegisterEvent("MODIFIER_STATE_CHANGED")
-modifierWatcher:SetScript("OnEvent", function(_, _, key)
-    if not ns.isOriginalKey(key) then return end
-    local wording = wordingShown()
-    for tooltip in pairs(activeLinesByTooltip) do
-        if tooltip:IsShown() and tooltip:IsTooltipType(Enum.TooltipDataType.Item) then
-            showWording(tooltip, wording, true)
-        end
-    end
-end)

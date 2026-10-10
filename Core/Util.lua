@@ -20,6 +20,24 @@ function util.trim(text)
     return text:match("^%s*(.-)%s*$")
 end
 
+-- Sentences end at . ! or ? followed by a space and a capital, so decimals
+-- such as "1.5 sec" stay whole.
+function util.splitSentences(text)
+    local sentences = {}
+    for paragraph in (text:gsub("\r?\n", "|n") .. "|n"):gmatch("(.-)|n") do
+        local from = 1
+        while true do
+            local stop, resume = paragraph:find("[%.!?]%s+%f[%u]", from)
+            if not stop then break end
+            sentences[#sentences + 1] = util.trim(paragraph:sub(from, stop))
+            from = resume + 1
+        end
+        local rest = util.trim(paragraph:sub(from))
+        if rest ~= "" then sentences[#sentences + 1] = rest end
+    end
+    return sentences
+end
+
 -- Without color codes.
 function util.uncolored(text)
     return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))

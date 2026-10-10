@@ -7,6 +7,7 @@ if not (ui and UNIT and ui.drawPills) then
 end
 
 local util = ns.util
+local colors = ns.Palette.roles
 local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
 local get = util.call
 local LINE = Enum.TooltipDataLineType or {}
@@ -16,14 +17,10 @@ local ICON_SIZE = 38
 local TEXT_INDENT = ICON_SIZE + 10
 local TINT_STRENGTH = .7
 local BAR_HEIGHT = 5
-local NEUTRAL = { .62, .66, .74 }
 local TAPPED = { .55, .55, .55 }
-local DETAIL_COLOR = { .82, .78, .71 }
-local MUTED = { .60, .57, .52 }
-local UNMET_COLOR = { 1, .34, .28 }
-local QUEST_GOLD = { 1, .82, 0 }
-local OBJECTIVE_COLOR = { .90, .85, .74 }
-local DONE_COLOR = { .45, .80, .40 }
+local DETAIL_COLOR = colors.detail
+local MUTED = colors.caption
+local UNMET_COLOR = colors.unmet
 local REACTION = {
     { 1, .27, .22 }, { 1, .27, .22 }, { 1, .50, .20 }, { 1, .82, .20 },
     { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 },
@@ -337,7 +334,7 @@ local function renderUnit(panel, tooltip, model)
     model.hideIcon = not ns.option("iconUnits")
     panel.width = fitWidth(panel, model, styles)
     panel:SetWidth(panel.width)
-    local color = model.color or NEUTRAL
+    local color = model.color or colors.neutral
     local hasIcon = not model.hideIcon and (model.unit or model.iconPath)
     local headerMin = ui.drawChrome(panel, tooltip, {
         tooltipType = "unit",
@@ -402,10 +399,10 @@ local function renderUnit(panel, tooltip, model)
         y = ui.divider(panel, y, ui.GOLD_RULE, sectioned and 6 or 0)
         for _, row in ipairs(model.quests) do
             if row.title then
-                y = ui.drawRow(panel, row, y, styles.unitQuests, QUEST_GOLD, 0, 2)
+                y = ui.drawRow(panel, row, y, styles.unitQuests, colors.quest, 0, 2)
             else
                 y = ui.drawRow(panel, row, y, styles.unitQuests,
-                    row.completed and DONE_COLOR or OBJECTIVE_COLOR, 8, 2)
+                    row.completed and colors.done or colors.objective, 8, 2)
             end
         end
         sectioned = true

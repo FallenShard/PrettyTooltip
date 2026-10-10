@@ -1,8 +1,23 @@
--- Shared spell-school colors and the rules for highlighting descriptions.
+-- Shared colors by role and the rules for highlighting descriptions.
 local _, ns = ...
 local util = ns.util
 local palette = {}
 ns.Palette = palette
+
+-- Shared tables are read-only; per-tooltip tints are built separately.
+palette.roles = {
+    title = { .96, .92, .84 },
+    detail = { .82, .78, .71 },
+    description = { .92, .87, .76 },
+    caption = { .60, .57, .52 },
+    neutral = { .62, .66, .74 },
+    unmet = { 1, .34, .28 },
+    quest = { 1, .82, 0 },
+    objective = { .90, .85, .74 },
+    done = { .45, .80, .40 },
+    flavor = { .86, .74, .45 },
+    extras = { .60, .60, .63 },
+}
 
 palette.schools = {
     Arcane = { .92, .38, .84 },
@@ -31,8 +46,7 @@ function palette.detectSchool(description, name)
     return first and schoolNames[first:lower()] or nil
 end
 
--- The lighter school tint used by spell descriptions; neutral when unknown.
-function palette.numberCode(school)
-    local color = school and palette.schools[school]
+-- The lighter description tint shared by spells, auras, and weapon procs.
+function palette.numberCode(color)
     return color and util.hex({ color[1] * .7 + .3, color[2] * .7 + .3, color[3] * .7 + .3 }) or "FFF6E4"
 end

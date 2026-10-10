@@ -1,11 +1,15 @@
 -- Registration waits for the addon's own event and uses saved settings.
 return function(test)
-    local files = { "Core/Util.lua", "UI/Options.lua", "PrettyTooltip.lua" }
-    local ns, world = test.load(files)
+    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Data/Stats.lua",
+        "Integration/ItemLite.lua", "UI/Options.lua", "UI/Commands.lua", "PrettyTooltip.lua" }
+    local fixture = { enums = { TooltipDataType = { Item = 0 } } }
+    local ns, world = test.load(files, fixture)
     local before = #world.objects
     test.check("slash command waits for startup", SlashCmdList.PRETTYTOOLTIP, nil)
     test.check("slash aliases wait for startup", SLASH_PRETTYTOOLTIP1, nil)
     test.check("settings are available before startup", ns.option("itemPanels"), true)
+    test.check("rewrite pre-call waits for startup", world.preCalls[0], nil)
+    test.check("rewrite post-call waits for startup", world.postCalls[0], nil)
 
     local page, registered, opened
     local registrations = 0
@@ -27,6 +31,8 @@ return function(test)
 
     PrettyTooltipDB = { itemPanels = false, originalKey = "CTRL" }
     world.fireEvent("ADDON_LOADED", "PrettyTooltip")
+    test.check("startup installs rewrite pre-call", #world.preCalls[0], 1)
+    test.check("startup installs rewrite post-call", #world.postCalls[0], 1)
     test.check("settings category registered", registered == category, true)
     test.check("settings page starts hidden", page:IsShown(), false)
     -- The first checkbox controls item panels; it must use the saved false.
@@ -45,6 +51,10 @@ return function(test)
     test.check("default command opens editor", editorOpened, 1)
     SlashCmdList.PRETTYTOOLTIP(" OPTIONS ")
     test.check("options command opens registered settings", opened, 42)
+    local version = ns.settingsVersion
+    page.OnDefault()
+    test.check("settings page defaults refresh controls", firstCheckbox:GetChecked(), true)
+    test.check("settings page defaults invalidate panels", ns.settingsVersion, version + 1)
 
     local after = #world.objects
     local handler = SlashCmdList.PRETTYTOOLTIP
@@ -52,9 +62,12 @@ return function(test)
     ns.start()
     ns.Options.register()
     ns.Commands.register()
+    ns.ItemLite.register()
     test.check("repeated startup does not recreate UI", #world.objects, after)
     test.check("repeated startup does not register another category", registrations, 1)
     test.check("repeated startup preserves command handler", SlashCmdList.PRETTYTOOLTIP == handler, true)
+    test.check("repeated startup preserves rewrite pre-call count", #world.preCalls[0], 1)
+    test.check("repeated startup preserves rewrite post-call count", #world.postCalls[0], 1)
     local listeners = 0
     for _, object in ipairs(world.objects) do
         if object:IsEventRegistered("ADDON_LOADED") then listeners = listeners + 1 end
@@ -65,7 +78,7 @@ return function(test)
     local legacyPage, legacyOpened
     InterfaceOptions_AddCategory = function(canvas) legacyPage = canvas end
     InterfaceOptionsFrame_OpenToCategory = function(canvas) legacyOpened = canvas end
-    ns, world = test.load(files)
+    ns, world = test.load(files, fixture)
     test.check("legacy category also waits for startup", legacyPage, nil)
     world.fireEvent("ADDON_LOADED", "PrettyTooltip")
     ns.openSettings()
@@ -79,4 +92,76 @@ return function(test)
     end
     test.check("options module alone installs no startup listener", listeners, 0)
     test.check("options module alone installs no command", SlashCmdList.PRETTYTOOLTIP, nil)
+
+    ns, world = test.load({ "UI/Commands.lua" })
+    test.check("commands alone create no settings page", ns.Options, nil)
+    local dispatched = 0
+    ns.openEditor = function() dispatched = dispatched + 1 end
+    ns.Commands.register()
+    SlashCmdList.PRETTYTOOLTIP("")
+    test.check("commands dispatch without settings-page implementation", dispatched, 1)
+
+    -- Test the entry file's actual integration order with a rewritten item.
+    local item = {
+        enums = { TooltipDataType = { Item = 0 }, TooltipDataLineType = { None = 0, ItemName = 22 } },
+        data = { type = 0, lines = {
+            { type = 22, lineIndex = 1, leftText = "Test Item" },
+            { type = 0, lineIndex = 2, leftText = "+6 Intellect" },
+        } },
+        lines = { { left = { text = "Test Item" } }, { left = { text = "+6 Intellect" } } },
+    }
+    local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Data/Stats.lua",
+        "Panel/Layout.lua", "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
+        "UI/Commands.lua", "PrettyTooltip.lua" }
+    ns, world = test.load(integrated, item)
+    test.check("item integration post-calls wait for startup", world.postCalls[0], nil)
+    PrettyTooltipDB = {}
+    world.fireEvent("ADDON_LOADED", "PrettyTooltip")
+    test.check("startup installs rewrite, item panel, and cursor", #world.postCalls[0], 3)
+    local observed
+    local read = ns.TooltipTypes[0].read
+    ns.TooltipTypes[0].read = function(tooltip, data)
+        observed = tooltip:GetLeftLine(2):GetText()
+        return read(tooltip, data)
+    end
+    local cursorSeesPanel
+    local shownPanel = ns.ui.shownPanel
+    ns.ui.shownPanel = function(tooltip)
+        local panel = shownPanel(tooltip)
+        if cursorSeesPanel == nil then cursorSeesPanel = panel ~= nil end
+        return panel
+    end
+    ns.setOption("cursorItems", true)
+    GameTooltip_SetDefaultAnchor(world.main, UIParent)
+    world.preCalls[0][1](world.main, item.data)
+    item.data.lines[2].lineIndex = 2
+    for _, callback in ipairs(world.postCalls[0]) do callback(world.main, item.data) end
+    test.check("panel sees wording restored by rewrite first", observed, item.data.lines[2].prettyTooltipDisplay)
+    test.check("cursor sees the fitted panel", cursorSeesPanel, true)
+    IsAltKeyDown = function() return true end
+    world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 1)
+    test.check("modifier restores original wording", world.main:GetLeftLine(2):GetText(), "+6 Intellect")
+    test.check("modifier hides the custom panel", shownPanel(world.main), nil)
+    IsAltKeyDown = function() return false end
+    world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
+    test.check("modifier release restores rewritten wording", world.main:GetLeftLine(2):GetText(),
+        item.data.lines[2].prettyTooltipDisplay)
+    test.check("modifier release restores custom panel", shownPanel(world.main) ~= nil, true)
+    local count = #world.objects
+    ns.start()
+    ns.ItemLite.register()
+    ns.ui.registerItemHooks()
+    ns.Cursor.register()
+    test.check("repeated installation creates no frames", #world.objects, count)
+    test.check("repeated installation creates no post-calls", #world.postCalls[0], 3)
+
+    local rewriteFiles = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Data/Stats.lua",
+        "Integration/ItemLite.lua" }
+    ns, world = test.load(rewriteFiles, { client = { locale = "deDE" }, enums = fixture.enums })
+    ns.ItemLite.register()
+    test.check("unsupported locale installs no rewrite", next(world.preCalls), nil)
+    ns, world = test.load(rewriteFiles, fixture)
+    TooltipDataProcessor.AddTooltipPostCall = nil
+    ns.ItemLite.register()
+    test.check("missing API installs no partial rewrite", next(world.preCalls), nil)
 end

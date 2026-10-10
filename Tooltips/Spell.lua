@@ -8,6 +8,7 @@ if not (ui and SPELL) then
 end
 
 local util = ns.util
+local colors = ns.Palette.roles
 local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
 local add = ui.add
 local LINE = Enum.TooltipDataLineType or {}
@@ -15,17 +16,14 @@ local styledAt, measureStyled = ui.styledAt, ui.measureStyled
 local PAD = ui.PAD
 local PARTS = { "spellTitle", "spellBadges", "spellValues", "spellCaptions", "spellDetails",
     "spellText", "extras" }
-local TITLE_COLOR = { .96, .92, .84 }
-local NEUTRAL = { .62, .66, .74 }
-local DESCRIPTION_COLOR = { .92, .87, .76 }
-local CAPTION_COLOR = { .60, .57, .52 }
-local DETAIL_COLOR = { .82, .78, .71 }
+local TITLE_COLOR = colors.title
+local DETAIL_COLOR = colors.detail
 local PILL_HEIGHT = 16
 local PILL_GAP = 6
 local CAPTION_OFFSET = 17
 local RANK_PILL = { .60, .56, .50 }
 local REMAINING_COLOR = { 1, .60, .25 }
-local UNMET_COLOR = { 1, .34, .28 }
+local UNMET_COLOR = colors.unmet
 local STRIP_HEIGHT = 34
 -- Spells have one title line, so a smaller icon keeps the header short.
 local ICON_SIZE = 38
@@ -281,28 +279,10 @@ local function readSpell(tooltip, data)
     return model
 end
 
--- Sentences end at . ! or ? followed by a space and a capital, so decimals
--- such as "1.5 sec" stay whole.
-local function splitSentences(text)
-    local sentences = {}
-    for paragraph in (text:gsub("\r?\n", "|n") .. "|n"):gmatch("(.-)|n") do
-        local from = 1
-        while true do
-            local stop, resume = paragraph:find("[%.!?]%s+%f[%u]", from)
-            if not stop then break end
-            sentences[#sentences + 1] = trim(paragraph:sub(from, stop))
-            from = resume + 1
-        end
-        local rest = trim(paragraph:sub(from))
-        if rest ~= "" then sentences[#sentences + 1] = rest end
-    end
-    return sentences
-end
-
 local function sentencesOf(model)
     local list = {}
     for _, text in ipairs(model.description) do
-        for _, sentence in ipairs(splitSentences(text)) do list[#list + 1] = sentence end
+        for _, sentence in ipairs(util.splitSentences(text)) do list[#list + 1] = sentence end
     end
     return list
 end
@@ -367,7 +347,7 @@ local function drawStrip(panel, model, y, color, styles)
         end
         styledAt(panel, cell[1], x, y, cellWidth, values, valueColor, "CENTER")
         styledAt(panel, cell[2]:upper(), x, y + captionOffset, cellWidth, captions,
-            CAPTION_COLOR, "CENTER")
+            colors.caption, "CENTER")
         if index > 1 then
             local separator = ui.acquireTexture(panel)
             separator:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -(y + 2))
@@ -398,7 +378,7 @@ local function drawBody(panel, part, y, color, styles, numberCode)
         end
         for _, sentence in ipairs(part.sentences) do
             y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
-                y, styles.spellText, DESCRIPTION_COLOR, 0, 5)
+                y, styles.spellText, colors.description, 0, 5)
         end
     end
     if part.powerRows then
@@ -415,7 +395,7 @@ local function renderSpell(panel, tooltip, model)
     ui.clearPool(panel)
     if not ns.option("iconSpells") then model.icon = nil end
     model.school = ns.Palette.detectSchool(model.description, model.name)
-    local numberCode = ns.Palette.numberCode(model.school)
+    local numberCode = ns.Palette.numberCode(model.school and SCHOOL_COLORS[model.school])
     for _, part in ipairs({ model, model.nested }) do
         part.sentences = sentencesOf(part)
         part.powerRows = ns.option("spellPower") and ns.spellPowerRows
@@ -427,7 +407,7 @@ local function renderSpell(panel, tooltip, model)
     panel:SetWidth(panel.width)
     local power = model.power and POWER_COLORS[model.power]
     local accent = model.school and SCHOOL_COLORS[model.school] or power
-    local color = accent or NEUTRAL
+    local color = accent or colors.neutral
     local headerMin = ui.drawChrome(panel, tooltip, {
         tooltipType = "spell",
         color = color,
@@ -477,7 +457,6 @@ local function renderSpell(panel, tooltip, model)
 end
 
 ui.drawPills, ui.pillsWidth = drawPills, pillsWidth
-ui.splitSentences, ui.colorNumbers = splitSentences, colorNumbers
 ui.getSpellIcon = getSpellIcon
 ui.registerTooltipType(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",

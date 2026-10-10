@@ -6,6 +6,7 @@ if GetLocale() ~= "enUS" or not (TooltipDataProcessor and Enum and Enum.TooltipD
 end
 
 local util = ns.util
+local colors = ns.Palette.roles
 local isSecret, safeText, pack = util.isSecret, util.safeText, util.pack
 local uncolored, plainText, rgb = util.uncolored, util.plainText, util.rgb
 local ITEM = Enum.TooltipDataType.Item
@@ -37,10 +38,9 @@ local ICON_TOP = 21
 local TITLE_TOP = ICON_TOP
 local BADGE_GAP = 5
 local BADGE_HEIGHT = 16
-local EXTRA_COLOR = { .60, .60, .63 }
+local EXTRA_COLOR = colors.extras
 local GOLD_RULE = { .78, .59, .32 }
-local FLAVOR_GOLD = { .86, .74, .45 }
-local QUEST_GOLD = { 1, .82, 0 }
+local FLAVOR_GOLD = colors.flavor
 local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
 local CONSUMABLE_CLASS = Enum.ItemClass and Enum.ItemClass.Consumable or 0
 local DURABILITY_BAR = 54
@@ -176,7 +176,7 @@ local function isRed(color)
     return r > .9 and g < .3
 end
 
-local UNUSABLE_COLOR = { 1, .34, .28 }
+local UNUSABLE_COLOR = colors.unmet
 
 local function unusable(text, color)
     if isRed(color) then return "|cffFF5747" .. text .. "|r" end
@@ -1051,13 +1051,11 @@ local function divider(panel, y, color, before)
     return y + 18
 end
 
-local CAPTION_COLOR = { .60, .57, .52 }
-
 -- A section's name centered between two rules.
 local function caption(panel, y, text, style, color)
     y = y + 4
     local width = measureStyled(panel, text, style) + 2
-    styledAt(panel, text, (panel.width - width) / 2, y, width, style, color or CAPTION_COLOR, "CENTER")
+    styledAt(panel, text, (panel.width - width) / 2, y, width, style, color or colors.caption, "CENTER")
     if ns.option("separators") then
         local side = (panel.width - 2 * PAD - width) / 2 - 8
         local middle = y + math.floor(style.size / 2) + 1
@@ -1092,7 +1090,7 @@ local function drawMarked(panel, list, y, style, color, marker)
     local width = panel.width - 2 * PAD - hang
     for _, row in ipairs(list) do
         local text = row.left
-        if row.onHit and ns.styleOnHit then text = ns.styleOnHit(text) end
+        if row.onHit and ns.Stats then text = ns.Stats.styleOnHit(text, ns.option("statColors")) end
         local stands = row.onHit and MARKED.onHit or row.use and MARKED.use
         if hang > 0 then
             styledAt(panel, stands and stands[1] or marker, PAD, y, hang, style, color)
@@ -1135,7 +1133,7 @@ end
 
 -- Damage of a school in its stat colors, from Data/Stats.lua.
 local function damageText(text)
-    return ns.styleDamage and ns.styleDamage(text) or text
+    return ns.Stats.styleDamage(text, ns.option("statColors"))
 end
 
 local function weaponText(model)
@@ -1682,7 +1680,7 @@ local function render(panel, tooltip, model)
     if model.comparison then
         tag = isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH"
     end
-    local accent = model.quest and QUEST_GOLD or quality
+    local accent = model.quest and colors.quest or quality
     local headerMin = drawChrome(panel, tooltip, {
         tooltipType = "item",
         color = accent,
@@ -2114,24 +2112,30 @@ local function registerTooltipType(dataType, tooltipType)
     end)
 end
 
-TooltipDataProcessor.AddTooltipPostCall(ITEM, function(tooltip, data)
-    onTooltipData(ITEM, tooltip, data)
-end)
+-- Item wording must be restored before the panel reads or refits it.
+local itemHooksRegistered = false
+local function registerItemHooks()
+    if itemHooksRegistered then return end
+    itemHooksRegistered = true
+    TooltipDataProcessor.AddTooltipPostCall(ITEM, function(tooltip, data)
+        onTooltipData(ITEM, tooltip, data)
+    end)
 
-local modifier = CreateFrame("Frame")
-modifier:RegisterEvent("MODIFIER_STATE_CHANGED")
-modifier:SetScript("OnEvent", function(_, _, key)
-    if not ns.isOriginalKey(key) then return end
-    for tooltip, panel in pairs(panels) do
-        if tooltip:IsShown() and showsDataType(tooltip, panel) then
-            if showsOriginal(panel) then
-                restoreNative(tooltip)
-            elseif panel.data then
-                update(tooltip, panel.data)
+    local modifier = CreateFrame("Frame")
+    modifier:RegisterEvent("MODIFIER_STATE_CHANGED")
+    modifier:SetScript("OnEvent", function(_, _, key)
+        if not ns.isOriginalKey(key) then return end
+        for tooltip, panel in pairs(panels) do
+            if tooltip:IsShown() and showsDataType(tooltip, panel) then
+                if showsOriginal(panel) then
+                    restoreNative(tooltip)
+                elseif panel.data then
+                    update(tooltip, panel.data)
+                end
             end
         end
-    end
-end)
+    end)
+end
 
 -- The editor's sample, drawn inside anchor; hits record where each part landed.
 local function renderPreview(anchor, model, dataType)
@@ -2233,6 +2237,7 @@ end
 ns.TooltipTypes = TooltipTypes
 
 ns.ui = {
+    registerItemHooks = registerItemHooks,
     renderPreview = renderPreview,
     previewByID = previewByID,
     defaultHeaderAlpha = defaultHeaderAlpha,

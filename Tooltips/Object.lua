@@ -7,20 +7,16 @@ if not (ui and OBJECT) then
 end
 
 local util = ns.util
+local colors = ns.Palette.roles
 local isSecret, trim = util.isSecret, util.trim
 local LINE = Enum.TooltipDataLineType or {}
 local PAD = ui.PAD
 local ICON_SIZE = 38
 local TEXT_INDENT = ICON_SIZE + 10
 local TINT_STRENGTH = .7
-local NEUTRAL = { .62, .66, .74 }
-local TITLE_COLOR = { .96, .92, .84 }
-local DETAIL_COLOR = { .82, .78, .71 }
-local MUTED = { .60, .57, .52 }
-local UNMET_COLOR = { 1, .34, .28 }
-local QUEST_GOLD = { 1, .82, 0 }
-local OBJECTIVE_COLOR = { .90, .85, .74 }
-local DONE_COLOR = { .45, .80, .40 }
+local DETAIL_COLOR = colors.detail
+local UNMET_COLOR = colors.unmet
+local QUEST_GOLD = colors.quest
 local PRICE_LABEL = { .88, .78, .60 }
 local PARTS = { "objectTitle", "objectKind", "objectDetails", "objectQuests", "objectPrices",
     "extras" }
@@ -218,7 +214,7 @@ local function renderObject(panel, tooltip, model)
     model.hideIcon = not ns.option("iconObjects")
     panel.width = fitWidth(panel, model, styles)
     panel:SetWidth(panel.width)
-    local color = look and look.color or NEUTRAL
+    local color = look and look.color or colors.neutral
     local icon = not model.hideIcon and (model.icon or (look and look.icon)) or nil
     local headerMin = ui.drawChrome(panel, tooltip, {
         tooltipType = "object",
@@ -234,7 +230,7 @@ local function renderObject(panel, tooltip, model)
     local leftIndent = ui.headerInsets(indent)
     local y = ui.TITLE_TOP
     y = y + ui.styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.objectTitle,
-        TITLE_COLOR) + 4
+        colors.title) + 4
     if look then
         y = y + ui.styledAt(panel, look.label, PAD + leftIndent, y, inner - indent, styles.objectKind,
             { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }) + 4
@@ -251,7 +247,7 @@ local function renderObject(panel, tooltip, model)
             y = ui.drawRow(panel, {
                 left = skillText(skill),
                 right = skill.player and ("Your skill " .. skill.player) or "",
-                rightColor = MUTED,
+                rightColor = colors.caption,
             }, y, styles.objectDetails, skillColor, 0, 2)
         end
         for _, row in ipairs(model.details) do
@@ -271,7 +267,7 @@ local function renderObject(panel, tooltip, model)
                 y = ui.drawRow(panel, row, y, styles.objectQuests, QUEST_GOLD, 0, 2)
             else
                 y = ui.drawRow(panel, row, y, styles.objectQuests,
-                    row.completed and DONE_COLOR or OBJECTIVE_COLOR, 8, 2)
+                    row.completed and colors.done or colors.objective, 8, 2)
             end
         end
         sectioned = true

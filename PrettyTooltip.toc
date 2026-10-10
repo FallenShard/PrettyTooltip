@@ -11,7 +11,7 @@
 
 Core\Util.lua
 Core\Palette.lua
-UI\Options.lua
+Core\Settings.lua
 Data\Stats.lua
 Panel\Layout.lua
 Data\Disenchant.lua
@@ -21,7 +21,10 @@ Tooltips\Object.lua
 Tooltips\Unit.lua
 Tooltips\Aura.lua
 Tooltips\Quest.lua
+UI\Options.lua
 UI\Editor.lua
+Integration\ItemLite.lua
 Integration\Cursor.lua
 UI\Capture.lua
+UI\Commands.lua
 PrettyTooltip.lua

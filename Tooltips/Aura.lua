@@ -2,23 +2,22 @@
 local _, ns = ...
 local ui = ns.ui
 local AURA = Enum and Enum.TooltipDataType and Enum.TooltipDataType.UnitAura
-if not (ui and AURA and ui.drawPills and ui.splitSentences) then
+if not (ui and AURA and ui.drawPills) then
     return
 end
 
 local util = ns.util
+local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local PAD = ui.PAD
 local ICON_SIZE = 38
 local TEXT_INDENT = ICON_SIZE + 10
 local TINT_STRENGTH = .7
 local BAR_HEIGHT = 4
-local TITLE_COLOR = { .96, .92, .84 }
-local TEXT_COLOR = { .92, .87, .76 }
 local TIME_COLOR = { .88, .78, .60 }
 local BUFF_COLOR = { .45, .75, .95 }
 local DEBUFF_COLOR = { .90, .30, .25 }
-local MUTED = { .60, .57, .52 }
+local MUTED = colors.caption
 -- The game's dispel colors.
 local DISPELS = {
     Magic = { .20, .60, 1 },
@@ -128,7 +127,7 @@ end
 local function sentencesOf(model)
     local list = {}
     if model.text then
-        for _, sentence in ipairs(ui.splitSentences(model.text)) do list[#list + 1] = sentence end
+        for _, sentence in ipairs(util.splitSentences(model.text)) do list[#list + 1] = sentence end
     end
     return list
 end
@@ -208,7 +207,7 @@ local function renderAura(panel, tooltip, model)
     local leftIndent = ui.headerInsets(indent)
     local y = ui.TITLE_TOP
     y = y + ui.styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.auraName,
-        TITLE_COLOR) + 4
+        colors.title) + 4
     local list = badges(model)
     if #list > 0 then y = ui.drawPills(panel, list, PAD + leftIndent, y + 1, styles.auraBadges) + 4 end
     y = math.max(y + 6, headerMin)
@@ -218,10 +217,10 @@ local function renderAura(panel, tooltip, model)
     local sectioned = false
     if #sentences > 0 then
         y = ui.divider(panel, y, ui.GOLD_RULE)
-        local numberCode = util.hex({ color[1] * .7 + .3, color[2] * .7 + .3, color[3] * .7 + .3 })
+        local numberCode = ns.Palette.numberCode(color)
         for _, sentence in ipairs(sentences) do
-            y = ui.drawRow(panel, { left = ui.colorNumbers(sentence, numberCode) }, y, styles.auraText,
-                TEXT_COLOR, 0, 5)
+            y = ui.drawRow(panel, { left = util.colorNumbers(sentence, numberCode) }, y, styles.auraText,
+                colors.description, 0, 5)
         end
         sectioned = true
     end

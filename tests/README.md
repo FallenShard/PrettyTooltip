@@ -62,7 +62,7 @@ A rename or a move breaks a test when the code it touches runs in one: every tes
 
 ## Unit checks
 
-Each file in `tests/unit` returns a function given `test`, with `test.load(files, fixture)`, which loads the named addon files with a world answering from `fixture.calls`, and `test.check(name, got, expected)`. `test.load` returns the namespace and the world without starting the addon, using `fixture.enums` when supplied; `world.fireEvent(event, ...)` drives its registered listeners. `unit/coefficient.lua` is an example; `unit/on_hit.lua` checks weapon proc colors against spell rendering, settings, and native tooltip restoration. `unit/startup.lua` checks startup and deferred UI registration.
+Each file in `tests/unit` returns a function given `test`, with `test.load(files, fixture)`, which loads the named addon files with a world answering from `fixture.calls`, and `test.check(name, got, expected)`. `test.load` returns the namespace and the world without starting the addon, using `fixture.enums` when supplied; `world.fireEvent(event, ...)` drives its registered listeners. `unit/coefficient.lua` is an example; `unit/on_hit.lua` checks weapon proc colors against spell rendering, settings, and native tooltip restoration. `unit/settings.lua` checks the shared settings API without loading UI; `unit/stats.lua` checks formatting without saved settings or game APIs. `unit/startup.lua` checks deferred registration, rewrite/panel/cursor order, modifier restoration, and repeated installation.
 
 ## How it fits together
 

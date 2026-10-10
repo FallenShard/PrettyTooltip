@@ -50,7 +50,7 @@ local function spellIcon(spellID)
 end
 
 local function stat(text)
-    return { left = ns.styleStat and ns.styleStat(text) or text, right = "" }
+    return { left = ns.Stats.styleStat(text, ns.option("statColors"), ns.option("statMarkers")), right = "" }
 end
 
 local LISTS = {

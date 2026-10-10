@@ -1,10 +1,8 @@
 -- Follow cursor. A tooltip type left off is never touched, so addons that place
 -- tooltips themselves keep doing so.
 local _, ns = ...
-local TYPES = Enum and Enum.TooltipDataType
-if not (TooltipDataProcessor and TYPES and ns.TOOLTIP_TYPES) then
-    return
-end
+ns.Cursor = {}
+local registered = false
 
 local OFFSET = 16
 local placing = false
@@ -42,50 +40,58 @@ local function place()
     if panel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
 end
 
-local follower = CreateFrame("Frame")
-follower:Hide()
-follower:SetScript("OnUpdate", function(self)
-    if GameTooltip:IsShown() then place() else self:Hide() end
-end)
-
--- Only default-anchored tooltips follow, as with EllesmereUI; bags re-anchor
--- theirs on every refresh.
-local defaultAnchored = false
-hooksecurefunc(GameTooltip, "SetOwner", function() defaultAnchored = false end)
-hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip)
-    if tooltip == GameTooltip then defaultAnchored = true end
-end)
-
--- The game re-places a default tooltip when it refreshes; undone at once.
-hooksecurefunc(GameTooltip, "SetPoint", function()
-    if follower:IsShown() and not placing then place() end
-end)
-
--- A world unit's tooltip fades out where it stands, which trails the cursor.
-if GameTooltip.FadeOut then
-    hooksecurefunc(GameTooltip, "FadeOut", function(self)
-        if follower:IsShown() then self:Hide() end
-    end)
-end
-
--- Cleared before every new content, so a tooltip type left off is not dragged along.
-local function stop()
+-- Cursor placement follows rewrite restoration and panel fitting.
+function ns.Cursor.register()
+    if registered then return end
+    local TYPES = Enum and Enum.TooltipDataType
+    if not (TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
+        and TYPES and ns.TOOLTIP_TYPES) then return end
+    registered = true
+    local follower = CreateFrame("Frame")
     follower:Hide()
-    reclamp()
-end
-GameTooltip:HookScript("OnTooltipCleared", stop)
-GameTooltip:HookScript("OnHide", stop)
+    follower:SetScript("OnUpdate", function(self)
+        if GameTooltip:IsShown() then place() else self:Hide() end
+    end)
 
-for _, tooltipType in ipairs(ns.TOOLTIP_TYPES) do
-    for _, typeName in ipairs(tooltipType.types) do
-        local dataType = TYPES[typeName]
-        if dataType then
-            TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip)
-                if tooltip == GameTooltip and defaultAnchored and ns.option(tooltipType.cursor) then
-                    place()
-                    follower:Show()
-                end
-            end)
+    -- Only default-anchored tooltips follow, as with EllesmereUI; bags re-anchor
+    -- theirs on every refresh.
+    local defaultAnchored = false
+    hooksecurefunc(GameTooltip, "SetOwner", function() defaultAnchored = false end)
+    hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip)
+        if tooltip == GameTooltip then defaultAnchored = true end
+    end)
+
+    -- The game re-places a default tooltip when it refreshes; undone at once.
+    hooksecurefunc(GameTooltip, "SetPoint", function()
+        if follower:IsShown() and not placing then place() end
+    end)
+
+    -- A world unit's tooltip fades out where it stands, which trails the cursor.
+    if GameTooltip.FadeOut then
+        hooksecurefunc(GameTooltip, "FadeOut", function(self)
+            if follower:IsShown() then self:Hide() end
+        end)
+    end
+
+    -- Cleared before every new content, so a tooltip type left off is not dragged along.
+    local function stop()
+        follower:Hide()
+        reclamp()
+    end
+    GameTooltip:HookScript("OnTooltipCleared", stop)
+    GameTooltip:HookScript("OnHide", stop)
+
+    for _, tooltipType in ipairs(ns.TOOLTIP_TYPES) do
+        for _, typeName in ipairs(tooltipType.types) do
+            local dataType = TYPES[typeName]
+            if dataType then
+                TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip)
+                    if tooltip == GameTooltip and defaultAnchored and ns.option(tooltipType.cursor) then
+                        place()
+                        follower:Show()
+                    end
+                end)
+            end
         end
     end
 end
