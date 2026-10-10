@@ -6,7 +6,7 @@
 -- answers are asked for here, and the test runner names any it lacks.
 local _, ns = ...
 
-local isSecret = issecretvalue or function() return false end
+local isSecret, pack = ns.util.isSecret, ns.util.pack
 local TYPES = Enum and Enum.TooltipDataType or {}
 -- Addons the readers check for.
 local ADDONS = { "DialogueUI", "EllesmereUI", "Questie", "Auctionator" }
@@ -15,10 +15,6 @@ local ADDONS = { "DialogueUI", "EllesmereUI", "Questie", "Auctionator" }
 -- tests play back as hidden; hidden counts them for the capture's message.
 local SECRET_MARK = { __secret = true }
 local hidden = 0
-
-local function pack(...)
-    return { n = select("#", ...), ... }
-end
 
 -- A plain copy that a saved variable can hold: colors become { r, g, b, a },
 -- hidden values a mark, and frames, functions, and userdata are left out.

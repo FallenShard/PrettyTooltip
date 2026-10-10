@@ -5,7 +5,9 @@ if GetLocale() ~= "enUS" or not (TooltipDataProcessor and Enum and Enum.TooltipD
     return
 end
 
-local isSecret = issecretvalue or function() return false end
+local util = ns.util
+local isSecret, safeText, pack = util.isSecret, util.safeText, util.pack
+local uncolored, plainText, rgb = util.uncolored, util.plainText, util.rgb
 local ITEM = Enum.TooltipDataType.Item
 local LINE = Enum.TooltipDataLineType
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
@@ -82,10 +84,6 @@ local function timed(name, start)
     perf.time[name] = (perf.time[name] or 0) + debugprofilestop() - start
 end
 
-local function pack(...)
-    return { n = select("#", ...), ... }
-end
-
 local function probe(name, fn)
     return function(...)
         if not perf.on then return fn(...) end
@@ -95,13 +93,6 @@ local function probe(name, fn)
         perf.time[name] = (perf.time[name] or 0) + debugprofilestop() - start
         return unpack(results, 1, results.n)
     end
-end
-
-local function safeText(value)
-    if isSecret(value) then return nil end
-    if value == nil then return "" end
-    if type(value) ~= "string" then return nil end
-    return value
 end
 
 local function getItemInfo(tooltip, data)
@@ -222,10 +213,6 @@ local function formatMoney(copper)
         parts[#parts + 1] = copper % 100 .. COIN:format("Copper")
     end
     return table.concat(parts, " ")
-end
-
-local function plainText(text)
-    return (text:gsub("|T.-|t", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
 end
 
 -- Can arrive color coded, or appended outside the tooltip data.
@@ -364,10 +351,6 @@ local function asStyle(style)
     return { size = style, font = bodyFont(), flags = "" }
 end
 
-local function uncolored(text)
-    return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
-end
-
 -- Rows other addons append are absent from the data. Nil when one is unreadable.
 local function appendedRows(tooltip, lineIndices)
     local rows = {}
@@ -397,13 +380,6 @@ local PROFESSIONS = {
     Leatherworking = true, Tailoring = true, Cooking = true, ["First Aid"] = true, Fishing = true,
     Mining = true, Herbalism = true, Skinning = true, Jewelcrafting = true, Inscription = true,
 }
-
-local function rawColor(color)
-    if isSecret(color) or type(color) ~= "table" then return end
-    local r, g, b = color.r, color.g, color.b
-    if isSecret(r) or isSecret(g) or isSecret(b) or type(r) ~= "number" then return end
-    return { r, g, b }
-end
 
 -- "Requires Blacksmithing (80)": the profession and level a recipe needs.
 local function professionRequirement(text)
@@ -587,11 +563,11 @@ local function readModel(tooltip, data)
             model.reagents, m = reagentList(trimmed), model
         elseif lineType == LINE.ItemName then
             if not model.name then
-                model.name, model.nameColor = left, rawColor(line.leftColor)
+                model.name, model.nameColor = left, rgb(line.leftColor)
             elseif not model.created then
                 model.created = newItemModel()
                 -- Its name line starts with a line break.
-                model.created.name, model.created.nameColor = trimmed, rawColor(line.leftColor)
+                model.created.name, model.created.nameColor = trimmed, rgb(line.leftColor)
                 m = model.created
             end
         elseif lineType == LINE.ItemLevel then
@@ -2269,8 +2245,6 @@ ns.ui = {
     formatMoney = formatMoney,
     setFont = setFont,
     FLAVOR_GOLD = FLAVOR_GOLD,
-    isSecret = isSecret,
-    safeText = safeText,
     add = add,
     colorOf = colorOf,
     appendedRows = appendedRows,
@@ -2291,7 +2265,6 @@ ns.ui = {
     renderLines = function(tooltip, dataType, id)
         onTooltipData(dataType, tooltip, { type = dataType, id = id, lines = {}, fromLines = true })
     end,
-    uncolored = uncolored,
     PAD = PAD,
     TITLE_TOP = TITLE_TOP,
     MIN_WIDTH = MIN_WIDTH,

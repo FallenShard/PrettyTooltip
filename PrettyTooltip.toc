@@ -9,6 +9,7 @@
 ## SavedVariables: PrettyTooltipDB, PrettyTooltipCaptures
 ## OptionalDeps: Questie, Auctionator, DialogueUI, EllesmereUI, LibSharedMedia-3.0
 
+Core\Util.lua
 PrettyTooltipOptions.lua
 PrettyTooltip.lua
 PrettyTooltipLayout.lua

@@ -6,7 +6,8 @@ if not (ui and AURA and ui.drawPills and ui.splitSentences) then
     return
 end
 
-local isSecret, safeText = ui.isSecret, ui.safeText
+local util = ns.util
+local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local PAD = ui.PAD
 local ICON_SIZE = 38
 local TEXT_INDENT = ICON_SIZE + 10
@@ -26,15 +27,6 @@ local DISPELS = {
     Poison = { 0, .60, 0 },
 }
 local PARTS = { "auraName", "auraBadges", "auraText", "auraTime", "extras" }
-
-local function trim(text)
-    return text:match("^%s*(.-)%s*$")
-end
-
-local function readable(value)
-    if isSecret(value) then return nil end
-    return value
-end
 
 -- The tooltip's lines lack the duration and stacks; the aura it shows has them.
 -- The getter is known only while the game fills the tooltip, so the aura is
@@ -226,7 +218,7 @@ local function renderAura(panel, tooltip, model)
     local sectioned = false
     if #sentences > 0 then
         y = ui.divider(panel, y, ui.GOLD_RULE)
-        local numberCode = ui.hex({ color[1] * .7 + .3, color[2] * .7 + .3, color[3] * .7 + .3 })
+        local numberCode = util.hex({ color[1] * .7 + .3, color[2] * .7 + .3, color[3] * .7 + .3 })
         for _, sentence in ipairs(sentences) do
             y = ui.drawRow(panel, { left = ui.colorNumbers(sentence, numberCode) }, y, styles.auraText,
                 TEXT_COLOR, 0, 5)

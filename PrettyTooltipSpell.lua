@@ -7,7 +7,9 @@ if not (ui and SPELL) then
     return
 end
 
-local isSecret, safeText, add = ui.isSecret, ui.safeText, ui.add
+local util = ns.util
+local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
+local add = ui.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
 local PAD = ui.PAD
@@ -46,10 +48,6 @@ local POWER_COLORS = {
     Focus = { 1, .55, .25 },
     ["Runic Power"] = { 0, .82, 1 },
 }
-
-local function trim(text)
-    return text:match("^%s*(.-)%s*$")
-end
 
 local function spellKey(_, data)
     if isSecret(data.id) then return end
@@ -133,11 +131,6 @@ local function nativeRight(tooltip, lineIndex)
     end
     local text = font and font:IsShown() and safeText(font:GetText())
     return text or ""
-end
-
-local function hex(color)
-    local function byte(value) return math.floor(math.min(1, value) * 255 + .5) end
-    return string.format("%02X%02X%02X", byte(color[1]), byte(color[2]), byte(color[3]))
 end
 
 -- The game's own escapes; digits inside them (color codes, icon sizes, the
@@ -251,16 +244,12 @@ local function newModel(icon)
         icon = icon }
 end
 
-local function plain(text)
-    return (text:gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
-end
-
 -- A description can open with its own requirement, on a line of its own.
 local function readDescription(model, text)
     local rest = {}
     for paragraph in (text:gsub("\r\n", "\n") .. "\n"):gmatch("(.-)\n") do
         local stripped = trim(paragraph)
-        if #rest == 0 and trim(plain(stripped)):match("^Requires ") then
+        if #rest == 0 and trim(util.uncolored(stripped)):match("^Requires ") then
             add(model.requirements, stripped, "")
         elseif stripped ~= "" then
             rest[#rest + 1] = stripped
@@ -553,7 +542,7 @@ local function renderSpell(panel, tooltip, model)
 end
 
 ui.drawPills, ui.pillsWidth = drawPills, pillsWidth
-ui.splitSentences, ui.colorNumbers, ui.hex = splitSentences, colorNumbers, hex
+ui.splitSentences, ui.colorNumbers = splitSentences, colorNumbers
 ui.getSpellIcon = getSpellIcon
 ui.registerKind(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",

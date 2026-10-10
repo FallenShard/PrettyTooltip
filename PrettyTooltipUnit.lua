@@ -6,7 +6,9 @@ if not (ui and UNIT and ui.drawPills) then
     return
 end
 
-local isSecret, safeText = ui.isSecret, ui.safeText
+local util = ns.util
+local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
+local get = util.call
 local LINE = Enum.TooltipDataLineType or {}
 local PAD = ui.PAD
 local WHITE = "Interface\\Buttons\\WHITE8X8"
@@ -45,17 +47,6 @@ local FACTION_ART = {
 local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitHealth", "unitDetails",
     "unitQuests", "extras" }
 
-local function trim(text)
-    return text:match("^%s*(.-)%s*$")
-end
-
-local function get(fn, ...)
-    if not fn then return end
-    local ok, a, b, c, d = pcall(fn, ...)
-    if not ok or isSecret(a) or isSecret(b) or isSecret(c) or isSecret(d) then return end
-    return a, b, c, d
-end
-
 -- The mouseover token can still be the previous unit; the data's GUID cannot.
 local function unitFor(tooltip, guid)
     if isSecret(guid) then guid = nil end
@@ -70,11 +61,6 @@ local function unitFor(tooltip, guid)
     if guid and get(UnitExists, "mouseover") and get(UnitGUID, "mouseover") == guid then
         return "mouseover"
     end
-end
-
-local function hexOf(color)
-    return string.format("%02X%02X%02X", math.floor(color[1] * 255 + .5),
-        math.floor(color[2] * 255 + .5), math.floor(color[3] * 255 + .5))
 end
 
 local function classColor(classFile)
@@ -218,7 +204,7 @@ local function infoText(model)
     if not level then return model.levelLine end
     local levelText = level == -1 and "??" or tostring(level)
     local color = levelColor(level)
-    if color then levelText = "|cff" .. hexOf(color) .. levelText .. "|r" end
+    if color then levelText = "|cff" .. hex(color) .. levelText .. "|r" end
     local what = model.isPlayer and table.concat({ model.race or "", model.className or "" }, " ")
         or (model.creature or "")
     return trim("Level " .. levelText .. " " .. what)

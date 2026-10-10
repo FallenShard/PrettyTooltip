@@ -6,7 +6,8 @@ if not (ui and OBJECT) then
     return
 end
 
-local isSecret = ui.isSecret
+local util = ns.util
+local isSecret, trim = util.isSecret, util.trim
 local LINE = Enum.TooltipDataLineType or {}
 local PAD = ui.PAD
 local ICON_SIZE = 38
@@ -55,17 +56,6 @@ local NODES = {
     ["Dark Iron Deposit"] = { 11370, 230 }, ["Small Thorium Vein"] = { 10620, 245 },
     ["Rich Thorium Vein"] = { 10620, 275 },
 }
-
-local function trim(text)
-    return text:match("^%s*(.-)%s*$")
-end
-
-local function rgbOf(color)
-    if isSecret(color) or type(color) ~= "table" then return end
-    local r, g, b = color.r, color.g, color.b
-    if isSecret(r) or isSecret(g) or isSecret(b) or type(r) ~= "number" then return end
-    return { r, g, b }
-end
 
 local playerSkill = ui.playerSkill
 
@@ -120,11 +110,11 @@ local function objectKey(_, data)
     if isSecret(data.lines) or type(data.lines) ~= "table" then return end
     local line = data.lines[1]
     if isSecret(line) or type(line) ~= "table" then return end
-    return ui.safeText(line.leftText)
+    return util.safeText(line.leftText)
 end
 
 local function readObject(tooltip, data)
-    local safeText = ui.safeText
+    local safeText = util.safeText
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local model = { details = {}, quests = {}, extras = {}, lineIndices = {} }
     for _, line in ipairs(data.lines) do
@@ -149,7 +139,7 @@ local function readObject(tooltip, data)
                 elseif SKILLS[text] then
                     -- Colored by how likely gathering is to raise the skill.
                     model.skill = model.skill or text
-                    model.skillColor = rgbOf(line.leftColor)
+                    model.skillColor = util.rgb(line.leftColor)
                 elseif text == "Locked" then
                     model.skill = model.skill or "Lockpicking"
                     ui.add(model.details, left, right)

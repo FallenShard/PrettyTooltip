@@ -11,7 +11,7 @@ if not (TooltipDataProcessor and TooltipDataProcessor.AddTooltipPreCall
     return
 end
 
-local isSecret = issecretvalue or function() return false end
+local isSecret = ns.util.isSecret
 
 local function bonus(amount, label, percent)
     return "+" .. amount .. (percent and "% " or " ") .. label

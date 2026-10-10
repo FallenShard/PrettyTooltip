@@ -7,7 +7,8 @@
 -- already count spell power in, so the base is what is left without it.
 local _, ns = ...
 
-local isSecret = issecretvalue or function() return false end
+local util = ns.util
+local isSecret = util.isSecret
 
 -- As GetSpellBonusDamage numbers the schools.
 local SCHOOLS = { Holy = 2, Fire = 3, Nature = 4, Frost = 5, Shadow = 6, Arcane = 7 }
@@ -238,7 +239,7 @@ end
 -- has the panel's name, cast, description, and spellID; part.spellPower,
 -- when set, stands in for the player's, as on the editor's samples.
 function ns.spellPowerRows(part, bonusCode)
-    local text = table.concat(part.description, " "):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")
+    local text = util.uncolored(table.concat(part.description, " "))
     local school
     for word in text:gmatch("(%a+) damage") do
         if SCHOOLS[word] then school = word break end

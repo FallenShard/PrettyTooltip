@@ -3,7 +3,7 @@
 return function(test)
     local calls = { GetSpellBonusDamage = {}, GetSpellBonusHealing = { [""] = { n = 1, 300 } } }
     for school = 1, 7 do calls.GetSpellBonusDamage[tostring(school)] = { n = 1, 30 } end
-    local ns = test.load({ "PrettyTooltipCoefficient.lua" }, { calls = calls })
+    local ns = test.load({ "Core/Util.lua", "PrettyTooltipCoefficient.lua" }, { calls = calls })
 
     local function rows(name, cast, text, spellID)
         local found = ns.spellPowerRows({ name = name, cast = { cast, "Cast" }, description = { text },

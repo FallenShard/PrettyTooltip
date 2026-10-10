@@ -6,7 +6,9 @@ if not (ui and QUEST and ui.drawPills) then
     return
 end
 
-local isSecret, safeText = ui.isSecret, ui.safeText
+local util = ns.util
+local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
+local check = util.call
 local LINE = Enum.TooltipDataLineType or {}
 local PAD = ui.PAD
 local ICON_SIZE = 38
@@ -35,21 +37,6 @@ local SUFFIX_TAGS = {
 local LABELS = { ["Started by"] = true, ["Ended by"] = true, ["Found in"] = true, ["Completed on"] = true }
 local PARTS = { "questTitle", "questInfo", "questBadges", "questText", "questCaption", "questObjectives",
     "extras" }
-
-local function trim(text)
-    return text:match("^%s*(.-)%s*$")
-end
-
-local function readable(value)
-    if isSecret(value) then return nil end
-    return value
-end
-
-local function check(fn, ...)
-    if not fn then return end
-    local ok, result = pcall(fn, ...)
-    if ok and not isSecret(result) then return result end
-end
 
 local function difficultyColor(level)
     if type(level) ~= "number" or not GetQuestDifficultyColor then return end
@@ -99,8 +86,8 @@ end
 
 -- A row from the data or from a font string, read the same way.
 local function readRow(model, row, state)
-    local text = trim(ui.uncolored(row.left))
-    local right = trim(ui.uncolored(row.right or ""))
+    local text = trim(util.uncolored(row.left))
+    local right = trim(util.uncolored(row.right or ""))
     if text == "" and right == "" then return end
     if not model.name then return readTitle(model, text) end
     if state.label then
