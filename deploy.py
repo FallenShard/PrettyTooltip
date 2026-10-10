@@ -8,31 +8,18 @@ from shutil import copy2
 DEFAULT_ADDONS_DIR = Path(
     r"D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns"
 )
-GAME_FILES = (
-    "PrettyTooltip.toc",
-    "PrettyTooltipOptions.lua",
-    "PrettyTooltip.lua",
-    "PrettyTooltipLayout.lua",
-    "PrettyTooltipDisenchant.lua",
-    "PrettyTooltipCoefficient.lua",
-    "PrettyTooltipSpell.lua",
-    "PrettyTooltipObject.lua",
-    "PrettyTooltipUnit.lua",
-    "PrettyTooltipAura.lua",
-    "PrettyTooltipQuest.lua",
-    "PrettyTooltipEditor.lua",
-    "PrettyTooltipCursor.lua",
-    "PrettyTooltipCapture.lua",
-    "art/band.tga",
-    "art/faction-alliance.tga",
-    "art/faction-horde.tga",
-    "art/glow.tga",
-    "art/logo.tga",
-    "art/stat-marker.tga",
-    "art/marker-sword.tga",
-    "art/marker-sparkle.tga",
-    "art/marker-gear.tga",
-)
+TOC = "PrettyTooltip.toc"
+
+
+def game_files(source: Path) -> list[str]:
+    """The .toc, the Lua files it loads, in its order, and every texture."""
+    files = [TOC]
+    for line in (source / TOC).read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#") and line.endswith(".lua"):
+            files.append(line.replace("\\", "/"))
+    files += sorted(path.relative_to(source).as_posix() for path in (source / "art").glob("*.tga"))
+    return files
 
 
 def main() -> None:
@@ -51,7 +38,7 @@ def main() -> None:
 
     destination = args.addons_dir / "PrettyTooltip"
     destination.mkdir(exist_ok=True)
-    for name in GAME_FILES:
+    for name in game_files(source):
         target = destination / name
         target.parent.mkdir(parents=True, exist_ok=True)
         copy2(source / name, target)
