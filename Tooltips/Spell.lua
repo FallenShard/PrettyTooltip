@@ -13,15 +13,14 @@ local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
 local add = ui.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
+local drawBadges, badgesWidth = ui.drawBadges, ui.badgesWidth
 local PAD = ui.PAD
 local PARTS = { "spellTitle", "spellBadges", "spellValues", "spellCaptions", "spellDetails",
     "spellText", "extras" }
 local TITLE_COLOR = colors.title
 local DETAIL_COLOR = colors.detail
-local PILL_HEIGHT = 16
-local PILL_GAP = 6
 local CAPTION_OFFSET = 17
-local RANK_PILL = { .60, .56, .50 }
+local RANK_BADGE = { .60, .56, .50 }
 local REMAINING_COLOR = { 1, .60, .25 }
 local UNMET_COLOR = colors.unmet
 local STRIP_HEIGHT = 34
@@ -109,40 +108,12 @@ end
 
 local colorNumbers = util.colorNumbers
 
-local function pills(model)
+local function badges(model)
     local list = {}
     if model.school then list[#list + 1] = { model.school, SCHOOL_COLORS[model.school] } end
-    if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_PILL } end
-    if model.passive then list[#list + 1] = { model.passive, RANK_PILL } end
+    if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_BADGE } end
+    if model.passive then list[#list + 1] = { model.passive, RANK_BADGE } end
     return list
-end
-
-local function pillsWidth(panel, list, style)
-    local width = 0
-    for index, pill in ipairs(list) do
-        width = width + measureStyled(panel, pill[1], style) + 12 + (index > 1 and PILL_GAP or 0)
-    end
-    return width
-end
-
-local function drawPills(panel, list, x, y, style)
-    local height = math.max(PILL_HEIGHT, style.size + 6)
-    for _, pill in ipairs(list) do
-        local text, color = pill[1], pill[2]
-        local width = measureStyled(panel, text, style) + 12
-        local border = ui.acquireTexture(panel, nil, -2)
-        border:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -y)
-        border:SetSize(width, height)
-        border:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
-        local fill = ui.acquireTexture(panel, nil, -1)
-        fill:SetPoint("TOPLEFT", border, "TOPLEFT", 1, -1)
-        fill:SetSize(width - 2, height - 2)
-        fill:SetVertexColor(color[1] * .14, color[2] * .14, color[3] * .14, 1)
-        styledAt(panel, text, x, y + math.floor((height - style.size) / 2), width, style,
-            { color[1] * .45 + .55, color[2] * .45 + .55, color[3] * .45 + .55 }, "CENTER")
-        x = x + width + PILL_GAP
-    end
-    return y + height
 end
 
 -- Descriptions come in the game's gold; without a readable color, a long
@@ -282,9 +253,9 @@ end
 local function fitWidth(panel, model, styles)
     local indent = model.icon and TEXT_INDENT or 0
     local need = measureStyled(panel, model.name, styles.spellTitle) + indent
-    local list = pills(model)
+    local list = badges(model)
     if #list > 0 then
-        need = math.max(need, pillsWidth(panel, list, styles.spellBadges) + indent)
+        need = math.max(need, badgesWidth(panel, list, styles.spellBadges) + indent)
     end
     local function consider(width) if width > need then need = width end end
     for _, part in ipairs({ model, model.nested }) do
@@ -407,9 +378,9 @@ local function renderSpell(panel, tooltip, model)
     local leftIndent = ui.headerInsets(indent)
     y = y + styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.spellTitle,
         TITLE_COLOR) + 4
-    local list = pills(model)
+    local list = badges(model)
     if #list > 0 then
-        y = drawPills(panel, list, PAD + leftIndent, y + 1, styles.spellBadges) + 4
+        y = drawBadges(panel, list, PAD + leftIndent, y + 1, styles.spellBadges) + 4
     end
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
@@ -440,7 +411,6 @@ local function renderSpell(panel, tooltip, model)
     ui.finishPanel(panel, tooltip, y)
 end
 
-ui.drawPills, ui.pillsWidth = drawPills, pillsWidth
 ui.registerTooltipType(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
 })

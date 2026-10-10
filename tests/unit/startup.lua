@@ -111,7 +111,7 @@ return function(test)
         lines = { { left = { text = "Test Item" } }, { left = { text = "+6 Intellect" } } },
     }
     local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Data/Stats.lua",
-        "Panel/Layout.lua", "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
+        "Panel/Layout.lua", "Panel/Render.lua", "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
         "UI/Commands.lua", "PrettyTooltip.lua" }
     ns, world = test.load(integrated, item)
     test.check("item integration post-calls wait for startup", world.postCalls[0], nil)

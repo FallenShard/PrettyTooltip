@@ -2,7 +2,7 @@
 local _, ns = ...
 local ui = ns.ui
 local UNIT = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Unit
-if not (ui and UNIT and ui.drawPills) then
+if not (ui and UNIT and ui.drawBadges) then
     return
 end
 
@@ -245,7 +245,7 @@ local function fitWidth(panel, model, styles)
     if guild then consider(ui.measureStyled(panel, guild, styles.unitGuild) + indent) end
     if info then consider(ui.measureStyled(panel, info, styles.unitInfo) + indent) end
     local list = badges(model)
-    if #list > 0 then consider(ui.pillsWidth(panel, list, styles.unitBadges) + indent) end
+    if #list > 0 then consider(ui.badgesWidth(panel, list, styles.unitBadges) + indent) end
     local health = healthRow(model)
     if health then consider(ui.rowWidth(panel, health, styles.unitHealth)) end
     for _, row in ipairs(detailRows(model)) do consider(ui.rowWidth(panel, row, styles.unitDetails)) end
@@ -357,7 +357,7 @@ local function renderUnit(panel, tooltip, model)
             DETAIL_COLOR) + 4
     end
     local list = badges(model)
-    if #list > 0 then y = ui.drawPills(panel, list, PAD + leftIndent, y + 1, styles.unitBadges) + 4 end
+    if #list > 0 then y = ui.drawBadges(panel, list, PAD + leftIndent, y + 1, styles.unitBadges) + 4 end
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
     panel.footer:SetHeight(0)

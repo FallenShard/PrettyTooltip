@@ -2,7 +2,7 @@
 local _, ns = ...
 local ui = ns.ui
 local QUEST = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Quest
-if not (ui and QUEST and ui.drawPills) then
+if not (ui and QUEST and ui.drawBadges) then
     return
 end
 
@@ -200,7 +200,7 @@ local function fitWidth(panel, model, styles, paragraphs)
     local function consider(width) if width > need then need = width end end
     if model.zone then consider(ui.measureStyled(panel, model.zone, styles.questInfo) + indent) end
     local list = badges(model)
-    if #list > 0 then consider(ui.pillsWidth(panel, list, styles.questBadges) + indent) end
+    if #list > 0 then consider(ui.badgesWidth(panel, list, styles.questBadges) + indent) end
     for _, text in ipairs(paragraphs) do
         consider(math.min(ui.measureStyled(panel, text, styles.questText), ui.PROSE_WIDTH))
     end
@@ -281,7 +281,7 @@ local function renderQuest(panel, tooltip, model)
             colors.detail) + 3
     end
     local list = badges(model)
-    if #list > 0 then y = ui.drawPills(panel, list, PAD + leftIndent, y + 3, styles.questBadges) + 4 end
+    if #list > 0 then y = ui.drawBadges(panel, list, PAD + leftIndent, y + 3, styles.questBadges) + 4 end
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
     panel.footer:SetHeight(0)

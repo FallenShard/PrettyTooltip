@@ -10,7 +10,7 @@ return function(test)
         lines = { { left = { text = "Test Weapon" } }, { left = { text = original } } },
     }
     local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
-        "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua" }, capture)
+        "Data/Stats.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua" }, capture)
     ns.ItemLite.register()
     ns.ui.registerItemHooks()
     local function styleOnHit(text) return ns.Stats.styleOnHit(text, ns.option("statColors")) end
@@ -124,7 +124,7 @@ return function(test)
         lines = { { left = { text = "Test Weapon" } }, { left = { text = marked } } },
     }
     ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
-        "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua" }, markedCapture)
+        "Data/Stats.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua" }, markedCapture)
     local markedData = markedCapture.data
     test.check("a marked proc is read as an on-hit effect", ns.TooltipTypes[0].read(world.main, markedData, ns.Game)
         .equipEffects[1], { left = marked, right = "", onHit = true })

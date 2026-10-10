@@ -2,22 +2,20 @@
 local _, ns = ...
 local ui = ns.ui
 local AURA = Enum and Enum.TooltipDataType and Enum.TooltipDataType.UnitAura
-if not (ui and AURA and ui.drawPills) then
+if not (ui and AURA and ui.renderView) then
     return
 end
 
 local util = ns.util
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
-local PAD = ui.PAD
 local ICON_SIZE = 38
-local TEXT_INDENT = ICON_SIZE + 10
 local TINT_STRENGTH = .7
-local BAR_HEIGHT = 4
 local TIME_COLOR = { .88, .78, .60 }
 local BUFF_COLOR = { .45, .75, .95 }
 local DEBUFF_COLOR = { .90, .30, .25 }
 local MUTED = colors.caption
+local EXTRAS_RULE = { .50, .50, .54 }
 -- The game's dispel colors.
 local DISPELS = {
     Magic = { .20, .60, 1 },
@@ -138,120 +136,53 @@ local function hasBar(model)
     return type(model.duration) == "number" and model.duration > 0 and type(model.expires) == "number"
 end
 
-local function fitWidth(panel, model, styles, sentences)
-    local indent = model.icon and TEXT_INDENT or 0
-    local need = ui.measureStyled(panel, model.name, styles.auraName) + indent
-    local function consider(width) if width > need then need = width end end
-    local list = badges(model)
-    if #list > 0 then consider(ui.pillsWidth(panel, list, styles.auraBadges) + indent) end
-    for _, sentence in ipairs(sentences) do
-        consider(math.min(ui.measureStyled(panel, sentence, styles.auraText), ui.PROSE_WIDTH))
-    end
-    local time = timeRow(model)
-    if time then consider(ui.rowWidth(panel, time, styles.auraTime)) end
-    for _, row in ipairs(model.extras) do
-        local width = ui.rowWidth(panel, row, styles.extras)
-        if not row.right or row.right == "" then width = math.min(width, ui.PROSE_WIDTH) end
-        consider(width)
-    end
-    return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
-end
-
-local live = setmetatable({}, { __mode = "k" })
-
-local function drawBarFill(view)
-    local left = math.max(0, view.expires - GetTime())
-    local ratio = math.max(0, math.min(1, left / view.duration))
-    view.fill:SetWidth(math.max(1, view.width * ratio))
-    view.fill:SetShown(ratio > 0)
-end
-
-local updater = CreateFrame("Frame")
-local elapsedSince = 0
-updater:SetScript("OnUpdate", function(_, elapsed)
-    elapsedSince = elapsedSince + elapsed
-    if elapsedSince < .1 then return end
-    elapsedSince = 0
-    for panel, view in pairs(live) do
-        if panel:IsShown() then drawBarFill(view) else live[panel] = nil end
-    end
-end)
-
-local function renderAura(panel, tooltip, model)
-    panel:Show()
-    ui.clearPool(panel)
-    live[panel] = nil
+-- What the panel shows, for Panel/Render.lua to draw.
+local function auraView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
-    if not ns.option("iconAuras") then model.icon = nil end
+    local color = model.color or colors.neutral
+    local sections = {}
     local sentences = sentencesOf(model)
-    panel.width = fitWidth(panel, model, styles, sentences)
-    panel:SetWidth(panel.width)
-    local color = model.color or { .62, .66, .74 }
-    local headerMin = ui.drawChrome(panel, tooltip, {
+    if #sentences > 0 then
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "prose", sentences = sentences,
+            style = styles.auraText, color = colors.description, numbers = ns.Palette.numberCode(color), gap = 5 }
+    end
+    local time = timeRow(model)
+    if time or hasBar(model) then
+        local separator = #sections > 0 and { rule = { color[1] * .7, color[2] * .7, color[3] * .7 }, before = 4 }
+            or { divider = ui.GOLD_RULE }
+        if time then
+            time.rightColor = MUTED
+            sections[#sections + 1] = { separator = separator, kind = "rows", rows = { time },
+                style = styles.auraTime, color = TIME_COLOR, gap = 3 }
+            separator = nil
+        end
+        if hasBar(model) then
+            sections[#sections + 1] = { separator = separator, kind = "timer", duration = model.duration,
+                expires = model.expires, color = color }
+        end
+    end
+    if #model.extras > 0 then
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
+            kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+    end
+    return {
         tooltipType = "aura",
         color = color,
         tint = model.color,
         strength = TINT_STRENGTH,
-        icon = model.icon,
+        icon = ns.option("iconAuras") and model.icon or nil,
         iconSize = ICON_SIZE,
-    })
+        header = {
+            { text = model.name, style = styles.auraName, color = colors.title, gap = 4 },
+            { badges = badges(model), style = styles.auraBadges, before = 1, gap = 4 },
+        },
+        sections = sections,
+    }
+end
 
-    local inner = panel.width - 2 * PAD
-    local indent = model.icon and TEXT_INDENT or 0
-    local leftIndent = ui.headerInsets(indent)
-    local y = ui.TITLE_TOP
-    y = y + ui.styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.auraName,
-        colors.title) + 4
-    local list = badges(model)
-    if #list > 0 then y = ui.drawPills(panel, list, PAD + leftIndent, y + 1, styles.auraBadges) + 4 end
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
-    panel.footer:SetHeight(0)
-
-    local sectioned = false
-    if #sentences > 0 then
-        y = ui.divider(panel, y, ui.GOLD_RULE)
-        local numberCode = ns.Palette.numberCode(color)
-        for _, sentence in ipairs(sentences) do
-            y = ui.drawRow(panel, { left = util.colorNumbers(sentence, numberCode) }, y, styles.auraText,
-                colors.description, 0, 5)
-        end
-        sectioned = true
-    end
-    local time = timeRow(model)
-    if time or hasBar(model) then
-        y = sectioned and ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 4)
-            or ui.divider(panel, y, ui.GOLD_RULE)
-        if time then
-            time.rightColor = MUTED
-            y = ui.drawRow(panel, time, y, styles.auraTime, TIME_COLOR, 0, 3)
-        end
-        if hasBar(model) then
-            local track = ui.acquireTexture(panel, nil, 0)
-            track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
-            track:SetSize(inner, BAR_HEIGHT)
-            track:SetVertexColor(.16, .14, .13, 1)
-            local view = { width = inner, duration = model.duration, expires = model.expires }
-            view.fill = ui.acquireTexture(panel, nil, 1)
-            view.fill:SetPoint("TOPLEFT", track, "TOPLEFT")
-            view.fill:SetHeight(BAR_HEIGHT)
-            view.fill:SetVertexColor(color[1], color[2], color[3], 1)
-            drawBarFill(view)
-            live[panel] = view
-            y = y + BAR_HEIGHT + 8
-        end
-        sectioned = true
-    end
-    if #model.extras > 0 then
-        if sectioned then
-            y = ui.rule(panel, y, { .50, .50, .54 }, 8)
-        else
-            y = y + 4
-        end
-        y = ui.drawGroup(panel, model.extras, y, styles.extras, ui.EXTRA_COLOR, 0, 2)
-    end
-    ui.finishPanel(panel, tooltip, y)
+local function renderAura(panel, tooltip, model)
+    ui.renderView(panel, tooltip, auraView(model))
 end
 
 ui.auraModel = function(fields)

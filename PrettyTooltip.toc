@@ -15,6 +15,7 @@ Core\Settings.lua
 Game\Game.lua
 Data\Stats.lua
 Panel\Layout.lua
+Panel\Render.lua
 Data\Disenchant.lua
 Data\Coefficients.lua
 Tooltips\Spell.lua
