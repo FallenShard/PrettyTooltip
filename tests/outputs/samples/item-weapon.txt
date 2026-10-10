@@ -1,0 +1,129 @@
+== sample model
+armor: {}
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 2
+      id: 20725
+      name: "Nexus Crystal"
+  skill: 225
+effects: {}
+enchants:
+  1:
+    left: "|cff4CE64C+25|r |cffA6EBA6Agility|r"
+    right: ""
+equipEffects:
+  1:
+    left: "Your attacks have a chance to cleave a nearby enemy."
+    right: ""
+  2:
+    left: "Wounds the target for 40 to 60 damage."
+    onHit: true
+    right: ""
+equippable: true
+extras: {}
+flavor:
+  1:
+    left: "\"Sample flavor text sits here, in gold.\""
+    right: ""
+footerLeft:
+  1:
+    durability:
+      1: 61
+      2: 120
+    left: "Durability 61 / 120"
+    right: ""
+  2:
+    color:
+      1: 0.86
+      2: 0.74
+      3: 0.45
+    left: "Made by Lorelei"
+    right: ""
+footerRight:
+  1:
+    left: "6|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 42|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 18|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+header:
+  1:
+    left: "Binds when equipped"
+    right: "Requires Level 58"
+    rightColor:
+      1: 0.95
+      2: 0.93
+      3: 0.88
+icon: "Interface\\Icons\\INV_Misc_QuestionMark"
+level: 63
+name: "Arcanite Reaper"
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+13|r |cff79DCC2Stamina|r"
+    right: ""
+quality: 4
+secondary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffFF8357+62|r |cffF5B8A1Attack Power|r"
+    right: ""
+setBonuses: {}
+setItems: {}
+slot: "Axe · Two-Hand"
+weaponBonus: {}
+weaponDamage: "153 - 256 Damage"
+weaponDps: "53.8"
+weaponSpeed: "Speed 3.80"
+== sample render
+panel 330 x 426
+texture at -16,-16 0x0 rgb=0.72,0.4,0.94,0.55 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x94 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x57 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 19,21 43x43 rgb=1,1,1,1 INV_Misc_QuestionMark
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.72,0.4,0.94,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 47x16 rgb=0.576,0.32,0.752,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.1008,0.056,0.1316,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.874,0.73,0.973 "iLvl 63"
+texture at 0,0 0x2 rgb=0.576,0.32,0.752,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.2592,0.144,0.3384,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.2592,0.144,0.3384,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.2592,0.144,0.3384,0.95 WHITE8X8
+text at 72,21 w=239 size=19 rgb=0.72,0.4,0.94 "ARCANITE REAPER"
+text at 72,47 w=239 size=13 rgb=0.86,0.7,0.97 "Axe · Two-Hand"
+text at 72,66 w=123 size=12 rgb=0.78,0.72,0.63 "Binds when equipped"
+text at 207,66 w=104 size=12 rgb=0.95,0.93,0.88 "Requires Level 58"
+texture at 19,100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D553.8|r |cffA89F8EDamage per Second|r"
+text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "153 - 256 Damage  ·  Speed 3.80"
+text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+13|r |cff79DCC2Stamina|r"
+texture at 19,186 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-186 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-181 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,199 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffFF8357+62|r |cffF5B8A1Attack Power|r"
+text at 19,217 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t"
+text at 41,217 w=270 size=13 rgb=0.48,0.88,0.48 "Your attacks have a chance to cleave a nearby enemy."
+text at 19,250 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sword:11:11:-1:-2:32:32:0:32:0:32:200:210:225|t"
+text at 41,250 w=270 size=13 rgb=0.48,0.88,0.48 "Wounds the target for 40 to 60 damage."
+text at 19,268 w=22 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sparkle:11:11:-1:-2:32:32:0:32:0:32:90:230:60|t"
+text at 41,268 w=270 size=13 rgb=0.9,0.85,0.74 "|cff4CE64C+25|r |cffA6EBA6Agility|r"
+text at 19,291 w=292 size=12 rgb=0.86,0.74,0.45 "\"Sample flavor text sits here, in gold.\""
+texture at 19,321 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-321 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-316 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,334 w=151.5 size=11 rgb=0.86,0.74,0.45 "Disenchant"
+text at 182.5,334 w=128.5 size=11 rgb=0.55,0.53,0.5 "Requires Enchanting 225"
+text at 19,351 w=256 size=11 rgb=0.88,0.84,0.76 "1–2 Nexus Crystal"
+text at 287,351 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+text at 198.5,375 w=112.5 size=11 rgb=0.88,0.78,0.6 "6|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 42|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 18|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+texture at 19,380 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 0,0 27.45x4 rgb=0.45,0.8,0.4,1 WHITE8X8
+text at 80,375 w=90 size=11 rgb=0.82,0.78,0.71 "61 / 120"
+text at 19,392 w=280 size=11 rgb=0.86,0.74,0.45 "Made by Lorelei"

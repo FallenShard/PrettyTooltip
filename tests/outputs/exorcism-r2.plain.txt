@@ -1,0 +1,91 @@
+== tooltip model
+cast:
+  1: "Instant"
+  2: "Cast"
+cells:
+  1:
+    1: "73"
+    2: "Mana"
+  2:
+    1: "Instant"
+    2: "Cast"
+  3:
+    1: "15 sec"
+    2: "Cooldown"
+  4:
+    1: "30 yd"
+    2: "Range"
+cooldown:
+  1: "15 sec"
+  2: "Cooldown"
+cost:
+  1: "73"
+  2: "Mana"
+description:
+  1: "Causes 135 to 154 Holy damage to an Undead or Demon target."
+details: {}
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Spell"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+icon: 135903
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+name: "Exorcism"
+power: "Mana"
+range:
+  1: "30 yd"
+  2: "Range"
+rank: "Rank 2"
+requirements: {}
+spellID: 5614
+== tooltip render
+panel 308 x 173
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x71 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 0,0 0x2 rgb=0.784,0.584,0.176,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
+text at 19,21 w=270 size=17 rgb=0.96,0.92,0.84 "EXORCISM"
+texture at 19,46 32x16 rgb=0.784,0.584,0.176,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 30x14 rgb=0.1372,0.1022,0.0308,1 WHITE8X8
+text at 19,49 w=32 size=10 rgb=0.991,0.8785,0.649 "Holy"
+texture at 57,46 42x16 rgb=0.48,0.448,0.4,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 40x14 rgb=0.084,0.0784,0.07,1 WHITE8X8
+text at 57,49 w=42 size=10 rgb=0.82,0.802,0.775 "Rank 2"
+text at 19,72 w=67.5 size=13 rgb=0.6625,0.7975,1 "73"
+text at 19,89 w=67.5 size=9 rgb=0.6,0.57,0.52 "MANA"
+text at 86.5,72 w=67.5 size=13 rgb=0.96,0.92,0.84 "Instant"
+text at 86.5,89 w=67.5 size=9 rgb=0.6,0.57,0.52 "CAST"
+texture at 86.5,74 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 154,72 w=67.5 size=13 rgb=0.96,0.92,0.84 "15 sec"
+text at 154,89 w=67.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
+texture at 154,74 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 221.5,72 w=67.5 size=13 rgb=0.96,0.92,0.84 "30 yd"
+text at 221.5,89 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
+texture at 221.5,74 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 19,108 w=270 size=12 rgb=0.92,0.87,0.76 "Causes |cffFBCF74135|r to |cffFBCF74154|r Holy damage to an Undead or Demon target."
+text at 19,141 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"

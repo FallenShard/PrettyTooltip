@@ -57,6 +57,17 @@ local NODES = {
     ["Rich Thorium Vein"] = { 10620, 275 },
 }
 
+-- An ooze covered node yields what the plain one does.
+local function nodeFor(name)
+    return NODES[(name:gsub("^Ooze Covered ", ""))]
+end
+
+-- The item an object yields, by its name; for /ptip capture to record.
+function ns.objectYield(name)
+    local node = nodeFor(name)
+    return node and node[1]
+end
+
 local playerSkill = ui.playerSkill
 
 local function itemInfo(itemID)
@@ -77,7 +88,7 @@ local function auctionPrice(itemID)
 end
 
 local function completeModel(model)
-    local node = NODES[(model.name:gsub("^Ooze Covered ", ""))]
+    local node = nodeFor(model.name)
     model.look = model.skill and SKILLS[model.skill] or (#model.quests > 0 and QUEST) or nil
     if model.skill and SKILLS[model.skill] and model.skill ~= "Lockpicking" then
         model.skillRow = {
@@ -87,7 +98,7 @@ local function completeModel(model)
         }
     end
     if node then
-        local name, icon, price = itemInfo(node[1])
+        local name = itemInfo(node[1])
         -- A herb yields itself and a node yields an ore; anything else is a bad entry.
         local herb = model.name:gsub("^Ooze Covered ", "")
         if name and name ~= herb and not name:find(" Ore$") then node = nil end

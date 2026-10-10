@@ -97,19 +97,65 @@ local function profileText(label, counts)
     return table.concat(out, "\n")
 end
 
--- options.profile: also return what reading and rendering each cost.
-function main.fixture(fixture, enums, files, sources, serialize, makeWorld, options)
-    options = options or {}
-    local profiles = {}
-    local notes, report = notesCollector()
+-- Builds the world, applies settings as saved variables would, loads the
+-- addon, and tells it its saved variables arrived, as at login.
+local function startAddon(fixture, enums, files, sources, makeWorld, report, settings)
     local world = makeWorld(fixture, enums, report)
+    for key, value in pairs(settings or {}) do PrettyTooltipDB[key] = value end
     local ns = loadAddon(files, sources)
-    -- The saved variables arrive, as at login.
     for _, object in ipairs(world.objects) do
         if object._events and object._events.ADDON_LOADED and object._scripts.OnEvent then
             object._scripts.OnEvent(object, "ADDON_LOADED", "PrettyTooltip")
         end
     end
+    return world, ns
+end
+
+-- A model, then what the panel drew of it.
+local function describe(label, ns, model, dataType, serialize, world, profiles)
+    local text = { "== " .. label .. " model" }
+    if not model then
+        text[#text + 1] = "(none: the game's own tooltip shows instead)"
+        return table.concat(text, "\n")
+    end
+    text[#text + 1] = serialize.dump(model)
+    local anchor = CreateFrame("Frame", nil, UIParent)
+    -- The panel is made on the first render; the profile counts a later one,
+    -- as the game draws again and again into the same panel.
+    if profiles then ns.ui.renderPreview(anchor, model, dataType) world.counts = {} end
+    local rendered, panel = xpcall(function() return ns.ui.renderPreview(anchor, model, dataType) end,
+        debug.traceback)
+    if not rendered then error(label .. ": rendering failed: " .. panel, 0) end
+    if profiles then
+        profiles[#profiles + 1] = profileText(label .. " render", world.counts)
+        world.counts = nil
+    end
+    text[#text + 1] = "== " .. label .. " render"
+    text[#text + 1] = drawn(panel)
+    return table.concat(text, "\n")
+end
+
+-- The game's own tooltip, line by line, as it shows after every post-call.
+local function nativeLines(label, tooltip)
+    local out = { "== " .. label .. " as the game shows it" }
+    for index = 1, tooltip:NumLines() do
+        local left, right = tooltip._left[index], tooltip._right[index]
+        local text = left and left._shown and left._text or ""
+        if right and right._shown and right._text and right._text ~= "" then text = text .. "  ||  " .. right._text end
+        out[#out + 1] = string.format("%2d %q", index, text)
+    end
+    return table.concat(out, "\n")
+end
+
+-- options.settings: saved settings to run with. options.native: describe the
+-- game's own tooltip after every post-call, instead of the panel, as for lite
+-- mode, which leaves the game's tooltip showing. options.profile: also return
+-- the frame calls reading and rendering made.
+function main.fixture(fixture, enums, files, sources, serialize, makeWorld, options)
+    options = options or {}
+    local profiles = options.profile and {} or nil
+    local notes, report = notesCollector()
+    local world, ns = startAddon(fixture, enums, files, sources, makeWorld, report, options.settings)
 
     local sections = {}
     local function run(label, tooltip, capture)
@@ -126,46 +172,53 @@ function main.fixture(fixture, enums, files, sources, serialize, makeWorld, opti
         for index, line in ipairs(data.lines or {}) do
             if line.lineIndex == nil then line.lineIndex = places[index] end
         end
+        if options.native then
+            for _, postCall in ipairs(world.postCalls[data.type] or {}) do
+                local ok, failure = xpcall(function() postCall(tooltip, data) end, debug.traceback)
+                if not ok then error(label .. ": a post-call failed: " .. failure, 0) end
+            end
+            sections[#sections + 1] = nativeLines(label, tooltip)
+            return
+        end
         local kind = ns.ui and ns.ui.kinds and ns.ui.kinds[data.type]
         if not kind then
             sections[#sections + 1] = "== " .. label .. "\n(no panel for this kind of tooltip)"
             return
         end
-        if options.profile then world.counts = {} end
+        if profiles then world.counts = {} end
         local ok, model = xpcall(function() return kind.read(tooltip, data) end, debug.traceback)
         if not ok then error(label .. ": reading failed: " .. model, 0) end
-        if options.profile then
+        if profiles then
             profiles[#profiles + 1] = profileText(label .. " read", world.counts)
             world.counts = nil
         end
-        local text = { "== " .. label .. " model" }
-        if not model then
-            text[#text + 1] = "(none: the game's own tooltip shows instead)"
-        else
-            text[#text + 1] = serialize.dump(model)
-            local anchor = CreateFrame("Frame", nil, UIParent)
-            -- The panel is made on the first render; the profile times a later
-            -- one, as the game draws again and again into the same panel.
-            if options.profile then ns.ui.renderPreview(anchor, model, data.type) world.counts = {} end
-            local rendered, panel = xpcall(function()
-                return ns.ui.renderPreview(anchor, model, data.type)
-            end, debug.traceback)
-            if not rendered then error(label .. ": rendering failed: " .. panel, 0) end
-            if options.profile then
-                profiles[#profiles + 1] = profileText(label .. " render", world.counts)
-                world.counts = nil
-            end
-            text[#text + 1] = "== " .. label .. " render"
-            text[#text + 1] = drawn(panel)
-        end
-        sections[#sections + 1] = table.concat(text, "\n")
+        sections[#sections + 1] = describe(label, ns, model, data.type, serialize, world, profiles)
     end
 
     run("tooltip", world.main, fixture)
     for index, comparison in ipairs(world.comparisons) do
         run("comparison " .. index, comparison, fixture.comparisons[index])
     end
-    return table.concat(sections, "\n\n") .. "\n", notes, table.concat(profiles, "\n")
+    return table.concat(sections, "\n\n") .. "\n", notes, table.concat(profiles or {}, "\n")
+end
+
+-- Every sample the style editor shows, each as a model and what the panel
+-- drew of it, named "<kind>-<label>". Covers every kind without a capture.
+function main.samples(enums, files, sources, serialize, makeWorld, settings)
+    local notes, report = notesCollector()
+    local world, ns = startAddon({}, enums, files, sources, makeWorld, report, settings)
+    local results = {}
+    for _, kindKey in ipairs(ns.editorSamples.order) do
+        local kind = ns.editorSamples.kinds[kindKey]
+        for _, sample in ipairs(kind.samples) do
+            local name = kindKey .. "-" .. sample.label:lower():gsub("[^%w]+", "-")
+            local built, model = xpcall(sample.build, debug.traceback)
+            if not built then error(name .. ": building the sample failed: " .. model, 0) end
+            results[#results + 1] = { name = name,
+                text = describe("sample", ns, model, kind.dataType, serialize, world) .. "\n" }
+        end
+    end
+    return results, notes
 end
 
 -- Records each line of the addon's files that runs, into hits[source][line].

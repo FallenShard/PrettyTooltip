@@ -5,7 +5,7 @@ The tests run the addon outside the game, in Lua 5.1 (the game's) through [lupa]
 ```
 pip install -r tests/requirements.txt
 python tests/run.py              # everything
-python tests/run.py -k frost     # tests whose name holds "frost"
+python tests/run.py -k frost     # tests whose name holds "frost" ("samples", "lint", ".lite" work too)
 python tests/run.py --update     # accept the current output as the expected
 python tests/run.py --notes      # list what each fixture lacked an answer for
 python tests/run.py --coverage   # which lines and functions the tests ran
@@ -26,6 +26,18 @@ A fixture is a real tooltip, captured in the game:
 Each fixture is run as the game would: the addon's files load in the `.toc`'s order, the item rewrite changes the data, the kind's reader turns it into a model, and the renderer draws it. The expected output holds the model and every string and texture drawn, with where it sits. When a change alters them, the run fails with a diff; if the change is meant, `--update` accepts it.
 
 A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `PrettyTooltipCapture.lua` and capture again.
+
+### Settings variants
+
+`tests/variants.lua` lists, by kind of tooltip, other settings each fixture of that kind also runs with: items in lite mode, and items and spells with their optional parts turned off. A variant's expected output is `tests/outputs/<fixture>.<variant>.txt`. Lite mode leaves the game's tooltip showing, so its output is the game's tooltip, line by line, after every post-call.
+
+### The style editor's samples
+
+Every sample the style editor shows (a weapon, a herb, a hostile elite, a quest in progress, and the rest) is drawn and compared against `tests/outputs/samples/<kind>-<sample>.txt`, so every kind of panel is tested without a capture. The samples have no recorded game answers, so what needs one, as an icon or an item's price, is left out of them.
+
+## Lint
+
+The run starts with [luacheck](https://github.com/lunarmodules/luacheck), by `.luacheckrc`, which reports names used but never defined: a rename or a move that leaves one behind fails it, whether or not a test runs that code. It runs when `luacheck` is on the PATH, or where the `LUACHECK` environment variable points (as at the `luacheck.exe` from its [releases](https://github.com/lunarmodules/luacheck/releases)); without it the run says lint was skipped. The game's globals the addon reads are listed in `.luacheckrc`; a new one goes there.
 
 ## What the tests cover
 

@@ -184,6 +184,17 @@ local function recordQuest(record, data)
     record("C_QuestLog.IsQuestFlaggedCompleted", C_QuestLog.IsQuestFlaggedCompleted, data.id)
 end
 
+-- The item a herb or ore node yields, which the panel names and prices.
+local function recordObject(record, data)
+    local first = data.lines and data.lines[1]
+    local name = first and not isSecret(first.leftText) and first.leftText
+    local itemID = type(name) == "string" and ns.objectYield and ns.objectYield(name)
+    if itemID then
+        record("C_Item.GetItemInfo", C_Item.GetItemInfo, itemID)
+        record("C_Item.GetItemIconByID", C_Item.GetItemIconByID, itemID)
+    end
+end
+
 -- The player, the same for every kind: level, spell power, and skills.
 local function recordPlayer(record)
     for _, name in ipairs({ "UnitLevel", "UnitClass", "UnitRace", "UnitFactionGroup", "UnitName" }) do
@@ -243,6 +254,8 @@ local function captureTooltip(tooltip)
             entry.aura = attempt("aura", recordAura, record, tooltip, data)
         elseif dataType == TYPES.Quest then
             attempt("quest", recordQuest, record, data)
+        elseif dataType == TYPES.Object then
+            attempt("object", recordObject, record, data)
         end
     end
     attempt("player", recordPlayer, record)

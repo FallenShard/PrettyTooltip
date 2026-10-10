@@ -1,0 +1,65 @@
+== sample model
+classFile: "WARRIOR"
+className: "Warrior"
+color:
+  1: 0.78
+  2: 0.61
+  3: 0.43
+extras:
+  1:
+    color:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    left: "Item Level 61"
+    right: ""
+faction: "Alliance"
+guild: "Dawnbreakers"
+health: 4230
+healthMax: 5100
+iconPath: "Interface\\Icons\\INV_Misc_Head_Human_02"
+isPlayer: true
+level: 60
+name: "Somniferie"
+pvp: true
+quests: {}
+race: "Human"
+target: "Ragnaros"
+targetColor:
+  1: 1
+  2: 0.27
+  3: 0.22
+== sample render
+panel 260 x 214
+texture at -16,-16 0x0 rgb=0.78,0.61,0.43,0.385 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x103 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 19,21 38x38 rgb=1,1,1,1 INV_Misc_Head_Human_02
+texture CENTER Texture CENTER 0,0 40x40 rgb=0.78,0.61,0.43,0.85 WHITE8X8
+texture at 0,0 0x2 rgb=0.624,0.488,0.344,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.2808,0.2196,0.1548,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.2808,0.2196,0.1548,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.2808,0.2196,0.1548,0.95 WHITE8X8
+text at 67,21 w=174 size=17 rgb=0.78,0.61,0.43 "SOMNIFERIE"
+text at 67,43 w=174 size=12 rgb=0.89,0.805,0.715 "<Dawnbreakers>"
+text at 67,59 w=174 size=12 rgb=0.82,0.78,0.71 "Level 60 Human Warrior"
+texture at 67,78 27x16 rgb=0.8,0.36,0.28,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 25x14 rgb=0.14,0.063,0.049,1 WHITE8X8
+text at 67,81 w=27 size=10 rgb=1,0.7525,0.7075 "PvP"
+texture at 19,109 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-109 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-104 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,122 w=191.5 size=11 rgb=0.82,0.78,0.71 "4,230 / 5,100"
+text at 222.5,122 w=18.5 size=11 rgb=0.82,0.78,0.71 "83%"
+texture at 19,137 222x5 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 0,0 184.1x5 rgb=0.45,0.8,0.4,1 WHITE8X8
+text at 19,150 w=164 size=11 rgb=0.82,0.78,0.71 "Target"
+text at 195,150 w=46 size=11 rgb=1,0.27,0.22 "Ragnaros"
+texture at 19,173 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,182 w=222 size=11 rgb=0.6,0.6,0.63 "Item Level 61"
+texture at 104,1 155x175 rgb=0.4,0.6,1,0.12 faction-alliance

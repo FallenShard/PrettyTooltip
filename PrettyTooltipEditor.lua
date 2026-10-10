@@ -463,6 +463,8 @@ if Enum.TooltipDataType.Quest and ui.questModel then
         samples = QUEST_SAMPLES, first = "questTitle", noun = "quest", noLookup = true }
     KIND_ORDER[#KIND_ORDER + 1] = "quest"
 end
+-- For tests/: every kind's samples, in the editor's order.
+ns.editorSamples = { kinds = KINDS, order = KIND_ORDER }
 local MAX_SAMPLES = 0
 for _, kind in pairs(KINDS) do MAX_SAMPLES = math.max(MAX_SAMPLES, #kind.samples) end
 
@@ -726,9 +728,8 @@ end
 local function drawSample()
     local kind = KINDS[state.kind]
     local problem = state.lookup and lookupProblem(kind, state.lookup)
-    local ok, panel = true, nil
     if not problem then
-        ok, panel = pcall(function()
+        local ok, panel = pcall(function()
             if state.lookup then return ui.previewByID(anchor, kind.dataType, state.lookup) end
             return ui.renderPreview(anchor, kind.samples[state.sample].build(), kind.dataType)
         end)

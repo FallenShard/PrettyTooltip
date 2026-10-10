@@ -15,7 +15,10 @@ python tests/run.py --profile    also count the frame calls each fixture's read 
 """
 
 import difflib
+import os
 import re
+import shutil
+import subprocess
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
@@ -90,27 +93,12 @@ def show_diff(expected: str, got: str, name: str) -> None:
         print("    " + line)
 
 
-def run_fixture(path: Path, files, update: bool, show_notes: bool, profile: bool = False) -> bool:
-    name = path.stem
-    lua, load, harness = new_runtime()
-    fixture = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}")
-    enums = fixture.enums or default_enums(load)
-    if enums is None:
-        print(f"FAIL {name}: no enums; capture it again with the current /ptip capture, then import it")
-        return False
-    try:
-        options = lua_table(lua, {"profile": profile})
-        text, notes, profile_text = harness["main"].fixture(
-            fixture, enums, lua_table(lua, dict(enumerate(files, 1))), sources_table(lua, files),
-            harness["serialize"], harness["wow"], options)
-    except Exception as error:  # A Lua error, with its traceback.
-        print(f"FAIL {name}: {error}")
-        return False
-    collect_coverage(harness)
-    notes = list(notes.values())
+def compare(name: str, text: str, notes, update: bool, show_notes: bool) -> bool:
+    """Checks text against outputs/<name>.txt, or writes it there when it is
+    new or --update is given."""
     expected_path = OUTPUTS / f"{name}.txt"
     if update or not expected_path.exists():
-        expected_path.parent.mkdir(exist_ok=True)
+        expected_path.parent.mkdir(parents=True, exist_ok=True)
         expected_path.write_text(text, encoding="utf-8", newline="\n")
         print(f"{'updated' if update else 'new'} {name}")
         ok = True
@@ -123,9 +111,91 @@ def run_fixture(path: Path, files, update: bool, show_notes: bool, profile: bool
     if show_notes or not ok:
         for note in notes:
             print(f"    note {note}")
-    if profile and profile_text:
-        print("    " + profile_text.replace("\n", "\n    "))
     return ok
+
+
+def variant_names(load) -> dict[str, list[str]]:
+    """The variants in tests/variants.lua, by kind of tooltip."""
+    path = TESTS / "variants.lua"
+    if not path.exists():
+        return {}
+    variants = load(path.read_text(encoding="utf-8"), "variants.lua")
+    return {kind: sorted(byName.keys()) for kind, byName in variants.items()}
+
+
+def run_fixture(path: Path, files, args) -> list[bool]:
+    """The fixture with the default settings, then with each variant its kind
+    has. Each run gets a fresh runtime, as a run changes the fixture's data."""
+    results = []
+    _, load, _ = new_runtime()
+    kind = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}").kind
+    for variant in [None] + variant_names(load).get(kind, []):
+        name = path.stem if variant is None else f"{path.stem}.{variant}"
+        lua, load, harness = new_runtime()
+        fixture = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}")
+        enums = fixture.enums or default_enums(load)
+        if enums is None:
+            print(f"FAIL {name}: no enums; capture it again with the current /ptip capture, then import it")
+            results.append(False)
+            continue
+        options = {"profile": args.profile and variant is None}
+        if variant is not None:
+            chosen = load((TESTS / "variants.lua").read_text(encoding="utf-8"), "variants.lua")[kind][variant]
+            options["settings"], options["native"] = chosen.settings, chosen.native
+        try:
+            text, notes, profile_text = harness["main"].fixture(
+                fixture, enums, lua_table(lua, dict(enumerate(files, 1))), sources_table(lua, files),
+                harness["serialize"], harness["wow"], lua_table(lua, options))
+        except Exception as error:  # A Lua error, with its traceback.
+            print(f"FAIL {name}: {error}")
+            results.append(False)
+            continue
+        collect_coverage(harness)
+        results.append(compare(name, text, list(notes.values()), args.update, args.notes))
+        if options["profile"] and profile_text:
+            print("    " + profile_text.replace("\n", "\n    "))
+    return results
+
+
+def run_samples(files, args) -> list[bool]:
+    """Every sample the style editor shows, against outputs/samples/."""
+    lua, load, harness = new_runtime()
+    enums = default_enums(load)
+    if enums is None:
+        print("FAIL samples: no tests/harness/enums.lua; import a capture first")
+        return [False]
+    try:
+        samples, notes = harness["main"].samples(enums, lua_table(lua, dict(enumerate(files, 1))),
+                                                  sources_table(lua, files), harness["serialize"], harness["wow"])
+    except Exception as error:
+        print(f"FAIL samples: {error}")
+        return [False]
+    collect_coverage(harness)
+    results = []
+    for sample in samples.values():
+        name = f"samples/{sample.name}"
+        if args.pattern in name:
+            results.append(compare(name, sample.text, [], args.update, False))
+    if args.notes:
+        for note in notes.values():
+            print(f"    note {note}")
+    return results
+
+
+def run_lint() -> list[bool]:
+    """luacheck over the addon, by .luacheckrc, when it can be found: on the
+    PATH, or where the LUACHECK environment variable points."""
+    luacheck = os.environ.get("LUACHECK") or shutil.which("luacheck")
+    if not luacheck:
+        print("skipped lint: luacheck not found (set LUACHECK to its path, or put it on the PATH)")
+        return []
+    finished = subprocess.run([luacheck, ".", "--no-color", "--codes", "--quiet"], cwd=ROOT,
+                              capture_output=True, text=True)
+    ok = finished.returncode == 0
+    print(f"{'ok' if ok else 'FAIL'} lint")
+    if not ok:
+        print("    " + (finished.stdout + finished.stderr).strip().replace("\n", "\n    "))
+    return [ok]
 
 
 def run_unit(path: Path, files, show_notes: bool) -> bool:
@@ -203,23 +273,21 @@ def main() -> None:
         COVERAGE = {}
 
     files = addon_files()
-    passed = failed = 0
+    results = run_lint() if not args.pattern or args.pattern in "lint" else []
     for path in sorted(UNIT.glob("*.lua")):
         if args.pattern in path.stem:
-            if run_unit(path, files, args.notes):
-                passed += 1
-            else:
-                failed += 1
+            results.append(run_unit(path, files, args.notes))
     for path in sorted(FIXTURES.glob("*.lua")):
         if args.pattern in path.stem:
-            if run_fixture(path, files, args.update, args.notes, args.profile):
-                passed += 1
-            else:
-                failed += 1
-    print(f"\n{passed} passed, {failed} failed")
+            results += run_fixture(path, files, args)
+    if not args.pattern or "samples" in args.pattern or any(
+            args.pattern in kind for kind in ("item", "spell", "object", "unit", "aura", "quest")):
+        results += run_samples(files, args)
+    passed = results.count(True)
+    print(f"\n{passed} passed, {len(results) - passed} failed")
     if COVERAGE is not None:
         report_coverage(files)
-    sys.exit(1 if failed else 0)
+    sys.exit(1 if passed < len(results) else 0)
 
 
 if __name__ == "__main__":

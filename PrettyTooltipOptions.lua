@@ -312,11 +312,11 @@ local function refreshControls()
     for _, control in ipairs(controls) do control.refresh() end
 end
 
-local title = page:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-title:SetPoint("TOPLEFT", 16, -16)
-title:SetText("PrettyTooltip")
+local pageTitle = page:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+pageTitle:SetPoint("TOPLEFT", 16, -16)
+pageTitle:SetText("PrettyTooltip")
 local subtitle = page:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-subtitle:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -6)
+subtitle:SetPoint("TOPLEFT", pageTitle, "BOTTOMLEFT", 0, -6)
 subtitle:SetText("A full reskin of tooltips. Changes apply the next time a tooltip opens.")
 
 local editorButton = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")

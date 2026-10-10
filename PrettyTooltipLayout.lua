@@ -73,7 +73,7 @@ local panels = setmetatable({}, { __mode = "k" })
 -- capture runs, a probed call costs one check.
 local perf = { on = false, calls = {}, time = {} }
 
-local function count(name)
+local function tally(name)
     if perf.on then perf.calls[name] = (perf.calls[name] or 0) + 1 end
 end
 
@@ -1813,7 +1813,7 @@ local function fitNative(tooltip, panel)
     end
     timed("refit part: size check (changed)", start)
     start = perf.on and debugprofilestop()
-    count("refit applied")
+    tally("refit applied")
     -- GetPadding reports the applied padding and SetPadding resizes at once, so
     -- the natural size needs no layout pass to measure.
     if tooltip.GetPadding then
@@ -1828,14 +1828,14 @@ local function fitNative(tooltip, panel)
             panel.naturalWidth = math.max(largestWidth, naturalWidth)
             panel.naturalHeight = math.max(largestHeight, naturalHeight)
             if not panel.forceFit and (naturalWidth < largestWidth - .5 or naturalHeight < largestHeight - .5) then
-                count("refit skipped (smaller)")
+                tally("refit skipped (smaller)")
                 recheckNextFrame(tooltip, panel)
                 return
             end
             local right = base.right + math.max(0, panelWidth - naturalWidth)
             local bottom = base.bottom + math.max(0, panelHeight - naturalHeight)
             if math.abs(right - currentRight) > .01 or math.abs(bottom - currentBottom) > .01 then
-                count("padding set")
+                tally("padding set")
                 tooltip:SetPadding(right, bottom, base.left, base.top)
             end
             -- Reading the size back would make the game lay the tooltip out a
@@ -1844,7 +1844,7 @@ local function fitNative(tooltip, panel)
             panel.fittedHeight = naturalHeight + (bottom - base.bottom)
             panel.fittedPanelWidth, panel.fittedPanelHeight = panelWidth, panelHeight
             timed("refit part: fast path", start)
-            count("refit fast")
+            tally("refit fast")
             return
         end
     end
@@ -1878,7 +1878,7 @@ local function refitUnlessPartial(tooltip, panel)
     local lines = tooltip:NumLines()
     if lines > (panel.fullLines or 0) then panel.fullLines = lines end
     if lines < panel.fullLines then
-        count("refit skipped (partial)")
+        tally("refit skipped (partial)")
         recheckNextFrame(tooltip, panel)
         return
     end
@@ -1974,7 +1974,7 @@ local function update(tooltip, data)
     if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
     local rendered = pcall(kind.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
-    count("refit from render")
+    tally("refit from render")
     refitNative(tooltip, panel)
     panel.data = data
     local key = kind.key(tooltip, data)
@@ -2020,9 +2020,9 @@ local function onTooltipData(dataType, tooltip, data)
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
         local function onNativeShown(shown, source)
-            count(isComparison(shown) and "show hook (comparison)" or "show hook")
+            tally(isComparison(shown) and "show hook (comparison)" or "show hook")
             if not (panel.nativeSize and panel:IsShown()) then return end
-            count("refit from " .. source)
+            tally("refit from " .. source)
             refitUnlessPartial(shown, panel)
             -- Comparisons are anchored after they are shown, so align here.
             pcall(alignPanel, panel, shown)
@@ -2044,7 +2044,7 @@ local function onTooltipData(dataType, tooltip, data)
         -- beside the panels, not the hidden tooltips under them.
         hooksecurefunc(tooltip, "SetPoint", function(moved)
             if not anchoring and panel:IsShown() and isComparison(moved) then
-                count("re-anchor after SetPoint")
+                tally("re-anchor after SetPoint")
                 anchorToPanels(moved)
             end
         end)
@@ -2085,7 +2085,7 @@ local function onTooltipData(dataType, tooltip, data)
     else
         if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
         tooltip:SetAlpha(0)
-        count("refit from same item's data")
+        tally("refit from same item's data")
         refitUnlessPartial(tooltip, panel)
     end
     C_Timer.After(0, function()
@@ -2094,7 +2094,7 @@ local function onTooltipData(dataType, tooltip, data)
             -- The game re-sets shown tooltips often, comparisons most; a panel
             -- already showing the same text needs no new render.
             if panel:IsShown() and panel.fingerprint and panel.fingerprint == fingerprint(tooltip, data) then
-                count("render skipped")
+                tally("render skipped")
                 return
             end
             update(tooltip, data)
