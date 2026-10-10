@@ -21,6 +21,8 @@ local NAMES = {
     [14343] = "Small Brilliant Shard", [14344] = "Large Brilliant Shard",
     [NEXUS] = "Nexus Crystal",
 }
+-- For /ptip capture, which records each material's name and icon.
+ns.disenchantMaterials = NAMES
 -- Uncommon: { low, high, dust, dust count, essence, essence count, shard,
 -- the main yield's chance, the other's, the shard's }. Armor mostly gives
 -- dust and weapons essence; weapons from 51 on take 22 and 3.

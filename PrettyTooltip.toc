@@ -6,7 +6,7 @@
 ## X-Curse-Project-ID: 1720719
 ## Version: 1.0.0
 ## IconTexture: Interface\AddOns\PrettyTooltip\art\logo
-## SavedVariables: PrettyTooltipDB
+## SavedVariables: PrettyTooltipDB, PrettyTooltipCaptures
 
 PrettyTooltipOptions.lua
 PrettyTooltip.lua
@@ -20,3 +20,4 @@ PrettyTooltipAura.lua
 PrettyTooltipQuest.lua
 PrettyTooltipEditor.lua
 PrettyTooltipCursor.lua
+PrettyTooltipCapture.lua

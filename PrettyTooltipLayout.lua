@@ -2252,6 +2252,8 @@ function ns.perfCapture(seconds)
 end
 
 ns.ui = {
+    -- Each kind's reader and renderer by tooltip data type, for tests/.
+    kinds = KINDS,
     renderPreview = renderPreview,
     previewByID = previewByID,
     defaultHeaderAlpha = defaultHeaderAlpha,

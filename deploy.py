@@ -22,6 +22,7 @@ GAME_FILES = (
     "PrettyTooltipQuest.lua",
     "PrettyTooltipEditor.lua",
     "PrettyTooltipCursor.lua",
+    "PrettyTooltipCapture.lua",
     "art/band.tga",
     "art/faction-alliance.tga",
     "art/faction-horde.tga",

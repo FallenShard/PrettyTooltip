@@ -548,6 +548,18 @@ SlashCmdList.PRETTYTOOLTIP = function(message)
         if ns.dumpAnchors then pcall(ns.dumpAnchors) end
         return
     end
+    -- /ptip capture <name>, list, or clear: tooltips saved as test fixtures.
+    local command, argument = wanted:match("^(%S+)%s*(.-)$")
+    if command == "capture" and ns.capture then
+        if argument == "list" then
+            ns.listCaptures()
+        elseif argument == "clear" then
+            ns.clearCaptures()
+        else
+            ns.capture(argument)
+        end
+        return
+    end
     if wanted == "dump" then
         -- Secret values cannot be printed in some situations.
         local ok, problem = pcall(dumpTooltip)

@@ -1,0 +1,62 @@
+# PrettyTooltip tests
+
+The tests run the addon outside the game, in Lua 5.1 (the game's) through [lupa](https://pypi.org/project/lupa/), so the code can be changed and refactored with a check that tooltips still read and draw as before.
+
+```
+pip install -r tests/requirements.txt
+python tests/run.py              # everything
+python tests/run.py -k frost     # tests whose name holds "frost"
+python tests/run.py --update     # accept the current output as the expected
+python tests/run.py --notes      # list what each fixture lacked an answer for
+python tests/run.py --coverage   # which lines and functions the tests ran
+python tests/run.py --profile    # the frame calls each read and render make
+```
+
+`--profile` counts, for one read and one render of each fixture, every method the addon calls on frames, font strings, and textures, and the calls that set what was already set (`SetFont, same font`, `SetText, same text`). It shows how much work a change adds or saves, the same on every run; how long the work takes, and how often the game asks for it, only the game can show, with `/ptip perf`.
+
+## Fixtures and expected outputs
+
+A fixture is a real tooltip, captured in the game:
+
+1. Hover a tooltip, or click a link in chat, and type `/ptip capture <name>`. Hold Shift first to capture the comparison tooltips too. Values the game hides, as on some player tooltips, are kept marked; the harness gives them back as hidden values that `issecretvalue` knows, so the addon's handling of them is tested too.
+2. `/reload` or log out, which is when the game writes the captures to disk.
+3. `python tests/import_captures.py "<WoW folder>"` (the folder holding `WTF`, or the `SavedVariables/PrettyTooltip.lua` file itself). It writes `tests/fixtures/<name>.lua`; `--only` picks captures and `--rename old=new` renames them. Player and guild names are replaced unless `--keep-names` is given.
+4. `python tests/run.py`: a new fixture gets its first expected output in `tests/outputs/<name>.txt`. Read it once; it is what the test holds the code to from then on.
+
+Each fixture is run as the game would: the addon's files load in the `.toc`'s order, the item rewrite changes the data, the kind's reader turns it into a model, and the renderer draws it. The expected output holds the model and every string and texture drawn, with where it sits. When a change alters them, the run fails with a diff; if the change is meant, `--update` accepts it.
+
+A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `PrettyTooltipCapture.lua` and capture again.
+
+## What the tests cover
+
+`python tests/run.py --coverage` reports, for each file, the share of its code lines the tests ran, and the top-level functions none entered. The share is counted from the text, so it is close, not exact, and it includes what runs while a file loads.
+
+The code falls into these kinds, by how far the tests can check it (counts from October 2026, of about 5,400 code lines):
+
+| Kind | Share | Where | Checked how | Reach |
+|---|---|---|---|---|
+| Parsing: game data into a model | 18% | each kind's reader, the item rewrite | fixture outputs: the model, field by field | all of it, given a fixture for each case |
+| Conversion and formatting | 9% | stat wording and colors, money, coefficients, disenchant tables, settings and styles | unit checks and fixture outputs | all of it |
+| Rendering our panels | 25% | `fitWidth`, `render*`, `draw*`, the chrome | fixture outputs: every string and texture, with place, size, and color | all of it runs; the layout is checked under fixed text metrics, not as the game draws fonts |
+| Load-time code | 12% | data tables, frames made at file level | every test loads every file | all of it: a load error fails every test |
+| Game integration | 10% | hiding and refitting the game's tooltip, hooks, timers, the modifier key, follow cursor, comparison anchoring | not yet; scenario tests could drive the hooks and timers, but how the game lays out and times its tooltips cannot be reproduced | part; the rest needs the game |
+| UI and tools | 25% | the style editor, the options page, `/ptip capture` | loaded by every test; the editor's samples can be rendered as expected outputs | the drawing; clicks and menus only with simulated input, which is little use |
+
+Assets are apart from these: the `art/make_*.py` generators are deterministic, so a check can regenerate them and compare against the committed textures.
+
+### Renaming and moving code
+
+A rename or a move breaks a test when the code it touches runs in one: every test loads every file, so a name left behind at file level fails all of them, and one inside a function fails the tests that run it. A model field renamed on purpose shows as an output diff to accept with `--update`. A name left behind on a path no test runs goes unnoticed, which `--coverage` shows; a static checker such as [luacheck](https://github.com/lunarmodules/luacheck), which reports names used but never defined, catches those regardless of coverage.
+
+## Unit checks
+
+Each file in `tests/unit` returns a function given `test`, with `test.load(files, fixture)`, which loads the named addon files with a world answering from `fixture.calls`, and `test.check(name, got, expected)`. `unit/coefficient.lua` is an example.
+
+## How it fits together
+
+- `harness/wow.lua` stands in for the game: frames, font strings, and textures that keep what is set on them, game functions that answer from the fixture, and fixed text metrics (half the font size per character), so layouts come out the same every run.
+- `harness/main.lua` loads the addon and runs a fixture or a unit file.
+- `harness/serialize.lua` writes fixtures (Lua that reads back exactly) and expected outputs (sorted, readable text).
+- `harness/enums.lua`, when present, holds the client's enums from the newest capture, for fixtures captured before captures carried them.
+
+`tests/` is not packaged with the addon (see `.pkgmeta`).

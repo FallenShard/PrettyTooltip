@@ -144,4 +144,8 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 
 `/ptip dump` prints the raw data of the tooltip you are hovering, to see what a kind of tooltip carries, or the lines shown when an addon filled it without data. A link clicked in chat is dumped when nothing is hovered. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes. `/ptip anchors` prints where each shown panel sits, the gaps between them, and how the game's tooltips under them are anchored.
 
+`/ptip capture <name>` saves the tooltip you are hovering, or a link clicked in chat, as a test fixture: its data, the lines it shows, any comparison tooltips beside it, and the game's answers its reader asks for (item, spell, and unit info, your level, spell power, and skills). Values the game hides, as on some player tooltips, are kept marked as hidden, and the tests play them back that way. Captures are kept in the `PrettyTooltipCaptures` saved variable, which the game writes on `/reload` or logout; `/ptip capture list` names them and `/ptip capture clear` removes them.
+
+`tests/` runs the addon outside the game against captured tooltips and checks: `pip install -r tests/requirements.txt`, then `python tests/run.py`. `tests/README.md` describes capturing, importing, and the expected outputs.
+
 `art/README.md` describes each texture and how it is made.
