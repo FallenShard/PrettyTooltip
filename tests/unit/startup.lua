@@ -110,7 +110,7 @@ return function(test)
         } },
         lines = { { left = { text = "Test Item" } }, { left = { text = "+6 Intellect" } } },
     }
-    local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Data/Stats.lua",
+    local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Data/Stats.lua",
         "Panel/Layout.lua", "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
         "UI/Commands.lua", "PrettyTooltip.lua" }
     ns, world = test.load(integrated, item)
@@ -120,9 +120,9 @@ return function(test)
     test.check("startup installs rewrite, item panel, and cursor", #world.postCalls[0], 3)
     local observed
     local read = ns.TooltipTypes[0].read
-    ns.TooltipTypes[0].read = function(tooltip, data)
+    ns.TooltipTypes[0].read = function(tooltip, data, game)
         observed = tooltip:GetLeftLine(2):GetText()
-        return read(tooltip, data)
+        return read(tooltip, data, game)
     end
     local cursorSeesPanel
     local shownPanel = ns.ui.shownPanel

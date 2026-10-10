@@ -2,13 +2,6 @@
 local _, ns = ...
 local setOption = ns.setOption
 
-local function isInstalled(addon)
-    if not (C_AddOns and C_AddOns.GetAddOnInfo) then return false end
-    local ok, name, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, addon)
-    return ok and name ~= nil and reason ~= "MISSING"
-end
-ns.isInstalled = isInstalled
-
 local page, category
 ns.Options = {}
 

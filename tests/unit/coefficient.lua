@@ -1,13 +1,13 @@
 -- Spell power coefficients and the base and spell power split, against values
 -- checked in game (30 spell damage) and on foreverchanges.pro.
 return function(test)
-    local calls = { GetSpellBonusDamage = {}, GetSpellBonusHealing = { [""] = { n = 1, 300 } } }
-    for school = 1, 7 do calls.GetSpellBonusDamage[tostring(school)] = { n = 1, 30 } end
-    local ns = test.load({ "Core/Util.lua", "Data/Coefficients.lua" }, { calls = calls })
+    local ns = test.load({ "Core/Util.lua", "Data/Coefficients.lua" })
+    -- The player's power, given as the game would answer it.
+    local game = { spellDamage = function() return 30 end, spellHealing = function() return 300 end }
 
     local function rows(name, cast, text, spellID)
         local found = ns.spellPowerRows({ name = name, cast = { cast, "Cast" }, description = { text },
-            spellID = spellID }, "FFFFFF")
+            spellID = spellID }, "FFFFFF", game)
         if not found then return "none" end
         local out = {}
         for _, row in ipairs(found) do out[#out + 1] = row.left .. " | " .. row.right:gsub("|cffFFFFFF", ""):gsub("|r", "") end

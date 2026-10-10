@@ -7,7 +7,7 @@ end
 
 local util = ns.util
 local colors = ns.Palette.roles
-local isSecret, safeText, pack = util.isSecret, util.safeText, util.pack
+local isSecret, safeText, pack, number = util.isSecret, util.safeText, util.pack, util.number
 local uncolored, plainText, rgb = util.uncolored, util.plainText, util.rgb
 local ITEM = Enum.TooltipDataType.Item
 local LINE = Enum.TooltipDataLineType
@@ -104,31 +104,15 @@ local function getItemInfo(tooltip, data)
     if not isSecret(data.id) then return data.id end
 end
 
-local function getQuality(itemInfo, data)
-    if itemInfo and C_Item and C_Item.GetItemInfo then
-        local ok, _, _, quality = pcall(C_Item.GetItemInfo, itemInfo)
-        if ok and not isSecret(quality) and type(quality) == "number" then
-            return quality
-        end
-    end
-    if not isSecret(data.quality) and type(data.quality) == "number" then
-        return data.quality
-    end
-    return 1
+local function getQuality(itemInfo, data, game)
+    local info = game.itemInfo(itemInfo)
+    if info and type(info.quality) == "number" then return info.quality end
+    return number(data.quality) or 1
 end
 
-local function getIcon(itemInfo)
-    if not (itemInfo and C_Item and C_Item.GetItemIconByID) then return end
-    local ok, icon = pcall(C_Item.GetItemIconByID, itemInfo)
-    if ok and not isSecret(icon) then return icon end
-end
-
-local function getLevel(itemInfo)
-    if not (itemInfo and C_Item and C_Item.GetDetailedItemLevelInfo) then return end
-    local ok, level = pcall(C_Item.GetDetailedItemLevelInfo, itemInfo)
-    if ok and not isSecret(level) and type(level) == "number" and level > 0 then
-        return level
-    end
+local function getLevel(itemInfo, game)
+    local level = game.itemLevel(itemInfo)
+    if level and level > 0 then return level end
 end
 
 local function add(list, left, right)
@@ -183,13 +167,11 @@ local function unusable(text, color)
     return text
 end
 
-local function requirementMet(text, color)
+local function requirementMet(text, color, game)
     local level = text:match("^Requires Level (%d+)")
     if level then
-        local playerLevel = UnitLevel("player")
-        if not isSecret(playerLevel) and type(playerLevel) == "number" then
-            return playerLevel >= tonumber(level)
-        end
+        local playerLevel = game.playerLevel()
+        if playerLevel then return playerLevel >= tonumber(level) end
     end
     return isRed(color) == false
 end
@@ -297,21 +279,15 @@ end
 local STOCK_CHANGES = ITEM_DELTA_DESCRIPTION
     or "If you replace this item, the following stat changes will occur:"
 
-local function isInstalled(addon)
-    if not (C_AddOns and C_AddOns.GetAddOnInfo) then return false end
-    local ok, name, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, addon)
-    return ok and name ~= nil and reason ~= "MISSING"
-end
-
 local function hasDialogueBackdrop()
-    return isInstalled("DialogueUI")
+    return ns.Game.addonInstalled("DialogueUI")
 end
 
 local hasEllesmere
 local function titleFont()
     local chosen = ns.fontPath(ns.option("titleFont"))
     if chosen then return chosen end
-    if hasEllesmere == nil then hasEllesmere = isInstalled("EllesmereUI") end
+    if hasEllesmere == nil then hasEllesmere = ns.Game.addonInstalled("EllesmereUI") end
     return hasEllesmere and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
 end
 
@@ -401,18 +377,9 @@ local function reagentList(text)
 end
 
 -- Only items the client has seen resolve by name.
-local function itemByName(name)
-    if not (C_Item and C_Item.GetItemInfo) then return end
-    local ok, _, link, quality, _, _, _, _, _, _, icon = pcall(C_Item.GetItemInfo, name)
-    if ok and not isSecret(link) and link and not isSecret(quality) and not isSecret(icon) then
-        return link, quality, icon
-    end
-end
-
-local function itemCount(item)
-    if not (C_Item and C_Item.GetItemCount) then return end
-    local ok, have = pcall(C_Item.GetItemCount, item)
-    if ok and not isSecret(have) and type(have) == "number" then return have end
+local function itemByName(name, game)
+    local info = game.itemInfo(name)
+    if info and info.link then return info.link, info.quality, info.icon end
 end
 
 local function newItemModel()
@@ -437,13 +404,9 @@ end
 
 -- How many the shown stack holds: its bag slot knows, else the data line's
 -- price, which covers the stack, gives it away.
-local function stackCount(data, unitPrice, linePrice)
-    local guid = data.guid
-    if not isSecret(guid) and type(guid) == "string" and C_Item and C_Item.GetItemLocation
-        and C_Item.GetStackCount then
-        local ok, count = pcall(function() return C_Item.GetStackCount(C_Item.GetItemLocation(guid)) end)
-        if ok and not isSecret(count) and type(count) == "number" and count > 0 then return count end
-    end
+local function stackCount(data, unitPrice, linePrice, game)
+    local count = game.stackCount(data.guid)
+    if count then return count end
     if linePrice and linePrice > unitPrice and linePrice % unitPrice == 0 then
         return linePrice / unitPrice
     end
@@ -452,11 +415,11 @@ end
 
 -- A recipe's lines hold the crafted item's whole tooltip, from its name line
 -- to the reagents; those go into model.created.
-local function finishRecipe(tooltip, model, data)
+local function finishRecipe(tooltip, model, data, game)
     local recipeID = not isSecret(data.id) and data.id or nil
     if recipeID then
-        model.link, model.icon = recipeID, getIcon(recipeID) or model.icon
-        model.quality, model.level = getQuality(recipeID, data), getLevel(recipeID)
+        model.link, model.icon = recipeID, game.itemIcon(recipeID) or model.icon
+        model.quality, model.level = getQuality(recipeID, data, game), getLevel(recipeID, game)
     end
     model.levelLine = nil
     if model.skill then
@@ -472,16 +435,16 @@ local function finishRecipe(tooltip, model, data)
     end
     local created = model.created
     if created then
-        local link, quality, icon = itemByName(created.name)
+        local link, quality, icon = itemByName(created.name, game)
         if not link and tooltip.GetItem then
             -- The game reports the crafted item as the tooltip's item, under the
             -- recipe's name; its link names it, and gives the icon before it loads.
             local ok, _, itemLink = pcall(tooltip.GetItem, tooltip)
             if ok and not isSecret(itemLink) and type(itemLink) == "string"
                 and itemLink:match("%[(.-)%]") == created.name then
-                link, icon = itemLink, getIcon(itemLink)
-                local loaded = itemByName(itemLink)
-                if loaded then quality = getQuality(itemLink, {}) end
+                link, icon = itemLink, game.itemIcon(itemLink)
+                local loaded = itemByName(itemLink, game)
+                if loaded then quality = getQuality(itemLink, {}, game) end
             end
         end
         created.link, created.icon = link, icon
@@ -497,20 +460,20 @@ local function finishRecipe(tooltip, model, data)
         add(model.effects, model.teaches.left, model.teaches.right)
     end
     for _, reagent in ipairs(model.reagents or {}) do
-        local link, _, icon = itemByName(reagent.name)
+        local link, _, icon = itemByName(reagent.name, game)
         reagent.icon = icon
-        reagent.have = itemCount(link or reagent.name)
+        reagent.have = game.itemCount(link or reagent.name)
     end
 end
 
-local function readModel(tooltip, data)
+local function readModel(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local itemInfo = getItemInfo(tooltip, data)
     local model = newItemModel()
     model.link = itemInfo
-    model.quality = getQuality(itemInfo, data)
-    model.icon = getIcon(itemInfo)
-    model.level = getLevel(itemInfo)
+    model.quality = getQuality(itemInfo, data, game)
+    model.icon = game.itemIcon(itemInfo)
+    model.level = getLevel(itemInfo, game)
     model.lineIndices = {}
     -- Lines go to the recipe or, inside its embedded tooltip, the crafted item.
     local m = model
@@ -536,9 +499,8 @@ local function readModel(tooltip, data)
         -- The amount is drawn by a money frame, not as text, so take it from the data.
         if LINE.SellPrice and line.type == LINE.SellPrice then
             m.hasSellPrice = true
-            if not isSecret(line.price) and type(line.price) == "number" then
-                m.sellPrice = line.price
-            end
+            local price = number(line.price)
+            if price then m.sellPrice = price end
         end
         if line.lineIndex then
         local left, right = safeText(line.leftText), safeText(line.rightText)
@@ -558,7 +520,7 @@ local function readModel(tooltip, data)
             model.teaches = { left = left, right = right }
         elseif m == model and professionRequirement(trimmed) then
             local name, level = professionRequirement(trimmed)
-            model.skill = { name = name, level = level, text = left, met = requirementMet(trimmed, line.leftColor) }
+            model.skill = { name = name, level = level, text = left, met = requirementMet(trimmed, line.leftColor, game) }
         elseif model.created and not model.reagents and reagentList(trimmed) then
             model.reagents, m = reagentList(trimmed), model
         elseif lineType == LINE.ItemName then
@@ -594,13 +556,13 @@ local function readModel(tooltip, data)
                 m.hasSellPrice = true
             elseif trimmed:match("^Requires Level %d+$") and right == "" then
                 m.levelRequirement = {
-                    text = trimmed, met = requirementMet(trimmed, line.leftColor),
+                    text = trimmed, met = requirementMet(trimmed, line.leftColor, game),
                 }
             elseif trimmed:match("^Requires ") then
                 add(m.footerRight, left, right)
                 local entry = m.footerRight[#m.footerRight]
                 entry.requirement = true
-                entry.met = requirementMet(trimmed, line.leftColor)
+                entry.met = requirementMet(trimmed, line.leftColor, game)
             elseif trimmed:match("^Durability %d+ / %d+$") then
                 add(m.footerLeft, trimmed, right)
                 local current, maximum = trimmed:match("(%d+) / (%d+)")
@@ -688,7 +650,7 @@ local function readModel(tooltip, data)
     -- Crafted gear can need a profession too; only a recipe teaches.
     local recipe = model.created or (model.skill and model.teaches)
     if recipe then
-        finishRecipe(tooltip, model, data)
+        finishRecipe(tooltip, model, data, game)
         itemInfo = model.link
     else
         if model.skill then
@@ -699,20 +661,14 @@ local function readModel(tooltip, data)
         if model.teaches then add(model.effects, model.teaches.left, model.teaches.right) end
     end
     local classID, className, subClassName, equipLoc, itemID
-    if itemInfo and C_Item and C_Item.GetItemInfoInstant then
-        local ok, id, itemType, itemSubType, itemEquipLoc, _, itemClassID = pcall(C_Item.GetItemInfoInstant, itemInfo)
-        if ok and not isSecret(itemClassID) and not isSecret(itemType) and not isSecret(itemSubType)
-            and not isSecret(itemEquipLoc) and not isSecret(id) then
-            classID, className, subClassName, equipLoc, itemID = itemClassID, itemType, itemSubType, itemEquipLoc, id
-        end
+    local itemType = game.itemType(itemInfo)
+    if itemType then
+        classID, className, subClassName = itemType.classID, itemType.className, itemType.subClassName
+        equipLoc, itemID = itemType.equipLoc, itemType.id
     end
     if ns.disenchantFor and classID and not recipe then
-        local itemLevel = model.level
-        if itemInfo and C_Item and C_Item.GetDetailedItemLevelInfo then
-            local ok, detailed = pcall(C_Item.GetDetailedItemLevelInfo, itemInfo)
-            if ok and not isSecret(detailed) and type(detailed) == "number" then itemLevel = detailed end
-        end
-        model.disenchant = ns.disenchantFor(classID, model.quality, tonumber(itemLevel), equipLoc, itemID)
+        local itemLevel = game.itemLevel(itemInfo) or model.level
+        model.disenchant = ns.disenchantFor(classID, model.quality, tonumber(itemLevel), equipLoc, itemID, game)
     end
     local level = model.levelRequirement
     if level then
@@ -754,13 +710,11 @@ local function readModel(tooltip, data)
 
     -- The item's own price is per unit; the data line's covers the stack.
     local unitPrice
-    if model.hasSellPrice and itemInfo and C_Item and C_Item.GetItemInfo then
-        local ok, price = pcall(function() return select(11, C_Item.GetItemInfo(itemInfo)) end)
-        if ok and not isSecret(price) and type(price) == "number" and price > 0 then unitPrice = price end
-    end
+    local info = model.hasSellPrice and game.itemInfo(itemInfo)
+    if info and type(info.price) == "number" and info.price > 0 then unitPrice = info.price end
     -- The coins say what the amount is. A stack leads with its total, then the
     -- count and one item's price, dimmed: 2g  (20 × 10s).
-    local count = unitPrice and stackCount(data, unitPrice, model.sellPrice) or 1
+    local count = unitPrice and stackCount(data, unitPrice, model.sellPrice, game) or 1
     local price = count > 1 and unitPrice or model.sellPrice or unitPrice
     if price and price > 0 then
         local text = formatMoney(price * count)
@@ -1358,12 +1312,10 @@ local function getCloseButton(panel, tooltip)
 end
 
 -- A shield or off-hand is also compared against the one-hander from the bags
--- it would be worn with; Blizzard heads that one "Equipped With".
+-- it would be worn with; Blizzard heads that one "Equipped With". Asked
+-- while drawing, until Phase 5 moves it into the model.
 local function isEquipped(model)
-    if not (C_Item and C_Item.IsEquippedItem and model.link) then return true end
-    local ok, equipped = pcall(C_Item.IsEquippedItem, model.link)
-    if not ok or isSecret(equipped) then return true end
-    return equipped == true
+    return ns.Game.isEquipped(model.link) ~= false
 end
 
 local function getEquippedTag(panel)
@@ -1924,7 +1876,7 @@ local function restoreNative(tooltip)
     end
 end
 
--- Each tooltip data type the panel draws: read(tooltip, data) -> model,
+-- Each tooltip data type the panel draws: read(tooltip, data, game) -> model,
 -- render(panel, tooltip, model), key(tooltip, data) naming what is shown,
 -- option, the setting that turns the tooltip type on, and lite, a setting that keeps
 -- the game's tooltip with its stats shortened and colored.
@@ -1969,7 +1921,7 @@ local function update(tooltip, data)
     local panel = getPanel(tooltip)
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
-    local ok, model = pcall(tooltipType.read, tooltip, data)
+    local ok, model = pcall(tooltipType.read, tooltip, data, ns.Game)
     if not ok or not model then restoreNative(tooltip); return end
     if not panel.nativeAlpha then panel.nativeAlpha = tooltip:GetAlpha() end
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
@@ -2167,7 +2119,7 @@ local function previewByID(anchor, dataType, id)
     if dataType == ITEM then scanner:SetItemByID(id) else scanner:SetSpellByID(id) end
     local data = scanner:GetTooltipData()
     local tooltipType = TooltipTypes[dataType]
-    local ok, model = pcall(tooltipType.read, scanner, data)
+    local ok, model = pcall(tooltipType.read, scanner, data, ns.Game)
     scanner:Hide()
     if not (ok and model) then return end
     return renderPreview(anchor, model, dataType)

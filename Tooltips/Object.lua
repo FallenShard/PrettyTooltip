@@ -64,49 +64,37 @@ function ns.objectYield(name)
     return node and node[1]
 end
 
-local playerSkill = ui.playerSkill
-
-local function itemInfo(itemID)
-    local _, name, icon, price
-    if C_Item and C_Item.GetItemInfo then
-        name, _, _, _, _, _, _, _, _, _, price = C_Item.GetItemInfo(itemID)
-        if not name and C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(itemID) end
-    end
-    if C_Item and C_Item.GetItemIconByID then icon = C_Item.GetItemIconByID(itemID) end
-    return name, icon, price
+-- The yield's name, icon, and sell price; an unseen item is asked for, for a later hover.
+local function itemInfo(itemID, game)
+    local info = game.itemInfo(itemID) or {}
+    if not info.name then game.loadItem(itemID) end
+    return info.name, game.itemIcon(itemID), info.price
 end
 
-local function auctionPrice(itemID)
-    local api = Auctionator and Auctionator.API and Auctionator.API.v1
-    if not (api and api.GetAuctionPriceByItemID) then return end
-    local ok, price = pcall(api.GetAuctionPriceByItemID, "PrettyTooltip", itemID)
-    if ok and type(price) == "number" and price > 0 then return price end
-end
-
-local function completeModel(model)
+local function completeModel(model, game)
     local node = nodeFor(model.name)
     model.look = model.skill and SKILLS[model.skill] or (#model.quests > 0 and QUEST) or nil
     if model.skill and SKILLS[model.skill] and model.skill ~= "Lockpicking" then
         model.skillRow = {
             name = model.skill,
             level = node and node[2],
-            player = playerSkill(model.skill),
+            player = game.skill(model.skill),
         }
     end
     if node then
-        local name = itemInfo(node[1])
+        local name = itemInfo(node[1], game)
         -- A herb yields itself and a node yields an ore; anything else is a bad entry.
         local herb = model.name:gsub("^Ooze Covered ", "")
         if name and name ~= herb and not name:find(" Ore$") then node = nil end
     end
     if node then
-        local name, icon, price = itemInfo(node[1])
+        local name, icon, price = itemInfo(node[1], game)
         model.itemName, model.icon = name, icon
         model.prices = {}
         if type(price) == "number" and price > 0 then
             model.prices[#model.prices + 1] = { "Sell Price", ui.formatMoney(price) }
         end
-        local auction = auctionPrice(node[1])
+        local auction = game.auctionPrice(node[1])
         if auction then model.prices[#model.prices + 1] = { "Auction", ui.formatMoney(auction) } end
     end
     model.prices = model.prices or {}
@@ -120,7 +108,7 @@ local function objectKey(_, data)
     return util.safeText(line.leftText)
 end
 
-local function readObject(tooltip, data)
+local function readObject(tooltip, data, game)
     local safeText = util.safeText
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local model = { details = {}, quests = {}, extras = {}, lineIndices = {} }
@@ -137,7 +125,7 @@ local function readObject(tooltip, data)
                 if text:match("^Requires ") then
                     ui.add(model.details, left, right)
                     local row = model.details[#model.details]
-                    row.requirement, row.met = true, ui.requirementMet(text, line.leftColor)
+                    row.requirement, row.met = true, ui.requirementMet(text, line.leftColor, game)
                     for skill in pairs(SKILLS) do
                         if not model.skill and text:find(skill, 1, true) then
                             model.skill, model.skillMet = skill, row.met
@@ -172,7 +160,7 @@ local function readObject(tooltip, data)
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
     end
-    return completeModel(model)
+    return completeModel(model, game)
 end
 
 local function skillText(skill)
@@ -294,7 +282,7 @@ local function renderObject(panel, tooltip, model)
     ui.finishPanel(panel, tooltip, y)
 end
 
-ui.objectModel = completeModel
+ui.objectModel = function(fields) return completeModel(fields, ns.Game) end
 ui.registerTooltipType(OBJECT, {
     read = readObject, render = renderObject, key = objectKey, option = "objectPanels",
 })

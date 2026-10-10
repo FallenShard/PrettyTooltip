@@ -45,40 +45,34 @@ local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitHealth",
     "unitQuests", "extras" }
 
 -- The mouseover token can still be the previous unit; the data's GUID cannot.
-local function unitFor(tooltip, guid)
+local function unitFor(tooltip, guid, game)
     if isSecret(guid) then guid = nil end
     local _, unit = get(tooltip.GetUnit, tooltip)
-    if type(unit) == "string" and get(UnitExists, unit) and (not guid or get(UnitGUID, unit) == guid) then
+    if type(unit) == "string" and game.unitExists(unit) and (not guid or game.unitGUID(unit) == guid) then
         return unit
     end
-    if guid and UnitTokenFromGUID then
-        unit = get(UnitTokenFromGUID, guid)
-        if type(unit) == "string" and get(UnitExists, unit) then return unit end
+    if guid then
+        unit = game.unitToken(guid)
+        if type(unit) == "string" and game.unitExists(unit) then return unit end
     end
-    if guid and get(UnitExists, "mouseover") and get(UnitGUID, "mouseover") == guid then
+    if guid and game.unitExists("mouseover") and game.unitGUID("mouseover") == guid then
         return "mouseover"
     end
 end
 
-local function classColor(classFile)
-    local color = classFile and RAID_CLASS_COLORS and RAID_CLASS_COLORS[classFile]
-    if color then return { color.r, color.g, color.b } end
-end
-
-local function unitColor(unit)
-    if get(UnitIsPlayer, unit) then
-        local _, classFile = get(UnitClass, unit)
-        return classColor(classFile)
+local function unitColor(unit, game)
+    if game.unitIsPlayer(unit) then
+        local _, classFile = game.unitClass(unit)
+        return game.classColor(classFile)
     end
-    local reaction = get(UnitReaction, unit, "player")
+    local reaction = game.unitReaction(unit, "player")
     return reaction and REACTION[reaction]
 end
 
+-- Asked while drawing, until Phase 5 moves it into the model.
 local function levelColor(level)
     if level == -1 then return UNMET_COLOR end
-    if type(level) ~= "number" or not GetQuestDifficultyColor then return end
-    local color = get(GetQuestDifficultyColor, level)
-    if type(color) == "table" and color.r then return { color.r, color.g, color.b } end
+    return ns.Game.difficultyColor(level)
 end
 
 local function healthColor(current, maximum)
@@ -93,30 +87,30 @@ local function number(value)
     return tostring(value)
 end
 
-local function completeModel(model, unit)
+local function completeModel(model, unit, game)
     if unit then
-        model.isPlayer = get(UnitIsPlayer, unit)
-        model.level = get(UnitEffectiveLevel or UnitLevel, unit)
+        model.isPlayer = game.unitIsPlayer(unit)
+        model.level = game.unitLevel(unit)
         if model.isPlayer then
-            model.className, model.classFile = get(UnitClass, unit)
-            model.race = get(UnitRace, unit)
-            model.guild, model.guildRank = get(GetGuildInfo, unit)
-            model.faction = get(UnitFactionGroup, unit)
-            model.afk, model.dnd = get(UnitIsAFK, unit), get(UnitIsDND, unit)
+            model.className, model.classFile = game.unitClass(unit)
+            model.race = game.unitRace(unit)
+            model.guild, model.guildRank = game.unitGuild(unit)
+            model.faction = game.unitFaction(unit)
+            model.afk, model.dnd = game.unitIsAFK(unit), game.unitIsDND(unit)
         else
-            model.creature = get(UnitCreatureType, unit)
-            model.classification = get(UnitClassification, unit)
+            model.creature = game.unitCreatureType(unit)
+            model.classification = game.unitClassification(unit)
         end
-        model.pvp = get(UnitIsPVP, unit)
-        model.dead = get(UnitIsDeadOrGhost, unit)
-        model.reaction = get(UnitReaction, unit, "player")
-        model.tapped = get(UnitIsTapDenied, unit)
-        model.health, model.healthMax = get(UnitHealth, unit), get(UnitHealthMax, unit)
+        model.pvp = game.unitIsPVP(unit)
+        model.dead = game.unitIsDead(unit)
+        model.reaction = game.unitReaction(unit, "player")
+        model.tapped = game.unitIsTapDenied(unit)
+        model.health, model.healthMax = game.unitHealth(unit)
         local target = unit .. "target"
-        if get(UnitExists, target) then
-            model.target = get(UnitName, target)
-            model.targetIsYou = get(UnitIsUnit, target, "player")
-            model.targetColor = unitColor(target)
+        if game.unitExists(target) then
+            model.target = game.unitName(target)
+            model.targetIsYou = game.unitIsUnit(target, "player")
+            model.targetColor = unitColor(target, game)
         end
     end
     -- Forever puts the guild, unbracketed, and the class on lines of their own;
@@ -133,7 +127,7 @@ local function completeModel(model, unit)
         end
     end
     if model.isPlayer then
-        model.color = classColor(model.classFile)
+        model.color = game.classColor(model.classFile)
     elseif model.tapped then
         model.color = TAPPED
     else
@@ -147,9 +141,9 @@ local function unitKey(_, data)
     return data.guid
 end
 
-local function readUnit(tooltip, data)
+local function readUnit(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    local unit = unitFor(tooltip, data.guid)
+    local unit = unitFor(tooltip, data.guid, game)
     local model = { quests = {}, extras = {}, lineIndices = {}, unit = unit }
     for _, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then return end
@@ -193,7 +187,7 @@ local function readUnit(tooltip, data)
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
     end
-    return completeModel(model, unit)
+    return completeModel(model, unit, game)
 end
 
 local function infoText(model)
@@ -284,7 +278,7 @@ updater:SetScript("OnUpdate", function(_, elapsed)
     elapsedSince = 0
     for panel, view in pairs(live) do
         if panel:IsShown() then
-            local current, maximum = get(UnitHealth, view.unit), get(UnitHealthMax, view.unit)
+            local current, maximum = ns.Game.unitHealth(view.unit)
             if type(current) == "number" and type(maximum) == "number" and maximum > 0
                 and (current ~= view.current or maximum ~= view.maximum) then
                 view.current, view.maximum = current, maximum
@@ -423,7 +417,7 @@ end
 
 ui.unitModel = function(fields)
     for _, list in ipairs({ "quests", "extras" }) do fields[list] = fields[list] or {} end
-    return completeModel(fields)
+    return completeModel(fields, nil, ns.Game)
 end
 -- Its target, tapped, and dead rows come from the game, not the tooltip's text.
 ui.registerTooltipType(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true })

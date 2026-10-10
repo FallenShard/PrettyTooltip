@@ -184,7 +184,7 @@ function main.fixture(fixture, enums, files, sources, serialize, makeWorld, opti
             return
         end
         if profiles then world.counts = {} end
-        local ok, model = xpcall(function() return tooltipType.read(tooltip, data) end, debug.traceback)
+        local ok, model = xpcall(function() return tooltipType.read(tooltip, data, ns.Game) end, debug.traceback)
         if not ok then error(label .. ": reading failed: " .. model, 0) end
         if profiles then
             profiles[#profiles + 1] = profileText(label .. " read", world.counts)

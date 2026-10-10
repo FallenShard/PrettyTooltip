@@ -104,7 +104,7 @@ local ITEM_SAMPLES = {
                     { left = "Made by Lorelei", right = "", color = ui.FLAVOR_GOLD },
                 },
                 footerRight = { { left = ui.formatMoney(64218), right = "", sellPrice = true } },
-                disenchant = ns.disenchantFor and ns.disenchantFor(2, 4, 63, "INVTYPE_2HWEAPON"),
+                disenchant = ns.disenchantFor and ns.disenchantFor(2, 4, 63, "INVTYPE_2HWEAPON", nil, ns.Game),
             })
         end,
     },
@@ -1242,7 +1242,7 @@ end, function() return ns.option("bodyFont") end, function(name)
     ns.setOption("bodyFont", name)
 end))
 row("Name font", dropdown(FIELD_WIDTH, function()
-    return fontItems(ns.isInstalled("EllesmereUI") and "Expressway Bold (EllesmereUI)"
+    return fontItems(ns.Game.addonInstalled("EllesmereUI") and "Expressway Bold (EllesmereUI)"
         or "Game default")
 end, function() return ns.option("titleFont") end, function(name)
     ns.setOption("titleFont", name)
@@ -1276,7 +1276,7 @@ local TOGGLES = {
     { "DialogueUI backdrop", "dialogueBackdrop",
         "Draws the panel on DialogueUI's dark textured background, read from that addon's folder. "
             .. "Needs DialogueUI installed; off, or without it, the panel is a plain dark gradient.",
-        function() return ns.isInstalled("DialogueUI") end },
+        function() return ns.Game.addonInstalled("DialogueUI") end },
 }
 for index, toggle in ipairs(TOGGLES) do
     local box = checkbox(toggle[1], toggle[2], toggle[3], toggle[4])

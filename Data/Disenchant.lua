@@ -1,8 +1,6 @@
 -- What an item disenchants into, from Classic's tables (Warcraft Wiki's
 -- "Disenchanting tables"); the game has no API for them.
 local _, ns = ...
-local ui = ns.ui
-if not ui then return end
 
 local ARMOR, WEAPON = 4, 2
 local UNCOMMON, RARE, EPIC = 2, 3, 4
@@ -91,47 +89,24 @@ local function yields(classID, quality, level)
     end
 end
 
-local function auctionPrice(itemID)
-    local api = Auctionator and Auctionator.API and Auctionator.API.v1
-    if not (api and api.GetAuctionPriceByItemID) then return end
-    local ok, price = pcall(api.GetAuctionPriceByItemID, "PrettyTooltip", itemID)
-    if ok and type(price) == "number" and price > 0 then return price end
-end
-
--- Older clients list skills; newer ones, like Forever's, only list professions.
-local function playerSkill(name)
-    if GetNumSkillLines and GetSkillLineInfo then
-        for index = 1, GetNumSkillLines() do
-            local skillName, isHeader, _, rank = GetSkillLineInfo(index)
-            if not isHeader and skillName == name and type(rank) == "number" then return rank end
-        end
-    end
-    if GetProfessions and GetProfessionInfo then
-        for _, index in pairs({ GetProfessions() }) do
-            local skillName, _, rank = GetProfessionInfo(index)
-            if skillName == name and type(rank) == "number" then return rank end
-        end
-    end
-end
-ui.playerSkill = playerSkill
-
 -- { skill, player, value, rows = { { id, name, icon, count, chance } } }, or
--- nil for an item that cannot be disenchanted.
-function ns.disenchantFor(classID, quality, level, equipLoc, itemID)
+-- nil for an item that cannot be disenchanted. game answers the player's
+-- Enchanting, the results' names and icons, and their auction prices.
+function ns.disenchantFor(classID, quality, level, equipLoc, itemID, game)
     if classID ~= ARMOR and classID ~= WEAPON or CRAFTED_WANDS[itemID] then return end
     if type(quality) ~= "number" or type(level) ~= "number" or NOT_DISENCHANTABLE[equipLoc] then return end
     local list = yields(classID, quality, level)
     if not list then return end
-    local result = { skill = skillFor(level, quality), player = playerSkill("Enchanting"), rows = {} }
+    local result = { skill = skillFor(level, quality), player = game.skill("Enchanting"), rows = {} }
     local value, priced = 0, true
     for _, entry in ipairs(list) do
-        local name = C_Item and C_Item.GetItemNameByID and C_Item.GetItemNameByID(entry.id)
-        local icon = C_Item and C_Item.GetItemIconByID and C_Item.GetItemIconByID(entry.id)
+        local name = game.itemName(entry.id)
+        local icon = game.itemIcon(entry.id)
         result.rows[#result.rows + 1] = {
             id = entry.id, name = name or NAMES[entry.id], icon = icon,
             count = entry.count, chance = entry.chance,
         }
-        local price = auctionPrice(entry.id)
+        local price = game.auctionPrice(entry.id)
         if price then
             value = value + entry.chance / 100 * (entry.count[1] + entry.count[2]) / 2 * price
         elseif entry.chance >= 5 then

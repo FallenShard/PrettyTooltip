@@ -12,6 +12,7 @@
 Core\Util.lua
 Core\Palette.lua
 Core\Settings.lua
+Game\Game.lua
 Data\Stats.lua
 Panel\Layout.lua
 Data\Disenchant.lua

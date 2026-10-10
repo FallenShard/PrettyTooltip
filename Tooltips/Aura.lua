@@ -30,9 +30,9 @@ local PARTS = { "auraName", "auraBadges", "auraText", "auraTime", "extras" }
 -- The tooltip's lines lack the duration and stacks; the aura it shows has them.
 -- The getter is known only while the game fills the tooltip, so the aura is
 -- kept for the redraws after.
-local function auraOf(tooltip, spellID)
+local function auraOf(tooltip, spellID, game)
     local info = tooltip.GetProcessingTooltipInfo and tooltip:GetProcessingTooltipInfo()
-    if not (info and C_UnitAuras) or isSecret(info) then
+    if not info or isSecret(info) then
         local kept = tooltip.prettyTooltipAura
         return kept and kept.spellID == spellID and kept.aura or nil
     end
@@ -40,14 +40,9 @@ local function auraOf(tooltip, spellID)
     if type(getter) ~= "string" or type(args) ~= "table" then return end
     local unit, which, filter = readable(args[1]), readable(args[2]), readable(args[3])
     if type(unit) ~= "string" or which == nil then return end
-    local ok, aura
-    if getter:find("AuraInstanceID") and C_UnitAuras.GetAuraDataByAuraInstanceID then
-        ok, aura = pcall(C_UnitAuras.GetAuraDataByAuraInstanceID, unit, which)
-    elseif C_UnitAuras.GetAuraDataByIndex then
-        if getter:find("Buff") then filter = "HELPFUL" elseif getter:find("Debuff") then filter = "HARMFUL" end
-        ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, unit, which, filter)
-    end
-    if not ok or isSecret(aura) or type(aura) ~= "table" then return end
+    if getter:find("Buff") then filter = "HELPFUL" elseif getter:find("Debuff") then filter = "HARMFUL" end
+    local aura = game.aura(unit, which, filter, getter:find("AuraInstanceID") ~= nil)
+    if not aura then return end
     tooltip.prettyTooltipAura = { spellID = spellID, aura = aura }
     return aura
 end
@@ -57,7 +52,7 @@ local function auraKey(_, data)
     return data.id
 end
 
-local function completeModel(model, aura)
+local function completeModel(model, aura, game)
     if aura then
         model.harmful = readable(aura.isHarmful)
         if model.harmful == nil and readable(aura.isHelpful) ~= nil then model.harmful = not aura.isHelpful end
@@ -65,9 +60,9 @@ local function completeModel(model, aura)
         model.duration = readable(aura.duration)
         model.expires = readable(aura.expirationTime)
         local source = readable(aura.sourceUnit)
-        if type(source) == "string" and UnitName then
-            local ok, name = pcall(UnitName, source)
-            if ok and not isSecret(name) and type(name) == "string" then model.caster = name end
+        if type(source) == "string" then
+            local name = game.unitName(source)
+            if type(name) == "string" then model.caster = name end
         end
         model.dispel = model.dispel or readable(aura.dispelName)
     end
@@ -76,10 +71,10 @@ local function completeModel(model, aura)
     return model
 end
 
-local function readAura(tooltip, data)
+local function readAura(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local spellID = readable(data.id)
-    local model = { description = {}, extras = {}, lineIndices = {}, icon = ui.getSpellIcon(spellID) }
+    local model = { description = {}, extras = {}, lineIndices = {}, icon = game.spellIcon(spellID) }
     for _, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.lineIndex) then return end
         if line.lineIndex then
@@ -109,7 +104,7 @@ local function readAura(tooltip, data)
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
     end
-    return completeModel(model, auraOf(tooltip, spellID))
+    return completeModel(model, auraOf(tooltip, spellID, game), game)
 end
 
 local function badges(model)
@@ -261,6 +256,6 @@ end
 
 ui.auraModel = function(fields)
     fields.extras = fields.extras or {}
-    return completeModel(fields)
+    return completeModel(fields, nil, ns.Game)
 end
 ui.registerTooltipType(AURA, { read = readAura, render = renderAura, key = auraKey, option = "auraPanels" })

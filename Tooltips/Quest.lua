@@ -9,7 +9,6 @@ end
 local util = ns.util
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
-local check = util.call
 local LINE = Enum.TooltipDataLineType or {}
 local PAD = ui.PAD
 local ICON_SIZE = 38
@@ -35,22 +34,20 @@ local LABELS = { ["Started by"] = true, ["Ended by"] = true, ["Found in"] = true
 local PARTS = { "questTitle", "questInfo", "questBadges", "questText", "questCaption", "questObjectives",
     "extras" }
 
-local function difficultyColor(level)
-    if type(level) ~= "number" or not GetQuestDifficultyColor then return end
-    local color = check(GetQuestDifficultyColor, level)
-    if type(color) == "table" and color.r then return { color.r, color.g, color.b } end
-end
-
 local function questKey(_, data)
     return readable(data.id)
 end
 
-local function completeModel(model, questID)
-    if questID and C_QuestLog and not model.active then
-        model.completed = model.completed or check(C_QuestLog.IsQuestFlaggedCompleted, questID) == true
-        model.active = model.active or check(C_QuestLog.IsOnQuest, questID) == true
+local function completeModel(model, questID, game)
+    if questID and not model.active then
+        -- nil without a quest log to ask.
+        local completed = game.questCompleted(questID)
+        if completed ~= nil then
+            model.completed = model.completed or completed
+            model.active = model.active or game.onQuest(questID)
+        end
     end
-    model.color = difficultyColor(model.level) or QUEST_GOLD
+    model.color = game.difficultyColor(model.level) or QUEST_GOLD
     model.icon = model.icon or QUEST_ICON
     return model
 end
@@ -133,7 +130,7 @@ local function readRow(model, row, state)
     end
 end
 
-local function readQuest(tooltip, data)
+local function readQuest(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local model = { description = {}, objectives = {}, tags = {}, extras = {} }
     local lineIndices, state = {}, {}
@@ -161,7 +158,7 @@ local function readQuest(tooltip, data)
     if not appended then return end
     for _, row in ipairs(appended) do readRow(model, row, state) end
     if not model.name or model.name == "" then return end
-    return completeModel(model, readable(data.id))
+    return completeModel(model, readable(data.id), game)
 end
 
 local function badges(model)
@@ -324,7 +321,7 @@ ui.questModel = function(fields)
     for _, list in ipairs({ "description", "objectives", "tags", "extras" }) do
         fields[list] = fields[list] or {}
     end
-    return completeModel(fields)
+    return completeModel(fields, nil, ns.Game)
 end
 ui.registerTooltipType(QUEST, { read = readQuest, render = renderQuest, key = questKey, option = "questPanels" })
 

@@ -99,6 +99,11 @@ function util.readable(value)
     return value
 end
 
+-- The value when it is a number the game did not hide, else nil.
+function util.number(value)
+    if not isSecret(value) and type(value) == "number" then return value end
+end
+
 -- A line's text: "" for none, nil when hidden or not text.
 function util.safeText(value)
     if isSecret(value) then return nil end

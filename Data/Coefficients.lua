@@ -8,7 +8,6 @@
 local _, ns = ...
 
 local util = ns.util
-local isSecret = util.isSecret
 
 -- As GetSpellBonusDamage numbers the schools.
 local SCHOOLS = { Holy = 2, Fire = 3, Nature = 4, Frost = 5, Shadow = 6, Arcane = 7 }
@@ -218,16 +217,9 @@ local function castSeconds(cast, spellID)
     return seconds and math.min(3.5, math.max(1.5, seconds))
 end
 
-local function playerPower(school, healing)
-    local ok, power
-    if healing then
-        if not GetSpellBonusHealing then return end
-        ok, power = pcall(GetSpellBonusHealing)
-    else
-        if not GetSpellBonusDamage then return end
-        ok, power = pcall(GetSpellBonusDamage, SCHOOLS[school])
-    end
-    if ok and not isSecret(power) and type(power) == "number" then return power end
+local function playerPower(game, school, healing)
+    if healing then return game.spellHealing() end
+    return game.spellDamage(SCHOOLS[school])
 end
 
 local function range(low, high)
@@ -237,8 +229,9 @@ end
 
 -- Rows splitting a spell's amounts into base and spell power, or nil. part
 -- has the panel's name, cast, description, and spellID; part.spellPower,
--- when set, stands in for the player's, as on the editor's samples.
-function ns.spellPowerRows(part, bonusCode)
+-- when set, stands in for the player's, as on the editor's samples; else
+-- game answers it.
+function ns.spellPowerRows(part, bonusCode, game)
     local text = util.uncolored(table.concat(part.description, " "))
     local school
     for word in text:gmatch("(%a+) damage") do
@@ -271,7 +264,7 @@ function ns.spellPowerRows(part, bonusCode)
         periodicShare = known.periodic or (periodicShare and periodicShare * (known.periodicScale or 1))
     end
 
-    local power = part.spellPower or playerPower(school, healing) or 0
+    local power = part.spellPower or playerPower(game, school, healing) or 0
     local rows = {}
     local function addRow(amount, share, suffix)
         if not (amount and share) then return end

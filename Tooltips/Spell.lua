@@ -44,22 +44,6 @@ local function spellKey(_, data)
     return data.id
 end
 
-local function getSpellIcon(spellID)
-    if isSecret(spellID) or type(spellID) ~= "number" then return end
-    local getter = C_Spell and C_Spell.GetSpellTexture or GetSpellTexture
-    if not getter then return end
-    local ok, icon = pcall(getter, spellID)
-    if ok and not isSecret(icon) and icon then return icon end
-end
-
-local function getSpellName(spellID)
-    if isSecret(spellID) or type(spellID) ~= "number" then return end
-    local getter = C_Spell and C_Spell.GetSpellName or GetSpellInfo
-    if not getter then return end
-    local ok, name = pcall(getter, spellID)
-    if ok and not isSecret(name) and type(name) == "string" then return name end
-end
-
 local function titleCase(text)
     return (text:gsub("(%a)([%w']*)", function(first, rest) return first:upper() .. rest end))
 end
@@ -194,14 +178,14 @@ local function readDescription(model, text)
     if #rest > 0 then model.description[#model.description + 1] = table.concat(rest, "\n") end
 end
 
-local function readLine(model, line, left, right)
+local function readLine(model, line, left, right, game)
     local text, rightText = trim(left), trim(right)
     if text == "" and rightText == "" then return end
     if LINE.UsageRequirement and line.type == LINE.UsageRequirement then
         add(model.requirements, text, rightText)
         local usable = line.usable
         if isSecret(usable) then usable = nil end
-        if usable == false or not ui.requirementMet(text, line.leftColor) then
+        if usable == false or not ui.requirementMet(text, line.leftColor, game) then
             model.requirements[#model.requirements].color = UNMET_COLOR
         end
         return
@@ -215,7 +199,7 @@ local function readLine(model, line, left, right)
     elseif text:match("^Requires ") then
         add(model.requirements, text, rightText)
         local row = model.requirements[#model.requirements]
-        row.color = not ui.requirementMet(text, line.leftColor) and UNMET_COLOR or nil
+        row.color = not ui.requirementMet(text, line.leftColor, game) and UNMET_COLOR or nil
     elseif text:match("^Reagents:") or text:match("^Tools:") then
         add(model.details, text, rightText)
     elseif text ~= "" and ((LINE.SpellDescription and line.type == LINE.SpellDescription)
@@ -228,9 +212,9 @@ local function readLine(model, line, left, right)
     end
 end
 
-local function readSpell(tooltip, data)
+local function readSpell(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    local model = newModel(getSpellIcon(data.id))
+    local model = newModel(game.spellIcon(data.id))
     model.spellID = not isSecret(data.id) and data.id or nil
     model.lineIndices = {}
     local current = model
@@ -241,7 +225,7 @@ local function readSpell(tooltip, data)
             -- Another spell inside this one: another form's version, or a recipe's result.
             local id = line.tooltipID
             if isSecret(id) then id = nil end
-            model.nested = newModel(getSpellIcon(id))
+            model.nested = newModel(game.spellIcon(id))
             model.nested.spellID = id
             current = model.nested
         elseif line.lineIndex then
@@ -253,7 +237,7 @@ local function readSpell(tooltip, data)
             if isName and not current.name then
                 current.name, current.rank = trim(left), trim(right)
             else
-                readLine(current, line, left, right)
+                readLine(current, line, left, right, game)
             end
         end
     end
@@ -261,7 +245,7 @@ local function readSpell(tooltip, data)
     -- the data; the game writes it on the tooltip's first line.
     if not model.name or model.name == "" then
         local font = tooltip:GetLeftLine(1)
-        model.name = getSpellName(data.id) or trim(font and safeText(font:GetText()) or "")
+        model.name = game.spellName(data.id) or trim(font and safeText(font:GetText()) or "")
         model.lineIndices[1] = true
     end
     if model.name == "" then return end
@@ -399,7 +383,7 @@ local function renderSpell(panel, tooltip, model)
     for _, part in ipairs({ model, model.nested }) do
         part.sentences = sentencesOf(part)
         part.powerRows = ns.option("spellPower") and ns.spellPowerRows
-            and ns.spellPowerRows(part, numberCode) or nil
+            and ns.spellPowerRows(part, numberCode, ns.Game) or nil
     end
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
@@ -457,7 +441,6 @@ local function renderSpell(panel, tooltip, model)
 end
 
 ui.drawPills, ui.pillsWidth = drawPills, pillsWidth
-ui.getSpellIcon = getSpellIcon
 ui.registerTooltipType(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
 })

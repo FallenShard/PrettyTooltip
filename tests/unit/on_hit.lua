@@ -9,7 +9,7 @@ return function(test)
         } },
         lines = { { left = { text = "Test Weapon" } }, { left = { text = original } } },
     }
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
         "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua" }, capture)
     ns.ItemLite.register()
     ns.ui.registerItemHooks()
@@ -84,7 +84,7 @@ return function(test)
     test.check("cached proc is not rewritten twice", data.lines[2].prettyTooltipDisplay, styled)
 
     ns.setOption("itemLite", false)
-    local model = ns.TooltipTypes[0].read(world.main, data)
+    local model = ns.TooltipTypes[0].read(world.main, data, ns.Game)
     local effect = original:gsub("^Chance on hit:%s*", "")
     test.check("rewritten proc stays an on-hit effect", model.equipEffects[1], { left = effect, right = "", onHit = true })
     test.check("rewritten proc does not become a stat", #model.secondary, 0)
