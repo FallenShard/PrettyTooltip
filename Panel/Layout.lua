@@ -20,10 +20,16 @@ local function fontOf(object)
 end
 local function bodyFont() return ns.fontPath(ns.option("bodyFont")) or fontOf(GameTooltipText) end
 -- A file that fails to load leaves the string without a font, and SetText errors.
+-- Each string remembers the font it was given: redrawing a panel mostly sets
+-- the font a string already has, and the call costs the same either way.
 local function setFont(object, path, size, flags)
-    if not object:SetFont(path, size, flags or "") then
-        object:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF", size, flags or "")
+    flags = flags or ""
+    if object.prettyTooltipFont == path and object.prettyTooltipSize == size
+        and object.prettyTooltipFlags == flags then return end
+    if not object:SetFont(path, size, flags) then
+        object:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF", size, flags)
     end
+    object.prettyTooltipFont, object.prettyTooltipSize, object.prettyTooltipFlags = path, size, flags
 end
 -- A commercial font: used from EllesmereUI's folder, never copied here.
 local ELLESMERE_BOLD = "Interface\\AddOns\\EllesmereUI\\media\\fonts\\Expressway Bold.ttf"
@@ -883,17 +889,26 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align,
     local font = panel.pool[panel.used]
     if not font then
         font = panel:CreateFontString(nil, "OVERLAY")
+        -- The same for every row, so set once.
+        font:SetJustifyV("TOP")
+        font:SetShadowColor(0, 0, 0, 0)
+        font:SetShadowOffset(0, 0)
         panel.pool[panel.used] = font
     end
     font:ClearAllPoints()
     font:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -y)
     font:SetWidth(width)
     setFont(font, fontPath or bodyFont(), size, flags)
-    font:SetJustifyH(align or "LEFT")
-    font:SetJustifyV("TOP")
-    font:SetTextColor(color[1], color[2], color[3])
-    font:SetShadowColor(0, 0, 0, 0)
-    font:SetShadowOffset(0, 0)
+    align = align or "LEFT"
+    if font.prettyTooltipAlign ~= align then
+        font:SetJustifyH(align)
+        font.prettyTooltipAlign = align
+    end
+    local r, g, b = color[1], color[2], color[3]
+    if font.prettyTooltipR ~= r or font.prettyTooltipG ~= g or font.prettyTooltipB ~= b then
+        font:SetTextColor(r, g, b)
+        font.prettyTooltipR, font.prettyTooltipG, font.prettyTooltipB = r, g, b
+    end
     font:SetText(content)
     font:Show()
     return math.max(size + 2, font:GetStringHeight() or 0)

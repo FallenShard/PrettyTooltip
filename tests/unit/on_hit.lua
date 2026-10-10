@@ -106,6 +106,11 @@ return function(test)
     local font = renderedEffect()
     test.check("custom effect color removes inline colors", font:GetText(), "Chance on hit: " .. effect)
     test.check("custom effect color applies to proc", { font._color[1], font._color[2], font._color[3] }, { .2, .3, .4 })
+    -- Redrawn strings remember their font; a changed style must still reach them.
+    ns.setElementSetting("equipEffects", "size", 15)
+    test.check("a redrawn string takes a new size", renderedEffect()._font.size, 15)
+    ns.setElementSetting("equipEffects", "color", nil)
+    test.check("a redrawn string drops a removed color", renderedEffect():GetText(), "Chance on hit: " .. styleOnHit(effect))
 
     -- A line the game marks as a proc is one without the English "Chance on hit:".
     local marked = "Deals 40 Fire damage."
