@@ -97,17 +97,15 @@ local function profileText(label, counts)
     return table.concat(out, "\n")
 end
 
--- Builds the world, applies settings as saved variables would, loads the
--- addon, and tells it its saved variables arrived, as at login.
+-- Builds the world, loads the addon, then assigns its saved variables and
+-- fires its event, as at login.
 local function startAddon(fixture, enums, files, sources, makeWorld, report, settings)
     local world = makeWorld(fixture, enums, report)
-    for key, value in pairs(settings or {}) do PrettyTooltipDB[key] = value end
     local ns = loadAddon(files, sources)
-    for _, object in ipairs(world.objects) do
-        if object._events and object._events.ADDON_LOADED and object._scripts.OnEvent then
-            object._scripts.OnEvent(object, "ADDON_LOADED", "PrettyTooltip")
-        end
-    end
+    local saved = {}
+    for key, value in pairs(settings or {}) do saved[key] = value end
+    PrettyTooltipDB = saved
+    world.fireEvent("ADDON_LOADED", "PrettyTooltip")
     return world, ns
 end
 
@@ -243,8 +241,8 @@ function main.unit(testSource, testName, sources, serialize, makeWorld)
     local test = {}
     -- Loads the named addon files with a world answering from fixture's calls.
     function test.load(files, fixture)
-        makeWorld(fixture or {}, {}, report)
-        return loadAddon(files, sources)
+        local world = makeWorld(fixture or {}, {}, report)
+        return loadAddon(files, sources), world
     end
     function test.check(name, got, expected)
         local gotText = type(got) == "table" and serialize.dump(got) or tostring(got)

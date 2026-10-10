@@ -92,6 +92,17 @@ return function(fixture, enums, report)
     end
     world.new = new
 
+    -- Only listeners registered when the event starts receive it.
+    function world.fireEvent(event, ...)
+        local listeners = {}
+        for _, object in ipairs(world.objects) do
+            if object:IsEventRegistered(event) and object._scripts.OnEvent then
+                listeners[#listeners + 1] = object
+            end
+        end
+        for _, object in ipairs(listeners) do object._scripts.OnEvent(object, event, ...) end
+    end
+
     -- What the eye sees of a string: links and colors gone, textures counted.
     local function visible(text)
         local textures = 0
@@ -440,8 +451,9 @@ return function(fixture, enums, report)
     STANDARD_TEXT_FONT = "Fonts\\FRIZQT__.TTF"
     NUM_CHAT_WINDOWS = 1
     SlashCmdList = {}
+    SLASH_PRETTYTOOLTIP1, SLASH_PRETTYTOOLTIP2 = nil, nil
     UISpecialFrames = {}
-    PrettyTooltipDB = {}
+    PrettyTooltipDB = nil
     RAID_CLASS_COLORS = {}
     for class, color in pairs({
         WARRIOR = { .78, .61, .43 }, PALADIN = { .96, .55, .73 }, HUNTER = { .67, .83, .45 },
