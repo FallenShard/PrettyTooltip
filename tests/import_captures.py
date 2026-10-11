@@ -148,10 +148,7 @@ def main() -> None:
         if capture.enums is not None and (capture.captured or "") >= newest_time:
             newest_enums, newest_time = capture.enums, capture.captured or ""
     if newest_enums is not None:
-        (HARNESS / "enums.lua").write_text(
-            "-- The client's enums, from the newest capture: fixtures captured before\n"
-            "-- captures carried their own use these.\n"
-            f"return {serialize.lua(newest_enums)}\n", encoding="utf-8", newline="\n")
+        (HARNESS / "enums.lua").write_text(f"return {serialize.lua(newest_enums)}\n", encoding="utf-8", newline="\n")
         print("Wrote tests/harness/enums.lua")
     print(f"{imported} imported. Run python tests/run.py; new fixtures get their first expected outputs.")
 
