@@ -47,7 +47,7 @@ texture at 19,76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=222 size=12 rgb=1,0.5,0.25 "Requires Herbalism 100"
-text at 19,114 w=173 size=11 rgb=0.88,0.78,0.6 "Sell Price"
-text at 204,114 w=37 size=11 rgb=0.88,0.78,0.6 "40|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
-text at 19,131 w=132.5 size=11 rgb=0.88,0.78,0.6 "Auction"
-text at 163.5,131 w=77.5 size=11 rgb=0.88,0.78,0.6 "12|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 50|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 19,114 w=186 size=11 rgb=0.88,0.78,0.6 "Sell Price"
+text at 217,114 w=24 size=11 rgb=0.88,0.78,0.6 "40|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 19,131 w=158.5 size=11 rgb=0.88,0.78,0.6 "Auction"
+text at 189.5,131 w=51.5 size=11 rgb=0.88,0.78,0.6 "12|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 50|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"

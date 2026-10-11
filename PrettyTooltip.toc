@@ -28,6 +28,7 @@ Tooltips\Aura.lua
 Tooltips\Quest.lua
 Tooltips\Macro.lua
 Tooltips\PetAction.lua
+Tooltips\Minimap.lua
 UI\Options.lua
 UI\Editor.lua
 Integration\Native.lua

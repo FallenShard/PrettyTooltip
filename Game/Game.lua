@@ -222,6 +222,25 @@ function game.unitIsTapDenied(unit) return call(UnitIsTapDenied, unit) end
 function game.unitHealth(unit) return call(UnitHealth, unit), call(UnitHealthMax, unit) end
 
 -- A class's color, by its file name, as { r, g, b }.
+-- The units a nearby player may be: the group, target, focus, mouseover, and
+-- everyone with a nameplate.
+local NEARBY = { "target", "focus", "mouseover" }
+for index = 1, 4 do NEARBY[#NEARBY + 1] = "party" .. index end
+for index = 1, 40 do NEARBY[#NEARBY + 1] = "raid" .. index end
+for index = 1, 40 do NEARBY[#NEARBY + 1] = "nameplate" .. index end
+game.NEARBY_UNITS = NEARBY
+
+-- A player's class name and file, by the player's name, from those units.
+function game.playerClass(name)
+    if type(name) ~= "string" then return end
+    for _, unit in ipairs(NEARBY) do
+        if game.unitName(unit) == name and game.unitIsPlayer(unit) then
+            local className, classFile = game.unitClass(unit)
+            if type(classFile) == "string" then return className, classFile end
+        end
+    end
+end
+
 function game.classColor(classFile)
     if classFile and RAID_CLASS_COLORS then return rgb(RAID_CLASS_COLORS[classFile]) end
 end

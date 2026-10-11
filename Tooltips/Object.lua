@@ -64,6 +64,15 @@ function ns.objectYield(name)
     return node and node[1]
 end
 
+-- A herb or ore node by name, for the minimap: the skill it needs and at
+-- what level.
+function ns.gatheringNode(name)
+    local node = nodeFor(name)
+    if not node then return end
+    local skill = (name:find(" Vein$") or name:find(" Deposit$")) and "Mining" or "Herbalism"
+    return { level = node[2], skill = skill }
+end
+
 -- The yield's name, icon, and sell price; an unseen item is asked for, for a later hover.
 local function itemInfo(itemID, game)
     local info = game.itemInfo(itemID) or {}

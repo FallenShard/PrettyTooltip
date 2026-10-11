@@ -1,0 +1,40 @@
+== tooltip model
+blips:
+  1:
+    name: "Topper McNabb"
+  2:
+    name: "Thomas Miller"
+  3:
+    name: "Shade Baby"
+  4:
+    name: "Doomdoll Nightbane"
+  5:
+    name: "Kam Dar"
+  6:
+    name: "Mini Rae"
+  7:
+    name: "Trumpstein Ill"
+extras: {}
+lineIndices:
+  1: true
+== tooltip render
+panel 146 x 153
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
+texture at 4,4 0x0 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-TopLeftCorner
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-TopRightCorner
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-BottomLeftCorner
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-BottomRightCorner
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-TopEdge
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-BottomEdge
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-LeftEdge
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-RightEdge
+text at 19,17 w=108 size=12 rgb=0.96,0.92,0.84 "Topper McNabb"
+text at 19,34 w=108 size=12 rgb=0.96,0.92,0.84 "Thomas Miller"
+text at 19,51 w=108 size=12 rgb=0.96,0.92,0.84 "Shade Baby"
+text at 19,68 w=108 size=12 rgb=0.96,0.92,0.84 "Doomdoll Nightbane"
+text at 19,85 w=108 size=12 rgb=0.96,0.92,0.84 "Kam Dar"
+text at 19,102 w=108 size=12 rgb=0.96,0.92,0.84 "Mini Rae"
+text at 19,119 w=108 size=12 rgb=0.96,0.92,0.84 "Trumpstein Ill"

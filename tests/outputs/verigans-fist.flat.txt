@@ -140,7 +140,7 @@ text at 19,341 w=256 size=11 rgb=0.88,0.84,0.76 "|T132879:0|t Small Glowing Shar
 text at 287,341 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
 texture at 19,366 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
 text at 19,375 w=292 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
-text at 233.5,399 w=77.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 59|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 259.5,399 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 59|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
 texture at 19,404 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 54x4 rgb=0.45,0.8,0.4,1 WHITE8X8
 text at 80,399 w=90 size=11 rgb=0.82,0.78,0.71 "100 / 100"

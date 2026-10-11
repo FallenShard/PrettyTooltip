@@ -155,4 +155,4 @@ text at 141,518 w=167 size=11 rgb=1,0.34,0.28 "Requires Argent Dawn - Revered"
 texture at 19,523 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 54x4 rgb=0.45,0.8,0.4,1 WHITE8X8
 text at 80,518 w=90 size=11 rgb=0.82,0.78,0.71 "165 / 165"
-text at 190,535 w=118 size=11 rgb=0.88,0.78,0.6 "12|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 37|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 67|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 229,535 w=79 size=11 rgb=0.88,0.78,0.6 "12|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 37|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 67|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"

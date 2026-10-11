@@ -444,15 +444,23 @@ local function styledAt(panel, content, x, y, width, style, color, align)
     return height
 end
 
+local function textWidth(font, text)
+    font:SetText(text)
+    return (font.GetUnboundedStringWidth and font:GetUnboundedStringWidth() or font:GetStringWidth()) or 0
+end
+
+-- Some clients leave inline textures out of a string's width; asked once.
+local texturesCounted
 local function measure(panel, text, size, fontPath, flags)
     local font = panel.measure
     setFont(font, fontPath or bodyFont(), size, flags)
-    font:SetText(text)
-    local width = font.GetUnboundedStringWidth and font:GetUnboundedStringWidth()
-        or font:GetStringWidth()
-    -- Inline textures can be left out of the measured width.
+    if texturesCounted == nil then
+        texturesCounted = textWidth(font, "|TInterface\\Icons\\INV_Misc_QuestionMark:12|t") > 6
+    end
+    local width = textWidth(font, text)
+    if texturesCounted then return width end
     local _, textures = text:gsub("|T", "")
-    return (width or 0) + textures * (size + 2)
+    return width + textures * (size + 2)
 end
 
 local function measureStyled(panel, text, style)

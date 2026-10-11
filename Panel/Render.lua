@@ -24,6 +24,7 @@
 --           measure = function(panel) return width end },    measure is optional
 --     },
 --     footer = { rows = { ... }, style, color, gap = 4 },    the dark band at the bottom
+--     minWidth = 0,                      narrower than panels usually are, to fit the content
 -- }
 local _, ns = ...
 local ui = ns.ui
@@ -33,6 +34,7 @@ local util = ns.util
 local PAD = ui.PAD
 local BADGE_SEPARATOR = " |cff" .. util.hex(ns.Palette.roles.caption) .. "\194\183|r "
 local TRACK = { .16, .14, .13 }
+local LIST_TOP = 17
 
 -- Badges -----------------------------------------------------------------------
 
@@ -126,7 +128,7 @@ local function fitWidth(panel, view)
     for _, row in ipairs(view.footer and view.footer.rows or {}) do
         consider(ui.rowWidth(panel, row, view.footer.style))
     end
-    return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
+    return math.max(view.minWidth or ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
 end
 
 local function drawSeparator(panel, y, separator)
@@ -188,8 +190,14 @@ local function renderView(panel, tooltip, view)
             y = drawBadges(panel, item.badges, PAD + leftIndent, y + (item.before or 0), item.style) + item.gap
         end
     end
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
+    if #view.header > 0 or view.icon then
+        y = math.max(y + 6, headerMin)
+        panel.header:SetHeight(y - panel.inset)
+    else
+        -- Sections alone, as the minimap's list: as much room above as below.
+        y = LIST_TOP
+        panel.header:SetHeight(0)
+    end
     panel.footer:SetHeight(0)
 
     for _, section in ipairs(view.sections) do

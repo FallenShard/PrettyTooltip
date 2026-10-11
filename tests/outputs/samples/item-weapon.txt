@@ -122,7 +122,7 @@ text at 19,334 w=151.5 size=11 rgb=0.86,0.74,0.45 "Disenchant"
 text at 182.5,334 w=128.5 size=11 rgb=0.55,0.53,0.5 "Requires Enchanting 225"
 text at 19,351 w=256 size=11 rgb=0.88,0.84,0.76 "1–2 Nexus Crystal"
 text at 287,351 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
-text at 198.5,375 w=112.5 size=11 rgb=0.88,0.78,0.6 "6|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 42|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 18|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 237.5,375 w=73.5 size=11 rgb=0.88,0.78,0.6 "6|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 42|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 18|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
 texture at 19,380 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 27.45x4 rgb=0.45,0.8,0.4,1 WHITE8X8
 text at 80,375 w=90 size=11 rgb=0.82,0.78,0.71 "61 / 120"

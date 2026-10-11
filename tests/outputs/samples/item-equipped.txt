@@ -108,7 +108,7 @@ text at 19,197 w=270 size=11 rgb=0.85,0.7,0 "If you replace this item, the follo
 text at 19,225 w=270 size=11 rgb=0.85,0.13,0.13 "-15 Strength"
 text at 19,240 w=270 size=11 rgb=0.09,0.85,0.09 "+13 Stamina"
 text at 19,255 w=270 size=11 rgb=0.09,0.85,0.09 "+62 Attack Power"
-text at 176.5,279 w=112.5 size=11 rgb=0.88,0.78,0.6 "4|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 12|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 50|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 215.5,279 w=73.5 size=11 rgb=0.88,0.78,0.6 "4|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 12|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 50|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
 texture at 19,284 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 54x4 rgb=0.45,0.8,0.4,1 WHITE8X8
 text at 80,279 w=90 size=11 rgb=0.82,0.78,0.71 "100 / 100"
