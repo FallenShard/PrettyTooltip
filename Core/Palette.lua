@@ -34,12 +34,15 @@ palette.schools.Holyfire = { (holy[1] + fire[1]) / 2, (holy[2] + fire[2]) / 2, (
 local schoolNames = {}
 for name in pairs(palette.schools) do schoolNames[name:lower()] = name end
 
--- A school must name damage or spells, as "40 Fire damage" or "your Fire
+-- A class spell's school comes from Data/Schools.lua, by its name. Otherwise
+-- the text must name damage or spells, as "40 Fire damage" or "your Fire
 -- spells", so "Fire Elementals" and "Rapid Fire" cannot change the color.
 -- Spell names may supply a leading school instead.
 local SCHOOL_PATTERNS = { "%f[%a](%a+)%s+damage%f[%A]", "%f[%a](%a+)%s+spells?%f[%A]" }
 
 function palette.detectSchool(description, name)
+    local known = name and ns.spellSchools and ns.spellSchools[name]
+    if known then return known end
     for _, text in ipairs(description) do
         local plain = util.plainText(text):lower()
         -- The earliest mention wins, whichever wording it uses.

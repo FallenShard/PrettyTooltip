@@ -2,6 +2,7 @@ package-as: PrettyTooltip
 
 ignore:
   - deploy.py
+  - tools
   - art/*.py
   - art/README.md
   - art/logo-400.png
