@@ -39,7 +39,6 @@ local PROSE_WIDTH = 270
 local PAD = 19
 local COLUMN_GAP = 12
 local ICON_SIZE = 43
-local HEADER_INDENT = ICON_SIZE + 10
 local ICON_TOP = 21
 local TITLE_TOP = ICON_TOP
 local BADGE_GAP = 5
@@ -1173,7 +1172,15 @@ local function createdSubtitle(created)
     if #parts > 0 then return table.concat(parts, " \194\183 ") end
 end
 
-local function fitWidth(panel, model, title, styles)
+-- The item level plate under the icon is as wide as the icon's border, with
+-- its text padded 5 on each side; a larger text grows the icon rather than
+-- the plate, sized for a two-digit level so every item's icon is the same size.
+local function itemIconSize(panel, badge, style)
+    if not badge then return ICON_SIZE end
+    return math.max(ICON_SIZE, math.ceil(measureStyled(panel, "iLvl 88", style)) + 8)
+end
+
+local function fitWidth(panel, model, title, styles, iconSize)
     local need = 0
     local function consider(width) if width > need then need = width end end
     local function group(list, style, extra, prose)
@@ -1191,7 +1198,7 @@ local function fitWidth(panel, model, title, styles)
             group({ row }, styles.effects, row.use and markerIndent(panel, styles.effects) or 0, true)
         end
     end
-    local indent = model.icon and HEADER_INDENT or 0
+    local indent = model.icon and iconSize + 10 or 0
     consider(measureStyled(panel, title, styles.title) + indent)
     if model.slot then consider(measureStyled(panel, model.slot, styles.subtitle) + indent) end
     group(model.header, styles.header, indent)
@@ -1445,7 +1452,7 @@ local function drawChrome(panel, tooltip, style)
         panel.badgeText:SetTextColor(textColor[1], textColor[2], textColor[3])
         panel.badgeText:SetText(style.badge)
         local height = math.max(BADGE_HEIGHT, text.size + 6)
-        badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 12), height)
+        badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 10), height)
         badge:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
         panel.badgeFill:SetVertexColor(color[1] * .14, color[2] * .14, color[3] * .14, 1)
         badge:Show()
@@ -1641,7 +1648,10 @@ local function render(panel, tooltip, model)
     end
     if not ns.option("iconItems") then model.icon = nil end
     local title = model.name
-    panel.width = fitWidth(panel, model, title, styles)
+    local badge = model.icon and ns.option("itemLevelBadge") and model.level
+        and (model.equippable or model.levelLine) and ("iLvl " .. model.level)
+    local iconSize = itemIconSize(panel, badge, styles.badge)
+    panel.width = fitWidth(panel, model, title, styles, iconSize)
     panel:SetWidth(panel.width)
     local quality = QUALITY[model.quality] or QUALITY[1]
     local tag
@@ -1654,14 +1664,14 @@ local function render(panel, tooltip, model)
         color = accent,
         tint = (model.quest or model.quality >= 2) and accent or nil,
         icon = model.icon,
-        badge = model.icon and ns.option("itemLevelBadge") and model.level
-            and (model.equippable or model.levelLine) and ("iLvl " .. model.level),
+        iconSize = iconSize,
+        badge = badge,
         tag = tag,
     })
 
     local y = TITLE_TOP
     local inner = panel.width - 2 * PAD
-    local indent = model.icon and HEADER_INDENT or 0
+    local indent = model.icon and iconSize + 10 or 0
     local leftIndent, rightIndent = headerInsets(indent)
     y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.title, quality) + 4
     if model.slot and model.slot ~= "" then
