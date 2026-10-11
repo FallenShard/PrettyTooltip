@@ -48,14 +48,14 @@ requirements:
     left: "Requires Shields"
     right: ""
 == sample render
-panel 308 x 270
+panel 308 x 269
 texture at -16,-16 0x0 rgb=0.9,0.22,0.2,0.385 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
 texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
 texture at 0,0 8x0 rgb=1,1,1,1 color
 texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
-texture at 1,1 0x71 rgb=1,1,1,1 WHITE8X8
+texture at 1,1 0x70 rgb=1,1,1,1 WHITE8X8
 texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture at 19,21 38x38 rgb=1,1,1,1 INV_Misc_QuestionMark
 texture CENTER Texture CENTER 0,0 40x40 rgb=0.9,0.22,0.2,0.85 WHITE8X8
@@ -64,25 +64,23 @@ texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.324,0.0792,0.072,0.95 WHITE8X8
 texture at 0,0 1x0 rgb=0.324,0.0792,0.072,0.95 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.324,0.0792,0.072,0.95 WHITE8X8
 text at 67,21 w=222 size=17 rgb=0.96,0.92,0.84 "SHIELD BASH"
-texture at 67,46 42x16 rgb=0.48,0.448,0.4,0.9 WHITE8X8
-texture TOPLEFT Texture TOPLEFT 1,-1 40x14 rgb=0.084,0.0784,0.07,1 WHITE8X8
-text at 67,49 w=42 size=10 rgb=0.82,0.802,0.775 "Rank 1"
-texture at 19,77 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
-texture TOPRIGHT panel TOPRIGHT -19,-77 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
-texture TOP panel TOP 0,-72 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
-text at 19,90 w=67.5 size=13 rgb=0.955,0.649,0.64 "10"
-text at 19,107 w=67.5 size=9 rgb=0.6,0.57,0.52 "RAGE"
-text at 86.5,90 w=67.5 size=13 rgb=0.96,0.92,0.84 "Instant"
-text at 86.5,107 w=67.5 size=9 rgb=0.6,0.57,0.52 "CAST"
-texture at 86.5,92 1x26 rgb=0.54,0.132,0.12,0.5 WHITE8X8
-text at 154,90 w=67.5 size=13 rgb=0.96,0.92,0.84 "12 sec"
-text at 154,107 w=67.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
-texture at 154,92 1x26 rgb=0.54,0.132,0.12,0.5 WHITE8X8
-text at 221.5,90 w=67.5 size=13 rgb=0.96,0.92,0.84 "Melee"
-text at 221.5,107 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
-texture at 221.5,92 1x26 rgb=0.54,0.132,0.12,0.5 WHITE8X8
-text at 19,128 w=270 size=11 rgb=1,0.34,0.28 "Requires Shields"
-text at 19,143 w=270 size=11 rgb=1,0.6,0.25 "Cooldown remaining: 8 sec"
-texture at 19,164 270x1 rgb=0.63,0.154,0.14,0.45 WHITE8X8
-text at 19,173 w=270 size=12 rgb=0.92,0.87,0.76 "Bashes the target with your shield for |cffFFF6E48|r damage."
-text at 19,206 w=270 size=12 rgb=0.92,0.87,0.76 "It also interrupts spellcasting and prevents any spell in that school from being cast for |cffFFF6E46|r sec."
+text at 67,46 w=38 size=12 rgb=0.82,0.78,0.71 "|cffB8B0A6Rank 1|r"
+texture at 19,76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,89 w=67.5 size=13 rgb=0.955,0.649,0.64 "10"
+text at 19,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "RAGE"
+text at 86.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "Instant"
+text at 86.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "CAST"
+texture at 86.5,91 1x26 rgb=0.54,0.132,0.12,0.5 WHITE8X8
+text at 154,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "12 sec"
+text at 154,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
+texture at 154,91 1x26 rgb=0.54,0.132,0.12,0.5 WHITE8X8
+text at 221.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "Melee"
+text at 221.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
+texture at 221.5,91 1x26 rgb=0.54,0.132,0.12,0.5 WHITE8X8
+text at 19,127 w=270 size=11 rgb=1,0.34,0.28 "Requires Shields"
+text at 19,142 w=270 size=11 rgb=1,0.6,0.25 "Cooldown remaining: 8 sec"
+texture at 19,163 270x1 rgb=0.63,0.154,0.14,0.45 WHITE8X8
+text at 19,172 w=270 size=12 rgb=0.92,0.87,0.76 "Bashes the target with your shield for |cffFFF6E48|r damage."
+text at 19,205 w=270 size=12 rgb=0.92,0.87,0.76 "It also interrupts spellcasting and prevents any spell in that school from being cast for |cffFFF6E46|r sec."

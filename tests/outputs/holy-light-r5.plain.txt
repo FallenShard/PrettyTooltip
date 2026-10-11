@@ -50,33 +50,28 @@ rank: "Rank 5"
 requirements: {}
 spellID: 1042
 == tooltip render
-panel 272 x 159
+panel 272 x 157
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
 texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
 texture at 0,0 8x0 rgb=1,1,1,1 color
 texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
-texture at 1,1 0x71 rgb=1,1,1,1 WHITE8X8
+texture at 1,1 0x69 rgb=1,1,1,1 WHITE8X8
 texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture at 0,0 0x2 rgb=0.784,0.584,0.176,0.95 WHITE8X8
 texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
 texture at 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
 text at 19,21 w=234 size=17 rgb=0.96,0.92,0.84 "HOLY LIGHT"
-texture at 19,46 32x16 rgb=0.784,0.584,0.176,0.9 WHITE8X8
-texture TOPLEFT Texture TOPLEFT 1,-1 30x14 rgb=0.1372,0.1022,0.0308,1 WHITE8X8
-text at 19,49 w=32 size=10 rgb=0.991,0.8785,0.649 "Holy"
-texture at 57,46 42x16 rgb=0.48,0.448,0.4,0.9 WHITE8X8
-texture TOPLEFT Texture TOPLEFT 1,-1 40x14 rgb=0.084,0.0784,0.07,1 WHITE8X8
-text at 57,49 w=42 size=10 rgb=0.82,0.802,0.775 "Rank 5"
-text at 19,72 w=78 size=13 rgb=0.6625,0.7975,1 "275"
-text at 19,89 w=78 size=9 rgb=0.6,0.57,0.52 "MANA"
-text at 97,72 w=78 size=13 rgb=0.96,0.92,0.84 "2.5 sec"
-text at 97,89 w=78 size=9 rgb=0.6,0.57,0.52 "CAST"
-texture at 97,74 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-text at 175,72 w=78 size=13 rgb=0.96,0.92,0.84 "40 yd"
-text at 175,89 w=78 size=9 rgb=0.6,0.57,0.52 "RANGE"
-texture at 175,74 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-text at 19,108 w=234 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cffFBCF74425|r to |cffFBCF74479|r."
-text at 19,127 w=234 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+text at 19,46 w=80 size=12 rgb=0.82,0.78,0.71 "|cffFBCF74Holy|r |cff999185·|r |cffB8B0A6Rank 5|r"
+text at 19,70 w=78 size=13 rgb=0.6625,0.7975,1 "275"
+text at 19,87 w=78 size=9 rgb=0.6,0.57,0.52 "MANA"
+text at 97,70 w=78 size=13 rgb=0.96,0.92,0.84 "2.5 sec"
+text at 97,87 w=78 size=9 rgb=0.6,0.57,0.52 "CAST"
+texture at 97,72 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 175,70 w=78 size=13 rgb=0.96,0.92,0.84 "40 yd"
+text at 175,87 w=78 size=9 rgb=0.6,0.57,0.52 "RANGE"
+texture at 175,72 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 19,106 w=234 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cffFBCF74425|r to |cffFBCF74479|r."
+text at 19,125 w=234 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"

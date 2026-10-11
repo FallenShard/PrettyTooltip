@@ -24,39 +24,30 @@ if not ui then return end
 
 local util = ns.util
 local PAD = ui.PAD
-local BADGE_HEIGHT = 16
-local BADGE_GAP = 6
+local BADGE_SEPARATOR = " |cff" .. util.hex(ns.Palette.roles.caption) .. "\194\183|r "
 local BAR_HEIGHT = 4
 local TRACK = { .16, .14, .13 }
 
 -- Badges -----------------------------------------------------------------------
 
-local function badgesWidth(panel, list, style)
-    local width = 0
+-- Badges read as one line, as the item's type and slot do: each word in its
+-- badge's color, lightened to read on the dark header, between dim dots.
+local function badgeText(list)
+    local words = {}
     for index, badge in ipairs(list) do
-        width = width + ui.measureStyled(panel, badge[1], style) + 12 + (index > 1 and BADGE_GAP or 0)
+        words[index] = "|cff" .. ns.Palette.numberCode(badge[2]) .. badge[1] .. "|r"
     end
-    return width
+    return table.concat(words, BADGE_SEPARATOR)
+end
+
+local function badgesWidth(panel, list, style)
+    return ui.measureStyled(panel, badgeText(list), style)
 end
 
 local function drawBadges(panel, list, x, y, style)
-    local height = math.max(BADGE_HEIGHT, style.size + 6)
-    for _, badge in ipairs(list) do
-        local text, color = badge[1], badge[2]
-        local width = ui.measureStyled(panel, text, style) + 12
-        local border = ui.acquireTexture(panel, nil, -2)
-        border:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -y)
-        border:SetSize(width, height)
-        border:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
-        local fill = ui.acquireTexture(panel, nil, -1)
-        fill:SetPoint("TOPLEFT", border, "TOPLEFT", 1, -1)
-        fill:SetSize(width - 2, height - 2)
-        fill:SetVertexColor(color[1] * .14, color[2] * .14, color[3] * .14, 1)
-        ui.styledAt(panel, text, x, y + math.floor((height - style.size) / 2), width, style,
-            { color[1] * .45 + .55, color[2] * .45 + .55, color[3] * .45 + .55 }, "CENTER")
-        x = x + width + BADGE_GAP
-    end
-    return y + height
+    local text = badgeText(list)
+    -- The panel was fitted to the line, so it never wraps.
+    return y + ui.styledAt(panel, text, x, y, ui.measureStyled(panel, text, style) + 2, style, ns.Palette.roles.detail)
 end
 
 -- Timers: bars that drain as an aura runs out ----------------------------------------
