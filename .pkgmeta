@@ -1,5 +1,10 @@
 package-as: PrettyTooltip
 
+# The release notes, written by hand instead of listed from the commits.
+manual-changelog:
+  filename: CHANGELOG.md
+  markup-type: markdown
+
 ignore:
   - deploy.py
   - tools
@@ -7,3 +12,5 @@ ignore:
   - art/README.md
   - art/logo-400.png
   - tests
+  - README.md
+  - UI/Capture.lua

@@ -4,7 +4,7 @@
 ## Author: FallenShard
 ## X-License: MIT
 ## X-Curse-Project-ID: 1720719
-## Version: 1.0.0
+## Version: 1.1.0
 ## IconTexture: Interface\AddOns\PrettyTooltip\art\logo
 ## SavedVariables: PrettyTooltipDB, PrettyTooltipCaptures
 ## OptionalDeps: Questie, Auctionator, DialogueUI, EllesmereUI, LibSharedMedia-3.0
@@ -36,7 +36,9 @@ Integration\Native.lua
 Integration\Hooks.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
+#@debug@
 UI\Capture.lua
+#@end-debug@
 UI\Debug.lua
 UI\Commands.lua
 PrettyTooltip.lua

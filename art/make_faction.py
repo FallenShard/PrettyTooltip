@@ -14,8 +14,9 @@ from pathlib import Path
 
 from PIL import Image
 
-SIZE = 256
-PADDING = 16
+# Drawn at 200 and faint, so 128 is enough.
+SIZE = 128
+PADDING = 8
 
 
 def render(source: Image.Image, size: int, padding: int) -> Image.Image:
