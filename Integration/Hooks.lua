@@ -198,8 +198,9 @@ function hooks.install()
     if installed then return end
     installed = true
     local order = {}
-    for dataType in pairs(TooltipTypes) do
-        if dataType ~= ITEM then order[#order + 1] = dataType end
+    -- A type drawn from lines alone has no data for the game to hand over.
+    for dataType, tooltipType in pairs(TooltipTypes) do
+        if dataType ~= ITEM and not tooltipType.linesOnly then order[#order + 1] = dataType end
     end
     table.sort(order)
     if TooltipTypes[ITEM] then table.insert(order, 1, ITEM) end

@@ -248,6 +248,30 @@ local function recordMinimap(record)
     end
 end
 
+-- The frame a tooltip is for: its name and ID, and a flight map pin's node.
+local function ownerOf(tooltip)
+    local owner = tooltip:GetOwner()
+    if not owner then return end
+    return {
+        name = owner.GetName and copyOf(owner:GetName()),
+        id = owner.GetID and copyOf(owner:GetID()),
+        kind = owner.GetObjectType and owner:GetObjectType(),
+        parent = owner.GetParent and owner:GetParent() and owner:GetParent().GetName and copyOf(owner:GetParent():GetName()),
+        taxiNode = owner.taxiNodeData and copyOf(owner.taxiNodeData),
+    }
+end
+
+-- The flight map while it is open: each node's name, cost, and type.
+local function recordTaxi(record)
+    if not NumTaxiNodes then return end
+    local count = record("NumTaxiNodes", NumTaxiNodes)
+    for index = 1, type(count) == "number" and count or 0 do
+        record("TaxiNodeName", TaxiNodeName, index)
+        record("TaxiNodeCost", TaxiNodeCost, index)
+        record("TaxiNodeGetType", TaxiNodeGetType, index)
+    end
+end
+
 -- The player, the same for every tooltip type: level, spell power, and skills.
 local function recordPlayer(record)
     for _, name in ipairs({ "UnitLevel", "UnitClass", "UnitRace", "UnitFactionGroup", "UnitName" }) do
@@ -290,6 +314,8 @@ local function captureTooltip(tooltip)
         return ok and problem or nil
     end
     entry.lines = attempt("lines", visibleLines, tooltip) or {}
+    entry.owner = attempt("owner", ownerOf, tooltip)
+    attempt("taxi", recordTaxi, record)
     if isSecret(data) or type(data) ~= "table" then
         -- Filled by an addon with lines alone, as Questie's quest links.
         entry.fromLines = true

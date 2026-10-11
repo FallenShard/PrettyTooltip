@@ -39,6 +39,8 @@ read_globals = {
     "GetLocale", "GetBuildInfo", "GetTime", "IsAltKeyDown", "IsControlKeyDown",
     "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
     "GetNumMacros", "GetMacroSpell", "GetMacroItem", "MAX_ACCOUNT_MACROS", "GetPetActionInfo",
+    "NumTaxiNodes", "TaxiNodeName", "TaxiNodeCost", "TaxiNodeGetType", "TaxiNodeOnButtonEnter",
+    "TAXINODEYOUAREHERE",
     "NUM_PET_ACTION_SLOTS",
     "GetSkillLineInfo", "GetNumSkillLines", "GetProfessions", "GetProfessionInfo",
     "GetQuestDifficultyColor", "GetGuildInfo", "GetCoinTextureString", "BreakUpLargeNumbers",
