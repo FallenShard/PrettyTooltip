@@ -14,7 +14,7 @@ return function(test)
         lines = { { left = { text = "Test Mace" } }, { left = { text = "Two-Hand" }, right = { text = "Mace" } } },
     }
     local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
-        "Data/Stats.lua", "Panel/Layout.lua" }, capture)
+        "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Item.lua" }, capture)
     local model = ns.TooltipTypes[0].read(world.main, capture.data, ns.Game)
     test.check("the item has a level to show", model.level, 63)
     local anchor = CreateFrame("Frame", nil, UIParent)
