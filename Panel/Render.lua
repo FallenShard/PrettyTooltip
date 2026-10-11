@@ -1,11 +1,15 @@
 -- Draws a view: a plain table that says what a panel shows, which a tooltip
 -- type's view function builds from its model. The width is fitted to what the
--- view holds, so measuring and drawing cannot disagree.
+-- view holds, so measuring and drawing cannot disagree. Only what several
+-- types share lives here; a part one type draws its own way is a custom
+-- section in that type's file.
 --
 -- view = {
 --     tooltipType = "aura",              backdrop and header settings by type
 --     color, tint, strength,             the accent; the header's tint and its strength
 --     icon, iconSize,                    header lines start beside the icon
+--     portrait = "mouseover",            a unit whose portrait fills the icon
+--     badge, badgeColor,                 the level plate under the icon
 --     header = {                         in order, beside the icon
 --         { text = "Name", style = styles.auraName, color = TITLE, gap = 4 },
 --         { badges = { { "Buff", BLUE } }, style = styles.auraBadges, before = 1, gap = 4 },
@@ -15,7 +19,8 @@
 --           kind = "prose", sentences = { ... }, style, color, numbers = "FFF6E4", gap = 5 },
 --         { kind = "rows", rows = { { left, right, color, rightColor, indent } }, style, color, gap = 2,
 --           wrap = true },             rows with nothing on the right wrap at prose width
---         { kind = "timer", duration = 30, expires = 1234.5, color = BLUE },
+--         { kind = "custom", draw = function(panel, y) return y end,
+--           measure = function(panel) return width end },    measure is optional
 --     },
 --     footer = { rows = { ... }, style, color, gap = 4 },    the dark band at the bottom
 -- }
@@ -26,7 +31,6 @@ if not ui then return end
 local util = ns.util
 local PAD = ui.PAD
 local BADGE_SEPARATOR = " |cff" .. util.hex(ns.Palette.roles.caption) .. "\194\183|r "
-local BAR_HEIGHT = 4
 local TRACK = { .16, .14, .13 }
 
 -- Badges -----------------------------------------------------------------------
@@ -51,16 +55,10 @@ local function drawBadges(panel, list, x, y, style)
     return y + ui.styledAt(panel, text, x, y, ui.measureStyled(panel, text, style) + 2, style, ns.Palette.roles.detail)
 end
 
--- Timers: bars that drain as an aura runs out ----------------------------------------
+-- Live parts: updated ten times a second while their panel shows ---------------
 
-local timers = setmetatable({}, { __mode = "k" })
-
-local function drawTimerFill(timer)
-    local left = math.max(0, timer.expires - GetTime())
-    local ratio = math.max(0, math.min(1, left / timer.duration))
-    timer.fill:SetWidth(math.max(1, timer.width * ratio))
-    timer.fill:SetShown(ratio > 0)
-end
+-- Each shown panel's update, at most one; a redraw clears it.
+local live = setmetatable({}, { __mode = "k" })
 
 local ticker = CreateFrame("Frame")
 local elapsedSince = 0
@@ -68,10 +66,27 @@ ticker:SetScript("OnUpdate", function(_, elapsed)
     elapsedSince = elapsedSince + elapsed
     if elapsedSince < .1 then return end
     elapsedSince = 0
-    for panel, timer in pairs(timers) do
-        if panel:IsShown() then drawTimerFill(timer) else timers[panel] = nil end
+    for panel, update in pairs(live) do
+        if panel:IsShown() then update() else live[panel] = nil end
     end
 end)
+
+local function setLive(panel, update)
+    live[panel] = update
+end
+
+-- A bar's dark track across the panel at y, and its fill, for the caller to
+-- size and color.
+local function drawTrack(panel, y, height)
+    local bar = ui.acquireTexture(panel, nil, 0)
+    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
+    bar:SetSize(panel.width - 2 * PAD, height)
+    bar:SetVertexColor(TRACK[1], TRACK[2], TRACK[3], 1)
+    local fill = ui.acquireTexture(panel, nil, 1)
+    fill:SetPoint("TOPLEFT", bar, "TOPLEFT")
+    fill:SetHeight(height)
+    return fill
+end
 
 -- Sections -------------------------------------------------------------------------
 
@@ -97,6 +112,8 @@ local function fitWidth(panel, view)
             for _, sentence in ipairs(section.sentences) do
                 consider(math.min(ui.measureStyled(panel, sentence, section.style), ui.PROSE_WIDTH))
             end
+        elseif section.kind == "custom" then
+            if section.measure then consider(section.measure(panel)) end
         elseif section.kind == "rows" then
             for _, row in ipairs(section.rows) do
                 local width = ui.rowWidth(panel, row, section.style)
@@ -132,21 +149,8 @@ local DRAW = {
         end
         return y
     end,
-    timer = function(panel, y, section)
-        local width = panel.width - 2 * PAD
-        local track = ui.acquireTexture(panel, nil, 0)
-        track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
-        track:SetSize(width, BAR_HEIGHT)
-        track:SetVertexColor(TRACK[1], TRACK[2], TRACK[3], 1)
-        local color = section.color
-        local timer = { width = width, duration = section.duration, expires = section.expires }
-        timer.fill = ui.acquireTexture(panel, nil, 1)
-        timer.fill:SetPoint("TOPLEFT", track, "TOPLEFT")
-        timer.fill:SetHeight(BAR_HEIGHT)
-        timer.fill:SetVertexColor(color[1], color[2], color[3], 1)
-        drawTimerFill(timer)
-        timers[panel] = timer
-        return y + BAR_HEIGHT + 8
+    custom = function(panel, y, section)
+        return section.draw(panel, y)
     end,
 }
 
@@ -155,7 +159,7 @@ local DRAW = {
 local function renderView(panel, tooltip, view)
     panel:Show()
     ui.clearPool(panel)
-    timers[panel] = nil
+    live[panel] = nil
     panel.width = fitWidth(panel, view)
     panel:SetWidth(panel.width)
     local headerMin = ui.drawChrome(panel, tooltip, {
@@ -165,7 +169,10 @@ local function renderView(panel, tooltip, view)
         strength = view.strength,
         icon = view.icon,
         iconSize = view.iconSize,
+        badge = view.badge,
+        badgeColor = view.badgeColor,
     })
+    if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
 
     local indent = indentOf(view)
     local leftIndent = ui.headerInsets(indent)
@@ -200,4 +207,5 @@ local function renderView(panel, tooltip, view)
 end
 
 ui.renderView = renderView
+ui.setLive, ui.drawTrack = setLive, drawTrack
 ui.drawBadges, ui.badgesWidth = drawBadges, badgesWidth

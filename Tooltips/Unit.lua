@@ -2,7 +2,7 @@
 local _, ns = ...
 local ui = ns.ui
 local UNIT = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Unit
-if not (ui and UNIT and ui.drawBadges) then
+if not (ui and UNIT and ui.renderView) then
     return
 end
 
@@ -11,15 +11,14 @@ local colors = ns.Palette.roles
 local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
 local get = util.call
 local LINE = Enum.TooltipDataLineType or {}
-local PAD = ui.PAD
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local ICON_SIZE = 38
-local TEXT_INDENT = ICON_SIZE + 10
 local TINT_STRENGTH = .7
 local BAR_HEIGHT = 5
 local TAPPED = { .55, .55, .55 }
 local DETAIL_COLOR = colors.detail
 local MUTED = colors.caption
+local EXTRAS_RULE = { .50, .50, .54 }
 local UNMET_COLOR = colors.unmet
 local REACTION = {
     { 1, .27, .22 }, { 1, .27, .22 }, { 1, .50, .20 }, { 1, .82, .20 },
@@ -193,16 +192,15 @@ end
 -- The level on a plate under the portrait, as the game's target frame shows
 -- it; nil without a portrait to put it under, or with the plate turned off,
 -- and the info line shows it instead.
-local function levelBadge(model)
-    if model.hideIcon or not (model.unit or model.iconPath) or type(model.level) ~= "number"
-        or not ns.option("unitLevelBadge") then return end
+local function levelBadge(model, hasIcon)
+    if not hasIcon or type(model.level) ~= "number" or not ns.option("unitLevelBadge") then return end
     return model.level == -1 and "??" or tostring(model.level)
 end
 
-local function infoText(model)
+local function infoText(model, plated)
     local what = model.isPlayer and table.concat({ model.race or "", model.className or "" }, " ")
         or (model.creature or "")
-    if levelBadge(model) then
+    if plated then
         what = trim(what)
         return what ~= "" and what or nil
     end
@@ -250,60 +248,47 @@ local function healthRow(model)
     }
 end
 
-local function fitWidth(panel, model, styles)
-    local indent = not model.hideIcon and (model.unit or model.iconPath) and TEXT_INDENT or 0
-    local need = ui.measureStyled(panel, model.name, styles.unitName) + indent
-    local function consider(width) if width > need then need = width end end
-    local guild, info = guildText(model), infoText(model)
-    if guild then consider(ui.measureStyled(panel, guild, styles.unitGuild) + indent) end
-    if info then consider(ui.measureStyled(panel, info, styles.unitInfo) + indent) end
-    local list = badges(model)
-    if #list > 0 then consider(ui.badgesWidth(panel, list, styles.unitBadges) + indent) end
-    local health = healthRow(model)
-    if health then consider(ui.rowWidth(panel, health, styles.unitHealth)) end
-    for _, row in ipairs(detailRows(model)) do consider(ui.rowWidth(panel, row, styles.unitDetails)) end
-    for _, row in ipairs(model.quests) do
-        consider(ui.rowWidth(panel, row, styles.unitQuests) + (row.title and 0 or 8))
-    end
-    for _, row in ipairs(model.extras) do
-        local width = ui.rowWidth(panel, row, styles.extras)
-        if not row.right or row.right == "" then width = math.min(width, ui.PROSE_WIDTH) end
-        consider(width)
-    end
-    return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
-end
-
-local live = setmetatable({}, { __mode = "k" })
-
-local function drawHealthFill(view, current, maximum)
+local function drawHealthFill(bar, current, maximum)
     local ratio = maximum > 0 and math.max(0, math.min(1, current / maximum)) or 0
     local color = healthColor(current, maximum)
-    view.fill:SetWidth(math.max(1, view.width * ratio))
-    view.fill:SetVertexColor(color[1], color[2], color[3], 1)
-    view.fill:SetShown(ratio > 0)
+    bar.fill:SetWidth(math.max(1, bar.width * ratio))
+    bar.fill:SetVertexColor(color[1], color[2], color[3], 1)
+    bar.fill:SetShown(ratio > 0)
 end
 
-local updater = CreateFrame("Frame")
-local elapsedSince = 0
-updater:SetScript("OnUpdate", function(_, elapsed)
-    elapsedSince = elapsedSince + elapsed
-    if elapsedSince < .1 then return end
-    elapsedSince = 0
-    for panel, view in pairs(live) do
-        if panel:IsShown() then
-            local current, maximum = ns.Game.unitHealth(view.unit)
-            if type(current) == "number" and type(maximum) == "number" and maximum > 0
-                and (current ~= view.current or maximum ~= view.maximum) then
-                view.current, view.maximum = current, maximum
-                drawHealthFill(view, current, maximum)
-                view.left:SetText(number(current) .. " / " .. number(maximum))
-                view.right:SetText(math.floor(current / maximum * 100 + .5) .. "%")
+-- The health row and a bar under it, red, then yellow, then green; both
+-- follow the unit while the panel shows.
+local function healthSection(model, row, style, separator)
+    return {
+        separator = separator,
+        kind = "custom",
+        measure = function(panel) return ui.rowWidth(panel, row, style) end,
+        draw = function(panel, y)
+            y = ui.drawRow(panel, row, y, style, DETAIL_COLOR, 0, 2)
+            local bar = {
+                width = panel.width - 2 * ui.PAD,
+                current = model.health, maximum = model.healthMax,
+                -- The row's two halves, the last two strings drawn.
+                left = panel.pool[panel.used - 1], right = panel.pool[panel.used],
+            }
+            bar.fill = ui.drawTrack(panel, y, BAR_HEIGHT)
+            drawHealthFill(bar, model.health, model.healthMax)
+            if model.unit then
+                ui.setLive(panel, function()
+                    local current, maximum = ns.Game.unitHealth(model.unit)
+                    if type(current) == "number" and type(maximum) == "number" and maximum > 0
+                        and (current ~= bar.current or maximum ~= bar.maximum) then
+                        bar.current, bar.maximum = current, maximum
+                        drawHealthFill(bar, current, maximum)
+                        bar.left:SetText(number(current) .. " / " .. number(maximum))
+                        bar.right:SetText(math.floor(current / maximum * 100 + .5) .. "%")
+                    end
+                end)
             end
-        else
-            live[panel] = nil
-        end
-    end
-end)
+            return y + BAR_HEIGHT + 8
+        end,
+    }
+end
 
 -- The crest runs off the top right; a panel cannot clip what it draws, so only
 -- the part over the panel is drawn, cut from the texture.
@@ -332,99 +317,66 @@ local function showWatermark(panel, faction)
     mark:Show()
 end
 
-local function renderUnit(panel, tooltip, model)
-    panel:Show()
-    ui.clearPool(panel)
-    live[panel] = nil
+-- What the panel shows, for Panel/Render.lua to draw.
+local function unitView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
-    model.hideIcon = not ns.option("iconUnits")
-    panel.width = fitWidth(panel, model, styles)
-    panel:SetWidth(panel.width)
     local color = model.color or colors.neutral
-    local hasIcon = not model.hideIcon and (model.unit or model.iconPath)
-    local headerMin = ui.drawChrome(panel, tooltip, {
+    local hasIcon = ns.option("iconUnits") and (model.unit or model.iconPath) and true or false
+    local plate = levelBadge(model, hasIcon)
+
+    local header = { { text = model.name, style = styles.unitName, color = color, gap = 2 } }
+    local guild = guildText(model)
+    if guild then
+        header[#header + 1] = { text = guild, style = styles.unitGuild,
+            color = { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, gap = 2 }
+    end
+    local info = infoText(model, plate ~= nil)
+    if info then header[#header + 1] = { text = info, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 } end
+    header[#header + 1] = { badges = badges(model), style = styles.unitBadges, before = 1, gap = 4 }
+
+    local sections = {}
+    local health, details = healthRow(model), detailRows(model)
+    local separator = (health or #details > 0) and { divider = ui.GOLD_RULE } or nil
+    if health then
+        sections[#sections + 1] = healthSection(model, health, styles.unitHealth, separator)
+        separator = nil
+    end
+    if #details > 0 then
+        sections[#sections + 1] = { separator = separator, kind = "rows", rows = details,
+            style = styles.unitDetails, color = DETAIL_COLOR, gap = 2 }
+    end
+    if #model.quests > 0 then
+        local quests = {}
+        for index, row in ipairs(model.quests) do
+            quests[index] = row.title and { left = row.left, right = row.right, color = colors.quest }
+                or { left = row.left, right = row.right, color = row.completed and colors.done or colors.objective,
+                    indent = 8 }
+        end
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE, before = #sections > 0 and 6 or 0 },
+            kind = "rows", rows = quests, style = styles.unitQuests, gap = 2 }
+    end
+    if #model.extras > 0 then
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
+            kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+    end
+    return {
         tooltipType = "unit",
         color = color,
         tint = model.color,
         strength = TINT_STRENGTH,
-        icon = hasIcon and (model.iconPath or WHITE),
+        icon = hasIcon and (model.iconPath or WHITE) or nil,
         iconSize = ICON_SIZE,
-        badge = levelBadge(model),
+        portrait = hasIcon and model.unit or nil,
+        badge = plate,
         badgeColor = model.level and levelColor(model.level),
-    })
-    if hasIcon and model.unit and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, model.unit) end
+        header = header,
+        sections = sections,
+    }
+end
 
-    local inner = panel.width - 2 * PAD
-    local indent = hasIcon and TEXT_INDENT or 0
-    local leftIndent = ui.headerInsets(indent)
-    local y = ui.TITLE_TOP
-    y = y + ui.styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.unitName,
-        color) + 2
-    local guild = guildText(model)
-    if guild then
-        y = y + ui.styledAt(panel, guild, PAD + leftIndent, y, inner - indent, styles.unitGuild,
-            { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }) + 2
-    end
-    local info = infoText(model)
-    if info then
-        y = y + ui.styledAt(panel, info, PAD + leftIndent, y, inner - indent, styles.unitInfo,
-            DETAIL_COLOR) + 4
-    end
-    local list = badges(model)
-    if #list > 0 then y = ui.drawBadges(panel, list, PAD + leftIndent, y + 1, styles.unitBadges) + 4 end
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
-    panel.footer:SetHeight(0)
-
-    local sectioned = false
-    local health, details = healthRow(model), detailRows(model)
-    if health or #details > 0 then
-        y = ui.divider(panel, y, ui.GOLD_RULE)
-        if health then
-            local barWidth = inner
-            y = ui.drawRow(panel, health, y, styles.unitHealth, DETAIL_COLOR, 0, 2)
-            local view = {
-                unit = model.unit, width = barWidth,
-                current = model.health, maximum = model.healthMax,
-                -- The row's two halves, the last two strings drawn.
-                left = panel.pool[panel.used - 1], right = panel.pool[panel.used],
-            }
-            local track = ui.acquireTexture(panel, nil, 0)
-            track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
-            track:SetSize(barWidth, BAR_HEIGHT)
-            track:SetVertexColor(.16, .14, .13, 1)
-            view.fill = ui.acquireTexture(panel, nil, 1)
-            view.fill:SetPoint("TOPLEFT", track, "TOPLEFT")
-            view.fill:SetHeight(BAR_HEIGHT)
-            drawHealthFill(view, model.health, model.healthMax)
-            y = y + BAR_HEIGHT + 8
-            if model.unit then live[panel] = view end
-        end
-        y = ui.drawGroup(panel, details, y, styles.unitDetails, DETAIL_COLOR, 0, 2)
-        sectioned = true
-    end
-    if #model.quests > 0 then
-        y = ui.divider(panel, y, ui.GOLD_RULE, sectioned and 6 or 0)
-        for _, row in ipairs(model.quests) do
-            if row.title then
-                y = ui.drawRow(panel, row, y, styles.unitQuests, colors.quest, 0, 2)
-            else
-                y = ui.drawRow(panel, row, y, styles.unitQuests,
-                    row.completed and colors.done or colors.objective, 8, 2)
-            end
-        end
-        sectioned = true
-    end
-    if #model.extras > 0 then
-        if sectioned then
-            y = ui.rule(panel, y, { .50, .50, .54 }, 8)
-        else
-            y = y + 4
-        end
-        y = ui.drawGroup(panel, model.extras, y, styles.extras, ui.EXTRA_COLOR, 0, 2)
-    end
-    ui.finishPanel(panel, tooltip, y)
+local function renderUnit(panel, tooltip, model)
+    ui.renderView(panel, tooltip, unitView(model))
     if model.isPlayer and (model.faction == "Alliance" or model.faction == "Horde") then
         showWatermark(panel, model.faction)
     end

@@ -11,6 +11,7 @@ local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local ICON_SIZE = 38
 local TINT_STRENGTH = .7
+local BAR_HEIGHT = 4
 local TIME_COLOR = { .88, .78, .60 }
 local BUFF_COLOR = { .45, .75, .95 }
 local DEBUFF_COLOR = { .90, .30, .25 }
@@ -136,6 +137,25 @@ local function hasBar(model)
     return type(model.duration) == "number" and model.duration > 0 and type(model.expires) == "number"
 end
 
+-- The time left as a bar that drains, kept live.
+local function drawBarFill(bar)
+    local left = math.max(0, bar.expires - GetTime())
+    local ratio = math.max(0, math.min(1, left / bar.duration))
+    bar.fill:SetWidth(math.max(1, bar.width * ratio))
+    bar.fill:SetShown(ratio > 0)
+end
+
+local function timeBar(model, color)
+    return function(panel, y)
+        local bar = { width = panel.width - 2 * ui.PAD, duration = model.duration, expires = model.expires }
+        bar.fill = ui.drawTrack(panel, y, BAR_HEIGHT)
+        bar.fill:SetVertexColor(color[1], color[2], color[3], 1)
+        drawBarFill(bar)
+        ui.setLive(panel, function() drawBarFill(bar) end)
+        return y + BAR_HEIGHT + 8
+    end
+end
+
 -- What the panel shows, for Panel/Render.lua to draw.
 local function auraView(model)
     local styles = {}
@@ -158,8 +178,7 @@ local function auraView(model)
             separator = nil
         end
         if hasBar(model) then
-            sections[#sections + 1] = { separator = separator, kind = "timer", duration = model.duration,
-                expires = model.expires, color = color }
+            sections[#sections + 1] = { separator = separator, kind = "custom", draw = timeBar(model, color) }
         end
     end
     if #model.extras > 0 then
