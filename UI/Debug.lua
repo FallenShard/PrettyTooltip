@@ -1,5 +1,5 @@
 -- Debug commands: /ptip anchors and /ptip perf.
-local _, ns = ...
+local addonName, ns = ...
 local ui = ns.ui
 if not ui then return end
 
@@ -40,9 +40,21 @@ function ns.dumpAnchors()
     if #shown == 0 then print("PrettyTooltip: no panel is shown.") end
 end
 
+-- The addon's own memory in KB, as the game counts it; nil where it cannot.
+local function addonMemory()
+    local getter = GetAddOnMemoryUsage or (C_AddOns and C_AddOns.GetAddOnMemoryUsage)
+    if not (UpdateAddOnMemoryUsage and getter) then return end
+    local ok, usage = pcall(function()
+        UpdateAddOnMemoryUsage()
+        return getter(addonName)
+    end)
+    if ok and type(usage) == "number" then return usage end
+end
+
 function ns.perfCapture(seconds)
     perf.calls, perf.time, perf.on = {}, {}, true
     local memory = collectgarbage("count")
+    local own = addonMemory()
     print("PrettyTooltip: measuring for " .. seconds .. " seconds; keep the tooltip open.")
     C_Timer.After(seconds, function()
         perf.on = false
@@ -56,8 +68,12 @@ function ns.perfCapture(seconds)
         end
         table.sort(names, function(a, b) return perf.time[a] > perf.time[b] end)
         table.sort(counts)
-        print(string.format("PrettyTooltip perf over %d s (memory %+.0f KB):", seconds,
-            collectgarbage("count") - memory))
+        print(string.format("PrettyTooltip perf over %d s:", seconds))
+        local ownNow = addonMemory()
+        if own and ownNow then
+            print(string.format("  memory: %.0f KB, %+.0f KB over the run", ownNow, ownNow - own))
+        end
+        print(string.format("  all addons' Lua memory: %+.0f KB over the run", collectgarbage("count") - memory))
         if #counts > 0 then print("  counts: " .. table.concat(counts, ", ")) end
         for _, name in ipairs(names) do
             print(string.format("  %s: %d calls (%.0f/s), %.1f ms", name, perf.calls[name],

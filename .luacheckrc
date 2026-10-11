@@ -40,7 +40,7 @@ read_globals = {
     "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
     "GetNumMacros", "GetMacroSpell", "GetMacroItem", "MAX_ACCOUNT_MACROS", "GetPetActionInfo",
     "NumTaxiNodes", "TaxiNodeName", "TaxiNodeCost", "TaxiNodeGetType", "TaxiNodeOnButtonEnter",
-    "TAXINODEYOUAREHERE",
+    "TAXINODEYOUAREHERE", "UpdateAddOnMemoryUsage", "GetAddOnMemoryUsage",
     "NUM_PET_ACTION_SLOTS",
     "GetSkillLineInfo", "GetNumSkillLines", "GetProfessions", "GetProfessionInfo",
     "GetQuestDifficultyColor", "GetGuildInfo", "GetCoinTextureString", "BreakUpLargeNumbers",
