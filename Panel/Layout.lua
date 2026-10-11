@@ -2120,12 +2120,15 @@ local function onTooltipData(dataType, tooltip, data)
             self.elapsed = (self.elapsed or 0) + elapsed
             if self.elapsed < .25 then return end
             self.elapsed = 0
-            if tooltip:IsShown() and self.data and tooltip:NumLines() ~= self.lineCount then
+            -- Lines added, or rewritten in place, as the talent window does
+            -- after the game fills the tooltip.
+            local function changed()
+                return tooltip:IsShown() and self.data and (tooltip:NumLines() ~= self.lineCount
+                    or (self.fingerprint and self.fingerprint ~= fingerprint(tooltip, self.data)))
+            end
+            if changed() then
                 C_Timer.After(0, function()
-                    if tooltip:IsShown() and showsDataType(tooltip, self)
-                        and self.data and tooltip:NumLines() ~= self.lineCount then
-                        update(tooltip, self.data)
-                    end
+                    if showsDataType(tooltip, self) and changed() then update(tooltip, self.data) end
                 end)
             end
         end)

@@ -1,0 +1,65 @@
+== tooltip model
+cells: {}
+description:
+  1: "Gives your Frost damage spells a 20% chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by 2% for 15 sec. Stacks up to 1 times."
+details: {}
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Spell"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+icon: 135836
+lineIndices:
+  1: true
+  3: true
+  4: true
+  5: true
+name: "Winter's Chill"
+passive: "Passive"
+rank: ""
+requirements:
+  1:
+    color:
+      1: 1
+      2: 0.34
+      3: 0.28
+    left: "Spend 18 more points in Frost Talents"
+    right: ""
+spellID: 11180
+talent:
+  description: {}
+  details: {}
+  max: 5
+  rank: 0
+== tooltip render
+panel 308 x 213
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
+texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture unplaced 16x16 rgb=0.3,0.78,0.97,1 tooltip-TopLeftCorner
+texture unplaced 16x16 rgb=0.3,0.78,0.97,1 tooltip-TopRightCorner
+texture unplaced 16x16 rgb=0.3,0.78,0.97,1 tooltip-BottomLeftCorner
+texture unplaced 16x16 rgb=0.3,0.78,0.97,1 tooltip-BottomRightCorner
+texture unplaced 0x0 rgb=0.3,0.78,0.97,1 tooltip-TopEdge
+texture unplaced 0x0 rgb=0.3,0.78,0.97,1 tooltip-BottomEdge
+texture unplaced 0x0 rgb=0.3,0.78,0.97,1 tooltip-LeftEdge
+texture unplaced 0x0 rgb=0.3,0.78,0.97,1 tooltip-RightEdge
+text at 19,21 w=270 size=17 rgb=0.96,0.92,0.84 "WINTER'S CHILL"
+text at 19,46 w=158 size=12 rgb=0.82,0.78,0.71 "|cff82D8FAFrost|r |cff999185·|r |cffB8B0A6Passive|r |cff999185·|r |cffB8B0A6Rank 0/5|r"
+text at 19,72 w=270 size=11 rgb=1,0.34,0.28 "Spend 18 more points in Frost Talents"
+text at 19,87 w=270 size=12 rgb=0.92,0.87,0.76 "Gives your Frost damage spells a |cff82D8FA20%|r chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by |cff82D8FA2%|r for |cff82D8FA15|r sec."
+text at 19,162 w=270 size=12 rgb=0.92,0.87,0.76 "Stacks up to |cff82D8FA1|r times."
+text at 19,181 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"

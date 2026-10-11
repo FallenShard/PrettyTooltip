@@ -112,6 +112,9 @@ local function badges(model, school)
     if school then list[#list + 1] = { school, SCHOOL_COLORS[school] } end
     if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_BADGE } end
     if model.passive then list[#list + 1] = { model.passive, RANK_BADGE } end
+    if model.talent then
+        list[#list + 1] = { "Rank " .. model.talent.rank .. "/" .. model.talent.max, RANK_BADGE }
+    end
     return list
 end
 
@@ -182,6 +185,56 @@ local function readLine(model, line, left, right, game)
     end
 end
 
+-- The talent window writes a talent's rank above the tooltip's data, and,
+-- below it, another rank and the points still to spend. After "Next Rank:"
+-- that rank is the next one. Without the label, a second "Passive" starts it,
+-- and then it is the current rank while the data holds the next.
+-- Rows it does not claim are other addons' rows. Nil when not a talent.
+local function readTalent(model, rows)
+    local talent, extras, block, unlabeled
+    for _, row in ipairs(rows) do
+        local plain = trim(util.plainText(row.left))
+        local rank, max = plain:match("^Rank (%d+)/(%d+)$")
+        if rank and not talent then
+            talent = { rank = tonumber(rank), max = tonumber(max), description = {}, details = {} }
+            extras = {}
+        elseif not talent then
+            return
+        elseif plain == "Next Rank:" then
+            block = talent
+        elseif not block and plain:lower() == "passive" then
+            block, unlabeled = talent, true
+        elseif plain:match("^Spend %d+ more points? in ") or plain:match("^Requires ") then
+            local color = row.textColor
+            local unmet = row.left:find("|cffff2020", 1, true) or (color and color[1] > .9 and color[2] < .3)
+            add(model.requirements, plain, "")
+            model.requirements[#model.requirements].color = unmet and UNMET_COLOR or nil
+        elseif block and row.left:find("^|c%x%x%x%x%x%x%x%x") then
+            -- The game's own lines bring no color of their own; this is another
+            -- addon's, as Forever's "Press F6" line, which can follow the next rank.
+            extras[#extras + 1] = row
+        elseif block and plain:lower() == "passive" then
+            -- The rank after the data repeats it.
+        elseif block then
+            local color = row.textColor
+            local gold = color and color[1] > .9 and color[2] > .7 and color[2] < .9 and color[3] < .2
+            if gold then
+                block.description[#block.description + 1] = plain
+            else
+                add(block.details, plain, trim(row.right or ""))
+            end
+        else
+            extras[#extras + 1] = row
+        end
+    end
+    if not talent then return end
+    if unlabeled and #talent.description > 0 then
+        model.description, talent.description = talent.description, model.description
+    end
+    model.talent = talent
+    return extras
+end
+
 local function readSpell(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local model = newModel(game.spellIcon(data.id))
@@ -222,9 +275,11 @@ local function readSpell(tooltip, data, game)
 
     local appended = ui.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
+    local rows = {}
     for _, row in ipairs(appended) do
-        if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
+        if trim(row.left) ~= "" or row.right ~= "" then rows[#rows + 1] = row end
     end
+    for _, row in ipairs(readTalent(model, rows) or rows) do model.extras[#model.extras + 1] = row end
     for _, part in ipairs({ model, model.nested }) do
         for _, field in ipairs({ "cost", "cast", "cooldown", "range" }) do
             if part[field] then part.cells[#part.cells + 1] = part[field] end
@@ -270,6 +325,13 @@ local function bodyWidth(panel, part, body, styles)
     for _, row in ipairs(body.powerRows or {}) do
         consider(ui.rowWidth(panel, row, styles.spellDetails))
     end
+    local next = part.talent
+    if next then
+        for _, row in ipairs(next.details) do consider(ui.rowWidth(panel, row, styles.spellDetails)) end
+        for _, sentence in ipairs(body.nextSentences) do
+            consider(math.min(measureStyled(panel, sentence, styles.spellText), ui.PROSE_WIDTH))
+        end
+    end
     return need
 end
 
@@ -300,7 +362,7 @@ end
 
 local function hasBody(part, body)
     return #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #body.sentences > 0
-        or body.powerRows ~= nil
+        or body.powerRows ~= nil or (body.nextSentences and #body.nextSentences > 0)
 end
 
 -- The strip, requirements, and description of the spell or the one nested in
@@ -328,6 +390,16 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
         end
         y = ui.drawGroup(panel, body.powerRows, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
     end
+    -- A talent's next rank, a step dimmer, under its caption.
+    local talent = part.talent
+    if talent and (#body.nextSentences > 0 or #talent.details > 0) then
+        y = ui.caption(panel, y + 4, "NEXT RANK", styles.spellCaptions, colors.caption)
+        y = ui.drawGroup(panel, talent.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
+        for _, sentence in ipairs(body.nextSentences) do
+            y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
+                y, styles.spellText, DETAIL_COLOR, 0, 5)
+        end
+    end
     return y
 end
 
@@ -342,8 +414,14 @@ local function spellView(model)
     local accent = school and SCHOOL_COLORS[school] or power
     local color = accent or colors.neutral
     local function bodyOf(part)
+        local nextSentences = {}
+        if part.talent then
+            for _, text in ipairs(part.talent.description) do
+                for _, sentence in ipairs(util.splitSentences(text)) do nextSentences[#nextSentences + 1] = sentence end
+            end
+        end
         return { sentences = sentencesOf(part), powerRows = ns.option("spellPower") and ns.spellPowerRows
-            and ns.spellPowerRows(part, numberCode, ns.Game) or nil }
+            and ns.spellPowerRows(part, numberCode, ns.Game) or nil, nextSentences = nextSentences }
     end
 
     local sections = {}
@@ -371,6 +449,10 @@ local function spellView(model)
         sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 12 },
             kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
+    local header = {
+        { text = model.name, style = styles.spellTitle, color = TITLE_COLOR, gap = 4 },
+        { badges = badges(model, school), style = styles.spellBadges, before = 1, gap = 4 },
+    }
     return {
         tooltipType = "spell",
         color = color,
@@ -378,10 +460,7 @@ local function spellView(model)
         strength = SPELL_TINT,
         icon = ns.option("iconSpells") and model.icon or nil,
         iconSize = ICON_SIZE,
-        header = {
-            { text = model.name, style = styles.spellTitle, color = TITLE_COLOR, gap = 4 },
-            { badges = badges(model, school), style = styles.spellBadges, before = 1, gap = 4 },
-        },
+        header = header,
         sections = sections,
     }
 end
