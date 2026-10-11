@@ -110,17 +110,26 @@ function game.macro(name)
     return { icon = icon, body = body }
 end
 
--- The name of the macro whose #showtooltip shows this spell now; the first, if
--- several do. Character macros are numbered after the account's slots.
-function game.macroShowing(spellID)
-    if not (GetNumMacros and GetMacroSpell and GetMacroInfo) or type(spellID) ~= "number" then return end
+-- The name of the macro whose #showtooltip shows this spell or item now; the
+-- first, if several do. Character macros are numbered after the account's slots.
+function game.macroShowing(dataType, id)
+    local isItem = dataType == Enum.TooltipDataType.Item
+    local shows = isItem and GetMacroItem or GetMacroSpell
+    if not (GetNumMacros and shows and GetMacroInfo) or type(id) ~= "number" then return end
     local account, character = call(GetNumMacros)
     local indices = {}
     for index = 1, number(account) or 0 do indices[#indices + 1] = index end
     local offset = MAX_ACCOUNT_MACROS or 120
     for index = offset + 1, offset + (number(character) or 0) do indices[#indices + 1] = index end
     for _, index in ipairs(indices) do
-        if number((call(GetMacroSpell, index))) == spellID then
+        local found
+        if isItem then
+            local _, link = call(shows, index)
+            found = type(link) == "string" and tonumber(link:match("item:(%d+)")) or nil
+        else
+            found = number((call(shows, index)))
+        end
+        if found == id then
             local name, _, body = call(GetMacroInfo, index)
             if type(body) == "string" and body:lower():match("^%s*#showtooltip") then return name end
         end

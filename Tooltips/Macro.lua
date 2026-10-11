@@ -23,8 +23,8 @@ local SPELL = Enum.TooltipDataType.Spell
 
 local function macroKey(_, data)
     if isSecret(data.lines) or type(data.lines) ~= "table" then return end
-    local spell = tooltipData.nestedSpell(data)
-    if spell then return "spell" .. spell.id end
+    local shown = tooltipData.nested(data)
+    if shown then return shown.type .. ":" .. shown.id end
     local line = data.lines[1]
     if isSecret(line) or type(line) ~= "table" then return end
     return safeText(line.leftText)
@@ -50,15 +50,21 @@ end
 
 local function readMacro(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    -- With #showtooltip, the game fills the tooltip with the spell it shows.
-    local spell = tooltipData.nestedSpell(data)
-    if spell then
-        local spellType = ns.TooltipTypes[SPELL]
-        local shown = spellType and spellType.read(tooltip, spell, game)
+    -- With #showtooltip, the game fills the tooltip with the spell or item it
+    -- shows; the macro is named in that panel's subtitle.
+    local nested = tooltipData.nested(data)
+    if nested then
+        local tooltipType = ns.TooltipTypes[nested.type]
+        local shown = tooltipType and tooltipType.read(tooltip, nested, game)
         if not shown then return end
-        local name = game.macroShowing(spell.id)
-        shown.tags = { { name and ("Macro: " .. name) or "Macro" } }
-        return { shows = shown }
+        local name = game.macroShowing(nested.type, nested.id)
+        local label = name and ("Macro: " .. name) or "Macro"
+        if nested.type == SPELL then
+            shown.tags = { { label } }
+        else
+            shown.slot = (shown.slot and shown.slot ~= "" and (shown.slot .. " \194\183 ") or "") .. label
+        end
+        return { shows = shown, showsType = nested.type }
     end
     local model = { extras = {}, lineIndices = {}, body = {} }
     for _, line in ipairs(data.lines) do
@@ -137,7 +143,7 @@ end
 
 local function renderMacro(panel, tooltip, model)
     if model.shows then
-        ns.TooltipTypes[SPELL].render(panel, tooltip, model.shows)
+        ns.TooltipTypes[model.showsType].render(panel, tooltip, model.shows)
     else
         ui.renderView(panel, tooltip, macroView(model))
     end

@@ -33,7 +33,9 @@ end
 local function readPet(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local spellType = ns.TooltipTypes[SPELL]
-    local model = spellType and spellType.read(tooltip, tooltipData.nestedSpell(data) or data, game)
+    local nested = tooltipData.nested(data)
+    if nested and nested.type ~= SPELL then return end
+    local model = spellType and spellType.read(tooltip, nested or data, game)
     if not model then return end
     local slot = game.petAction(model.name)
     if slot then

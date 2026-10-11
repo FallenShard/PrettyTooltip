@@ -1,0 +1,66 @@
+== tooltip model
+shows:
+  armor: {}
+  comparison: false
+  effects:
+    1:
+      left: "Returns you to Stormwind City.  Speak to an Innkeeper in a different place to change your home location. (1 |4Hr:Hr; Cooldown)"
+      right: ""
+      use: true
+  enchants: {}
+  equipEffects: {}
+  extras: {}
+  flavor: {}
+  footerLeft: {}
+  footerRight: {}
+  header:
+    1:
+      left: "Soulbound"
+      right: ""
+    2:
+      left: "Unique"
+      right: ""
+  kinds: {}
+  lineIndices:
+    1: true
+    2: true
+    3: true
+    4: true
+  link: 6948
+  name: "Hearthstone"
+  nameColor:
+    1: 1
+    2: 1
+    3: 1
+  primary: {}
+  quality: 1
+  quest: false
+  secondary: {}
+  setBonuses: {}
+  setItems: {}
+  slot: "Macro: Hearth"
+  weaponBonus: {}
+showsType: 0
+== tooltip render
+panel 330 x 194
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
+texture at 4,4 0x102 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-TopLeftCorner
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-TopRightCorner
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-BottomLeftCorner
+texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-BottomRightCorner
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-TopEdge
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-BottomEdge
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-LeftEdge
+texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-RightEdge
+text at 19,21 w=292 size=19 rgb=0.77,0.77,0.77 "HEARTHSTONE"
+text at 19,47 w=292 size=13 rgb=0.885,0.885,0.885 "Macro: Hearth"
+text at 19,66 w=292 size=12 rgb=0.78,0.72,0.63 "Soulbound"
+text at 19,83 w=292 size=12 rgb=0.78,0.72,0.63 "Unique"
+texture at 19,111 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-111 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-106 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,129 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-gear:11:11:-1:-2:32:32:0:32:0:32:240:200:90|t"
+text at 41,129 w=270 size=13 rgb=0.48,0.88,0.48 "Returns you to Stormwind City.  Speak to an Innkeeper in a different place to change your home location. (|cffFFF6E41|r Hr Cooldown)"

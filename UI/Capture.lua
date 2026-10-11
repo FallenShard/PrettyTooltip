@@ -106,7 +106,8 @@ end
 
 local function recordItem(record, tooltip, data)
     local _, link = record("tooltip:GetItem", tooltip.GetItem, tooltip)
-    for _, item in ipairs({ link, data.id }) do
+    -- A macro's tooltip names no item link; its item is known by ID alone.
+    for _, item in pairs({ link or false, data.id or false }) do
         if item then
             record("C_Item.GetItemInfo", C_Item.GetItemInfo, item)
             record("C_Item.GetItemInfoInstant", C_Item.GetItemInfoInstant, item)
@@ -195,10 +196,10 @@ local function recordObject(record, data)
     end
 end
 
--- A macro's name, icon, and body, by its index and its name; the icon of the
--- spell #showtooltip puts in its tooltip; and every macro's spell, to find the
--- one showing it.
-local function recordMacro(record, data)
+-- A macro's name, icon, and body, by its index and its name; the spell or item
+-- #showtooltip puts in its tooltip; and every macro's spell and item, to find
+-- the one showing it.
+local function recordMacro(record, tooltip, data)
     if not GetMacroInfo then return end
     if type(data.id) == "number" then record("GetMacroInfo", GetMacroInfo, data.id) end
     local first = data.lines and data.lines[1]
@@ -208,7 +209,9 @@ local function recordMacro(record, data)
         if GetMacroIndexByName then record("GetMacroIndexByName", GetMacroIndexByName, name) end
     end
     for _, line in ipairs(data.lines or {}) do
-        if type(line.tooltipID) == "number" then
+        if type(line.tooltipID) == "number" and line.tooltipType == TYPES.Item then
+            recordItem(record, tooltip, { id = line.tooltipID, lines = data.lines, guid = data.guid })
+        elseif type(line.tooltipID) == "number" then
             record("C_Spell.GetSpellTexture", C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, line.tooltipID)
         end
     end
@@ -218,6 +221,7 @@ local function recordMacro(record, data)
     for index = 1, offset + (character or 0) do
         if index <= (account or 0) or index > offset then
             record("GetMacroSpell", GetMacroSpell, index)
+            if GetMacroItem then record("GetMacroItem", GetMacroItem, index) end
             record("GetMacroInfo", GetMacroInfo, index)
         end
     end
@@ -296,7 +300,7 @@ local function captureTooltip(tooltip)
         elseif dataType == TYPES.Object then
             attempt("object", recordObject, record, data)
         elseif dataType == TYPES.Macro then
-            attempt("macro", recordMacro, record, data)
+            attempt("macro", recordMacro, record, tooltip, data)
         elseif dataType == TYPES.PetAction then
             attempt("pet action", recordPetAction, record, data)
         end
@@ -317,7 +321,7 @@ local OPTIONAL = {
     "C_Item.GetItemNameByID", "C_Item.RequestLoadItemDataByID", "C_Spell.GetSpellTexture",
     "C_Spell.GetSpellName", "C_UnitAuras.GetAuraDataByIndex", "C_UnitAuras.GetAuraDataByAuraInstanceID",
     "C_QuestLog.IsOnQuest", "C_QuestLog.IsQuestFlaggedCompleted", "C_CurrencyInfo.GetCoinTextureString",
-    "GetMacroInfo", "GetMacroIndexByName", "GetNumMacros", "GetMacroSpell", "GetPetActionInfo",
+    "GetMacroInfo", "GetMacroIndexByName", "GetNumMacros", "GetMacroSpell", "GetMacroItem", "GetPetActionInfo",
 }
 
 local function present()
