@@ -45,7 +45,7 @@ EXTRA = {
     "Call of the Elements": "Nature", "Call of the Ancestors": "Nature", "Call of the Spirits": "Nature",
     "Feral Charge": "Nature", "Shifting Power": "Nature",
     "Teleport: Dalaran": "Arcane", "Comprehend Scroll": "Arcane", "Study": "Arcane",
-    "Portal of Summoning": "Shadow", "Explorer Imp": "Shadow",
+    "Portal of Summoning": "Shadow", "Explorer Imp": "Shadow", "Wrack": "Shadow", "Bane of Havoc": "Shadow",
 }
 
 
