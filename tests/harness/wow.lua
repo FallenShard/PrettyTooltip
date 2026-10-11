@@ -255,7 +255,11 @@ return function(fixture, enums, report)
     function Object:GetTexture() return self._texture end
     function Object:SetAtlas(atlas) self._texture = "atlas:" .. tostring(atlas) end
     function Object:SetColorTexture(r, g, b, a) self._texture, self._color = "color", { r, g, b, a or 1 } end
-    function Object:SetVertexColor(r, g, b, a) self._color = { r, g, b, a or 1 } end
+    -- Kept for unit checks; the outputs do not print it.
+    function Object:SetVertexColor(r, g, b, a) self._color, self._gradient = { r, g, b, a or 1 }, nil end
+    function Object:SetGradient(orientation, from, to)
+        self._gradient = { orientation, { from:GetRGBA() }, { to:GetRGBA() } }
+    end
     function Object:GetVertexColor() return self._color[1], self._color[2], self._color[3], self._color[4] end
     function Object:SetTexCoord(...) self._coords = { ... } end
 

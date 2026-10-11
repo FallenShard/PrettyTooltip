@@ -7,6 +7,7 @@
 -- view = {
 --     tooltipType = "aura",              backdrop and header settings by type
 --     color, tint, strength,             the accent; the header's tint and its strength
+--     gradient = { left, right },        a dual school's accent, drawn across
 --     icon, iconSize,                    header lines start beside the icon
 --     portrait = "mouseover",            a unit whose portrait fills the icon
 --     badge, badgeColor,                 the level plate under the icon
@@ -171,6 +172,7 @@ local function renderView(panel, tooltip, view)
         iconSize = view.iconSize,
         badge = view.badge,
         badgeColor = view.badgeColor,
+        gradient = view.gradient,
     })
     if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
 

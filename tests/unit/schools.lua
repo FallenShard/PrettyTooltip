@@ -12,4 +12,6 @@ return function(test)
         detect({ "An instant strike that causes 3 damage in addition to your normal weapon damage." }, "Sinister Strike"),
         nil)
     test.check("every rank shares its name's entry", ns.spellSchools["Frostbolt"], "Frost")
+    test.check("a spell of two schools has its own", ns.spellSchools["Frostfire Bolt"], "Frostfire")
+    test.check("and its own color", ns.util.hex(ns.Palette.schools.Frostfire), "2EC7B8")
 end

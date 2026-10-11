@@ -19,14 +19,17 @@ local SCHOOLS = {
     Fire = {
         "Blast Wave", "Combustion", "Conflagrate", "Create Firestone", "Explosive Trap", "Felfire", "Fire Blast",
         "Fire Nova", "Fire Ward", "Fireball", "Flame Shock", "Flamestrike", "Flametongue Totem",
-        "Flametongue Weapon", "Frost Resistance Totem", "Frostfire Bolt", "Hellfire", "Immolate", "Immolation Trap",
-        "Incinerate", "Lava Burst", "Magma Totem", "Pyroblast", "Rain of Fire", "Scorch", "Searing Pain",
-        "Searing Totem", "Soul Fire",
+        "Flametongue Weapon", "Frost Resistance Totem", "Hellfire", "Immolate", "Immolation Trap", "Incinerate",
+        "Lava Burst", "Magma Totem", "Pyroblast", "Rain of Fire", "Scorch", "Searing Pain", "Searing Totem",
+        "Soul Fire",
     },
     Frost = {
         "Blizzard", "Cone of Cold", "Fire Resistance Totem", "Freezing Trap", "Frost Armor", "Frost Nova",
         "Frost Shock", "Frost Trap", "Frost Ward", "Frostbolt", "Frostbrand Weapon", "Healing Stream Totem",
         "Ice Armor", "Ice Barrier", "Ice Block", "Ice Lance", "Mana Spring Totem", "Mana Tide Totem",
+    },
+    Frostfire = {
+        "Frostfire Bolt",
     },
     Holy = {
         "Abolish Disease", "Binding Heal", "Blessing of Freedom", "Blessing of Kings", "Blessing of Light",

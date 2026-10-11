@@ -372,7 +372,23 @@ end
 
 -- The accent when the panel has one, as items their quality and spells their
 -- school; else the color the game gives its own tooltip's border.
-local function colorNativeBorder(border, tint)
+local function colorNativeBorder(border, tint, gradient)
+    if gradient then
+        local left, right = gradient[1], gradient[2]
+        for _, name in ipairs({ "TopLeftCorner", "BottomLeftCorner", "LeftEdge" }) do
+            if border[name] then border[name]:SetVertexColor(left[1], left[2], left[3], 1) end
+        end
+        for _, name in ipairs({ "TopRightCorner", "BottomRightCorner", "RightEdge" }) do
+            if border[name] then border[name]:SetVertexColor(right[1], right[2], right[3], 1) end
+        end
+        for _, name in ipairs({ "TopEdge", "BottomEdge" }) do
+            if border[name] then
+                border[name]:SetGradient("HORIZONTAL", CreateColor(left[1], left[2], left[3], 1),
+                    CreateColor(right[1], right[2], right[3], 1))
+            end
+        end
+        return
+    end
     local r, g, b, a
     if tint then
         r, g, b, a = tint[1], tint[2], tint[3], 1
@@ -694,27 +710,47 @@ local function drawChrome(panel, tooltip, style)
             CreateColor(.052 + tint[1] * .06 * strength, .040 + tint[2] * .06 * strength,
                 .050 + tint[3] * .06 * strength, body))
     end
-    if strength > 0 then
+    local gradient = style.gradient
+    if strength > 0 and gradient then
+        local left, right, alpha = gradient[1], gradient[2], .55 * strength * glow
+        panel.halo:SetGradient("HORIZONTAL", CreateColor(left[1], left[2], left[3], alpha),
+            CreateColor(right[1], right[2], right[3], alpha))
+    elseif strength > 0 then
         panel.halo:SetVertexColor(tint[1], tint[2], tint[3], .55 * strength * glow)
     else
         panel.halo:SetVertexColor(.6, .6, .6, .18 * glow)
     end
     local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
-    panel.header:SetGradient("VERTICAL",
-        CreateColor(color[1] * .12, color[2] * .12, color[3] * .12,
-            ns.headerAlpha(style.tooltipType, "Bottom") or headerAlpha),
-        CreateColor(color[1] * .38, color[2] * .38, color[3] * .38,
-            ns.headerAlpha(style.tooltipType, "Top") or headerAlpha))
+    local bottomAlpha = ns.headerAlpha(style.tooltipType, "Bottom") or headerAlpha
+    local topAlpha = ns.headerAlpha(style.tooltipType, "Top") or headerAlpha
+    if gradient then
+        local left, right, alpha = gradient[1], gradient[2], (bottomAlpha + topAlpha) / 2
+        panel.header:SetGradient("HORIZONTAL", CreateColor(left[1] * .25, left[2] * .25, left[3] * .25, alpha),
+            CreateColor(right[1] * .25, right[2] * .25, right[3] * .25, alpha))
+    else
+        panel.header:SetGradient("VERTICAL",
+            CreateColor(color[1] * .12, color[2] * .12, color[3] * .12, bottomAlpha),
+            CreateColor(color[1] * .38, color[2] * .38, color[3] * .38, topAlpha))
+    end
     for index, edge in ipairs(panel.edges) do
         local edgeStrength = index == 1 and .8 or .36
-        edge:SetVertexColor(color[1] * edgeStrength, color[2] * edgeStrength,
-            color[3] * edgeStrength, .95)
+        local edgeColor = gradient and (index == 3 and gradient[1] or index == 4 and gradient[2]) or color
+        if gradient and index <= 2 then
+            local left, right = gradient[1], gradient[2]
+            edge:SetGradient("HORIZONTAL",
+                CreateColor(left[1] * edgeStrength, left[2] * edgeStrength, left[3] * edgeStrength, .95),
+                CreateColor(right[1] * edgeStrength, right[2] * edgeStrength, right[3] * edgeStrength, .95))
+        else
+            edge:SetVertexColor(edgeColor[1] * edgeStrength, edgeColor[2] * edgeStrength,
+                edgeColor[3] * edgeStrength, .95)
+        end
     end
     if panel.backdropMode == "native" then
         panel.nativeBorder:SetFrameLevel(panel:GetFrameLevel() + 1)
-        colorNativeBorder(panel.nativeBorder, style.tint)
+        colorNativeBorder(panel.nativeBorder, style.tint, style.tint and gradient)
     end
-    panel.iconBorder:SetVertexColor(color[1], color[2], color[3], .85)
+    local iconColor = gradient and (ns.option("iconRight") and gradient[2] or gradient[1]) or color
+    panel.iconBorder:SetVertexColor(iconColor[1], iconColor[2], iconColor[3], .85)
     local native = nativeCloseButton(tooltip)
     if native and native:IsShown() then
         getCloseButton(panel, tooltip):Show()

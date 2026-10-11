@@ -27,9 +27,17 @@ palette.schools = {
     Nature = { .50, .80, .28 },
     Shadow = { .64, .31, .89 },
 }
--- Holyfire uses a blend of the Holy and Fire hues.
-local holy, fire = palette.schools.Holy, palette.schools.Fire
-palette.schools.Holyfire = { (holy[1] + fire[1]) / 2, (holy[2] + fire[2]) / 2, (holy[3] + fire[3]) / 2 }
+-- Frostfire is picked by hand: blending frost and fire gives grey.
+palette.schools.Holyfire = { .99, .58, .165 }
+palette.schools.Frostfire = { .18, .78, .72 }
+
+-- Left to right.
+local DUAL_SCHOOLS = { Frostfire = { "Frost", "Fire" }, Holyfire = { "Holy", "Fire" } }
+
+function palette.gradient(school)
+    local parts = school and DUAL_SCHOOLS[school]
+    if parts then return { palette.schools[parts[1]], palette.schools[parts[2]] } end
+end
 
 local schoolNames = {}
 for name in pairs(palette.schools) do schoolNames[name:lower()] = name end

@@ -478,6 +478,7 @@ local function spellView(model)
         tooltipType = "spell",
         color = color,
         tint = accent,
+        gradient = ns.Palette.gradient(school),
         strength = SPELL_TINT,
         icon = ns.option("iconSpells") and model.icon or nil,
         iconSize = ICON_SIZE,

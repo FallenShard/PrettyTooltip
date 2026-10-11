@@ -30,7 +30,7 @@ SPELL_MISC = "https://wago.tools/db2/SpellMisc/csv?branch=wow_classic_era"
 # SchoolMask bits, as the game numbers them.
 BITS = [(2, "Holy"), (4, "Fire"), (8, "Nature"), (16, "Frost"), (32, "Shadow"), (64, "Arcane")]
 # Masks naming more than one school that the palette has a tint for.
-BLENDS = {2 | 4: "Holyfire"}
+BLENDS = {2 | 4: "Holyfire", 4 | 16: "Frostfire"}
 
 
 def fetch(url, name, refresh):
