@@ -49,14 +49,17 @@ text at 67,46 w=80 size=12 rgb=0.82,0.78,0.71 "|cffFF9960Fire|r |cff999185·|r |
 texture at 19,76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
-text at 19,89 w=90 size=13 rgb=0.6625,0.7975,1 "30"
-text at 19,106 w=90 size=9 rgb=0.6,0.57,0.52 "MANA"
-text at 109,89 w=90 size=13 rgb=0.96,0.92,0.84 "1.5 sec"
-text at 109,106 w=90 size=9 rgb=0.6,0.57,0.52 "CAST"
-texture at 109,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
-text at 199,89 w=90 size=13 rgb=0.96,0.92,0.84 "35 yd"
-text at 199,106 w=90 size=9 rgb=0.6,0.57,0.52 "RANGE"
-texture at 199,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
+text at 19,89 w=67.5 size=13 rgb=0.6625,0.7975,1 "30"
+text at 19,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "MANA"
+text at 86.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "1.5 sec"
+text at 86.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "CAST"
+texture at 86.5,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
+text at 154,89 w=67.5 size=13 rgb=0.6,0.57,0.52 "None"
+text at 154,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
+texture at 154,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
+text at 221.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "35 yd"
+text at 221.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
+texture at 221.5,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
 texture at 19,131 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8
 text at 19,140 w=270 size=12 rgb=0.92,0.87,0.76 "Hurls a fiery ball that causes |cffFF996016|r to |cffFF996025|r Fire damage and an additional |cffFF99602|r Fire damage over |cffFF99604|r sec."
 texture at 19,193 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8

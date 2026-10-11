@@ -304,17 +304,37 @@ local function nestedTitleStyle(title)
     return style
 end
 
+-- The strip's cells, always all four and in this order. One the tooltip left
+-- out shows what its absence means, dimmed; a spell with none, as a passive,
+-- has no strip.
+local STRIP = {
+    { "cost", "Free", "Cost" },
+    { "cast", "Instant", "Cast" },
+    { "cooldown", "None", "Cooldown" },
+    { "range", "Self", "Range" },
+}
+
+local function stripCells(part)
+    if #part.cells == 0 then return part.cells end
+    local cells = {}
+    for index, cell in ipairs(STRIP) do
+        cells[index] = part[cell[1]] or { cell[2], cell[3], implied = true }
+    end
+    return cells
+end
+
 -- The widest thing in one spell's body: its strip, rows, and sentences.
 local function bodyWidth(panel, part, body, styles)
     local need = 0
     local function consider(width) if width > need then need = width end end
-    if #part.cells > 0 then
+    local cells = stripCells(part)
+    if #cells > 0 then
         local widest = 0
-        for _, cell in ipairs(part.cells) do
+        for _, cell in ipairs(cells) do
             widest = math.max(widest, measureStyled(panel, cell[1], styles.spellValues),
                 measureStyled(panel, cell[2]:upper(), styles.spellCaptions))
         end
-        consider((widest + 16) * #part.cells)
+        consider((widest + 16) * #cells)
     end
     for _, rows in ipairs({ part.details, part.requirements }) do
         for _, row in ipairs(rows) do consider(ui.rowWidth(panel, row, styles.spellDetails)) end
@@ -337,12 +357,13 @@ end
 
 local function drawStrip(panel, model, y, color, styles)
     local values, captions = styles.spellValues, styles.spellCaptions
-    local cellWidth = (panel.width - 2 * PAD) / #model.cells
+    local cells = stripCells(model)
+    local cellWidth = (panel.width - 2 * PAD) / #cells
     local captionOffset = math.max(CAPTION_OFFSET, values.size + 4)
     local height = math.max(STRIP_HEIGHT, captionOffset + captions.size + 8)
-    for index, cell in ipairs(model.cells) do
+    for index, cell in ipairs(cells) do
         local x = PAD + (index - 1) * cellWidth
-        local valueColor = TITLE_COLOR
+        local valueColor = cell.implied and colors.caption or TITLE_COLOR
         local power = cell == model.cost and POWER_COLORS[model.power]
         if power then
             valueColor = { power[1] * .45 + .55, power[2] * .45 + .55, power[3] * .45 + .55 }
