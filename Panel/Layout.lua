@@ -1446,15 +1446,17 @@ local function drawChrome(panel, tooltip, style)
     if style.badge then
         local badge = panel.badge
         local text = styleOf("badge")
-        local textColor = text.color or { color[1] * .45 + .55, color[2] * .45 + .55,
-            color[3] * .45 + .55 }
+        -- The plate takes the panel's accent unless given its own color.
+        local plate = style.badgeColor or color
+        local textColor = text.color or { plate[1] * .45 + .55, plate[2] * .45 + .55,
+            plate[3] * .45 + .55 }
         setFont(panel.badgeText, text.font, text.size, text.flags)
         panel.badgeText:SetTextColor(textColor[1], textColor[2], textColor[3])
         panel.badgeText:SetText(style.badge)
         local height = math.max(BADGE_HEIGHT, text.size + 6)
         badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 10), height)
-        badge:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, .9)
-        panel.badgeFill:SetVertexColor(color[1] * .14, color[2] * .14, color[3] * .14, 1)
+        badge:SetVertexColor(plate[1] * .8, plate[2] * .8, plate[3] * .8, .9)
+        panel.badgeFill:SetVertexColor(plate[1] * .14, plate[2] * .14, plate[3] * .14, 1)
         badge:Show()
         panel.badgeFill:Show()
         panel.badgeText:Show()

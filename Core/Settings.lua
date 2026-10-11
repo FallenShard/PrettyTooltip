@@ -23,6 +23,7 @@ local DEFAULTS = {
     qualityTint = true,
     statMarkers = true,
     itemLevelBadge = true,
+    unitLevelBadge = true,
     separators = true,
     spellPanels = true,
     disenchant = true,

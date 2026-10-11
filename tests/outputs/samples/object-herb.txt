@@ -9,7 +9,13 @@ look:
   icon: "Interface\\Icons\\Trade_Herbalism"
   label: "Herb"
 name: "Bruiseweed"
-prices: {}
+prices:
+  1:
+    1: "Sell Price"
+    2: "40|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+  2:
+    1: "Auction"
+    2: "12|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 50|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
 quests: {}
 skill: "Herbalism"
 skillColor:
@@ -20,7 +26,7 @@ skillRow:
   level: 100
   name: "Herbalism"
 == sample render
-panel 260 x 122
+panel 260 x 165
 texture at -16,-16 0x0 rgb=0.36,0.78,0.32,0.385 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
@@ -28,7 +34,7 @@ texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
 texture at 0,0 8x0 rgb=1,1,1,1 color
 texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
 texture at 1,1 0x70 rgb=1,1,1,1 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x57 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture at 19,21 38x38 rgb=1,1,1,1 Trade_Herbalism
 texture CENTER Texture CENTER 0,0 40x40 rgb=0.36,0.78,0.32,0.85 WHITE8X8
 texture at 0,0 0x2 rgb=0.288,0.624,0.256,0.95 WHITE8X8
@@ -41,3 +47,7 @@ texture at 19,76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=222 size=12 rgb=1,0.5,0.25 "Requires Herbalism 100"
+text at 19,114 w=173 size=11 rgb=0.88,0.78,0.6 "Sell Price"
+text at 204,114 w=37 size=11 rgb=0.88,0.78,0.6 "40|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 19,131 w=132.5 size=11 rgb=0.88,0.78,0.6 "Auction"
+text at 163.5,131 w=77.5 size=11 rgb=0.88,0.78,0.6 "12|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 50|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"

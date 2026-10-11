@@ -273,7 +273,10 @@ local OBJECT_SAMPLES = {
     {
         label = "Herb",
         build = function()
-            return objectModel({ name = "Bruiseweed", skill = "Herbalism", skillColor = { 1, .5, .25 } })
+            local model = objectModel({ name = "Bruiseweed", skill = "Herbalism", skillColor = { 1, .5, .25 } })
+            -- Set after the model is completed, which asks the game for them.
+            model.prices = { { "Sell Price", ui.formatMoney(40) }, { "Auction", ui.formatMoney(1250) } }
+            return model
         end,
     },
     {
@@ -1255,13 +1258,17 @@ end))
 
 section("Layout and color")
 local function showingItems() return state.tooltipType == "item" end
+-- Items and units each have a level plate under the icon, turned on and off apart.
+local LEVEL_BADGES = { item = "itemLevelBadge", unit = "unitLevelBadge" }
 local TOGGLES = {
     { "Show icon", function() return "icon" .. ns.TYPE_SUFFIX[state.tooltipType] end,
         "The icon or portrait in the header, for the kind of tooltip shown." },
     { "Icon on the right", "iconRight",
         "Moves the item or spell icon, and the item level badge under it, to the right of the name." },
-    { "Item level badge", "itemLevelBadge", "The small iLvl box under an equipment icon.",
-        showingItems },
+    { "Level badge", function() return LEVEL_BADGES[state.tooltipType] or "itemLevelBadge" end,
+        "The level on a plate under the icon: an item's iLvl under equipment, a unit's level under "
+            .. "its portrait. Off, a unit's level stays in its info line.",
+        function() return LEVEL_BADGES[state.tooltipType] ~= nil end },
     { "Stat markers", "statMarkers", "The small diamond before each stat; enchants use a green one.",
         showingItems },
     { "Stat colors", "statColors",

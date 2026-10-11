@@ -13,10 +13,11 @@
 --     sections = {                       in order, below the header
 --         { separator = { divider = GOLD } | { rule = color, before = 8 } | { space = 4 },
 --           kind = "prose", sentences = { ... }, style, color, numbers = "FFF6E4", gap = 5 },
---         { kind = "rows", rows = { { left, right, color, rightColor } }, style, color, gap = 2,
+--         { kind = "rows", rows = { { left, right, color, rightColor, indent } }, style, color, gap = 2,
 --           wrap = true },             rows with nothing on the right wrap at prose width
 --         { kind = "timer", duration = 30, expires = 1234.5, color = BLUE },
 --     },
+--     footer = { rows = { ... }, style, color, gap = 4 },    the dark band at the bottom
 -- }
 local _, ns = ...
 local ui = ns.ui
@@ -74,6 +75,8 @@ end)
 
 -- Sections -------------------------------------------------------------------------
 
+local FOOTER_TOP = 9
+
 local function indentOf(view)
     return view.icon and view.iconSize + 10 or 0
 end
@@ -98,9 +101,12 @@ local function fitWidth(panel, view)
             for _, row in ipairs(section.rows) do
                 local width = ui.rowWidth(panel, row, section.style)
                 if section.wrap and (not row.right or row.right == "") then width = math.min(width, ui.PROSE_WIDTH) end
-                consider(width)
+                consider(width + (row.indent or 0))
             end
         end
+    end
+    for _, row in ipairs(view.footer and view.footer.rows or {}) do
+        consider(ui.rowWidth(panel, row, view.footer.style))
     end
     return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
 end
@@ -121,7 +127,10 @@ local DRAW = {
         return y
     end,
     rows = function(panel, y, section)
-        return ui.drawGroup(panel, section.rows, y, section.style, section.color, section.indent or 0, section.gap)
+        for _, row in ipairs(section.rows) do
+            y = ui.drawRow(panel, row, y, section.style, section.color, row.indent or 0, section.gap)
+        end
+        return y
     end,
     timer = function(panel, y, section)
         local width = panel.width - 2 * PAD
@@ -177,6 +186,15 @@ local function renderView(panel, tooltip, view)
     for _, section in ipairs(view.sections) do
         y = drawSeparator(panel, y, section.separator)
         y = DRAW[section.kind](panel, y, section)
+    end
+    local footer = view.footer
+    if footer and #footer.rows > 0 then
+        y = y + FOOTER_TOP
+        local top = y
+        for _, row in ipairs(footer.rows) do
+            y = ui.drawRow(panel, row, y, footer.style, footer.color, 0, footer.gap)
+        end
+        panel.footer:SetHeight(y - top + 23)
     end
     ui.finishPanel(panel, tooltip, y)
 end

@@ -2,7 +2,7 @@
 local _, ns = ...
 local ui = ns.ui
 local OBJECT = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Object
-if not (ui and OBJECT) then
+if not (ui and OBJECT and ui.renderView) then
     return
 end
 
@@ -10,14 +10,13 @@ local util = ns.util
 local colors = ns.Palette.roles
 local isSecret, trim = util.isSecret, util.trim
 local LINE = Enum.TooltipDataLineType or {}
-local PAD = ui.PAD
 local ICON_SIZE = 38
-local TEXT_INDENT = ICON_SIZE + 10
 local TINT_STRENGTH = .7
 local DETAIL_COLOR = colors.detail
 local UNMET_COLOR = colors.unmet
 local QUEST_GOLD = colors.quest
 local PRICE_LABEL = { .88, .78, .60 }
+local EXTRAS_RULE = { .50, .50, .54 }
 local PARTS = { "objectTitle", "objectKind", "objectDetails", "objectQuests", "objectPrices",
     "extras" }
 
@@ -167,119 +166,73 @@ local function skillText(skill)
     return "Requires " .. (skill.level and (skill.name .. " " .. skill.level) or skill.name)
 end
 
-local function fitWidth(panel, model, styles)
-    local indent = not model.hideIcon and (model.icon or model.look) and TEXT_INDENT or 0
-    local need = ui.measureStyled(panel, model.name, styles.objectTitle) + indent
-    local function consider(width) if width > need then need = width end end
-    if model.look then consider(ui.measureStyled(panel, model.look.label, styles.objectKind) + indent) end
-    if model.skillRow then
-        consider(ui.rowWidth(panel, {
-            left = skillText(model.skillRow),
-            right = model.skillRow.player and ("Your skill " .. model.skillRow.player) or "",
-        }, styles.objectDetails))
-    end
-    for _, row in ipairs(model.details) do consider(ui.rowWidth(panel, row, styles.objectDetails)) end
-    for _, row in ipairs(model.quests) do
-        consider(ui.rowWidth(panel, row, styles.objectQuests) + (row.title and 0 or 8))
-    end
-    for _, row in ipairs(model.extras) do
-        local width = ui.rowWidth(panel, row, styles.extras)
-        if not row.right or row.right == "" then width = math.min(width, ui.PROSE_WIDTH) end
-        consider(width)
-    end
-    for _, price in ipairs(model.prices) do
-        consider(ui.rowWidth(panel, { left = price[1], right = price[2] }, styles.objectPrices))
-    end
-    return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
-end
-
-local function renderObject(panel, tooltip, model)
-    panel:Show()
-    ui.clearPool(panel)
+-- What the panel shows, for Panel/Render.lua to draw.
+local function objectView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local look = model.look
-    model.hideIcon = not ns.option("iconObjects")
-    panel.width = fitWidth(panel, model, styles)
-    panel:SetWidth(panel.width)
     local color = look and look.color or colors.neutral
-    local icon = not model.hideIcon and (model.icon or (look and look.icon)) or nil
-    local headerMin = ui.drawChrome(panel, tooltip, {
+    local sections = {}
+
+    local skill = model.skillRow
+    local details = {}
+    if skill then
+        details[1] = {
+            left = skillText(skill),
+            right = skill.player and ("Your skill " .. skill.player) or "",
+            rightColor = colors.caption,
+            color = model.skillMet == false and UNMET_COLOR or model.skillColor or DETAIL_COLOR,
+        }
+    end
+    for _, row in ipairs(model.details) do
+        -- The skill row already says what this requirement says.
+        if not (skill and row.requirement and row.left:find(skill.name, 1, true)) then
+            local rowColor = DETAIL_COLOR
+            if row.requirement then rowColor = row.met and { 1, 1, 1 } or UNMET_COLOR end
+            details[#details + 1] = { left = row.left, right = row.right, color = rowColor }
+        end
+    end
+    if #details > 0 then
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "rows", rows = details,
+            style = styles.objectDetails, color = DETAIL_COLOR, gap = 2 }
+    end
+    if #model.quests > 0 then
+        local quests = {}
+        for index, row in ipairs(model.quests) do
+            quests[index] = row.title and { left = row.left, right = row.right, color = QUEST_GOLD }
+                or { left = row.left, right = row.right, color = row.completed and colors.done or colors.objective,
+                    indent = 8 }
+        end
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE, before = #sections > 0 and 6 or 0 },
+            kind = "rows", rows = quests, style = styles.objectQuests, gap = 2 }
+    end
+    if #model.extras > 0 then
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
+            kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+    end
+    local prices = {}
+    for index, price in ipairs(model.prices) do prices[index] = { left = price[1], right = price[2] } end
+
+    local header = { { text = model.name, style = styles.objectTitle, color = colors.title, gap = 4 } }
+    if look then
+        header[2] = { text = look.label, style = styles.objectKind,
+            color = { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, gap = 4 }
+    end
+    return {
         tooltipType = "object",
         color = color,
         tint = look and look.color,
         strength = TINT_STRENGTH,
-        icon = icon,
+        icon = ns.option("iconObjects") and (model.icon or (look and look.icon)) or nil,
         iconSize = ICON_SIZE,
-    })
+        header = header,
+        sections = sections,
+        footer = { rows = prices, style = styles.objectPrices, color = PRICE_LABEL, gap = 4 },
+    }
+end
 
-    local inner = panel.width - 2 * PAD
-    local indent = icon and TEXT_INDENT or 0
-    local leftIndent = ui.headerInsets(indent)
-    local y = ui.TITLE_TOP
-    y = y + ui.styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.objectTitle,
-        colors.title) + 4
-    if look then
-        y = y + ui.styledAt(panel, look.label, PAD + leftIndent, y, inner - indent, styles.objectKind,
-            { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }) + 4
-    end
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
-
-    local sectioned = false
-    if model.skillRow or #model.details > 0 then
-        y = ui.divider(panel, y, ui.GOLD_RULE)
-        local skill = model.skillRow
-        if skill then
-            local skillColor = model.skillMet == false and UNMET_COLOR or model.skillColor or DETAIL_COLOR
-            y = ui.drawRow(panel, {
-                left = skillText(skill),
-                right = skill.player and ("Your skill " .. skill.player) or "",
-                rightColor = colors.caption,
-            }, y, styles.objectDetails, skillColor, 0, 2)
-        end
-        for _, row in ipairs(model.details) do
-            -- The skill row already says what this requirement says.
-            if not (skill and row.requirement and row.left:find(skill.name, 1, true)) then
-                local rowColor = DETAIL_COLOR
-                if row.requirement then rowColor = row.met and { 1, 1, 1 } or UNMET_COLOR end
-                y = ui.drawRow(panel, row, y, styles.objectDetails, rowColor, 0, 2)
-            end
-        end
-        sectioned = true
-    end
-    if #model.quests > 0 then
-        y = ui.divider(panel, y, ui.GOLD_RULE, sectioned and 6 or 0)
-        for _, row in ipairs(model.quests) do
-            if row.title then
-                y = ui.drawRow(panel, row, y, styles.objectQuests, QUEST_GOLD, 0, 2)
-            else
-                y = ui.drawRow(panel, row, y, styles.objectQuests,
-                    row.completed and colors.done or colors.objective, 8, 2)
-            end
-        end
-        sectioned = true
-    end
-    if #model.extras > 0 then
-        if sectioned then
-            y = ui.rule(panel, y, { .50, .50, .54 }, 8)
-        else
-            y = y + 4
-        end
-        y = ui.drawGroup(panel, model.extras, y, styles.extras, ui.EXTRA_COLOR, 0, 2)
-    end
-    if #model.prices > 0 then
-        y = y + 9
-        local footerStart = y
-        for _, price in ipairs(model.prices) do
-            y = ui.drawRow(panel, { left = price[1], right = price[2] }, y, styles.objectPrices,
-                PRICE_LABEL, 0, 4)
-        end
-        panel.footer:SetHeight(y - footerStart + 23)
-    else
-        panel.footer:SetHeight(0)
-    end
-    ui.finishPanel(panel, tooltip, y)
+local function renderObject(panel, tooltip, model)
+    ui.renderView(panel, tooltip, objectView(model))
 end
 
 ui.objectModel = function(fields) return completeModel(fields, ns.Game) end

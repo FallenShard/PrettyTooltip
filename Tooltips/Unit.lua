@@ -190,14 +190,27 @@ local function readUnit(tooltip, data, game)
     return completeModel(model, unit, game)
 end
 
+-- The level on a plate under the portrait, as the game's target frame shows
+-- it; nil without a portrait to put it under, or with the plate turned off,
+-- and the info line shows it instead.
+local function levelBadge(model)
+    if model.hideIcon or not (model.unit or model.iconPath) or type(model.level) ~= "number"
+        or not ns.option("unitLevelBadge") then return end
+    return model.level == -1 and "??" or tostring(model.level)
+end
+
 local function infoText(model)
+    local what = model.isPlayer and table.concat({ model.race or "", model.className or "" }, " ")
+        or (model.creature or "")
+    if levelBadge(model) then
+        what = trim(what)
+        return what ~= "" and what or nil
+    end
     local level = model.level
     if not level then return model.levelLine end
     local levelText = level == -1 and "??" or tostring(level)
     local color = levelColor(level)
     if color then levelText = "|cff" .. hex(color) .. levelText .. "|r" end
-    local what = model.isPlayer and table.concat({ model.race or "", model.className or "" }, " ")
-        or (model.creature or "")
     return trim("Level " .. levelText .. " " .. what)
 end
 
@@ -337,6 +350,8 @@ local function renderUnit(panel, tooltip, model)
         strength = TINT_STRENGTH,
         icon = hasIcon and (model.iconPath or WHITE),
         iconSize = ICON_SIZE,
+        badge = levelBadge(model),
+        badgeColor = model.level and levelColor(model.level),
     })
     if hasIcon and model.unit and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, model.unit) end
 
