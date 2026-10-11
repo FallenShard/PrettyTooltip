@@ -7,6 +7,7 @@ if not (ui and AURA and ui.renderView) then
 end
 
 local util = ns.util
+local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local ICON_SIZE = 38
@@ -90,15 +91,15 @@ local function readAura(tooltip, data, game)
                 elseif text ~= "" and not model.text then
                     model.text = text
                 else
-                    ui.add(model.extras, left, right)
+                    tooltipData.add(model.extras, left, right)
                     local row = model.extras[#model.extras]
-                    row.color, row.rightColor = ui.colorOf(line.leftColor), ui.colorOf(line.rightColor)
+                    row.color, row.rightColor = tooltipData.colorOf(line.leftColor), tooltipData.colorOf(line.rightColor)
                 end
             end
         end
     end
     if not model.name or model.name == "" then return end
-    local appended = ui.appendedRows(tooltip, model.lineIndices)
+    local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end

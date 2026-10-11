@@ -9,7 +9,7 @@ return function(test)
         } },
         lines = { { left = { text = "Test Weapon" } }, { left = { text = original } } },
     }
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Item.lua", "Panel/Render.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua",
         "Integration/Native.lua", "Integration/Hooks.lua" }, capture)
     ns.ItemLite.register()
@@ -124,7 +124,7 @@ return function(test)
         } },
         lines = { { left = { text = "Test Weapon" } }, { left = { text = marked } } },
     }
-    ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Item.lua", "Panel/Render.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua",
         "Integration/Native.lua", "Integration/Hooks.lua" }, markedCapture)
     local markedData = markedCapture.data

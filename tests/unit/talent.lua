@@ -25,7 +25,7 @@ return function(test)
             { left = { text = "|c0042b1fePress F6 to submit an issue for this Spell", color = GOLD } },
         },
     }
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Data/Stats.lua", "Data/Coefficients.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Spell.lua",
         "Integration/Native.lua", "Integration/Hooks.lua" },
         capture)

@@ -7,6 +7,7 @@ if not (ui and OBJECT and ui.renderView) then
 end
 
 local util = ns.util
+local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, trim = util.isSecret, util.trim
 local LINE = Enum.TooltipDataLineType or {}
@@ -122,9 +123,9 @@ local function readObject(tooltip, data, game)
                 model.name = text
             elseif text ~= "" or right ~= "" then
                 if text:match("^Requires ") then
-                    ui.add(model.details, left, right)
+                    tooltipData.add(model.details, left, right)
                     local row = model.details[#model.details]
-                    row.requirement, row.met = true, ui.requirementMet(text, line.leftColor, game)
+                    row.requirement, row.met = true, tooltipData.requirementMet(text, line.leftColor, game)
                     for skill in pairs(SKILLS) do
                         if not model.skill and text:find(skill, 1, true) then
                             model.skill, model.skillMet = skill, row.met
@@ -136,25 +137,25 @@ local function readObject(tooltip, data, game)
                     model.skillColor = util.rgb(line.leftColor)
                 elseif text == "Locked" then
                     model.skill = model.skill or "Lockpicking"
-                    ui.add(model.details, left, right)
+                    tooltipData.add(model.details, left, right)
                 elseif LINE.QuestTitle and line.type == LINE.QuestTitle then
-                    ui.add(model.quests, left, right)
+                    tooltipData.add(model.quests, left, right)
                     model.quests[#model.quests].title = true
                 elseif LINE.QuestObjective and line.type == LINE.QuestObjective then
-                    ui.add(model.quests, left, right)
+                    tooltipData.add(model.quests, left, right)
                     if not isSecret(line.completed) then
                         model.quests[#model.quests].completed = line.completed == true
                     end
                 else
-                    ui.add(model.extras, left, right)
+                    tooltipData.add(model.extras, left, right)
                     local row = model.extras[#model.extras]
-                    row.color, row.rightColor = ui.colorOf(line.leftColor), ui.colorOf(line.rightColor)
+                    row.color, row.rightColor = tooltipData.colorOf(line.leftColor), tooltipData.colorOf(line.rightColor)
                 end
             end
         end
     end
     if not model.name or model.name == "" then return end
-    local appended = ui.appendedRows(tooltip, model.lineIndices)
+    local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end

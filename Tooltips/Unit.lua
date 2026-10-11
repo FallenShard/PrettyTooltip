@@ -7,6 +7,7 @@ if not (ui and UNIT and ui.renderView) then
 end
 
 local util = ns.util
+local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
 local get = util.call
@@ -164,24 +165,24 @@ local function readUnit(tooltip, data, game)
                 elseif LINE.UnitOwner and line.type == LINE.UnitOwner then
                     model.owner = text
                 elseif LINE.QuestTitle and line.type == LINE.QuestTitle then
-                    ui.add(model.quests, left, right)
+                    tooltipData.add(model.quests, left, right)
                     model.quests[#model.quests].title = true
                 elseif (LINE.QuestObjective and line.type == LINE.QuestObjective)
                     or (LINE.QuestPlayer and line.type == LINE.QuestPlayer) then
-                    ui.add(model.quests, left, right)
+                    tooltipData.add(model.quests, left, right)
                     if not isSecret(line.completed) then
                         model.quests[#model.quests].completed = line.completed == true
                     end
                 else
-                    ui.add(model.extras, left, right)
+                    tooltipData.add(model.extras, left, right)
                     local row = model.extras[#model.extras]
-                    row.color, row.rightColor = ui.colorOf(line.leftColor), ui.colorOf(line.rightColor)
+                    row.color, row.rightColor = tooltipData.colorOf(line.leftColor), tooltipData.colorOf(line.rightColor)
                 end
             end
         end
     end
     if not model.name or model.name == "" then return end
-    local appended = ui.appendedRows(tooltip, model.lineIndices)
+    local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end

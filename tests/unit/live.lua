@@ -3,7 +3,7 @@
 -- health row's two halves are compared.)
 return function(test)
     local UNIT = 2
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Unit.lua" }, {
         enums = { TooltipDataType = { Item = 0, Unit = UNIT } },
         calls = { UnitHealth = { mouseover = { n = 1, 25 } }, UnitHealthMax = { mouseover = { n = 1, 100 } } },

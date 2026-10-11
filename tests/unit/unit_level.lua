@@ -2,7 +2,7 @@
 -- portrait, it stays in the info line.
 return function(test)
     local UNIT = 2
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Unit.lua" },
         { enums = { TooltipDataType = { Item = 0, Unit = UNIT } } })
     local model = ns.ui.unitModel({ name = "Thrall", isPlayer = true, level = 60, race = "Orc",

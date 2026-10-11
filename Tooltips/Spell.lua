@@ -8,9 +8,10 @@ if not (ui and SPELL and ui.renderView) then
 end
 
 local util = ns.util
+local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
-local add = ui.add
+local add = tooltipData.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
 local PAD = ui.PAD
@@ -158,7 +159,7 @@ local function readLine(model, line, left, right, game)
         add(model.requirements, text, rightText)
         local usable = line.usable
         if isSecret(usable) then usable = nil end
-        if usable == false or not ui.requirementMet(text, line.leftColor, game) then
+        if usable == false or not tooltipData.requirementMet(text, line.leftColor, game) then
             model.requirements[#model.requirements].color = UNMET_COLOR
         end
         return
@@ -172,7 +173,7 @@ local function readLine(model, line, left, right, game)
     elseif text:match("^Requires ") then
         add(model.requirements, text, rightText)
         local row = model.requirements[#model.requirements]
-        row.color = not ui.requirementMet(text, line.leftColor, game) and UNMET_COLOR or nil
+        row.color = not tooltipData.requirementMet(text, line.leftColor, game) and UNMET_COLOR or nil
     elseif text:match("^Reagents:") or text:match("^Tools:") then
         add(model.details, text, rightText)
     elseif text ~= "" and ((LINE.SpellDescription and line.type == LINE.SpellDescription)
@@ -181,7 +182,7 @@ local function readLine(model, line, left, right, game)
     else
         add(model.extras, left, right)
         local row = model.extras[#model.extras]
-        row.color, row.rightColor = ui.colorOf(line.leftColor), ui.colorOf(line.rightColor)
+        row.color, row.rightColor = tooltipData.colorOf(line.leftColor), tooltipData.colorOf(line.rightColor)
     end
 end
 
@@ -273,7 +274,7 @@ local function readSpell(tooltip, data, game)
     end
     if model.name == "" then return end
 
-    local appended = ui.appendedRows(tooltip, model.lineIndices)
+    local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
     local rows = {}
     for _, row in ipairs(appended) do

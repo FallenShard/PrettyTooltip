@@ -7,6 +7,7 @@ if not (ui and QUEST and ui.renderView) then
 end
 
 local util = ns.util
+local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local LINE = Enum.TooltipDataLineType or {}
@@ -140,7 +141,7 @@ local function readQuest(tooltip, data, game)
             local left, right = safeText(line.leftText), safeText(line.rightText)
             if not left or not right then return end
             lineIndices[line.lineIndex] = true
-            local color = ui.colorOf(line.leftColor)
+            local color = tooltipData.colorOf(line.leftColor)
             local completed = line.completed
             if isSecret(completed) then completed = nil end
             readRow(model, {
@@ -148,13 +149,13 @@ local function readQuest(tooltip, data, game)
                 right = right,
                 color = color,
                 textColor = color,
-                rightColor = ui.colorOf(line.rightColor),
+                rightColor = tooltipData.colorOf(line.rightColor),
                 objective = LINE.QuestObjective and line.type == LINE.QuestObjective,
                 completed = completed,
             }, state)
         end
     end
-    local appended = ui.appendedRows(tooltip, lineIndices)
+    local appended = tooltipData.appendedRows(tooltip, lineIndices)
     if not appended then return end
     for _, row in ipairs(appended) do readRow(model, row, state) end
     if not model.name or model.name == "" then return end

@@ -7,7 +7,7 @@ end
 
 local util = ns.util
 local colors = ns.Palette.roles
-local isSecret, safeText, pack = util.isSecret, util.safeText, util.pack
+local isSecret, pack = util.isSecret, util.pack
 local uncolored = util.uncolored
 local ITEM = Enum.TooltipDataType.Item
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
@@ -79,43 +79,6 @@ local function probe(name, fn)
         perf.time[name] = (perf.time[name] or 0) + debugprofilestop() - start
         return unpack(results, 1, results.n)
     end
-end
-
-local function add(list, left, right)
-    list[#list + 1] = { left = left, right = right }
-end
-
-local function quietColor(r, g, b)
-    if isSecret(r) or isSecret(g) or isSecret(b)
-        or type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number"
-        or (r > .9 and g > .9 and b > .9) then
-        return EXTRA_COLOR
-    end
-    return { r * .85, g * .85, b * .85 }
-end
-
-local function colorOf(color)
-    if isSecret(color) or type(color) ~= "table" then return EXTRA_COLOR end
-    return quietColor(color.r, color.g, color.b)
-end
-
--- The game colors whatever the character cannot use red. Nil when unreadable.
-local function isRed(color)
-    if isSecret(color) or type(color) ~= "table" then return nil end
-    local r, g = color.r, color.g
-    if isSecret(r) or isSecret(g) or type(r) ~= "number" or type(g) ~= "number" then
-        return nil
-    end
-    return r > .9 and g < .3
-end
-
-local function requirementMet(text, color, game)
-    local level = text:match("^Requires Level (%d+)")
-    if level then
-        local playerLevel = game.playerLevel()
-        if playerLevel then return playerLevel >= tonumber(level) end
-    end
-    return isRed(color) == false
 end
 
 local COIN = "|TInterface\\MoneyFrame\\UI-%sIcon:0:0:2:0|t"
@@ -222,29 +185,6 @@ local function asStyle(style)
 end
 
 -- Rows other addons append are absent from the data. Nil when one is unreadable.
-local function appendedRows(tooltip, lineIndices)
-    local rows = {}
-    local name = tooltip:GetName()
-    for index = 1, tooltip:NumLines() do
-        if not lineIndices[index] then
-            local leftFont = tooltip:GetLeftLine(index)
-            local rightFont = tooltip.GetRightLine and tooltip:GetRightLine(index)
-                or (name and _G[name .. "TextRight" .. index])
-            local left = leftFont and safeText(leftFont:GetText()) or ""
-            local right = rightFont and safeText(rightFont:GetText()) or ""
-            if not left or not right then return end
-            rows[#rows + 1] = {
-                left = left,
-                right = right,
-                color = leftFont and quietColor(leftFont:GetTextColor()) or EXTRA_COLOR,
-                textColor = leftFont and { leftFont:GetTextColor() },
-                rightColor = rightFont and quietColor(rightFont:GetTextColor()),
-            }
-        end
-    end
-    return rows
-end
-
 local function makeTexture(parent, layer, path)
     local tex = parent:CreateTexture(nil, layer)
     tex:SetTexture(path or WHITE)
@@ -878,7 +818,6 @@ ns.ui = {
     probe = probe,
     bodyFont = bodyFont,
     isComparison = isComparison,
-    isRed = isRed,
     defineTooltipType = defineTooltipType,
     panels = panels,
     getPanel = getPanel,
@@ -899,10 +838,6 @@ ns.ui = {
     formatMoney = formatMoney,
     setFont = setFont,
     FLAVOR_GOLD = FLAVOR_GOLD,
-    add = add,
-    colorOf = colorOf,
-    appendedRows = appendedRows,
-    requirementMet = requirementMet,
     clearPool = clearPool,
     rowWidth = rowWidth,
     drawRow = drawRow,

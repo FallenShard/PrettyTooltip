@@ -110,7 +110,7 @@ return function(test)
         } },
         lines = { { left = { text = "Test Item" } }, { left = { text = "+6 Intellect" } } },
     }
-    local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Data/Stats.lua",
+    local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
         "Panel/Layout.lua", "Tooltips/Item.lua", "Panel/Render.lua", "Integration/Native.lua", "Integration/Hooks.lua",
         "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
         "UI/Commands.lua", "PrettyTooltip.lua" }
