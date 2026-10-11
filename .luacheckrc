@@ -31,7 +31,7 @@ read_globals = {
     "GameTooltipHeaderText", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",
     "SetPortraitTexture", "ChatEdit_InsertLink", "GetCursorPosition", "NUM_CHAT_WINDOWS",
     "Settings", "SettingsPanel", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory",
-    "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "ITEM_DELTA_DESCRIPTION",
+    "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "ITEM_DELTA_DESCRIPTION", "NineSliceUtil",
     -- Tooltip data
     "TooltipDataProcessor", "Enum",
     -- Game state

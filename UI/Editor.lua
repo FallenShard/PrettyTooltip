@@ -24,6 +24,12 @@ local FIELD_HOVER = { .16, .13, .12 }
 local LINE = { .32, .26, .19 }
 local GOLD = { .93, .80, .52 }
 local QUESTION_MARK = "Interface\\Icons\\INV_Misc_QuestionMark"
+local BACKDROP_STYLES = {
+    { text = "Automatic" },
+    { value = "native", text = "Blizzard border" },
+    { value = "flat", text = "Flat" },
+    { value = "dialogue", text = "DialogueUI" },
+}
 local OUTLINES = {
     { value = "NONE", text = "None" },
     { value = "OUTLINE", text = "Outline" },
@@ -1280,10 +1286,6 @@ local TOGGLES = {
     { "Separators", "separators",
         "The gold dividers between sections and the thin rules above other addons' rows. Off, "
             .. "they are hidden along with the space around them." },
-    { "DialogueUI backdrop", "dialogueBackdrop",
-        "Draws the panel on DialogueUI's dark textured background, read from that addon's folder. "
-            .. "Needs DialogueUI installed; off, or without it, the panel is a plain dark gradient.",
-        function() return ns.Game.addonInstalled("DialogueUI") end },
 }
 for index, toggle in ipairs(TOGGLES) do
     local box = checkbox(toggle[1], toggle[2], toggle[3], toggle[4])
@@ -1308,18 +1310,25 @@ end
 row("Band top", bandOpacity("Top"))
 row("Band bottom", bandOpacity("Bottom"))
 
--- Full opacity is saved as no setting.
-local function typeOpacity(name)
+-- The default opacity is saved as no setting.
+local function typeOpacity(name, default)
     local function key() return name .. ns.TYPE_SUFFIX[state.tooltipType] end
     return slider(FIELD_WIDTH, function()
-        return math.floor((ns.option(key()) or 1) * 100 + .5)
+        return math.floor((ns.option(key()) or default) * 100 + .5)
     end, function(percent)
-        ns.setOption(key(), percent < 100 and percent / 100 or nil)
+        ns.setOption(key(), math.abs(percent / 100 - default) > .001 and percent / 100 or nil)
     end, 0, 100, "%")
 end
-row("Backdrop", typeOpacity("backdropAlpha"))
-row("Glow", typeOpacity("glowAlpha"))
-row("Footer", typeOpacity("footerAlpha"))
+-- Automatic draws the game's tooltip border, flat beside EllesmereUI, and
+-- DialogueUI's art while that addon is installed.
+row("Panel style", dropdown(FIELD_WIDTH, function() return BACKDROP_STYLES end, function()
+    return ns.option("backdropStyle")
+end, function(value)
+    ns.setOption("backdropStyle", value)
+end))
+row("Backdrop", typeOpacity("backdropAlpha", ns.BACKDROP_ALPHA))
+row("Glow", typeOpacity("glowAlpha", 1))
+row("Footer", typeOpacity("footerAlpha", 1))
 
 local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()

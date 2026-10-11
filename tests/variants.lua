@@ -4,6 +4,8 @@
 -- tooltip instead of the panel, for settings that leave the game's showing.
 return {
     Item = {
+        -- The panel's own flat look, which the game's border replaces by default.
+        flat = { settings = { backdropStyle = "flat" } },
         -- The game's tooltip, its Equip effects shortened and stats colored.
         lite = { settings = { itemLite = true }, native = true },
         -- The panel with its optional parts and colors turned off.
@@ -11,6 +13,7 @@ return {
             iconItems = false, itemLevelBadge = false, disenchant = false, sellPrice = false } },
     },
     Spell = {
+        flat = { settings = { backdropStyle = "flat" } },
         plain = { settings = { iconSpells = false, spellPower = false, qualityTint = false, separators = false } },
     },
 }

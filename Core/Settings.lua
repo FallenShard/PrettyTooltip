@@ -31,6 +31,9 @@ local DEFAULTS = {
     spellPower = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
+    -- nil chooses: DialogueUI's art when installed, flat with EllesmereUI, else
+    -- the game's own tooltip border. "native", "flat", or "dialogue" to pick one.
+    backdropStyle = nil,
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
     bodyFont = nil,
@@ -250,6 +253,8 @@ function ns.resetElement(key)
 end
 
 -- Settings kept per type of tooltip are named with these, as iconItems.
+-- The backdrop's opacity with none set, for every type and style.
+ns.BACKDROP_ALPHA = .9
 ns.TYPE_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests" }
 
 -- The header band's opacity at an edge ("Top" or "Bottom") for a tooltip type; one

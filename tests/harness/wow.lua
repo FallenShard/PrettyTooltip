@@ -511,6 +511,22 @@ return function(fixture, enums, report)
     for _, tooltipName in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }) do
         new("GameTooltip", tooltipName, UIParent)
     end
+    -- The game's nine-slice borders: a layout gives a frame a piece per corner
+    -- and edge, and a center. GameTooltip wears the tooltip layout, in grey.
+    local PIECES = { "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
+        "TopEdge", "BottomEdge", "LeftEdge", "RightEdge", "Center" }
+    NineSliceUtil = {
+        ApplyLayoutByName = function(frame, layout)
+            if layout ~= "TooltipDefaultLayout" then error("no layout " .. tostring(layout)) end
+            for _, piece in ipairs(PIECES) do
+                frame[piece] = frame[piece] or frame:CreateTexture(piece)
+                frame[piece]._texture = "tooltip-" .. piece
+                frame[piece]._width, frame[piece]._height = piece:find("Edge") and 0 or 16, piece:find("Edge") and 0 or 16
+            end
+        end,
+    }
+    GameTooltip.NineSlice = { layoutType = "TooltipDefaultLayout",
+        GetBorderColor = function() return .8, .8, .8, 1 end }
 
     -- The captured tooltip, and the comparisons beside it.
     world.main = tooltipFrom(fixture.tooltip or "GameTooltip", fixture)

@@ -1,0 +1,146 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132879
+      id: 11138
+      name: "Small Glowing Shard"
+  skill: 75
+effects: {}
+enchants: {}
+equipEffects:
+  1:
+    left: "Ignite the target in the flames of the Great Forge, dealing 39 to 59 Holyfire damage. Deals 3 times as much damage to Fire Elementals and Earth Elementals."
+    onHit: true
+    right: ""
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+flavor: {}
+footerLeft:
+  1:
+    durability:
+      1: 100
+      2: 100
+    left: "Durability 100 / 100"
+    right: ""
+footerRight:
+  1:
+    left: "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 59|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "Soulbound"
+    right: ""
+icon: 133042
+kinds: {}
+level: 31
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+  10: true
+link: "|cnIQ3:|Hitem:6953::::::::30:1486::11:::::::|h[Verigan's Fist]|h|r"
+name: "Verigan's Fist"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+6|r |cff79DCC2Intellect|r"
+    right: ""
+  2:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Stamina|r"
+    right: ""
+  3:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+10|r |cff79DCC2Spirit|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 7459
+setBonuses: {}
+setItems: {}
+slot: "Mace · Two-Hand"
+weaponBonus: {}
+weaponDamage: "65 - 99 Damage"
+weaponDps: "25.6"
+weaponSpeed: "Speed 3.20"
+== tooltip render
+panel 330 x 433
+texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x94 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x40 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 19,21 43x43 rgb=1,1,1,1 133042
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "iLvl 31"
+texture at 0,0 0x2 rgb=0.256,0.472,0.784,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+text at 72,21 w=239 size=19 rgb=0.32,0.59,0.98 "VERIGAN'S FIST"
+text at 72,47 w=239 size=13 rgb=0.66,0.795,0.99 "Mace · Two-Hand"
+text at 72,66 w=239 size=12 rgb=0.78,0.72,0.63 "Soulbound"
+texture at 19,100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D525.6|r |cffA89F8EDamage per Second|r"
+text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "65 - 99 Damage  ·  Speed 3.20"
+text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+6|r |cff79DCC2Intellect|r"
+text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Stamina|r"
+text at 19,196 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+10|r |cff79DCC2Spirit|r"
+texture at 19,222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-217 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,235 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sword:11:11:-1:-2:32:32:0:32:0:32:200:210:225|t"
+text at 41,235 w=270 size=13 rgb=0.48,0.88,0.48 "Ignite the target in the flames of the Great Forge, dealing |cffFDB46A39|r to |cffFDB46A59|r Holyfire damage. Deals |cffFDB46A3|r times as much damage to Fire Elementals and Earth Elementals."
+texture at 19,311 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-311 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-306 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,324 w=157 size=11 rgb=0.86,0.74,0.45 "Disenchant"
+text at 188,324 w=123 size=11 rgb=0.55,0.53,0.5 "Requires Enchanting 75"
+text at 19,341 w=256 size=11 rgb=0.88,0.84,0.76 "|T132879:0|t Small Glowing Shard"
+text at 287,341 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+texture at 19,366 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,375 w=292 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 233.5,399 w=77.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 59|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+texture at 19,404 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 0,0 54x4 rgb=0.45,0.8,0.4,1 WHITE8X8
+text at 80,399 w=90 size=11 rgb=0.82,0.78,0.71 "100 / 100"

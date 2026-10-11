@@ -289,11 +289,27 @@ local function hasDialogueBackdrop()
 end
 
 local hasEllesmere
+local function ellesmereInstalled()
+    if hasEllesmere == nil then hasEllesmere = ns.Game.addonInstalled("EllesmereUI") end
+    return hasEllesmere
+end
+
 local function titleFont()
     local chosen = ns.fontPath(ns.option("titleFont"))
     if chosen then return chosen end
-    if hasEllesmere == nil then hasEllesmere = ns.Game.addonInstalled("EllesmereUI") end
-    return hasEllesmere and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
+    return ellesmereInstalled() and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
+end
+
+-- "dialogue", "flat", or "native". Unchosen, DialogueUI's art while it is
+-- installed and wanted; flat beside EllesmereUI, whose look it matches; else
+-- the game's own tooltip border.
+local function backdropStyle()
+    local chosen = ns.option("backdropStyle")
+    if (chosen == "dialogue" or (chosen == nil and ns.option("dialogueBackdrop"))) and hasDialogueBackdrop() then
+        return "dialogue"
+    end
+    if chosen == "flat" or chosen == "native" then return chosen end
+    return ellesmereInstalled() and "flat" or "native"
 end
 
 local function styleOf(key)
@@ -837,11 +853,65 @@ local function getPanel(tooltip)
     return panel
 end
 
+-- The game's own tooltip border, from the layout GameTooltip uses, on a frame
+-- over the panel; its center is left out, so the panel's backdrop shows.
+-- False when the game cannot build one, and the panel stays flat.
+local NATIVE_PIECES = { "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "BottomRightCorner",
+    "TopEdge", "BottomEdge", "LeftEdge", "RightEdge" }
+local NATIVE_INSET = 4
+
+local function nativeBorder(panel)
+    if panel.nativeBorder ~= nil then return panel.nativeBorder or nil end
+    panel.nativeBorder = false
+    if not (NineSliceUtil and NineSliceUtil.ApplyLayoutByName) then return end
+    local slice = GameTooltip and GameTooltip.NineSlice
+    local layout = slice and type(slice.layoutType) == "string" and slice.layoutType or "TooltipDefaultLayout"
+    local frame = CreateFrame("Frame", nil, panel)
+    frame:SetAllPoints()
+    if not pcall(NineSliceUtil.ApplyLayoutByName, frame, layout) then
+        frame:Hide()
+        return
+    end
+    if frame.Center then frame.Center:Hide() end
+    panel.nativeBorder = frame
+    return frame
+end
+
+-- The accent when the panel has one, as items their quality and spells their
+-- school; else the color the game gives its own tooltip's border.
+local function colorNativeBorder(border, tint)
+    local r, g, b, a
+    if tint then
+        r, g, b, a = tint[1], tint[2], tint[3], 1
+    else
+        local slice = GameTooltip and GameTooltip.NineSlice
+        if slice and slice.GetBorderColor then r, g, b, a = util.call(slice.GetBorderColor, slice) end
+    end
+    if type(r) ~= "number" then r, g, b, a = 1, 1, 1, 1 end
+    for _, name in ipairs(NATIVE_PIECES) do
+        local piece = border[name]
+        if piece then piece:SetVertexColor(r, g, b, a or 1) end
+    end
+end
+
 -- Chosen per render so the option applies without a reload.
 local function applyBackdrop(panel)
-    local textured = panel.glow ~= nil and ns.option("dialogueBackdrop") and hasDialogueBackdrop()
-    if panel.textured == textured then return end
+    local style = backdropStyle()
+    local textured = style == "dialogue" and panel.glow ~= nil
+    local border = style == "native" and nativeBorder(panel) or nil
+    local mode = textured and "dialogue" or border and "native" or "flat"
+    if panel.backdropMode == mode then return end
+    panel.backdropMode = mode
     panel.textured = textured
+    if panel.nativeBorder then panel.nativeBorder:SetShown(mode == "native") end
+    -- Inside the game's border, the backdrop takes the place of the game's own
+    -- background, so none of it shows past the border's rounded corners.
+    panel.background:ClearAllPoints()
+    if border and border.Center then
+        panel.background:SetAllPoints(border.Center)
+    else
+        panel.background:SetAllPoints()
+    end
     if textured then
         panel.background:SetTexture(DIALOGUE_BACKDROP)
         panel.background:SetTextureSliceMargins(32, 32, 32, 32)
@@ -863,9 +933,9 @@ local function applyBackdrop(panel)
             band:SetTexture(WHITE)
         end
     end
-    for _, region in ipairs(panel.shades) do region:SetShown(not textured) end
-    for _, region in ipairs(panel.edges) do region:SetShown(not textured) end
-    panel.inset = textured and 6 or 1
+    for _, region in ipairs(panel.shades) do region:SetShown(mode == "flat") end
+    for _, region in ipairs(panel.edges) do region:SetShown(mode == "flat") end
+    panel.inset = textured and 6 or border and NATIVE_INSET or 1
     local inset = panel.inset
     panel.header:ClearAllPoints()
     panel.header:SetPoint("TOPLEFT", panel, "TOPLEFT", inset, -inset)
@@ -1374,7 +1444,7 @@ local function drawChrome(panel, tooltip, style)
     local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
     local suffix = ns.TYPE_SUFFIX[style.tooltipType] or ""
-    local body = ns.option("backdropAlpha" .. suffix) or 1
+    local body = ns.option("backdropAlpha" .. suffix) or ns.BACKDROP_ALPHA
     local glow = ns.option("glowAlpha" .. suffix) or 1
     local footer = ns.option("footerAlpha" .. suffix) or 1
     panel.footer:SetVertexColor(.10, .075, .08, (panel.textured and .6 or .95) * footer)
@@ -1406,6 +1476,10 @@ local function drawChrome(panel, tooltip, style)
         local edgeStrength = index == 1 and .8 or .36
         edge:SetVertexColor(color[1] * edgeStrength, color[2] * edgeStrength,
             color[3] * edgeStrength, .95)
+    end
+    if panel.backdropMode == "native" then
+        panel.nativeBorder:SetFrameLevel(panel:GetFrameLevel() + 1)
+        colorNativeBorder(panel.nativeBorder, style.tint)
     end
     panel.iconBorder:SetVertexColor(color[1], color[2], color[3], .85)
     local native = nativeCloseButton(tooltip)
@@ -2132,7 +2206,7 @@ local function renderPreview(anchor, model, dataType)
 end
 
 local function defaultHeaderAlpha()
-    if ns.option("dialogueBackdrop") and hasDialogueBackdrop() then return HEADER_ALPHA_TEXTURED end
+    if backdropStyle() == "dialogue" then return HEADER_ALPHA_TEXTURED end
     return HEADER_ALPHA_PLAIN
 end
 

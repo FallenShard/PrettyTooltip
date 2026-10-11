@@ -21,17 +21,17 @@ zone: "The Stockade"
 == sample render
 panel 308 x 199
 texture at -16,-16 0x0 rgb=0.86,0.74,0.45,0.2475 glow
-texture at 0,0 0x0 rgb=1,1,1,1 color
-texture at 0,0 0x10 rgb=1,1,1,1 color
-texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
-texture at 0,0 8x0 rgb=1,1,1,1 color
-texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
-texture at 1,1 0x85 rgb=1,1,1,1 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
-texture at 0,0 0x2 rgb=0.688,0.592,0.36,0.95 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.3096,0.2664,0.162,0.95 WHITE8X8
-texture at 0,0 1x0 rgb=0.3096,0.2664,0.162,0.95 WHITE8X8
-texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.3096,0.2664,0.162,0.95 WHITE8X8
+texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
+texture at 4,4 0x82 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture unplaced 16x16 rgb=0.86,0.74,0.45,1 tooltip-TopLeftCorner
+texture unplaced 16x16 rgb=0.86,0.74,0.45,1 tooltip-TopRightCorner
+texture unplaced 16x16 rgb=0.86,0.74,0.45,1 tooltip-BottomLeftCorner
+texture unplaced 16x16 rgb=0.86,0.74,0.45,1 tooltip-BottomRightCorner
+texture unplaced 0x0 rgb=0.86,0.74,0.45,1 tooltip-TopEdge
+texture unplaced 0x0 rgb=0.86,0.74,0.45,1 tooltip-BottomEdge
+texture unplaced 0x0 rgb=0.86,0.74,0.45,1 tooltip-LeftEdge
+texture unplaced 0x0 rgb=0.86,0.74,0.45,1 tooltip-RightEdge
 text at 19,21 w=270 size=16 rgb=0.96,0.92,0.84 "THE FURY RUNS DEEP"
 text at 19,42 w=270 size=12 rgb=0.82,0.78,0.71 "The Stockade"
 text at 19,62 w=194 size=12 rgb=0.82,0.78,0.71 "|cffFFDF4DLevel 27|r |cff999185·|r |cffE6D19DDungeon|r |cff999185·|r |cffFFDF4DIn progress|r"
