@@ -2,7 +2,7 @@
 local _, ns = ...
 local ui = ns.ui
 local QUEST = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Quest
-if not (ui and QUEST and ui.drawBadges) then
+if not (ui and QUEST and ui.renderView) then
     return
 end
 
@@ -12,7 +12,6 @@ local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.tr
 local LINE = Enum.TooltipDataLineType or {}
 local PAD = ui.PAD
 local ICON_SIZE = 38
-local TEXT_INDENT = ICON_SIZE + 10
 local TINT_STRENGTH = .45
 local CHECK_SIZE = 10
 local OBJECTIVE_INDENT = CHECK_SIZE + 7
@@ -21,6 +20,7 @@ local QUEST_GOLD = colors.quest
 local PARCHMENT = colors.flavor
 local DONE_COLOR = colors.done
 local FAILED_COLOR = { 1, .35, .30 }
+local EXTRAS_RULE = { .50, .50, .54 }
 local REPEAT_COLOR = { .45, .70, 1 }
 local QUEST_ICON = "Interface\\Icons\\INV_Misc_Book_08"
 local TAGS = { Elite = true, Dungeon = true, Raid = true, Group = true, PvP = true }
@@ -194,27 +194,6 @@ local function progressOf(row)
     if have then return tonumber(have), tonumber(need) end
 end
 
-local function fitWidth(panel, model, styles, paragraphs)
-    local indent = model.icon and TEXT_INDENT or 0
-    local need = ui.measureStyled(panel, model.name, styles.questTitle) + indent
-    local function consider(width) if width > need then need = width end end
-    if model.zone then consider(ui.measureStyled(panel, model.zone, styles.questInfo) + indent) end
-    local list = badges(model)
-    if #list > 0 then consider(ui.badgesWidth(panel, list, styles.questBadges) + indent) end
-    for _, text in ipairs(paragraphs) do
-        consider(math.min(ui.measureStyled(panel, text, styles.questText), ui.PROSE_WIDTH))
-    end
-    for _, row in ipairs(model.objectives) do
-        consider(ui.rowWidth(panel, row, styles.questObjectives) + OBJECTIVE_INDENT)
-    end
-    for _, row in ipairs(model.extras) do
-        local width = ui.rowWidth(panel, row, styles.extras)
-        if not row.right or row.right == "" then width = math.min(width, ui.PROSE_WIDTH) end
-        consider(width)
-    end
-    return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
-end
-
 local function checkbox(panel, y, done, size)
     local top = y + math.max(0, math.floor((size - CHECK_SIZE) / 2)) + 1
     local border = ui.acquireTexture(panel, nil, 0)
@@ -252,69 +231,69 @@ local function progressBar(panel, y, have, need, done)
     return y + BAR_HEIGHT + 6
 end
 
-local function renderQuest(panel, tooltip, model)
-    panel:Show()
-    ui.clearPool(panel)
+-- The objectives under their caption, each with a checkbox, and a progress
+-- bar under those that count to more than one.
+local function objectivesSection(model, styles, after)
+    local style = styles.questObjectives
+    return {
+        kind = "custom",
+        measure = function(panel)
+            local need = 0
+            for _, row in ipairs(model.objectives) do
+                need = math.max(need, ui.rowWidth(panel, row, style) + OBJECTIVE_INDENT)
+            end
+            return need
+        end,
+        draw = function(panel, y)
+            y = ui.caption(panel, y + (after and 4 or 0), "Objectives", styles.questCaption, colors.caption)
+            for _, row in ipairs(model.objectives) do
+                checkbox(panel, y, row.completed, style.size)
+                local have, need = progressOf(row)
+                local bar = need and need > 1
+                y = ui.drawRow(panel, row, y, style, row.completed and DONE_COLOR or colors.objective,
+                    OBJECTIVE_INDENT, bar and 3 or 5)
+                if bar then y = progressBar(panel, y, have, need, row.completed) end
+            end
+            return y
+        end,
+    }
+end
+
+-- What the panel shows, for Panel/Render.lua to draw.
+local function questView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
-    if not ns.option("iconQuests") then model.icon = nil end
+    local header = { { text = model.name, style = styles.questTitle, color = colors.title, gap = 3 } }
+    if model.zone then header[#header + 1] = { text = model.zone, style = styles.questInfo, color = colors.detail, gap = 3 } end
+    header[#header + 1] = { badges = badges(model), style = styles.questBadges, before = 3, gap = 4 }
+
+    local sections = {}
     local paragraphs = quoted(model)
-    panel.width = fitWidth(panel, model, styles, paragraphs)
-    panel:SetWidth(panel.width)
-    local headerMin = ui.drawChrome(panel, tooltip, {
+    if #paragraphs > 0 then
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "prose", sentences = paragraphs,
+            style = styles.questText, color = ui.FLAVOR_GOLD, gap = 5 }
+    end
+    if #model.objectives > 0 then
+        sections[#sections + 1] = objectivesSection(model, styles, #sections > 0)
+    end
+    if #model.extras > 0 then
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 6 } or { space = 4 },
+            kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+    end
+    return {
         tooltipType = "quest",
         color = PARCHMENT,
         tint = PARCHMENT,
         strength = TINT_STRENGTH,
-        icon = model.icon,
+        icon = ns.option("iconQuests") and model.icon or nil,
         iconSize = ICON_SIZE,
-    })
+        header = header,
+        sections = sections,
+    }
+end
 
-    local inner = panel.width - 2 * PAD
-    local indent = model.icon and TEXT_INDENT or 0
-    local leftIndent = ui.headerInsets(indent)
-    local y = ui.TITLE_TOP
-    y = y + ui.styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.questTitle,
-        colors.title) + 3
-    if model.zone then
-        y = y + ui.styledAt(panel, model.zone, PAD + leftIndent, y, inner - indent, styles.questInfo,
-            colors.detail) + 3
-    end
-    local list = badges(model)
-    if #list > 0 then y = ui.drawBadges(panel, list, PAD + leftIndent, y + 3, styles.questBadges) + 4 end
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
-    panel.footer:SetHeight(0)
-
-    local sectioned = false
-    if #paragraphs > 0 then
-        y = ui.divider(panel, y, ui.GOLD_RULE)
-        for _, text in ipairs(paragraphs) do
-            y = ui.drawRow(panel, { left = text }, y, styles.questText, ui.FLAVOR_GOLD, 0, 5)
-        end
-        sectioned = true
-    end
-    if #model.objectives > 0 then
-        y = ui.caption(panel, y + (sectioned and 4 or 0), "Objectives", styles.questCaption, colors.caption)
-        for _, row in ipairs(model.objectives) do
-            checkbox(panel, y, row.completed, styles.questObjectives.size)
-            local have, need = progressOf(row)
-            local bar = need and need > 1
-            y = ui.drawRow(panel, row, y, styles.questObjectives,
-                row.completed and DONE_COLOR or colors.objective, OBJECTIVE_INDENT, bar and 3 or 5)
-            if bar then y = progressBar(panel, y, have, need, row.completed) end
-        end
-        sectioned = true
-    end
-    if #model.extras > 0 then
-        if sectioned then
-            y = ui.rule(panel, y, { .50, .50, .54 }, 6)
-        else
-            y = y + 4
-        end
-        y = ui.drawGroup(panel, model.extras, y, styles.extras, ui.EXTRA_COLOR, 0, 2)
-    end
-    ui.finishPanel(panel, tooltip, y)
+local function renderQuest(panel, tooltip, model)
+    ui.renderView(panel, tooltip, questView(model))
 end
 
 ui.questModel = function(fields)
