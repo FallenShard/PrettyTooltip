@@ -62,6 +62,12 @@ end
 ns.settingsVersion = 0
 local function changed() ns.settingsVersion = ns.settingsVersion + 1 end
 
+-- What is saved for a setting: nil while it is at its default.
+function ns.savedOption(key)
+    local db = PrettyTooltipDB
+    return type(db) == "table" and db[key] or nil
+end
+
 local function setOption(key, value)
     if type(PrettyTooltipDB) ~= "table" then PrettyTooltipDB = {} end
     PrettyTooltipDB[key] = value

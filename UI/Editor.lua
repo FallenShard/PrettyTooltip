@@ -25,6 +25,7 @@ local FIELD = { .10, .085, .085 }
 local FIELD_HOVER = { .16, .13, .12 }
 local LINE = { .32, .26, .19 }
 local GOLD = { .93, .80, .52 }
+local RESET_ICON = "Interface\\Buttons\\UI-RefreshButton"
 local QUESTION_MARK = "Interface\\Icons\\INV_Misc_QuestionMark"
 local BACKDROP_STYLES = {
     { text = "Automatic" },
@@ -1113,7 +1114,9 @@ local function checkbox(label, key, description, isAvailable)
     -- A key can depend on the tooltip type shown.
     local function keyOf() return type(key) == "function" and key() or key end
     button:SetScript("OnClick", function(self)
-        ns.setOption(keyOf(), self:GetChecked() and true or false)
+        local checked = self:GetChecked() and true or false
+        ns.setOption(keyOf(), nil)
+        if ns.option(keyOf()) ~= checked then ns.setOption(keyOf(), checked) end
         refresh()
     end)
     button.refresh = function()
@@ -1121,6 +1124,7 @@ local function checkbox(label, key, description, isAvailable)
         local available = not isAvailable or isAvailable()
         button:SetEnabled(available)
         caption:SetFontObject(available and "GameFontHighlightSmall" or "GameFontDisableSmall")
+        if available and ns.savedOption(keyOf()) ~= nil then caption:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) end
     end
     controls[#controls + 1] = button
     return button
@@ -1205,10 +1209,55 @@ local function section(title)
     y = y - 26
 end
 
-local function row(label, control)
+-- What a row's reset button clears: saved gives the stored value, nil while
+-- the setting is at its default.
+local function partSetting(field)
+    return {
+        saved = function() return ns.elementSetting(state.selected, field) end,
+        reset = function() ns.setElementSetting(state.selected, field, nil) end,
+    }
+end
+
+-- key can be a function, for a setting kept per tooltip type.
+local function optionSetting(key)
+    local function keyOf() return type(key) == "function" and key() or key end
+    return {
+        saved = function() return ns.savedOption(keyOf()) end,
+        reset = function() ns.setOption(keyOf(), nil) end,
+    }
+end
+
+-- A changed setting's label reads gold, with a button to put it back.
+local function resetButton(caption, setting)
+    local button = CreateFrame("Button", nil, editor)
+    button:SetSize(16, 16)
+    button:SetPoint("TOPRIGHT", editor, "TOPLEFT", CONTROLS_X + LABEL_WIDTH - 8, y - 3)
+    button:SetNormalTexture(RESET_ICON)
+    button:SetHighlightTexture(RESET_ICON, "ADD")
+    button:SetScript("OnClick", function()
+        setting.reset()
+        refresh()
+    end)
+    button:SetScript("OnEnter", function(self)
+        GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+        GameTooltip:SetText("Reset to default", 1, 1, 1)
+        GameTooltip:Show()
+    end)
+    button:SetScript("OnLeave", function() GameTooltip:Hide() end)
+    controls[#controls + 1] = {
+        refresh = function()
+            local changed = setting.saved() ~= nil
+            button:SetShown(changed)
+            if changed then caption:SetTextColor(GOLD[1], GOLD[2], GOLD[3]) else caption:SetTextColor(1, 1, 1) end
+        end,
+    }
+end
+
+local function row(label, control, setting)
     local caption = text(editor, "GameFontHighlightSmall", label)
     caption:SetPoint("TOPLEFT", CONTROLS_X, y - 5)
     control:SetPoint("TOPLEFT", CONTROLS_X + LABEL_WIDTH, y)
+    if setting then resetButton(caption, setting) end
     y = y - 30
 end
 
@@ -1238,15 +1287,15 @@ end, function()
     return ns.elementSetting(state.selected, "font")
 end, function(name)
     ns.setElementSetting(state.selected, "font", name)
-end))
+end), partSetting("font"))
 
 row("Size", slider(FIELD_WIDTH, function()
     return ns.elementSetting(state.selected, "size") or selectedElement().size
 end, function(size)
     ns.setElementSetting(state.selected, "size", size ~= selectedElement().size and size or nil)
-end))
+end), partSetting("size"))
 
-row("Color", colorControl())
+row("Color", colorControl(), partSetting("color"))
 
 row("Outline", dropdown(FIELD_WIDTH, function()
     local items = { { text = "Same as global settings" } }
@@ -1256,7 +1305,7 @@ end, function()
     return ns.elementSetting(state.selected, "outline")
 end, function(value)
     ns.setElementSetting(state.selected, "outline", value)
-end))
+end), partSetting("outline"))
 
 -- The part's default is saved as no setting.
 local allCaps = CreateFrame("CheckButton", nil, editor, "UICheckButtonTemplate")
@@ -1279,7 +1328,7 @@ allCaps.refresh = function()
     allCaps:SetChecked(caps)
 end
 controls[#controls + 1] = allCaps
-row("Letters", allCaps)
+row("Letters", allCaps, partSetting("caps"))
 
 local resetPart = flatButton(editor, "Reset this part", 120, function()
     ns.resetElement(state.selected)
@@ -1293,18 +1342,18 @@ row("Text font", dropdown(FIELD_WIDTH, function()
     return fontItems("Game default")
 end, function() return ns.option("bodyFont") end, function(name)
     ns.setOption("bodyFont", name)
-end))
+end), optionSetting("bodyFont"))
 row("Name font", dropdown(FIELD_WIDTH, function()
     return fontItems(ns.Game.addonInstalled("EllesmereUI") and "Expressway Bold (EllesmereUI)"
         or "Game default")
 end, function() return ns.option("titleFont") end, function(name)
     ns.setOption("titleFont", name)
-end))
+end), optionSetting("titleFont"))
 row("Outline", dropdown(FIELD_WIDTH, function() return OUTLINES end, function()
     return ns.option("outline")
 end, function(value)
     ns.setOption("outline", value ~= "NONE" and value or nil)
-end))
+end), optionSetting("outline"))
 
 section("Layout and color")
 local function showingItems() return state.tooltipType == "item" end
@@ -1339,9 +1388,17 @@ for index, toggle in ipairs(TOGGLES) do
 end
 y = y - 4
 
+-- Settings kept per tooltip type, named for the one shown.
+local function bandKey(edge)
+    return function() return "header" .. edge .. "Alpha" .. ns.TYPE_SUFFIX[state.tooltipType] end
+end
+local function typeKey(name)
+    return function() return name .. ns.TYPE_SUFFIX[state.tooltipType] end
+end
+
 -- A default value is saved as no setting, so it keeps following the backdrop.
 local function bandOpacity(edge)
-    local function key() return "header" .. edge .. "Alpha" .. ns.TYPE_SUFFIX[state.tooltipType] end
+    local key = bandKey(edge)
     -- What the tooltip type shows with no setting of its own.
     local function fallback() return ns.option("header" .. edge .. "Alpha") or ui.defaultHeaderAlpha() end
     return slider(FIELD_WIDTH, function()
@@ -1351,12 +1408,12 @@ local function bandOpacity(edge)
         ns.setOption(key(), math.abs(alpha - fallback()) > .001 and alpha or nil)
     end, 0, 100, "%")
 end
-row("Band top", bandOpacity("Top"))
-row("Band bottom", bandOpacity("Bottom"))
+row("Band top", bandOpacity("Top"), optionSetting(bandKey("Top")))
+row("Band bottom", bandOpacity("Bottom"), optionSetting(bandKey("Bottom")))
 
 -- The default opacity is saved as no setting.
 local function typeOpacity(name, default)
-    local function key() return name .. ns.TYPE_SUFFIX[state.tooltipType] end
+    local key = typeKey(name)
     return slider(FIELD_WIDTH, function()
         return math.floor((ns.option(key()) or default) * 100 + .5)
     end, function(percent)
@@ -1369,10 +1426,10 @@ row("Panel style", dropdown(FIELD_WIDTH, function() return BACKDROP_STYLES end, 
     return ns.option("backdropStyle")
 end, function(value)
     ns.setOption("backdropStyle", value)
-end))
-row("Backdrop", typeOpacity("backdropAlpha", ns.BACKDROP_ALPHA))
-row("Glow", typeOpacity("glowAlpha", 1))
-row("Footer", typeOpacity("footerAlpha", 1))
+end), optionSetting("backdropStyle"))
+row("Backdrop", typeOpacity("backdropAlpha", ns.BACKDROP_ALPHA), optionSetting(typeKey("backdropAlpha")))
+row("Glow", typeOpacity("glowAlpha", 1), optionSetting(typeKey("glowAlpha")))
+row("Footer", typeOpacity("footerAlpha", 1), optionSetting(typeKey("footerAlpha")))
 
 -- Shared by every tooltip type. The default is saved as no setting.
 local function panelSize(key, low, high)
@@ -1381,8 +1438,8 @@ local function panelSize(key, low, high)
         if ns.option(key) ~= value then ns.setOption(key, value) end
     end, low, high)
 end
-row("Padding", panelSize("padding", 8, 32))
-row("Min width", panelSize("minWidth", 120, 400))
+row("Padding", panelSize("padding", 8, 32), optionSetting("padding"))
+row("Min width", panelSize("minWidth", 120, 400), optionSetting("minWidth"))
 
 -- As tall as the controls column, so a row added never runs into the buttons.
 local height = -y + BUTTONS_SPACE
