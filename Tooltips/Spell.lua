@@ -116,8 +116,8 @@ local function badges(model, school)
     if model.talent then
         list[#list + 1] = { "Rank " .. model.talent.rank .. "/" .. model.talent.max, RANK_BADGE }
     end
-    -- Where the spell is shown from, as a macro.
-    if model.tag then list[#list + 1] = { model.tag, RANK_BADGE } end
+    -- Set by the types that show a spell: a macro's name, a pet ability's autocast.
+    for _, tag in ipairs(model.tags or {}) do list[#list + 1] = { tag[1], tag[2] or RANK_BADGE } end
     return list
 end
 

@@ -1,0 +1,72 @@
+== tooltip model
+cast:
+  1: "Instant"
+  2: "Cast"
+cells:
+  1:
+    1: "15"
+    2: "Focus"
+  2:
+    1: "Instant"
+    2: "Cast"
+  3:
+    1: "5 sec"
+    2: "Cooldown"
+  4:
+    1: "Melee"
+    2: "Range"
+cooldown:
+  1: "5 sec"
+  2: "Cooldown"
+cost:
+  1: "15"
+  2: "Focus"
+description:
+  1: "Taunt the target, increasing the likelihood the creature will focus attacks on you."
+details: {}
+extras: {}
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+name: "Growl"
+power: "Focus"
+range:
+  1: "Melee"
+  2: "Range"
+rank: "Rank 2"
+requirements: {}
+spellID: 14916
+== tooltip render
+panel 308 x 189
+texture at -16,-16 0x0 rgb=1,0.55,0.25,0.385 glow
+texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
+texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture unplaced 16x16 rgb=1,0.55,0.25,1 tooltip-TopLeftCorner
+texture unplaced 16x16 rgb=1,0.55,0.25,1 tooltip-TopRightCorner
+texture unplaced 16x16 rgb=1,0.55,0.25,1 tooltip-BottomLeftCorner
+texture unplaced 16x16 rgb=1,0.55,0.25,1 tooltip-BottomRightCorner
+texture unplaced 0x0 rgb=1,0.55,0.25,1 tooltip-TopEdge
+texture unplaced 0x0 rgb=1,0.55,0.25,1 tooltip-BottomEdge
+texture unplaced 0x0 rgb=1,0.55,0.25,1 tooltip-LeftEdge
+texture unplaced 0x0 rgb=1,0.55,0.25,1 tooltip-RightEdge
+text at 19,21 w=270 size=17 rgb=0.96,0.92,0.84 "GROWL"
+text at 19,46 w=38 size=12 rgb=0.82,0.78,0.71 "|cffB8B0A6Rank 2|r"
+texture at 19,75 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-75 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-70 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,88 w=67.5 size=13 rgb=1,0.7975,0.6625 "15"
+text at 19,105 w=67.5 size=9 rgb=0.6,0.57,0.52 "FOCUS"
+text at 86.5,88 w=67.5 size=13 rgb=0.96,0.92,0.84 "Instant"
+text at 86.5,105 w=67.5 size=9 rgb=0.6,0.57,0.52 "CAST"
+texture at 86.5,90 1x26 rgb=0.6,0.33,0.15,0.5 WHITE8X8
+text at 154,88 w=67.5 size=13 rgb=0.96,0.92,0.84 "5 sec"
+text at 154,105 w=67.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
+texture at 154,90 1x26 rgb=0.6,0.33,0.15,0.5 WHITE8X8
+text at 221.5,88 w=67.5 size=13 rgb=0.96,0.92,0.84 "Melee"
+text at 221.5,105 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
+texture at 221.5,90 1x26 rgb=0.6,0.33,0.15,0.5 WHITE8X8
+texture at 19,130 270x1 rgb=0.7,0.385,0.175,0.45 WHITE8X8
+text at 19,139 w=270 size=12 rgb=0.92,0.87,0.76 "Taunt the target, increasing the likelihood the creature will focus attacks on you."

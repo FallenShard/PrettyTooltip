@@ -20,27 +20,10 @@ local MUTED = util.hex(colors.caption)
 local PARTS = { "macroName", "macroBadges", "macroText", "extras" }
 local CASTS = { ["#showtooltip"] = true, ["/cast"] = true, ["/use"] = true }
 local SPELL = Enum.TooltipDataType.Spell
-local NESTED = Enum.TooltipDataLineType and Enum.TooltipDataLineType.NestedBlock
-
--- With #showtooltip, the game fills the macro's tooltip with the spell it
--- shows: a nested block naming it, then the spell's own lines.
-local function shownSpell(data)
-    if not NESTED then return end
-    for index, line in ipairs(data.lines) do
-        if isSecret(line) or type(line) ~= "table" or isSecret(line.type) then return end
-        if line.type == NESTED then
-            local id, kind = line.tooltipID, line.tooltipType
-            if isSecret(id) or isSecret(kind) or kind ~= SPELL or type(id) ~= "number" then return end
-            local lines = {}
-            for after = index + 1, #data.lines do lines[#lines + 1] = data.lines[after] end
-            return { type = SPELL, id = id, lines = lines }
-        end
-    end
-end
 
 local function macroKey(_, data)
     if isSecret(data.lines) or type(data.lines) ~= "table" then return end
-    local spell = shownSpell(data)
+    local spell = tooltipData.nestedSpell(data)
     if spell then return "spell" .. spell.id end
     local line = data.lines[1]
     if isSecret(line) or type(line) ~= "table" then return end
@@ -67,13 +50,14 @@ end
 
 local function readMacro(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    local spell = shownSpell(data)
+    -- With #showtooltip, the game fills the tooltip with the spell it shows.
+    local spell = tooltipData.nestedSpell(data)
     if spell then
         local spellType = ns.TooltipTypes[SPELL]
         local shown = spellType and spellType.read(tooltip, spell, game)
         if not shown then return end
         local name = game.macroShowing(spell.id)
-        shown.tag = name and ("Macro: " .. name) or "Macro"
+        shown.tags = { { name and ("Macro: " .. name) or "Macro" } }
         return { shows = shown }
     end
     local model = { extras = {}, lineIndices = {}, body = {} }

@@ -66,8 +66,29 @@ local function appendedRows(tooltip, lineIndices)
     end
     return rows
 end
+-- The spell a tooltip shows in full, as a #showtooltip macro's or a pet
+-- ability's: a nested block naming it, then the spell's own lines. Spell data
+-- for the spell reader, or nil.
+local function nestedSpell(data)
+    local nested = Enum.TooltipDataLineType and Enum.TooltipDataLineType.NestedBlock
+    if not nested then return end
+    for index, line in ipairs(data.lines) do
+        if isSecret(line) or type(line) ~= "table" or isSecret(line.type) then return end
+        if line.type == nested then
+            local id, kind = line.tooltipID, line.tooltipType
+            if isSecret(id) or isSecret(kind) or kind ~= Enum.TooltipDataType.Spell or type(id) ~= "number" then
+                return
+            end
+            local lines = {}
+            for after = index + 1, #data.lines do lines[#lines + 1] = data.lines[after] end
+            return { type = kind, id = id, lines = lines }
+        end
+    end
+end
+
 tooltipData.add = add
 tooltipData.colorOf = colorOf
 tooltipData.isRed = isRed
 tooltipData.requirementMet = requirementMet
 tooltipData.appendedRows = appendedRows
+tooltipData.nestedSpell = nestedSpell

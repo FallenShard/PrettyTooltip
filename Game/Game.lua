@@ -127,6 +127,27 @@ function game.macroShowing(spellID)
     end
 end
 
+-- The pet bar -----------------------------------------------------------------
+
+-- The pet bar slot showing this name: its icon, whether it is the active
+-- command or stance, and autocast (nil when the action has none). Commands
+-- and stances are named by global strings, as PET_ACTION_ATTACK.
+function game.petAction(name)
+    if not GetPetActionInfo or type(name) ~= "string" then return end
+    for slot = 1, NUM_PET_ACTION_SLOTS or 10 do
+        local ok, slotName, icon, isToken, isActive, autocastAllowed, autocastEnabled = pcall(GetPetActionInfo, slot)
+        slotName, icon, isToken = readable(slotName), readable(icon), readable(isToken)
+        if ok and type(slotName) == "string" then
+            if isToken then slotName, icon = _G[slotName] or slotName, _G[icon] or icon end
+            if slotName == name then
+                local autocast
+                if readable(autocastAllowed) then autocast = readable(autocastEnabled) == true end
+                return { icon = icon, active = readable(isActive) == true, autocast = autocast }
+            end
+        end
+    end
+end
+
 -- The player ------------------------------------------------------------------
 
 function game.playerLevel()

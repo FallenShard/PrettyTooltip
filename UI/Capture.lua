@@ -223,6 +223,17 @@ local function recordMacro(record, data)
     end
 end
 
+-- The pet bar: each slot's name, icon, and autocast state, and the icon of
+-- the spell an ability's tooltip nests.
+local function recordPetAction(record, data)
+    for _, line in ipairs(data.lines or {}) do
+        if type(line.tooltipID) == "number" then
+            record("C_Spell.GetSpellTexture", C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, line.tooltipID)
+        end
+    end
+    for slot = 1, NUM_PET_ACTION_SLOTS or 10 do record("GetPetActionInfo", GetPetActionInfo, slot) end
+end
+
 -- The player, the same for every tooltip type: level, spell power, and skills.
 local function recordPlayer(record)
     for _, name in ipairs({ "UnitLevel", "UnitClass", "UnitRace", "UnitFactionGroup", "UnitName" }) do
@@ -286,6 +297,8 @@ local function captureTooltip(tooltip)
             attempt("object", recordObject, record, data)
         elseif dataType == TYPES.Macro then
             attempt("macro", recordMacro, record, data)
+        elseif dataType == TYPES.PetAction then
+            attempt("pet action", recordPetAction, record, data)
         end
     end
     attempt("player", recordPlayer, record)
@@ -304,7 +317,7 @@ local OPTIONAL = {
     "C_Item.GetItemNameByID", "C_Item.RequestLoadItemDataByID", "C_Spell.GetSpellTexture",
     "C_Spell.GetSpellName", "C_UnitAuras.GetAuraDataByIndex", "C_UnitAuras.GetAuraDataByAuraInstanceID",
     "C_QuestLog.IsOnQuest", "C_QuestLog.IsQuestFlaggedCompleted", "C_CurrencyInfo.GetCoinTextureString",
-    "GetMacroInfo", "GetMacroIndexByName", "GetNumMacros", "GetMacroSpell",
+    "GetMacroInfo", "GetMacroIndexByName", "GetNumMacros", "GetMacroSpell", "GetPetActionInfo",
 }
 
 local function present()
