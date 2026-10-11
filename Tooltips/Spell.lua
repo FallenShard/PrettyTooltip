@@ -469,6 +469,6 @@ local function renderSpell(panel, tooltip, model)
     ui.renderView(panel, tooltip, spellView(model))
 end
 
-ui.registerTooltipType(SPELL, {
+ui.defineTooltipType(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
 })

@@ -26,7 +26,8 @@ return function(test)
         },
     }
     local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
-        "Data/Stats.lua", "Data/Coefficients.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Spell.lua" },
+        "Data/Stats.lua", "Data/Coefficients.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Spell.lua",
+        "Integration/Native.lua", "Integration/Hooks.lua" },
         capture)
     local model = ns.TooltipTypes[SPELL].read(world.main, capture.data, ns.Game)
     test.check("the rank is read", { model.talent.rank, model.talent.max }, { 2, 5 })
@@ -36,6 +37,7 @@ return function(test)
 
     -- Drawn through the game's handover, then a line rewritten in place.
     C_Timer.After = function(_, callback) callback() end
+    ns.Hooks.install()
     for _, postCall in ipairs(world.postCalls[SPELL]) do postCall(world.main, capture.data) end
     local panel = ns.ui.shownPanel(world.main)
     local function shows(text)

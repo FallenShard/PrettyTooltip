@@ -236,6 +236,6 @@ local function renderObject(panel, tooltip, model)
 end
 
 ui.objectModel = function(fields) return completeModel(fields, ns.Game) end
-ui.registerTooltipType(OBJECT, {
+ui.defineTooltipType(OBJECT, {
     read = readObject, render = renderObject, key = objectKey, option = "objectPanels",
 })

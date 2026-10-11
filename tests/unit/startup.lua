@@ -111,7 +111,8 @@ return function(test)
         lines = { { left = { text = "Test Item" } }, { left = { text = "+6 Intellect" } } },
     }
     local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Data/Stats.lua",
-        "Panel/Layout.lua", "Tooltips/Item.lua", "Panel/Render.lua", "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
+        "Panel/Layout.lua", "Tooltips/Item.lua", "Panel/Render.lua", "Integration/Native.lua", "Integration/Hooks.lua",
+        "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
         "UI/Commands.lua", "PrettyTooltip.lua" }
     ns, world = test.load(integrated, item)
     test.check("item integration post-calls wait for startup", world.postCalls[0], nil)
@@ -150,7 +151,7 @@ return function(test)
     local count = #world.objects
     ns.start()
     ns.ItemLite.register()
-    ns.ui.registerItemHooks()
+    ns.Hooks.install()
     ns.Cursor.register()
     test.check("repeated installation creates no frames", #world.objects, count)
     test.check("repeated installation creates no post-calls", #world.postCalls[0], 3)

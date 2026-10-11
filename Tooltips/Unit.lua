@@ -387,4 +387,4 @@ ui.unitModel = function(fields)
     return completeModel(fields, nil, ns.Game)
 end
 -- Its target, tapped, and dead rows come from the game, not the tooltip's text.
-ui.registerTooltipType(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true })
+ui.defineTooltipType(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true })

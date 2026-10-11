@@ -302,7 +302,7 @@ ui.questModel = function(fields)
     end
     return completeModel(fields, nil, ns.Game)
 end
-ui.registerTooltipType(QUEST, { read = readQuest, render = renderQuest, key = questKey, option = "questPanels" })
+ui.defineTooltipType(QUEST, { read = readQuest, render = renderQuest, key = questKey, option = "questPanels" })
 
 local function linkedQuest(link)
     if type(link) ~= "string" then return end
@@ -318,7 +318,7 @@ end
 -- Questie fills the tooltip with lines itself, for its own links and the game's.
 local function drawQuestie(tooltip, id)
     if tooltip:IsShown() and tooltip:NumLines() > 0 and not hasQuestData(tooltip) then
-        ui.renderLines(tooltip, QUEST, id)
+        if ns.Hooks then ns.Hooks.renderLines(tooltip, QUEST, id) end
     end
 end
 

@@ -208,4 +208,4 @@ ui.auraModel = function(fields)
     fields.extras = fields.extras or {}
     return completeModel(fields, nil, ns.Game)
 end
-ui.registerTooltipType(AURA, { read = readAura, render = renderAura, key = auraKey, option = "auraPanels" })
+ui.defineTooltipType(AURA, { read = readAura, render = renderAura, key = auraKey, option = "auraPanels" })

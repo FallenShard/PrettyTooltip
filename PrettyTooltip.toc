@@ -26,6 +26,8 @@ Tooltips\Aura.lua
 Tooltips\Quest.lua
 UI\Options.lua
 UI\Editor.lua
+Integration\Native.lua
+Integration\Hooks.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
 UI\Capture.lua
