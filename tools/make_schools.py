@@ -32,6 +32,22 @@ BITS = [(2, "Holy"), (4, "Fire"), (8, "Nature"), (16, "Frost"), (32, "Shadow"), 
 # Masks naming more than one school that the palette has a tint for.
 BLENDS = {2 | 4: "Holyfire", 4 | 16: "Frostfire"}
 
+# Forever's own spells, which Classic's data lacks, with their schools by hand.
+# Used only where the data has nothing; the data wins any disagreement.
+EXTRA = {
+    "Holy Strike": "Holy", "Seal of Fury": "Holy", "Light's Vigil": "Holy", "Hammer of the Righteous": "Holy",
+    "Voice of Truth": "Holy", "Swift Judgement": "Holy", "Templar's Bulwark": "Holy",
+    "Divine Grace": "Holy", "Chastise": "Holy", "Confounding Flash": "Holy", "Contingency Plan": "Holy",
+    "Penance": "Holy", "Dark Sacrifice": "Shadow", "Shadow Word: Death": "Shadow",
+    "Summon Hawk": "Nature", "Aspect of the Viper": "Nature", "Aspect of the Falcon": "Nature", "Strider Kick": "Nature",
+    "Venom": "Nature", "Occult Poison": "Nature", "Atrophic Poison": "Nature", "Numbing Poison": "Nature",
+    "Sebacious Poison": "Nature", "Totemic Projection": "Nature", "Totemic Recall": "Nature",
+    "Call of the Elements": "Nature", "Call of the Ancestors": "Nature", "Call of the Spirits": "Nature",
+    "Feral Charge": "Nature", "Shifting Power": "Nature",
+    "Teleport: Dalaran": "Arcane", "Comprehend Scroll": "Arcane", "Study": "Arcane",
+    "Portal of Summoning": "Shadow", "Explorer Imp": "Shadow",
+}
+
 
 def fetch(url, name, refresh):
     path = CACHE / name
@@ -88,6 +104,9 @@ def main():
         for name, ids in spells.items():
             total += 1
             found = Counter(school_of(masks[i]) for i in ids if i in masks)
+            if not found and name in EXTRA:
+                schools[EXTRA[name]].add(name)
+                continue
             if not found:
                 missing.append(f"{cls}: {name} {ids}")
                 continue
@@ -96,6 +115,8 @@ def main():
                 disagree.append(f"{cls}: {name} {dict(found)}, kept {school}")
             if school:
                 schools[school].add(name)
+            if name in EXTRA and EXTRA[name] != school:
+                disagree.append(f"{cls}: {name} is {school} in the data, {EXTRA[name]} by hand; kept the data")
 
     lines = [
         "-- Each class spell's magic school by name, which every rank shares; physical",
@@ -138,7 +159,7 @@ def main():
             print("  " + line)
     if missing:
         print(f"{len(missing)} spells with no Classic data (left out):")
-        for line in missing[:20]:
+        for line in missing:
             print("  " + line)
 
 
