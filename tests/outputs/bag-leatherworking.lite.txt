@@ -1,0 +1,7 @@
+== tooltip as the game shows it
+ 1 "Apprentice's Skinning Satchel"
+ 2 "Soulbound"
+ 3 "4 Slot Leatherworking Bag"
+ 4 "Sell Price: 6|A:coin-copper:14:14:2:0|a"
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Item"

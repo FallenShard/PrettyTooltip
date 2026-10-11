@@ -50,6 +50,20 @@ local function getItemInfo(tooltip, data)
     if not isSecret(data.id) then return data.id end
 end
 
+-- A bag's "16 Slot Soul Bag" line, in its subtitle: the kind of bag, in place
+-- of a plainer slot it ends with, then the slots.
+local function withBagSlots(item)
+    local bag = item.bag
+    if not bag then return end
+    local slot, kind = item.slot or "", bag.kind
+    if slot == "" or kind:sub(-#slot) == slot then
+        slot = kind
+    elseif slot ~= kind then
+        slot = slot .. " \194\183 " .. kind
+    end
+    item.slot = slot .. " \194\183 " .. bag.count .. (bag.count == 1 and " Slot" or " Slots")
+end
+
 local function getQuality(itemInfo, data, game)
     local info = game.itemInfo(itemInfo)
     if info and type(info.quality) == "number" then return info.quality end
@@ -342,6 +356,9 @@ local function readModel(tooltip, data, game)
             or trimmed == "Soulbound" or trimmed:match("^Unique") then
             add(m.header, left, right)
             if isRed(line.leftColor) then m.header[#m.header].color = UNUSABLE_COLOR end
+        elseif trimmed:match("^%d+ Slot %a") and right == "" then
+            local count, kind = trimmed:match("^(%d+) Slot (.+)$")
+            m.bag = { count = tonumber(count), kind = kind }
         elseif itemKind(left, right) then
             local kind, text = itemKind(left, right, line.leftColor)
             m.kinds[kind] = text
@@ -506,6 +523,8 @@ local function readModel(tooltip, data, game)
         local kinds = table.concat(shown, " \194\183 ")
         model.slot = model.slot and model.slot ~= "" and (model.slot .. " \194\183 " .. kinds) or kinds
     end
+    withBagSlots(model)
+    if model.created then withBagSlots(model.created) end
 
     -- The item's own price is per unit; the data line's covers the stack.
     local unitPrice
