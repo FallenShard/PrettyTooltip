@@ -13,7 +13,7 @@ return function(test)
         "Data/Stats.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Spell.lua", "Integration/ItemLite.lua" }, capture)
     ns.ItemLite.register()
     ns.ui.registerItemHooks()
-    local function styleOnHit(text) return ns.Stats.styleOnHit(text, ns.option("statColors")) end
+    local function styleEffect(text) return ns.Stats.styleEffect(text, ns.option("statColors")) end
     local function color(code, text) return "|cff" .. code .. text .. "|r" end
 
     for school, code in pairs({
@@ -21,7 +21,7 @@ return function(test)
         Nature = "A6DB7E", Shadow = "BF84EB", Holyfire = "FDB46A",
     }) do
         local text = "Deals 40 " .. school .. " damage."
-        local styled = styleOnHit(text)
+        local styled = styleEffect(text)
         test.check(school .. " proc palette", styled, "Deals " .. color(code, "40") .. " " .. school .. " damage.")
         -- Render a real spell description to ensure the two paths agree.
         local spell = { name = "Test spell", rank = "", cells = {}, details = {}, requirements = {},
@@ -33,32 +33,32 @@ return function(test)
         end
         test.check(school .. " proc matches spell rendering", styled, description)
     end
-    test.check("unqualified damage uses spell fallback", styleOnHit("Deals 40 to 60 damage."),
+    test.check("unqualified damage uses spell fallback", styleEffect("Deals 40 to 60 damage."),
         "Deals " .. color("FFF6E4", "40") .. " to " .. color("FFF6E4", "60") .. " damage.")
-    test.check("physical damage uses spell fallback", styleOnHit("Deals 40 Physical damage."),
+    test.check("physical damage uses spell fallback", styleEffect("Deals 40 Physical damage."),
         "Deals " .. color("FFF6E4", "40") .. " Physical damage.")
-    test.check("non-damage proc uses neutral numbers", styleOnHit("Stuns the target for 3 sec."),
+    test.check("non-damage proc uses neutral numbers", styleEffect("Stuns the target for 3 sec."),
         "Stuns the target for " .. color("FFF6E4", "3") .. " sec.")
-    test.check("unknown school stays readable", styleOnHit("Deals 40 Chaos damage."),
+    test.check("unknown school stays readable", styleEffect("Deals 40 Chaos damage."),
         "Deals " .. color("FFF6E4", "40") .. " Chaos damage.")
-    test.check("capitalized school labels", styleOnHit("Deals 40 FIRE DAMAGE."),
+    test.check("capitalized school labels", styleEffect("Deals 40 FIRE DAMAGE."),
         "Deals " .. color("FF9960", "40") .. " FIRE DAMAGE.")
-    test.check("generic damage wording does not mask the school", styleOnHit("Causes additional damage: 40 Fire damage."),
+    test.check("generic damage wording does not mask the school", styleEffect("Causes additional damage: 40 Fire damage."),
         "Causes additional damage: " .. color("FF9960", "40") .. " Fire damage.")
-    test.check("creature names cannot imply a school", styleOnHit("Deals 40 damage to Fire Elementals."),
+    test.check("creature names cannot imply a school", styleEffect("Deals 40 damage to Fire Elementals."),
         "Deals " .. color("FFF6E4", "40") .. " damage to Fire Elementals.")
-    test.check("non-damage school mentions cannot imply a school", styleOnHit("Rapid Fire grants 20% attack speed."),
+    test.check("non-damage school mentions cannot imply a school", styleEffect("Rapid Fire grants 20% attack speed."),
         "Rapid Fire grants " .. color("FFF6E4", "20%") .. " attack speed.")
     test.check("spell names can supply a school", ns.Palette.detectSchool({ "Heals 40 health." }, "Holy Light"), "Holy")
     test.check("description takes precedence over spell name", ns.Palette.detectSchool({ "Deals 40 Fire damage." }, "Holy Light"), "Fire")
     local escaped = "Deals 40 Fire damage. |TInterface\\Icons\\Spell_Fire_01:16:16|t"
-    test.check("icon escapes are preserved", styleOnHit(escaped),
+    test.check("icon escapes are preserved", styleEffect(escaped),
         "Deals " .. color("FF9960", "40") .. " Fire damage"
             .. ". |TInterface\\Icons\\Spell_Fire_01:16:16|t")
-    local styled = styleOnHit(original)
-    test.check("highlighting is repeatable", styleOnHit(styled), styled)
+    local styled = styleEffect(original)
+    test.check("highlighting is repeatable", styleEffect(styled), styled)
     ns.setOption("statColors", false)
-    test.check("stat colors off preserves wording", styleOnHit(original), original)
+    test.check("stat colors off preserves wording", styleEffect(original), original)
     local plainData = { type = 0, lines = { { type = 0, lineIndex = 2, leftText = original } } }
     world.preCalls[0][1](world.main, plainData)
     test.check("native proc stays unchanged with stat colors off", plainData.lines[1].leftText, original)
@@ -96,9 +96,9 @@ return function(test)
         end
         error("on-hit effect was not drawn")
     end
-    test.check("panel highlights proc", renderedEffect():GetText(), styleOnHit(effect))
+    test.check("panel highlights proc", renderedEffect():GetText(), styleEffect(effect))
     ns.setOption("statMarkers", false)
-    test.check("markers off restores prefix and keeps colors", renderedEffect():GetText(), "Chance on hit: " .. styleOnHit(effect))
+    test.check("markers off restores prefix and keeps colors", renderedEffect():GetText(), "Chance on hit: " .. styleEffect(effect))
     ns.setOption("statColors", false)
     test.check("panel respects stat colors off", renderedEffect():GetText(), "Chance on hit: " .. effect)
     ns.setOption("statColors", true)
@@ -110,7 +110,7 @@ return function(test)
     ns.setElementSetting("equipEffects", "size", 15)
     test.check("a redrawn string takes a new size", renderedEffect()._font.size, 15)
     ns.setElementSetting("equipEffects", "color", nil)
-    test.check("a redrawn string drops a removed color", renderedEffect():GetText(), "Chance on hit: " .. styleOnHit(effect))
+    test.check("a redrawn string drops a removed color", renderedEffect():GetText(), "Chance on hit: " .. styleEffect(effect))
 
     -- A line the game marks as a proc is one without the English "Chance on hit:".
     local marked = "Deals 40 Fire damage."
@@ -131,5 +131,5 @@ return function(test)
     ns.ItemLite.register()
     world.preCalls[0][1](world.main, markedData)
     test.check("a marked proc is colored on the game's tooltip", markedData.lines[2].prettyTooltipDisplay,
-        ns.Stats.styleOnHit(marked, true))
+        ns.Stats.styleEffect(marked, true))
 end

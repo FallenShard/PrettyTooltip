@@ -36,7 +36,7 @@ local function onItemTooltip(_, data)
                     local display, colored = stats.styleStat(displayText, ns.option("statColors"), ns.option("statMarkers"))
                     local onHit = proc or displayText:match("^Chance on hit:")
                     if onHit then
-                        local effect = stats.styleOnHit(displayText, ns.option("statColors"))
+                        local effect = stats.styleEffect(displayText, ns.option("statColors"))
                         if effect ~= displayText then display, colored = effect, effect end
                     end
                     liteLines[displayIndex] = ns.option("statColors") and colored or displayText

@@ -34,13 +34,29 @@ palette.schools.Holyfire = { (holy[1] + fire[1]) / 2, (holy[2] + fire[2]) / 2, (
 local schoolNames = {}
 for name in pairs(palette.schools) do schoolNames[name:lower()] = name end
 
--- A school must describe damage, so "Fire Elementals" and "Rapid Fire"
--- cannot change the color. Spell names may supply a leading school instead.
+-- A school must name damage or spells, as "40 Fire damage" or "your Fire
+-- spells", so "Fire Elementals" and "Rapid Fire" cannot change the color.
+-- Spell names may supply a leading school instead.
+local SCHOOL_PATTERNS = { "%f[%a](%a+)%s+damage%f[%A]", "%f[%a](%a+)%s+spells?%f[%A]" }
+
 function palette.detectSchool(description, name)
     for _, text in ipairs(description) do
-        for word in util.plainText(text):lower():gmatch("%f[%a](%a+)%s+damage%f[%A]") do
-            if schoolNames[word] then return schoolNames[word] end
+        local plain = util.plainText(text):lower()
+        -- The earliest mention wins, whichever wording it uses.
+        local found, at
+        for _, pattern in ipairs(SCHOOL_PATTERNS) do
+            local position = 1
+            while true do
+                local start, stop, word = plain:find(pattern, position)
+                if not start then break end
+                if schoolNames[word] then
+                    if not at or start < at then found, at = schoolNames[word], start end
+                    break
+                end
+                position = stop + 1
+            end
         end
+        if found then return found end
     end
     local first = name and name:match("^(%a+)")
     return first and schoolNames[first:lower()] or nil

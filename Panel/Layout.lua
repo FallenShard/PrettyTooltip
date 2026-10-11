@@ -1124,12 +1124,14 @@ end
 
 -- Equip effects, enchants, and use effects, each led by a marker (a chance on
 -- hit by the sword) drawn apart from the text, so wrapped lines hang under it.
-local function drawMarked(panel, list, y, style, color, marker)
+-- numbers: an effect's numbers are highlighted, in its school's tint when it
+-- names one; enchants read as stats and keep theirs.
+local function drawMarked(panel, list, y, style, color, marker, numbers)
     local hang = markerIndent(panel, style)
     local width = panel.width - 2 * PAD - hang
     for _, row in ipairs(list) do
         local text = row.left
-        if row.onHit and ns.Stats then text = ns.Stats.styleOnHit(text, ns.option("statColors")) end
+        if numbers then text = ns.Stats.styleEffect(text, ns.option("statColors")) end
         local stands = row.onHit and MARKED.onHit or row.use and MARKED.use
         if hang > 0 then
             styledAt(panel, stands and stands[1] or marker, PAD, y, hang, style, color)
@@ -1147,7 +1149,7 @@ end
 local function drawEffects(panel, list, y, style, color)
     for _, row in ipairs(list) do
         if row.use then
-            y = drawMarked(panel, { row }, y, style, color)
+            y = drawMarked(panel, { row }, y, style, color, nil, true)
         else
             y = drawRow(panel, row, y, style, color)
         end
@@ -1640,7 +1642,7 @@ local function drawBody(panel, model, styles, y, inner, opened)
             y = divider(panel, y, GOLD_RULE, 3)
         end
         y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
-        y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER)
+        y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
         y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
         if #model.effects > 0 then y = y + 5 end
         y = drawEffects(panel, model.effects, y, styles.effects, { .48, .88, .48 })

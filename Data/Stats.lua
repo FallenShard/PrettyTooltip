@@ -160,9 +160,9 @@ function stats.styleDamage(text, colors)
     return "|cff" .. color .. amount .. "|r |cff" .. labelColors[color] .. school .. " Damage|r"
 end
 
--- Proc descriptions use the same school detection and lighter number colors
--- as spell descriptions, with the same neutral fallback.
-function stats.styleOnHit(text, colors)
+-- Item effects (procs, Use, and Equip) use the same school detection and
+-- lighter number colors as spell descriptions, with the same neutral fallback.
+function stats.styleEffect(text, colors)
     if not colors then return text end
     text = ns.util.uncolored(text)
     local school = ns.Palette.detectSchool({ text })
