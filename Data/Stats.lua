@@ -3,6 +3,10 @@ local _, ns = ...
 local stats = {}
 ns.Stats = stats
 
+local function titleCase(word)
+    return word:sub(1, 1):upper() .. word:sub(2)
+end
+
 local function bonus(amount, label, percent)
     return "+" .. amount .. (percent and "% " or " ") .. label
 end
@@ -129,7 +133,9 @@ local function colorizeStat(text, colors)
     if not amount then return end
     amount = amount:gsub(",", "")
 
-    local color = statColors[label]
+    -- A bonus against one kind of creature, "Attack Power vs Undead", takes
+    -- its stat's color.
+    local color = statColors[label] or statColors[label:match("^(.-) vs %a+$") or ""]
     if not color then
         local school = label:match("^(%a+) Spell Power$")
             or label:match("^(%a+) Spell Damage Power$")
@@ -192,6 +198,14 @@ local shortEquipStats = {
 function stats.rewrite(text)
     if type(text) ~= "string" then return end
     local line = ns.util.trim(text):lower()
+    -- Bonuses against one kind of creature: Undead, Demons, Elementals, Beasts.
+    local creature, amount = line:match("^equip: increases damage done to (%a+) by magical spells and effects by up to (%d+)%.?$")
+    if creature then return { bonus(amount, "Spell Damage Power vs " .. titleCase(creature)) } end
+    amount, creature = line:match("^equip: %+(%d+) attack power when fighting (%a+)%.?$")
+    if not amount then amount, creature = line:match("^equip: increases attack power by (%d+) when fighting (%a+)%.?$") end
+    if not amount then amount, creature = line:match("^equip: increases attack power by (%d+) against (%a+)%.?$") end
+    if amount then return { bonus(amount, "Attack Power vs " .. titleCase(creature)) } end
+
     local shortAmount, shortStat = line:match("^equip: %+(%d+) ([%a ]+)%.?$")
     if shortAmount and shortEquipStats[shortStat] then
         return { bonus(shortAmount, shortEquipStats[shortStat]) }
@@ -205,7 +219,7 @@ function stats.rewrite(text)
         }
     end
 
-    local amount = line:match("^equip: increases damage and healing done by magical spells and effects by up to (%d+)%.?$")
+    amount = line:match("^equip: increases damage and healing done by magical spells and effects by up to (%d+)%.?$")
         or line:match("^equip: increases spell damage and healing by up to (%d+)%.?$")
         or line:match("^equip: increases damage and healing done by spells and effects by up to (%d+)%.?$")
     if amount then return { bonus(amount, "Spell Power") } end

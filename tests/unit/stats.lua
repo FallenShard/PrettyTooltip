@@ -43,6 +43,24 @@ return function(test)
         { "+20 Healing Power", "+10 Spell Damage Power" })
     test.check("shortening retains whitespace tolerance", stats.rewrite("  Equip: +20 Attack Power.  "),
         { "+20 Attack Power" })
+    -- Bonuses against one kind of creature read as stats, in their stat's color.
+    test.check("spell damage against a creature type", stats.rewrite(
+        "Equip: Increases damage done to Elementals by magical spells and effects by up to 9."),
+        { "+9 Spell Damage Power vs Elementals" })
+    test.check("attack power against a creature type", stats.rewrite("Equip: +20 Attack Power when fighting Undead."),
+        { "+20 Attack Power vs Undead" })
+    -- Each creature type, for both stats and every wording.
+    for _, creature in ipairs({ "Humanoids", "Elementals", "Beasts" }) do
+        test.check("spell damage vs " .. creature, stats.rewrite("Equip: Increases damage done to " .. creature
+            .. " by magical spells and effects by up to 12."), { "+12 Spell Damage Power vs " .. creature })
+        for _, wording in ipairs({ "Equip: +30 Attack Power when fighting %s.", "Equip: Increases attack power by 30 when fighting %s.",
+            "Equip: Increases attack power by 30 against %s." }) do
+            test.check("attack power vs " .. creature .. ": " .. wording, stats.rewrite(wording:format(creature)),
+                { "+30 Attack Power vs " .. creature })
+        end
+    end
+    test.check("a creature bonus takes its stat's color", stats.styleStat("+20 Attack Power vs Undead", true, false),
+        "|cffFF8357+20|r |cffF5B8A1Attack Power vs Undead|r")
     test.check("unclaimed text is left to reader", stats.rewrite("Durability 100 / 100"), nil)
     test.check("formatting does not mutate saved settings", PrettyTooltipDB, { statColors = false, statMarkers = false })
 end
