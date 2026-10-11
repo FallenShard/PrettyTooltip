@@ -3,7 +3,7 @@
 local _, ns = ...
 local ui = ns.ui
 local SPELL = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Spell
-if not (ui and SPELL) then
+if not (ui and SPELL and ui.renderView) then
     return
 end
 
@@ -13,7 +13,6 @@ local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
 local add = ui.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
-local drawBadges, badgesWidth = ui.drawBadges, ui.badgesWidth
 local PAD = ui.PAD
 local PARTS = { "spellTitle", "spellBadges", "spellValues", "spellCaptions", "spellDetails",
     "spellText", "extras" }
@@ -26,9 +25,9 @@ local UNMET_COLOR = colors.unmet
 local STRIP_HEIGHT = 34
 -- Spells have one title line, so a smaller icon keeps the header short.
 local ICON_SIZE = 38
-local TEXT_INDENT = ICON_SIZE + 10
 -- Spells are tinted a little less than items; the school is only a hint.
 local SPELL_TINT = .7
+local EXTRAS_RULE = { .50, .50, .54 }
 local SCHOOL_COLORS = ns.Palette.schools
 local POWER_COLORS = {
     Mana = { .25, .55, 1 },
@@ -108,9 +107,9 @@ end
 
 local colorNumbers = util.colorNumbers
 
-local function badges(model)
+local function badges(model, school)
     local list = {}
-    if model.school then list[#list + 1] = { model.school, SCHOOL_COLORS[model.school] } end
+    if school then list[#list + 1] = { school, SCHOOL_COLORS[school] } end
     if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_BADGE } end
     if model.passive then list[#list + 1] = { model.passive, RANK_BADGE } end
     return list
@@ -250,42 +249,28 @@ local function nestedTitleStyle(title)
     return style
 end
 
-local function fitWidth(panel, model, styles)
-    local indent = model.icon and TEXT_INDENT or 0
-    local need = measureStyled(panel, model.name, styles.spellTitle) + indent
-    local list = badges(model)
-    if #list > 0 then
-        need = math.max(need, badgesWidth(panel, list, styles.spellBadges) + indent)
-    end
+-- The widest thing in one spell's body: its strip, rows, and sentences.
+local function bodyWidth(panel, part, body, styles)
+    local need = 0
     local function consider(width) if width > need then need = width end end
-    for _, part in ipairs({ model, model.nested }) do
-        if #part.cells > 0 then
-            local widest = 0
-            for _, cell in ipairs(part.cells) do
-                widest = math.max(widest, measureStyled(panel, cell[1], styles.spellValues),
-                    measureStyled(panel, cell[2]:upper(), styles.spellCaptions))
-            end
-            consider((widest + 16) * #part.cells)
+    if #part.cells > 0 then
+        local widest = 0
+        for _, cell in ipairs(part.cells) do
+            widest = math.max(widest, measureStyled(panel, cell[1], styles.spellValues),
+                measureStyled(panel, cell[2]:upper(), styles.spellCaptions))
         end
-        for _, rows in ipairs({ part.details, part.requirements }) do
-            for _, row in ipairs(rows) do consider(ui.rowWidth(panel, row, styles.spellDetails)) end
-        end
-        for _, sentence in ipairs(part.sentences) do
-            consider(math.min(measureStyled(panel, sentence, styles.spellText), ui.PROSE_WIDTH))
-        end
-        for _, row in ipairs(part.powerRows or {}) do
-            consider(ui.rowWidth(panel, row, styles.spellDetails))
-        end
+        consider((widest + 16) * #part.cells)
     end
-    if model.nested and model.nested.name then
-        consider(measureStyled(panel, model.nested.name, nestedTitleStyle(styles.spellTitle)))
+    for _, rows in ipairs({ part.details, part.requirements }) do
+        for _, row in ipairs(rows) do consider(ui.rowWidth(panel, row, styles.spellDetails)) end
     end
-    for _, row in ipairs(model.extras) do
-        local width = ui.rowWidth(panel, row, styles.extras)
-        if not row.right or row.right == "" then width = math.min(width, ui.PROSE_WIDTH) end
-        consider(width)
+    for _, sentence in ipairs(body.sentences) do
+        consider(math.min(measureStyled(panel, sentence, styles.spellText), ui.PROSE_WIDTH))
     end
-    return math.max(ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
+    for _, row in ipairs(body.powerRows or {}) do
+        consider(ui.rowWidth(panel, row, styles.spellDetails))
+    end
+    return need
 end
 
 local function drawStrip(panel, model, y, color, styles)
@@ -313,13 +298,14 @@ local function drawStrip(panel, model, y, color, styles)
     return y + height
 end
 
-local function hasBody(part)
-    return #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #part.sentences > 0
-        or part.powerRows ~= nil
+local function hasBody(part, body)
+    return #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #body.sentences > 0
+        or body.powerRows ~= nil
 end
 
--- The strip, requirements, and description of the spell or the one nested in it.
-local function drawBody(panel, part, y, color, styles, numberCode)
+-- The strip, requirements, and description of the spell or the one nested in
+-- it; body holds its sentences and spell power rows.
+local function drawBody(panel, part, body, y, color, styles, numberCode)
     if #part.cells > 0 then
         y = drawStrip(panel, part, y, color, styles) + 2
     end
@@ -327,88 +313,81 @@ local function drawBody(panel, part, y, color, styles, numberCode)
         y = ui.drawGroup(panel, part.requirements, y + 2, styles.spellDetails, DETAIL_COLOR, 0, 2)
         y = ui.drawGroup(panel, part.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
     end
-    if #part.sentences > 0 then
+    if #body.sentences > 0 then
         if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 then
             y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
         end
-        for _, sentence in ipairs(part.sentences) do
+        for _, sentence in ipairs(body.sentences) do
             y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
                 y, styles.spellText, colors.description, 0, 5)
         end
     end
-    if part.powerRows then
-        if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #part.sentences > 0 then
+    if body.powerRows then
+        if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #body.sentences > 0 then
             y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
         end
-        y = ui.drawGroup(panel, part.powerRows, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
+        y = ui.drawGroup(panel, body.powerRows, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
     end
     return y
 end
 
-local function renderSpell(panel, tooltip, model)
-    panel:Show()
-    ui.clearPool(panel)
-    if not ns.option("iconSpells") then model.icon = nil end
-    model.school = ns.Palette.detectSchool(model.description, model.name)
-    local numberCode = ns.Palette.numberCode(model.school and SCHOOL_COLORS[model.school])
-    for _, part in ipairs({ model, model.nested }) do
-        part.sentences = sentencesOf(part)
-        part.powerRows = ns.option("spellPower") and ns.spellPowerRows
-            and ns.spellPowerRows(part, numberCode, ns.Game) or nil
-    end
+-- What the panel shows, for Panel/Render.lua to draw. Each spell's body,
+-- its own and a nested one's, is drawn here as one custom section.
+local function spellView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
-    panel.width = fitWidth(panel, model, styles)
-    panel:SetWidth(panel.width)
+    local school = ns.Palette.detectSchool(model.description, model.name)
+    local numberCode = ns.Palette.numberCode(school and SCHOOL_COLORS[school])
     local power = model.power and POWER_COLORS[model.power]
-    local accent = model.school and SCHOOL_COLORS[model.school] or power
+    local accent = school and SCHOOL_COLORS[school] or power
     local color = accent or colors.neutral
-    local headerMin = ui.drawChrome(panel, tooltip, {
+    local function bodyOf(part)
+        return { sentences = sentencesOf(part), powerRows = ns.option("spellPower") and ns.spellPowerRows
+            and ns.spellPowerRows(part, numberCode, ns.Game) or nil }
+    end
+
+    local sections = {}
+    local body = bodyOf(model)
+    if hasBody(model, body) then
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "custom",
+            measure = function(panel) return bodyWidth(panel, model, body, styles) end,
+            draw = function(panel, y) return drawBody(panel, model, body, y, color, styles, numberCode) end }
+    end
+    local nested = model.nested
+    if nested and nested.name then
+        local nestedBody = bodyOf(nested)
+        local titleStyle = nestedTitleStyle(styles.spellTitle)
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE, before = #sections > 0 and 8 or 0 },
+            kind = "custom",
+            measure = function(panel)
+                return math.max(measureStyled(panel, nested.name, titleStyle), bodyWidth(panel, nested, nestedBody, styles))
+            end,
+            draw = function(panel, y)
+                y = y + styledAt(panel, nested.name, PAD, y, panel.width - 2 * PAD, titleStyle, TITLE_COLOR) + 6
+                return drawBody(panel, nested, nestedBody, y, color, styles, numberCode)
+            end }
+    end
+    if #model.extras > 0 then
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 12 },
+            kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+    end
+    return {
         tooltipType = "spell",
         color = color,
         tint = accent,
         strength = SPELL_TINT,
-        icon = model.icon,
+        icon = ns.option("iconSpells") and model.icon or nil,
         iconSize = ICON_SIZE,
-    })
+        header = {
+            { text = model.name, style = styles.spellTitle, color = TITLE_COLOR, gap = 4 },
+            { badges = badges(model, school), style = styles.spellBadges, before = 1, gap = 4 },
+        },
+        sections = sections,
+    }
+end
 
-    local inner = panel.width - 2 * PAD
-    local y = ui.TITLE_TOP
-    local indent = model.icon and TEXT_INDENT or 0
-    local leftIndent = ui.headerInsets(indent)
-    y = y + styledAt(panel, model.name, PAD + leftIndent, y, inner - indent, styles.spellTitle,
-        TITLE_COLOR) + 4
-    local list = badges(model)
-    if #list > 0 then
-        y = drawBadges(panel, list, PAD + leftIndent, y + 1, styles.spellBadges) + 4
-    end
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
-    panel.footer:SetHeight(0)
-
-    local sectioned = false
-    if hasBody(model) then
-        y = drawBody(panel, model, ui.divider(panel, y, ui.GOLD_RULE), color, styles, numberCode)
-        sectioned = true
-    end
-    local nested = model.nested
-    if nested and nested.name then
-        y = ui.divider(panel, y, ui.GOLD_RULE, sectioned and 8 or 0)
-        y = y + styledAt(panel, nested.name, PAD, y, inner, nestedTitleStyle(styles.spellTitle),
-            TITLE_COLOR) + 6
-        y = drawBody(panel, nested, y, color, styles, numberCode)
-        sectioned = true
-    end
-
-    if #model.extras > 0 then
-        if sectioned then
-            y = ui.rule(panel, y, { .50, .50, .54 }, 8)
-        else
-            y = y + 12
-        end
-        y = ui.drawGroup(panel, model.extras, y, styles.extras, ui.EXTRA_COLOR, 0, 2)
-    end
-    ui.finishPanel(panel, tooltip, y)
+local function renderSpell(panel, tooltip, model)
+    ui.renderView(panel, tooltip, spellView(model))
 end
 
 ui.registerTooltipType(SPELL, {
