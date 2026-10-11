@@ -32,5 +32,6 @@ Integration\Hooks.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
 UI\Capture.lua
+UI\Debug.lua
 UI\Commands.lua
 PrettyTooltip.lua

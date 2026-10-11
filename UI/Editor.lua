@@ -722,6 +722,23 @@ overlay:SetScript("OnUpdate", function(self)
     showHint()
 end)
 
+-- The editor's lookup by ID reads this hidden tooltip; it never gets a panel.
+local scanner
+local function previewByID(target, dataType, id)
+    if not scanner then
+        scanner = CreateFrame("GameTooltip", "PrettyTooltipScanner", UIParent, "GameTooltipTemplate")
+        scanner.prettyTooltipScanner = true
+    end
+    scanner:SetOwner(UIParent, "ANCHOR_NONE")
+    if dataType == Enum.TooltipDataType.Item then scanner:SetItemByID(id) else scanner:SetSpellByID(id) end
+    local data = scanner:GetTooltipData()
+    local tooltipType = ns.TooltipTypes[dataType]
+    local ok, model = pcall(tooltipType.read, scanner, data, ns.Game)
+    scanner:Hide()
+    if not (ok and model) then return end
+    return ui.renderPreview(target, model, dataType)
+end
+
 -- Uncached items are requested; GET_ITEM_INFO_RECEIVED redraws.
 local function lookupProblem(tooltipType, id)
     if tooltipType.dataType ~= Enum.TooltipDataType.Item or not C_Item then return end
@@ -739,7 +756,7 @@ local function drawSample()
     local problem = state.lookup and lookupProblem(tooltipType, state.lookup)
     if not problem then
         local ok, panel = pcall(function()
-            if state.lookup then return ui.previewByID(anchor, tooltipType.dataType, state.lookup) end
+            if state.lookup then return previewByID(anchor, tooltipType.dataType, state.lookup) end
             return ui.renderPreview(anchor, tooltipType.samples[state.sample].build(), tooltipType.dataType)
         end)
         if not ok then
