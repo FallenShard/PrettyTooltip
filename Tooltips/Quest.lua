@@ -11,7 +11,7 @@ local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local LINE = Enum.TooltipDataLineType or {}
-local PAD = ui.PAD
+local pad = ui.pad
 local ICON_SIZE = 38
 local TINT_STRENGTH = .45
 local CHECK_SIZE = 10
@@ -198,7 +198,7 @@ end
 local function checkbox(panel, y, done, size)
     local top = y + math.max(0, math.floor((size - CHECK_SIZE) / 2)) + 1
     local border = ui.acquireTexture(panel, nil, 0)
-    border:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -top)
+    border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -top)
     border:SetSize(CHECK_SIZE, CHECK_SIZE)
     local edge = done and DONE_COLOR or PARCHMENT
     border:SetVertexColor(edge[1] * .7, edge[2] * .7, edge[3] * .7, .9)
@@ -217,9 +217,9 @@ local function checkbox(panel, y, done, size)
 end
 
 local function progressBar(panel, y, have, need, done)
-    local width = panel.width - 2 * PAD - OBJECTIVE_INDENT
+    local width = panel.width - 2 * pad() - OBJECTIVE_INDENT
     local track = ui.acquireTexture(panel, nil, 0)
-    track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD + OBJECTIVE_INDENT, -y)
+    track:SetPoint("TOPLEFT", panel, "TOPLEFT", pad() + OBJECTIVE_INDENT, -y)
     track:SetSize(width, BAR_HEIGHT)
     track:SetVertexColor(.16, .14, .13, 1)
     if have > 0 then

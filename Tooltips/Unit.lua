@@ -267,7 +267,7 @@ local function healthSection(model, row, style, separator)
         draw = function(panel, y)
             y = ui.drawRow(panel, row, y, style, DETAIL_COLOR, 0, 2)
             local bar = {
-                width = panel.width - 2 * ui.PAD,
+                width = panel.width - 2 * ui.pad(),
                 current = model.health, maximum = model.healthMax,
                 -- The row's two halves, the last two strings drawn.
                 left = panel.pool[panel.used - 1], right = panel.pool[panel.used],

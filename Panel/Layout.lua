@@ -32,14 +32,15 @@ local function setFont(object, path, size, flags)
 end
 -- A commercial font: used from EllesmereUI's folder, never copied here.
 local ELLESMERE_BOLD = "Interface\\AddOns\\EllesmereUI\\media\\fonts\\Expressway Bold.ttf"
-local MIN_WIDTH, MAX_WIDTH = 260, 408
+local MAX_WIDTH = 408
 -- Wrapping prose is capped at this inner width; other rows fit on one line.
 local PROSE_WIDTH = 270
-local PAD = 19
 local COLUMN_GAP = 12
 local ICON_SIZE = 43
-local ICON_TOP = 21
-local TITLE_TOP = ICON_TOP
+-- The padding at the sides; the top has 2 more, the bottom 2 less.
+local function pad() return ns.option("padding") end
+local function titleTop() return pad() + 2 end
+local function minWidth() return ns.option("minWidth") end
 local BADGE_GAP = 5
 local BADGE_HEIGHT = 16
 local EXTRA_COLOR = colors.extras
@@ -489,17 +490,17 @@ local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     local right = row.right
     local leftColor = row.color or color
     indent, gap, rightIndent = indent or 0, gap or 3, rightIndent or 0
-    local w = panel.width - 2 * PAD - indent - rightIndent
+    local w = panel.width - 2 * pad() - indent - rightIndent
     if right and right ~= "" then
         local rightWidth = math.min(measureStyled(panel, right, style) + 2,
             math.max(w * .5, w - measureStyled(panel, left, style) - COLUMN_GAP))
-        local leftHeight = styledAt(panel, left, PAD + indent, y,
+        local leftHeight = styledAt(panel, left, pad() + indent, y,
             w - rightWidth - COLUMN_GAP, style, leftColor)
-        local rightHeight = styledAt(panel, right, panel.width - PAD - rightIndent - rightWidth, y,
+        local rightHeight = styledAt(panel, right, panel.width - pad() - rightIndent - rightWidth, y,
             rightWidth, style, row.rightColor or leftColor, "RIGHT")
         return y + math.max(leftHeight, rightHeight) + gap
     end
-    return y + styledAt(panel, left, PAD + indent, y, w, style, leftColor) + gap
+    return y + styledAt(panel, left, pad() + indent, y, w, style, leftColor) + gap
 end
 
 local function acquireTexture(panel, path, sublevel)
@@ -523,8 +524,8 @@ local function rule(panel, y, color, before)
     if not ns.option("separators") then return y end
     y = y + (before or 0)
     local line = acquireTexture(panel)
-    line:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
-    line:SetSize(panel.width - 2 * PAD, 1)
+    line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y)
+    line:SetSize(panel.width - 2 * pad(), 1)
     line:SetVertexColor(color[1], color[2], color[3], .45)
     return y + 9
 end
@@ -533,12 +534,12 @@ local function divider(panel, y, color, before)
     if not ns.option("separators") then return y end
     y = y + (before or 0)
     local left = acquireTexture(panel)
-    left:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y - 5)
-    left:SetSize((panel.width - 2 * PAD - 18) / 2, 1)
+    left:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y - 5)
+    left:SetSize((panel.width - 2 * pad() - 18) / 2, 1)
     left:SetVertexColor(color[1] * .52, color[2] * .52, color[3] * .52, .8)
     local right = acquireTexture(panel)
-    right:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -PAD, -y - 5)
-    right:SetSize((panel.width - 2 * PAD - 18) / 2, 1)
+    right:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(), -y - 5)
+    right:SetSize((panel.width - 2 * pad() - 18) / 2, 1)
     right:SetVertexColor(color[1] * .52, color[2] * .52, color[3] * .52, .8)
     local center = acquireTexture(panel, ART .. "stat-marker")
     center:SetPoint("TOP", panel, "TOP", 0, -y)
@@ -553,9 +554,9 @@ local function caption(panel, y, text, style, color)
     local width = measureStyled(panel, text, style) + 2
     styledAt(panel, text, (panel.width - width) / 2, y, width, style, color or colors.caption, "CENTER")
     if ns.option("separators") then
-        local side = (panel.width - 2 * PAD - width) / 2 - 8
+        local side = (panel.width - 2 * pad() - width) / 2 - 8
         local middle = y + math.floor(style.size / 2) + 1
-        for _, point in ipairs({ { "TOPLEFT", PAD }, { "TOPRIGHT", -PAD } }) do
+        for _, point in ipairs({ { "TOPLEFT", pad() }, { "TOPRIGHT", -pad() } }) do
             local line = acquireTexture(panel)
             line:SetPoint(point[1], panel, point[1], point[2], -middle)
             line:SetSize(side, 1)
@@ -717,9 +718,9 @@ local function drawChrome(panel, tooltip, style)
     panel.icon:SetSize(iconSize, iconSize)
     panel.icon:ClearAllPoints()
     if ns.option("iconRight") then
-        panel.icon:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -PAD, -ICON_TOP)
+        panel.icon:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(), -titleTop())
     else
-        panel.icon:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -ICON_TOP)
+        panel.icon:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -titleTop())
     end
     panel.iconBorder:SetSize(iconSize + 2, iconSize + 2)
     -- Icons carry their own dark frame in the outer texels; cropping it lets
@@ -733,7 +734,7 @@ local function drawChrome(panel, tooltip, style)
         panel.icon:Hide()
         panel.iconBorder:Hide()
     end
-    local headerMin = style.icon and ICON_TOP + iconSize + 12 or 0
+    local headerMin = style.icon and titleTop() + iconSize + 12 or 0
     if style.badge then
         local badge = panel.badge
         local text = styleOf("badge")
@@ -752,7 +753,7 @@ local function drawChrome(panel, tooltip, style)
         panel.badgeFill:Show()
         panel.badgeText:Show()
         if panel.hits then panel.hits[#panel.hits + 1] = { key = "badge", region = badge } end
-        headerMin = ICON_TOP + iconSize + BADGE_GAP + height + 10
+        headerMin = titleTop() + iconSize + BADGE_GAP + height + 10
     else
         panel.badge:Hide()
         panel.badgeFill:Hide()
@@ -779,7 +780,7 @@ end
 alignPanel = probe("align panel", alignPanel)
 
 local function finishPanel(panel, tooltip, y)
-    panel:SetHeight(y + 17)
+    panel:SetHeight(y + pad() - 2)
     alignPanel(panel, tooltip)
     panel:Show()
 end
@@ -857,9 +858,9 @@ ns.ui = {
     drawChrome = drawChrome,
     finishPanel = finishPanel,
     caption = caption,
-    PAD = PAD,
-    TITLE_TOP = TITLE_TOP,
-    MIN_WIDTH = MIN_WIDTH,
+    pad = pad,
+    titleTop = titleTop,
+    minWidth = minWidth,
     MAX_WIDTH = MAX_WIDTH,
     PROSE_WIDTH = PROSE_WIDTH,
     EXTRA_COLOR = EXTRA_COLOR,

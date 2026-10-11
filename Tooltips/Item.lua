@@ -14,7 +14,8 @@ local isSecret, safeText, number = util.isSecret, util.safeText, util.number
 local plainText, rgb = util.plainText, util.rgb
 local LINE = Enum.TooltipDataLineType
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
-local PAD, MIN_WIDTH, MAX_WIDTH, PROSE_WIDTH, TITLE_TOP, COLUMN_GAP = ui.PAD, ui.MIN_WIDTH, ui.MAX_WIDTH, ui.PROSE_WIDTH, ui.TITLE_TOP, ui.COLUMN_GAP
+local pad, minWidth, titleTop = ui.pad, ui.minWidth, ui.titleTop
+local MAX_WIDTH, PROSE_WIDTH, COLUMN_GAP = ui.MAX_WIDTH, ui.PROSE_WIDTH, ui.COLUMN_GAP
 local ICON_SIZE, EXTRA_COLOR, GOLD_RULE, FLAVOR_GOLD, probe, bodyFont = ui.ICON_SIZE, ui.EXTRA_COLOR, ui.GOLD_RULE, ui.FLAVOR_GOLD, ui.probe, ui.bodyFont
 local isComparison = ui.isComparison
 local isRed, add, colorOf = ns.TooltipData.isRed, ns.TooltipData.add, ns.TooltipData.colorOf
@@ -561,18 +562,18 @@ end
 -- names one; enchants read as stats and keep theirs.
 local function drawMarked(panel, list, y, style, color, marker, numbers)
     local hang = markerIndent(panel, style)
-    local width = panel.width - 2 * PAD - hang
+    local width = panel.width - 2 * pad() - hang
     for _, row in ipairs(list) do
         local text = row.left
         if numbers then text = ns.Stats.styleEffect(text, ns.option("statColors")) end
         local stands = row.onHit and MARKED.onHit or row.use and MARKED.use
         if hang > 0 then
-            styledAt(panel, stands and stands[1] or marker, PAD, y, hang, style, color)
+            styledAt(panel, stands and stands[1] or marker, pad(), y, hang, style, color)
         elseif stands then
             -- Without its marker, the line keeps its words.
             text = stands[2] .. text
         end
-        y = y + styledAt(panel, text, PAD + hang, y, width, style, color) + 3
+        y = y + styledAt(panel, text, pad() + hang, y, width, style, color) + 3
     end
     return y
 end
@@ -772,8 +773,8 @@ local function fitWidth(panel, model, title, styles, iconSize)
         consider(leftWidth + COLUMN_GAP
             + (right and measureStyled(panel, footerText(right), styles.footer) or 0))
     end
-    local width = math.ceil(need + 2 * PAD)
-    return math.max(MIN_WIDTH, math.min(MAX_WIDTH, width))
+    local width = math.ceil(need + 2 * pad())
+    return math.max(minWidth(), math.min(MAX_WIDTH, width))
 end
 fitWidth = probe("fit width", fitWidth)
 
@@ -789,7 +790,7 @@ local function drawDurability(panel, durability, y, style)
     local current, maximum = durability[1], durability[2]
     local color = durabilityColor(current, maximum)
     local track = acquireTexture(panel, nil, 0)
-    track:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -(y + math.floor(style.size / 2)))
+    track:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -(y + math.floor(style.size / 2)))
     track:SetSize(DURABILITY_BAR, 4)
     track:SetVertexColor(.16, .14, .13, 1)
     local fill = acquireTexture(panel, nil, 1)
@@ -799,7 +800,7 @@ local function drawDurability(panel, durability, y, style)
     fill:SetVertexColor(color[1], color[2], color[3], 1)
     if width < 1 then fill:Hide() end
     local healthy = maximum > 0 and current / maximum >= .5
-    return styledAt(panel, current .. " / " .. maximum, PAD + DURABILITY_BAR + 7, y,
+    return styledAt(panel, current .. " / " .. maximum, pad() + DURABILITY_BAR + 7, y,
         math.max(90, style.size * 8), style, healthy and { .82, .78, .71 } or color)
 end
 
@@ -824,11 +825,11 @@ local function drawBody(panel, model, styles, y, inner, opened)
         end
         if model.weaponDamage or #model.weaponBonus > 0 then
             if model.weaponDamage then
-                y = y + styledAt(panel, weaponText(model), PAD + 7, y, inner - 7, styles.damage,
+                y = y + styledAt(panel, weaponText(model), pad() + 7, y, inner - 7, styles.damage,
                     { .71, .72, .73 })
             end
             for _, bonus in ipairs(model.weaponBonus) do
-                y = y + 2 + styledAt(panel, damageText(bonus), PAD + 7, y + 2, inner - 7, styles.damage,
+                y = y + 2 + styledAt(panel, damageText(bonus), pad() + 7, y + 2, inner - 7, styles.damage,
                     { .71, .72, .73 })
             end
             y = y + 7
@@ -866,9 +867,9 @@ local function drawBody(panel, model, styles, y, inner, opened)
         local countStyle = setCountStyle(styles.setName)
         local count = model.setCount or ""
         local countWidth = math.max(42, measureStyled(panel, count, countStyle) + 2)
-        local titleHeight = styledAt(panel, setTitle, PAD, y, inner - countWidth - 3,
+        local titleHeight = styledAt(panel, setTitle, pad(), y, inner - countWidth - 3,
             styles.setName, { 1, .76, .18 })
-        local countHeight = styledAt(panel, count, panel.width - PAD - countWidth, y, countWidth,
+        local countHeight = styledAt(panel, count, panel.width - pad() - countWidth, y, countWidth,
             countStyle, { 1, .76, .18 }, "RIGHT")
         y = y + math.max(24, titleHeight + 7, countHeight + 7)
         for _, row in ipairs(model.setItems) do
@@ -902,7 +903,7 @@ local function drawCreated(panel, created, styles, y, inner)
     local top = y
     if created.icon then
         local border = acquireTexture(panel, nil, 0)
-        border:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
+        border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y)
         border:SetSize(CREATED_ICON + 2, CREATED_ICON + 2)
         border:SetVertexColor(quality[1] * .8, quality[2] * .8, quality[3] * .8, 1)
         local icon = acquireTexture(panel, created.icon, 1)
@@ -911,11 +912,11 @@ local function drawCreated(panel, created, styles, y, inner)
         icon:SetTexCoord(.08, .92, .08, .92)
         indent = CREATED_ICON + 10
     end
-    y = y + styledAt(panel, created.name, PAD + indent, y, inner - indent, styles.createdName, quality) + 2
+    y = y + styledAt(panel, created.name, pad() + indent, y, inner - indent, styles.createdName, quality) + 2
     local subtitle = createdSubtitle(created)
     if subtitle then
         local unmet = created.levelRequirement and not created.levelRequirement.met
-        y = y + styledAt(panel, subtitle, PAD + indent, y, inner - indent, styles.subtitle,
+        y = y + styledAt(panel, subtitle, pad() + indent, y, inner - indent, styles.subtitle,
             unmet and UNUSABLE_COLOR or { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 2
     end
     y = math.max(y, top + CREATED_ICON + 2) + 8
@@ -954,13 +955,13 @@ local function render(panel, tooltip, model)
         tag = tag,
     })
 
-    local y = TITLE_TOP
-    local inner = panel.width - 2 * PAD
+    local y = titleTop()
+    local inner = panel.width - 2 * pad()
     local indent = model.icon and iconSize + 10 or 0
     local leftIndent, rightIndent = headerInsets(indent)
-    y = y + styledAt(panel, title, PAD + leftIndent, y, inner - indent, styles.title, quality) + 4
+    y = y + styledAt(panel, title, pad() + leftIndent, y, inner - indent, styles.title, quality) + 4
     if model.slot and model.slot ~= "" then
-        y = y + styledAt(panel, model.slot, PAD + leftIndent, y, inner - indent, styles.subtitle,
+        y = y + styledAt(panel, model.slot, pad() + leftIndent, y, inner - indent, styles.subtitle,
             { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 4
     end
     y = drawGroup(panel, model.header, y, styles.header, { .78, .72, .63 }, leftIndent, nil,
@@ -1015,13 +1016,13 @@ local function render(panel, tooltip, model)
                     color = right.met and { 1, 1, 1 } or { 1, .34, .28 }
                 end
                 rightWidth = math.min(measureStyled(panel, content, footer) + 2, inner * .6)
-                h2 = styledAt(panel, content, panel.width - PAD - rightWidth, y,
+                h2 = styledAt(panel, content, panel.width - pad() - rightWidth, y,
                     rightWidth, footer, color, "RIGHT")
             end
             if left and left.durability then
                 h1 = drawDurability(panel, left.durability, y, footer)
             elseif left then
-                h1 = styledAt(panel, left.left, PAD, y, inner - rightWidth - COLUMN_GAP,
+                h1 = styledAt(panel, left.left, pad(), y, inner - rightWidth - COLUMN_GAP,
                     footer, left.color or { .82, .78, .71 })
             end
             y = y + math.max(h1, h2, footer.size + 2) + 4

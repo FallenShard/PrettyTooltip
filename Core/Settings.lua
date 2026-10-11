@@ -44,6 +44,9 @@ local DEFAULTS = {
     titleFont = nil,
     -- "NONE", "OUTLINE", or "THICKOUTLINE", for elements without their own.
     outline = "NONE",
+    -- The panels' inner padding, and the width a panel is at least.
+    padding = 19,
+    minWidth = 260,
     headerTopAlpha = nil,
     headerBottomAlpha = nil,
 }

@@ -14,7 +14,7 @@ local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
 local add = tooltipData.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
-local PAD = ui.PAD
+local pad = ui.pad
 local PARTS = { "spellTitle", "spellBadges", "spellValues", "spellCaptions", "spellDetails",
     "spellText", "extras" }
 local TITLE_COLOR = colors.title
@@ -361,11 +361,11 @@ end
 local function drawStrip(panel, model, y, color, styles)
     local values, captions = styles.spellValues, styles.spellCaptions
     local cells = stripCells(model)
-    local cellWidth = (panel.width - 2 * PAD) / #cells
+    local cellWidth = (panel.width - 2 * pad()) / #cells
     local captionOffset = math.max(CAPTION_OFFSET, values.size + 4)
     local height = math.max(STRIP_HEIGHT, captionOffset + captions.size + 8)
     for index, cell in ipairs(cells) do
-        local x = PAD + (index - 1) * cellWidth
+        local x = pad() + (index - 1) * cellWidth
         local valueColor = cell.implied and colors.caption or TITLE_COLOR
         local power = cell == model.cost and POWER_COLORS[model.power]
         if power then
@@ -465,7 +465,7 @@ local function spellView(model)
                 return math.max(measureStyled(panel, nested.name, titleStyle), bodyWidth(panel, nested, nestedBody, styles))
             end,
             draw = function(panel, y)
-                y = y + styledAt(panel, nested.name, PAD, y, panel.width - 2 * PAD, titleStyle, TITLE_COLOR) + 6
+                y = y + styledAt(panel, nested.name, pad(), y, panel.width - 2 * pad(), titleStyle, TITLE_COLOR) + 6
                 return drawBody(panel, nested, nestedBody, y, color, styles, numberCode)
             end }
     end

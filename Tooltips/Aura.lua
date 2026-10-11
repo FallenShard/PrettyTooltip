@@ -148,7 +148,7 @@ end
 
 local function timeBar(model, color)
     return function(panel, y)
-        local bar = { width = panel.width - 2 * ui.PAD, duration = model.duration, expires = model.expires }
+        local bar = { width = panel.width - 2 * ui.pad(), duration = model.duration, expires = model.expires }
         bar.fill = ui.drawTrack(panel, y, BAR_HEIGHT)
         bar.fill:SetVertexColor(color[1], color[2], color[3], 1)
         drawBarFill(bar)

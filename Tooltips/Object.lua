@@ -228,16 +228,19 @@ local function objectView(model)
         header[2] = { text = look.label, style = styles.objectKind,
             color = { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, gap = 4 }
     end
+    local icon = ns.option("iconObjects") and (model.icon or (look and look.icon)) or nil
     return {
         tooltipType = "object",
         color = color,
         tint = look and look.color,
         strength = TINT_STRENGTH,
-        icon = ns.option("iconObjects") and (model.icon or (look and look.icon)) or nil,
+        icon = icon,
         iconSize = ICON_SIZE,
         header = header,
         sections = sections,
         footer = { rows = prices, style = styles.objectPrices, color = PRICE_LABEL, gap = 4 },
+        -- A plain object, as a mailbox, is only its name.
+        minWidth = not (icon or look or #sections > 0 or #prices > 0) and 0 or nil,
     }
 end
 

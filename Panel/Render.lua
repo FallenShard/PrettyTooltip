@@ -31,10 +31,9 @@ local ui = ns.ui
 if not ui then return end
 
 local util = ns.util
-local PAD = ui.PAD
+local pad = ui.pad
 local BADGE_SEPARATOR = " |cff" .. util.hex(ns.Palette.roles.caption) .. "\194\183|r "
 local TRACK = { .16, .14, .13 }
-local LIST_TOP = 17
 
 -- Badges -----------------------------------------------------------------------
 
@@ -82,8 +81,8 @@ end
 -- size and color.
 local function drawTrack(panel, y, height)
     local bar = ui.acquireTexture(panel, nil, 0)
-    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", PAD, -y)
-    bar:SetSize(panel.width - 2 * PAD, height)
+    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y)
+    bar:SetSize(panel.width - 2 * pad(), height)
     bar:SetVertexColor(TRACK[1], TRACK[2], TRACK[3], 1)
     local fill = ui.acquireTexture(panel, nil, 1)
     fill:SetPoint("TOPLEFT", bar, "TOPLEFT")
@@ -128,7 +127,7 @@ local function fitWidth(panel, view)
     for _, row in ipairs(view.footer and view.footer.rows or {}) do
         consider(ui.rowWidth(panel, row, view.footer.style))
     end
-    return math.max(view.minWidth or ui.MIN_WIDTH, math.min(ui.MAX_WIDTH, math.ceil(need + 2 * PAD)))
+    return math.max(view.minWidth or ui.minWidth(), math.min(ui.MAX_WIDTH, math.ceil(need + 2 * pad())))
 end
 
 local function drawSeparator(panel, y, separator)
@@ -180,22 +179,24 @@ local function renderView(panel, tooltip, view)
 
     local indent = indentOf(view)
     local leftIndent = ui.headerInsets(indent)
-    local inner = panel.width - 2 * PAD
-    local y = ui.TITLE_TOP
+    local inner = panel.width - 2 * pad()
+    local y = ui.titleTop()
     for _, item in ipairs(view.header) do
         if item.text then
-            y = y + ui.styledAt(panel, item.text, PAD + leftIndent, y, inner - indent, item.style, item.color)
+            y = y + ui.styledAt(panel, item.text, pad() + leftIndent, y, inner - indent, item.style, item.color)
                 + item.gap
         elseif item.badges and #item.badges > 0 then
-            y = drawBadges(panel, item.badges, PAD + leftIndent, y + (item.before or 0), item.style) + item.gap
+            y = drawBadges(panel, item.badges, pad() + leftIndent, y + (item.before or 0), item.style) + item.gap
         end
     end
     if #view.header > 0 or view.icon then
-        y = math.max(y + 6, headerMin)
+        -- A header alone ends as far below its last line as its first is from the top.
+        local alone = #view.sections == 0 and not (view.footer and #view.footer.rows > 0)
+        y = math.max(alone and y or y + 6, headerMin)
         panel.header:SetHeight(y - panel.inset)
     else
         -- Sections alone, as the minimap's list: as much room above as below.
-        y = LIST_TOP
+        y = pad() - 2
         panel.header:SetHeight(0)
     end
     panel.footer:SetHeight(0)

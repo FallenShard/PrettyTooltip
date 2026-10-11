@@ -6,7 +6,9 @@ if not (ui and ui.renderPreview) then
 end
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
-local WIDTH, HEIGHT = 820, 812
+local WIDTH = 820
+-- Below the controls column: a gap, then the buttons along the bottom.
+local BUTTONS_SPACE = 50
 local PREVIEW_TOP = 106
 local PREVIEW_WIDTH = 460
 -- Room around the panel for its rarity halo and the Equipped tag above it.
@@ -569,7 +571,7 @@ end
 -- The window -----------------------------------------------------------------
 
 local editor = CreateFrame("Frame", "PrettyTooltipEditor", UIParent)
-editor:SetSize(WIDTH, HEIGHT)
+editor:SetWidth(WIDTH)
 editor:SetPoint("CENTER")
 -- Below the color picker, which the editor opens.
 editor:SetFrameStrata("HIGH")
@@ -616,7 +618,7 @@ end
 
 local host = CreateFrame("Frame", nil, editor)
 host:SetPoint("TOPLEFT", 16, -PREVIEW_TOP)
-host:SetSize(PREVIEW_WIDTH, HEIGHT - PREVIEW_TOP - 16)
+host:SetWidth(PREVIEW_WIDTH)
 host:SetClipsChildren(true)
 background(host, { .02, .016, .02 })
 outline(host, LINE, .8)
@@ -1371,6 +1373,21 @@ end))
 row("Backdrop", typeOpacity("backdropAlpha", ns.BACKDROP_ALPHA))
 row("Glow", typeOpacity("glowAlpha", 1))
 row("Footer", typeOpacity("footerAlpha", 1))
+
+-- Shared by every tooltip type. The default is saved as no setting.
+local function panelSize(key, low, high)
+    return slider(FIELD_WIDTH, function() return ns.option(key) end, function(value)
+        ns.setOption(key, nil)
+        if ns.option(key) ~= value then ns.setOption(key, value) end
+    end, low, high)
+end
+row("Padding", panelSize("padding", 8, 32))
+row("Min width", panelSize("minWidth", 120, 400))
+
+-- As tall as the controls column, so a row added never runs into the buttons.
+local height = -y + BUTTONS_SPACE
+editor:SetHeight(height)
+host:SetHeight(height - PREVIEW_TOP - 16)
 
 local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()
