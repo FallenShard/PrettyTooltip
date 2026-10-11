@@ -37,7 +37,8 @@ read_globals = {
     -- Game state
     "C_Item", "C_Spell", "C_AddOns", "C_QuestLog", "C_UnitAuras", "C_Timer", "C_CurrencyInfo",
     "GetLocale", "GetBuildInfo", "GetTime", "IsAltKeyDown", "IsControlKeyDown",
-    "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing",
+    "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
+    "GetNumMacros", "GetMacroSpell", "MAX_ACCOUNT_MACROS",
     "GetSkillLineInfo", "GetNumSkillLines", "GetProfessions", "GetProfessionInfo",
     "GetQuestDifficultyColor", "GetGuildInfo", "GetCoinTextureString", "BreakUpLargeNumbers",
     "UnitName", "UnitExists", "UnitGUID", "UnitTokenFromGUID", "UnitLevel", "UnitEffectiveLevel",

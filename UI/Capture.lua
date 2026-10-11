@@ -195,6 +195,34 @@ local function recordObject(record, data)
     end
 end
 
+-- A macro's name, icon, and body, by its index and its name; the icon of the
+-- spell #showtooltip puts in its tooltip; and every macro's spell, to find the
+-- one showing it.
+local function recordMacro(record, data)
+    if not GetMacroInfo then return end
+    if type(data.id) == "number" then record("GetMacroInfo", GetMacroInfo, data.id) end
+    local first = data.lines and data.lines[1]
+    local name = first and not isSecret(first.leftText) and first.leftText
+    if type(name) == "string" and name ~= "" then
+        record("GetMacroInfo", GetMacroInfo, name)
+        if GetMacroIndexByName then record("GetMacroIndexByName", GetMacroIndexByName, name) end
+    end
+    for _, line in ipairs(data.lines or {}) do
+        if type(line.tooltipID) == "number" then
+            record("C_Spell.GetSpellTexture", C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, line.tooltipID)
+        end
+    end
+    if not (GetNumMacros and GetMacroSpell) then return end
+    local account, character = record("GetNumMacros", GetNumMacros)
+    local offset = MAX_ACCOUNT_MACROS or 120
+    for index = 1, offset + (character or 0) do
+        if index <= (account or 0) or index > offset then
+            record("GetMacroSpell", GetMacroSpell, index)
+            record("GetMacroInfo", GetMacroInfo, index)
+        end
+    end
+end
+
 -- The player, the same for every tooltip type: level, spell power, and skills.
 local function recordPlayer(record)
     for _, name in ipairs({ "UnitLevel", "UnitClass", "UnitRace", "UnitFactionGroup", "UnitName" }) do
@@ -256,6 +284,8 @@ local function captureTooltip(tooltip)
             attempt("quest", recordQuest, record, data)
         elseif dataType == TYPES.Object then
             attempt("object", recordObject, record, data)
+        elseif dataType == TYPES.Macro then
+            attempt("macro", recordMacro, record, data)
         end
     end
     attempt("player", recordPlayer, record)
@@ -274,6 +304,7 @@ local OPTIONAL = {
     "C_Item.GetItemNameByID", "C_Item.RequestLoadItemDataByID", "C_Spell.GetSpellTexture",
     "C_Spell.GetSpellName", "C_UnitAuras.GetAuraDataByIndex", "C_UnitAuras.GetAuraDataByAuraInstanceID",
     "C_QuestLog.IsOnQuest", "C_QuestLog.IsQuestFlaggedCompleted", "C_CurrencyInfo.GetCoinTextureString",
+    "GetMacroInfo", "GetMacroIndexByName", "GetNumMacros", "GetMacroSpell",
 }
 
 local function present()

@@ -374,7 +374,8 @@ return function(fixture, enums, report)
         "UnitEffectiveLevel", "GetSpellInfo", "GetSpellTexture", "C_Item.GetItemInfoInstant",
         "C_Item.GetDetailedItemLevelInfo", "C_Item.GetItemNameByID", "C_Spell.GetSpellTexture",
         "C_Spell.GetSpellName", "C_UnitAuras.GetAuraDataByIndex", "C_UnitAuras.GetAuraDataByAuraInstanceID",
-        "C_QuestLog.IsOnQuest", "C_QuestLog.IsQuestFlaggedCompleted",
+        "C_QuestLog.IsOnQuest", "C_QuestLog.IsQuestFlaggedCompleted", "GetMacroInfo", "GetMacroIndexByName",
+        "GetNumMacros", "GetMacroSpell",
     }
 
     local function install(path, fn)

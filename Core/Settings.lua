@@ -12,12 +12,14 @@ local DEFAULTS = {
     unitPanels = true,
     auraPanels = true,
     questPanels = true,
+    macroPanels = true,
     iconItems = true,
     iconSpells = true,
     iconObjects = true,
     iconUnits = true,
     iconAuras = true,
     iconQuests = false,
+    iconMacros = true,
     cursorObjects = true,
     statColors = true,
     qualityTint = true,
@@ -66,7 +68,7 @@ function ns.resetOptions()
     changed()
 end
 
--- tooltipType: "item" (default), "spell", "object", "unit", "aura", "quest", or "shared" by all. color is where the picker starts
+-- tooltipType: "item" (default), "spell", "object", "unit", "aura", "quest", "macro", or "shared" by all. color is where the picker starts
 -- while the color is automatic.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
@@ -159,6 +161,11 @@ ns.ELEMENTS = {
         tooltipType = "quest", caps = true },
     { key = "questObjectives", label = "Objectives", size = 12, color = colors.objective,
         tooltipType = "quest", note = "Finished objectives green unless set." },
+    { key = "macroName", label = "Name", size = 15, title = true, color = colors.title,
+        tooltipType = "macro" },
+    { key = "macroBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "macro" },
+    { key = "macroText", label = "Macro lines", size = 12, color = colors.detail, tooltipType = "macro",
+        note = "Commands gold, conditions grey, unless set." },
 }
 -- types are Enum.TooltipDataType names; ones missing on this client are skipped.
 ns.TOOLTIP_TYPES = {
@@ -171,6 +178,7 @@ ns.TOOLTIP_TYPES = {
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
     { label = "Quests", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
+    { label = "Macros", restyle = "macroPanels", cursor = "cursorMacros", types = { "Macro" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
     { label = "Dungeon and raid lockouts", cursor = "cursorLockouts", types = { "InstanceLock" } },
     { label = "Pet abilities", cursor = "cursorPetActions", types = { "PetAction" } },
@@ -255,7 +263,8 @@ end
 -- Settings kept per type of tooltip are named with these, as iconItems.
 -- The backdrop's opacity with none set, for every type and style.
 ns.BACKDROP_ALPHA = .9
-ns.TYPE_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests" }
+ns.TYPE_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests",
+    macro = "Macros" }
 
 -- The header band's opacity at an edge ("Top" or "Bottom") for a tooltip type; one
 -- without its own follows the setting shared by all, and nil means the default.

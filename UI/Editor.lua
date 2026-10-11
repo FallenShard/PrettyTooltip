@@ -472,6 +472,31 @@ if Enum.TooltipDataType.Quest and ui.questModel then
         samples = QUEST_SAMPLES, first = "questTitle", noun = "quest", noLookup = true }
     TYPE_ORDER[#TYPE_ORDER + 1] = "quest"
 end
+local MACRO_SAMPLES = {
+    {
+        label = "Cast",
+        build = function()
+            return ui.macroModel({
+                name = "Heal", icon = spellIcon(19750),
+                body = { "#showtooltip", "/cast [@mouseover,help,nodead][] Flash of Light" },
+            })
+        end,
+    },
+    {
+        label = "Targeting",
+        build = function()
+            return ui.macroModel({
+                name = "Rares", icon = 132212,
+                body = { "/targetexact Mor'Ladim", "/targetexact Sewer Beast", "/run SetRaidTarget(\"target\", 8)" },
+            })
+        end,
+    },
+}
+if Enum.TooltipDataType.Macro and ui.macroModel then
+    TOOLTIP_TYPES.macro = { label = "Macros", dataType = Enum.TooltipDataType.Macro,
+        samples = MACRO_SAMPLES, first = "macroName", noun = "macro", noLookup = true }
+    TYPE_ORDER[#TYPE_ORDER + 1] = "macro"
+end
 -- For tests/: every tooltip type's samples, in the editor's order.
 ns.editorSamples = { tooltipTypes = TOOLTIP_TYPES, order = TYPE_ORDER }
 local MAX_SAMPLES = 0

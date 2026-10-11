@@ -101,6 +101,32 @@ function game.spellName(spellID)
     if ok and not isSecret(name) and type(name) == "string" then return name end
 end
 
+-- Macros ----------------------------------------------------------------------
+
+function game.macro(name)
+    if not GetMacroInfo or type(name) ~= "string" then return end
+    local _, icon, body = call(GetMacroInfo, name)
+    if type(body) ~= "string" then return end
+    return { icon = icon, body = body }
+end
+
+-- The name of the macro whose #showtooltip shows this spell now; the first, if
+-- several do. Character macros are numbered after the account's slots.
+function game.macroShowing(spellID)
+    if not (GetNumMacros and GetMacroSpell and GetMacroInfo) or type(spellID) ~= "number" then return end
+    local account, character = call(GetNumMacros)
+    local indices = {}
+    for index = 1, number(account) or 0 do indices[#indices + 1] = index end
+    local offset = MAX_ACCOUNT_MACROS or 120
+    for index = offset + 1, offset + (number(character) or 0) do indices[#indices + 1] = index end
+    for _, index in ipairs(indices) do
+        if number((call(GetMacroSpell, index))) == spellID then
+            local name, _, body = call(GetMacroInfo, index)
+            if type(body) == "string" and body:lower():match("^%s*#showtooltip") then return name end
+        end
+    end
+end
+
 -- The player ------------------------------------------------------------------
 
 function game.playerLevel()
