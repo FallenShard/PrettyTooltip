@@ -9,7 +9,7 @@ Top to bottom, an item panel shows:
 - **Header.** The icon with an item level badge, the name in its quality color, and a subtitle with the item's type and slot, such as `Mail · Head` or `Staff · Two-Hand`. The subtitle also names what the game leaves unsaid: `Consumable · Potion`, `Crafting Reagent`, `Scarce`. The binding sits below it, with the required level at the right, red while you are below it. The whole panel is tinted by quality; quest items, and items that begin a quest, are tinted quest gold.
 - **Weapon damage.** DPS as the prominent row, with damage and speed beneath it.
 - **Armor and stats.** Armor, then the stats in two blocks: the primary attributes, and everything else under a divider. Long stat wording is shortened (see below), and each stat is colored by kind.
-- **Equip effects and enchants.** Equip effects that are not a plain stat, such as a zone-limited speed bonus, join the stat list in green without the `Equip:` prefix. A chance on hit joins them too, marked with a small sword instead of its `Chance on hit:` prefix. Its numbers follow the spell tooltip's highlighting: a lighter school color when the description names that school's damage, or a neutral highlight otherwise. Holyfire blends Holy and Fire. These highlights also appear in lite mode and follow **Stat colors** and a custom **Equip effects** color in the panel. Enchants follow as green rows marked with a sparkle, one per bonus: `Enchanted: Stamina +1 and Armor +8` becomes `+1 Stamina` and `+8 Armor`.
+- **Equip effects and enchants.** Equip effects that are not a plain stat, such as a zone-limited speed bonus, join the stat list in green without the `Equip:` prefix. A chance on hit joins them too, marked with a small sword instead of its `Chance on hit:` prefix. Its numbers follow the spell tooltip's highlighting: a lighter school color when the description names that school's damage, or a neutral highlight otherwise. Holyfire blends Holy and Fire. These highlights follow **Stat colors** and a custom **Equip effects** color in the panel. Enchants follow as green rows marked with a sparkle, one per bonus: `Enchanted: Stamina +1 and Armor +8` becomes `+1 Stamina` and `+8 Armor`.
 - **Use effects and flavor text,** as the game words them, each use effect marked with a small gear instead of its `Use:` prefix.
 - **Item set.** The set name and how many pieces you own, the pieces you own highlighted, and the set bonuses, with active ones highlighted.
 - **Disenchant.** For green, blue, and purple armor and weapons: what the item disenchants into, each result with its icon, count, and chance, and the Enchanting it needs, red while your skill is too low and grey if you have no Enchanting. The chances are Classic's published tables (Warcraft Wiki's *Disenchanting tables*); the game has no way to ask. Turned off under **Item Details** in the options.
@@ -36,20 +36,20 @@ Common Equip wordings become short stat rows:
 
 ### Lite item tooltips
 
-With **Lite item tooltips** turned on under **Item Details** in the options, items keep the game's own tooltip, with the Equip effects shortened as in the table above and the stats in their colors (see *Colors* below; with **Stat colors** off in the style editor, the game's own). Everything else, including the stat markers and the disenchant section, is left out.
+With **Lite item tooltips** turned on under **Item Details** in the options, items keep the game's own tooltip, with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat colors** is on. Combined bonuses split into separate lines. Everything else, including the stat markers and the disenchant section, is left out.
 
 ### Colors
 
-Each stat value takes a rich color and its name a lighter shade of the same hue. The four main categories use the defaults of EllesmereUI's character sheet:
+Each stat value takes a color and its name a lighter shade of the same hue. The category colors are soft and evenly light, so every kind of stat reads alike on the dark panel, and the vivid spell school colors stand apart from them:
 
 | Category | Color |
 | --- | --- |
-| Primary attributes | Teal |
-| Attack: attack power, hit, crit, haste | Orange |
-| Defense: defense, dodge, parry, block | Blue |
-| Magic: spell power, spell hit and crit, penetration | Purple |
-| Healing | Green |
-| Mana regeneration | Light blue |
+| Primary attributes | Ivory |
+| Attack: attack power, hit, crit, haste | Amber |
+| Defense: defense, dodge, parry, block | Steel blue |
+| Magic: spell power, spell hit and crit, penetration | Lavender |
+| Healing | Mint |
+| Mana regeneration | Periwinkle |
 | Spell schools and resistances | Arcane, Fire, Frost, Holy, Nature, and Shadow each in their own color |
 
 ## Spell tooltips
@@ -116,7 +116,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
   - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
-- **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with its Equip effects shortened and its stats colored (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items, and **Sell price** the sell price rows in the footer.
+- **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with selected Equip effects shortened and the game's colors kept, but for magical stats and effects (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items, and **Sell price** the sell price rows in the footer.
 - **Spell Details**: **Spell power breakdown** shows or hides the coefficients and the base and spell power split on spells.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never**.
 

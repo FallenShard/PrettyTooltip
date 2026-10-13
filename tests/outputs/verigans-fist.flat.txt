@@ -77,13 +77,13 @@ nameColor:
   3: 0.8667
 primary:
   1:
-    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+6|r |cff79DCC2Intellect|r"
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAIntellect|r"
     right: ""
   2:
-    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Stamina|r"
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStamina|r"
     right: ""
   3:
-    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+10|r |cff79DCC2Spirit|r"
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DASpirit|r"
     right: ""
 quality: 3
 quest: false
@@ -123,9 +123,9 @@ texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHIT
 texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D525.6|r |cffA89F8EDamage per Second|r"
 text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "65 - 99 Damage  ·  Speed 3.20"
-text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+6|r |cff79DCC2Intellect|r"
-text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Stamina|r"
-text at 19,196 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+10|r |cff79DCC2Spirit|r"
+text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAIntellect|r"
+text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStamina|r"
+text at 19,196 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DASpirit|r"
 texture at 19,222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-217 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker

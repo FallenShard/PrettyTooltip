@@ -21,13 +21,13 @@ created:
   name: "Veteran's Gloves"
   primary:
     1:
-      left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Strength|r"
+      left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStrength|r"
       right: ""
     2:
-      left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+3|r |cff79DCC2Agility|r"
+      left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DAAgility|r"
       right: ""
     3:
-      left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Stamina|r"
+      left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStamina|r"
       right: ""
   quality: 2
   secondary: {}
@@ -107,9 +107,9 @@ texture TOPLEFT Texture TOPLEFT 1,-1 26x26 rgb=1,1,1,1 INV_Gauntlets_05
 text at 55,111 w=301 size=14 rgb=0.3,0.82,0.3 "VETERAN'S GLOVES"
 text at 55,129 w=301 size=13 rgb=0.65,0.91,0.65 "Mail · Hands · Requires Level 15"
 text at 19,154 w=337 size=16 rgb=0.93,0.87,0.75 "|cffF2E8D5115|r |cffA89F8EArmor|r"
-text at 19,180 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Strength|r"
-text at 19,198 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+3|r |cff79DCC2Agility|r"
-text at 19,216 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff0CD29D+5|r |cff79DCC2Stamina|r"
+text at 19,180 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStrength|r"
+text at 19,198 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DAAgility|r"
+text at 19,216 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStamina|r"
 text at 168.5,242 w=38 size=9 rgb=0.6,0.57,0.52 "REAGENTS"
 texture at 19,247 142x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-247 142x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8

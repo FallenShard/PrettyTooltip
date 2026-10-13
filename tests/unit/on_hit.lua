@@ -19,7 +19,7 @@ return function(test)
 
     for school, code in pairs({
         Arcane = "F190E2", Fire = "FF9960", Frost = "82D8FA", Holy = "FBCF74",
-        Nature = "A6DB7E", Shadow = "BF84EB", Holyfire = "FDB46A",
+        Nature = "A6DB7E", Shadow = "D49DFF", Holyfire = "FDB46A",
     }) do
         local text = "Deals 40 " .. school .. " damage."
         local styled = styleEffect(text)
@@ -69,18 +69,18 @@ return function(test)
     local data = capture.data
     world.preCalls[0][1](world.main, data)
     test.check("native rewrite keeps original text", data.lines[2].prettyTooltipOriginal, original)
-    test.check("native rewrite adds proc colors without stat marker", data.lines[2].prettyTooltipLite, styled)
+    test.check("lite colors the proc's numbers, as magic", data.lines[2].prettyTooltipLite, styled)
     test.check("native display keeps chance-on-hit wording", data.lines[2].prettyTooltipDisplay, styled)
     data.lines[2].lineIndex = 2
     ns.setOption("itemLite", true)
     world.postCalls[0][1](world.main, data)
-    test.check("lite tooltip shows proc colors", world.main:GetLeftLine(2):GetText(), styled)
+    test.check("lite tooltip shows the proc's colored numbers", world.main:GetLeftLine(2):GetText(), styled)
     IsAltKeyDown = function() return true end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 1)
     test.check("ALT restores original proc", world.main:GetLeftLine(2):GetText(), original)
     IsAltKeyDown = function() return false end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
-    test.check("releasing ALT restores colors", world.main:GetLeftLine(2):GetText(), styled)
+    test.check("releasing ALT restores lite wording", world.main:GetLeftLine(2):GetText(), styled)
     world.preCalls[0][1](world.main, data)
     test.check("cached proc is not rewritten twice", data.lines[2].prettyTooltipDisplay, styled)
 

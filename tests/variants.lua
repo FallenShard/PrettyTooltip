@@ -6,7 +6,7 @@ return {
     Item = {
         -- The panel's own flat look, which the game's border replaces by default.
         flat = { settings = { backdropStyle = "flat" } },
-        -- The game's tooltip, its Equip effects shortened and stats colored.
+        -- The game's tooltip, its Equip effects shortened and original colors kept.
         lite = { settings = { itemLite = true }, native = true },
         -- The panel with its optional parts and colors turned off.
         plain = { settings = { statMarkers = false, statColors = false, qualityTint = false, separators = false,

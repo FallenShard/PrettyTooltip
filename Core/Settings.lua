@@ -6,7 +6,7 @@ local colors = ns.Palette.roles
 local DEFAULTS = {
     iconRight = false,
     itemPanels = true,
-    -- The game's item tooltip with shortened, colored stats, instead of the panel.
+    -- The game's item tooltip with shortened wording, in its colors but for magic.
     itemLite = false,
     objectPanels = true,
     unitPanels = true,

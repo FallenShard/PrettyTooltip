@@ -49,14 +49,16 @@ local schools = {
     ["shadow"] = "Shadow Spell Damage Power",
 }
 
--- Category colors follow EllesmereUI's character sheet; labels are lighter shades.
-local PRIMARY_COLOR = "0CD29D"
-local PHYSICAL_COLOR = "FF8357"
-local DEFENSE_COLOR = "6FBDFF"
-local MAGIC_COLOR = "9A71D6"
-local HEALING_COLOR = "93D68F"
-local MANA_COLOR = "7AC0E6"
-local NEGATIVE_COLOR = "FF6B5C"
+-- Category colors are soft and evenly light, so every kind of stat reads
+-- alike on the dark panel; the vivid school colors stay apart from them.
+-- Labels are lighter, less saturated shades.
+local PRIMARY_COLOR = "E9DDC4"
+local PHYSICAL_COLOR = "FAA365"
+local DEFENSE_COLOR = "A6C1DD"
+local MAGIC_COLOR = "C6A9FC"
+local HEALING_COLOR = "89DA9B"
+local MANA_COLOR = "9EB8FE"
+local NEGATIVE_COLOR = "F66D67"
 local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  "
 
 local schoolColors = {
@@ -65,22 +67,22 @@ local schoolColors = {
     Frost = "4CC6F7",
     Holy = "FBBA38",
     Nature = "7FCD48",
-    Shadow = "A44EE2",
+    Shadow = "C174FF",
 }
 
 local labelColors = {
-    [PRIMARY_COLOR] = "79DCC2",
-    [PHYSICAL_COLOR] = "F5B8A1",
-    [DEFENSE_COLOR] = "ADD4F5",
-    [MAGIC_COLOR] = "C3AFE1",
-    [HEALING_COLOR] = "BDE2BB",
-    [MANA_COLOR] = "ACD5EB",
+    [PRIMARY_COLOR] = "EEE7DA",
+    [PHYSICAL_COLOR] = "F7C5A5",
+    [DEFENSE_COLOR] = "C7D6E6",
+    [MAGIC_COLOR] = "D7C8F7",
+    [HEALING_COLOR] = "BDE8C4",
+    [MANA_COLOR] = "C0D0FA",
     [schoolColors.Arcane] = "F0ADE6",
     [schoolColors.Fire] = "EE9F72",
     [schoolColors.Frost] = "9EDCF5",
     [schoolColors.Holy] = "F6D28A",
     [schoolColors.Nature] = "A6D783",
-    [schoolColors.Shadow] = "C595E8",
+    [schoolColors.Shadow] = "C9A2EE",
 }
 
 local statColors = {
@@ -150,10 +152,19 @@ local function colorizeStat(text, colors)
     return "|cff" .. value .. sign .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
 end
 
+-- Whether a stat row is a spell's: spell power and its schools, spell hit,
+-- crit, and penetration, and healing power. Lite mode colors only these.
+function stats.isMagical(text)
+    local label = text:match("^[%+%-][%d%.,]+%%? (.+)$")
+    if not label then return false end
+    return statColors[label] == MAGIC_COLOR or label == "Healing Power"
+        or label:match("^%a+ Spell Power$") ~= nil or label:match("^%a+ Spell Damage Power$") ~= nil
+end
+
 function stats.styleStat(text, colors, markers)
     local colored = colorizeStat(text, colors)
     if not colored then return text end
-    -- The second result supplies the marker-free wording for lite mode.
+    -- The second result supplies the colored wording without a marker.
     return (markers and STAT_MARKER or "") .. colored, colored
 end
 

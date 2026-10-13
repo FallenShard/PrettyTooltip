@@ -25,7 +25,8 @@ palette.schools = {
     Frost = { .30, .78, .97 },
     Holy = { .98, .73, .22 },
     Nature = { .50, .80, .28 },
-    Shadow = { .64, .31, .89 },
+    -- Lifted from a darker violet that read poorly on the panel.
+    Shadow = { .76, .45, 1 },
 }
 -- Frostfire is picked by hand: blending frost and fire gives grey.
 palette.schools.Holyfire = { .99, .58, .165 }

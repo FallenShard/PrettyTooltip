@@ -25,8 +25,8 @@ local function onItemTooltip(_, data)
                 and not isSecret(rightText) and not rightText then
                 local replacements = stats.rewrite(text)
                 local displayLines = replacements or { text }
-                -- Lite has the stat colors but no markers; with stat colors
-                -- off, the game's own.
+                -- Lite shortens wording and keeps the game's colors, but for
+                -- magic: spell power rows and what a proc deals, in their colors.
                 local liteLines = {}
                 local styled = false
                 -- The game marks proc lines; the text is the fallback for clients that do not.
@@ -39,7 +39,8 @@ local function onItemTooltip(_, data)
                         local effect = stats.styleEffect(displayText, ns.option("statColors"))
                         if effect ~= displayText then display, colored = effect, effect end
                     end
-                    liteLines[displayIndex] = ns.option("statColors") and colored or displayText
+                    local magical = onHit or stats.isMagical(displayText)
+                    liteLines[displayIndex] = colored and magical and ns.option("statColors") and colored or displayText
                     if colored then
                         displayLines[displayIndex] = display
                         styled = true
@@ -67,7 +68,8 @@ end
 
 -- The rewrite above changes the game's own tooltip text too, so its font
 -- strings get the wording that suits: the original while the original-tooltip
--- key is held, lite mode's shortened and colored stats, else the panel's.
+-- key is held, lite mode's shortened wording in native colors but for magic,
+-- else the panel's.
 local function wordingShown()
     if ns.originalKeyDown() or not ns.option("itemPanels") then return "original" end
     return ns.option("itemLite") and "lite" or "display"
