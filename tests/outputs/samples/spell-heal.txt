@@ -36,7 +36,7 @@ rank: "Rank 1"
 requirements: {}
 spellPower: 10
 == sample render
-panel 284 x 238
+panel 284 x 268
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -72,5 +72,9 @@ text at 19,140 w=246 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cf
 texture at 19,165 246x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
 text at 19,174 w=166 size=11 rgb=0.82,0.78,0.71 "71.4% Coefficient"
 text at 197,174 w=68 size=11 rgb=0.82,0.78,0.71 "35 to 44 + |cffFBCF747|r"
-texture at 19,197 246x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,206 w=246 size=11 rgb=0.6,0.6,0.63 "Spell ID: 635"
+text at 19,189 w=210 size=11 rgb=0.82,0.78,0.71 "Healing per Second"
+text at 241,189 w=24 size=11 rgb=0.82,0.78,0.71 "18.6"
+text at 19,204 w=210 size=11 rgb=0.82,0.78,0.71 "Healing per Mana"
+text at 241,204 w=24 size=11 rgb=0.82,0.78,0.71 "1.33"
+texture at 19,227 246x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,236 w=246 size=11 rgb=0.6,0.6,0.63 "Spell ID: 635"

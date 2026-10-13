@@ -14,6 +14,6 @@ return {
     },
     Spell = {
         flat = { settings = { backdropStyle = "flat" } },
-        plain = { settings = { iconSpells = false, spellPower = false, qualityTint = false, separators = false } },
+        plain = { settings = { iconSpells = false, spellPower = false, spellRates = false, qualityTint = false, separators = false } },
     },
 }

@@ -38,7 +38,7 @@ shows:
       1: "Macro"
 showsType: 1
 == tooltip render
-panel 284 x 205
+panel 284 x 235
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
@@ -72,3 +72,7 @@ text at 19,139 w=246 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cf
 texture at 19,164 246x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
 text at 19,173 w=166 size=11 rgb=0.82,0.78,0.71 "42.9% Coefficient"
 text at 197,173 w=68 size=11 rgb=0.82,0.78,0.71 "67 to 76 + |cffFBCF740|r"
+text at 19,188 w=210 size=11 rgb=0.82,0.78,0.71 "Healing per Second"
+text at 241,188 w=24 size=11 rgb=0.82,0.78,0.71 "47.7"
+text at 19,203 w=210 size=11 rgb=0.82,0.78,0.71 "Healing per Mana"
+text at 241,203 w=24 size=11 rgb=0.82,0.78,0.71 "1.43"

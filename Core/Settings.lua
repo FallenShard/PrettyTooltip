@@ -36,6 +36,8 @@ local DEFAULTS = {
     gatheringLoot = true,
     sellPrice = true,
     spellPower = true,
+    -- Damage or healing per second and per mana, under the spell power breakdown.
+    spellRates = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
     -- nil chooses: DialogueUI's art when installed, flat with EllesmereUI, else

@@ -442,6 +442,15 @@ local function spellView(model)
     local power = model.power and POWER_COLORS[model.power]
     local accent = school and SCHOOL_COLORS[school] or power
     local color = accent or colors.neutral
+    -- The spell power breakdown and the rates under it, each by its option.
+    local function powerRows(part)
+        local showPower, showRates = ns.option("spellPower"), ns.option("spellRates")
+        if not (showPower or showRates) or not ns.spellPowerRows then return end
+        local rows, rates = ns.spellPowerRows(part, numberCode, ns.Game)
+        local list = showPower and rows or {}
+        for _, row in ipairs(showRates and rates or {}) do list[#list + 1] = row end
+        if #list > 0 then return list end
+    end
     local function bodyOf(part)
         local nextSentences = {}
         if part.talent then
@@ -449,8 +458,7 @@ local function spellView(model)
                 for _, sentence in ipairs(util.splitSentences(text)) do nextSentences[#nextSentences + 1] = sentence end
             end
         end
-        return { sentences = sentencesOf(part), powerRows = ns.option("spellPower") and ns.spellPowerRows
-            and ns.spellPowerRows(part, numberCode, ns.Game) or nil, nextSentences = nextSentences }
+        return { sentences = sentencesOf(part), powerRows = powerRows(part), nextSentences = nextSentences }
     end
 
     local sections = {}

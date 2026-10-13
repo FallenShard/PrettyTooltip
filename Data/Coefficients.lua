@@ -90,10 +90,47 @@ local function range(low, high)
     return low .. " to " .. high
 end
 
--- Rows splitting a spell's amounts into base and spell power, or nil. part
--- has the panel's name, cast, description, and spellID; part.spellPower,
--- when set, stands in for the player's, as on the editor's samples; else
--- game answers it.
+-- The time a cast takes from the player: the cast shown, after talents and
+-- haste; at least the global cooldown; a channel's whole duration.
+local function executeSeconds(cast, periodic)
+    local value = cast and cast[1]
+    if value == "Instant" then return 1.5 end
+    if value == "Channeled" then return periodic and periodic.duration end
+    local seconds = type(value) == "string" and tonumber(value:match("^([%d%.]+) sec"))
+    return seconds and math.max(1.5, seconds)
+end
+
+-- The average a cast deals or heals per second and per mana, a row each; nil
+-- without either. Per second, what lands at once counts over the execute
+-- time and what comes over time over its duration, as its ticks land.
+local function rateRows(part, direct, periodic, healing)
+    local directTotal = direct and (direct.low + direct.high) / 2 or 0
+    local periodicTotal = periodic and (periodic.low + periodic.high) / 2 * (periodic.ticks or 1) or 0
+    local perSecond
+    local seconds = executeSeconds(part.cast, periodic)
+    if direct and seconds then perSecond = directTotal / seconds end
+    -- Without its execute time, a direct amount leaves the rate unknown.
+    if periodic and periodic.duration > 0 and (perSecond or not direct) then
+        perSecond = (perSecond or 0) + periodicTotal / periodic.duration
+    end
+    local noun = healing and "Healing" or "Damage"
+    local rows = {}
+    if perSecond then
+        rows[#rows + 1] = { left = noun .. " per Second", right = string.format("%.1f", perSecond) }
+    end
+    local total = directTotal + periodicTotal
+    -- A cost in mana, not a share of base mana or another power.
+    local cost = part.cost and part.cost[2] == "Mana" and tonumber((part.cost[1]:gsub(",", "")))
+    if cost and cost > 0 then
+        rows[#rows + 1] = { left = noun .. " per Mana", right = string.format("%.2f", total / cost) }
+    end
+    if #rows > 0 then return rows end
+end
+
+-- Rows splitting a spell's amounts into base and spell power, or nil; and
+-- the rows of its rates, or nil. part has the panel's name, cost,
+-- cast, description, and spellID; part.spellPower, when set, stands in for
+-- the player's, as on the editor's samples; else game answers it.
 function ns.spellPowerRows(part, bonusCode, game)
     local text = util.uncolored(table.concat(part.description, " "))
     local school
@@ -151,5 +188,5 @@ function ns.spellPowerRows(part, bonusCode, game)
     end
     addRow(direct, directShare, "")
     addRow(periodic, periodicShare, " over time")
-    if #rows > 0 then return rows end
+    if #rows > 0 then return rows, rateRows(part, direct, periodic, healing) end
 end

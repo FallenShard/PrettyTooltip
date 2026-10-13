@@ -49,4 +49,40 @@ return function(test)
         "Decreases magic damage taken by up to 10 and the amount healed by healing spells by up to 11."), "none")
     test.check("health is not healing", rows("Mystery Totem", "Instant",
         "Summons a Mystery Totem with 5 health at the feet of the caster for 45 sec."), "none")
+
+    -- The rates rows: per second and per mana.
+    local function rates(name, cast, cost, text, spellID)
+        local _, found = ns.spellPowerRows({ name = name, cast = { cast, "Cast" }, cost = cost,
+            description = { text }, spellID = spellID }, "FFFFFF", game)
+        if not found then return "none" end
+        local out = {}
+        for _, row in ipairs(found) do out[#out + 1] = row.left .. " | " .. row.right end
+        return table.concat(out, "\n")
+    end
+    test.check("a heal's rates", rates("Holy Light", "2.5 sec", { "275", "Mana" },
+        "Heals a friendly target for 425 to 479.", 1042), "Healing per Second | 180.8\nHealing per Mana | 1.64")
+    test.check("an instant counts the global cooldown", rates("Fire Blast", "Instant", { "40", "Mana" },
+        "Blasts the enemy for 39 to 48 Fire damage.", 2136), "Damage per Second | 29.0\nDamage per Mana | 1.09")
+    test.check("a cast under the global cooldown counts the global cooldown", rates("Frostbolt", "1.2 sec",
+        { "35", "Mana" }, "Launches a bolt of frost at the enemy, causing 62 to 68 Frost damage.", 837),
+        "Damage per Second | 43.3\nDamage per Mana | 1.86")
+    test.check("damage over time counts over its duration, and in full per mana", rates("Fireball", "2.5 sec",
+        { "65", "Mana" },
+        "Hurls a fiery ball that causes 66 to 83 Fire damage and an additional 6 Fire damage over 6 sec.", 145),
+        "Damage per Second | 30.8\nDamage per Mana | 1.24")
+    test.check("an instant over time counts its duration, not the global cooldown", rates("Shadow Word: Pain",
+        "Instant", { "25", "Mana" }, "A word of darkness that causes 30 Shadow damage over 18 sec."),
+        "Damage per Second | 1.7\nDamage per Mana | 1.20")
+    test.check("a heal at once and over time adds both rates", rates("Regrowth", "2 sec", { "100", "Mana" },
+        "Heals a friendly target for 89 to 103 and another 91 over 21 sec."),
+        "Healing per Second | 52.3\nHealing per Mana | 1.87")
+    test.check("a channel counts its duration and every tick", rates("Arcane Missiles", "Channeled",
+        { "1,055", "Mana" }, "Launches Arcane Missiles at the enemy, causing 230 Arcane damage each second for 5 sec."),
+        "Damage per Second | 230.0\nDamage per Mana | 1.09")
+    test.check("a share of base mana has no per mana", rates("Holy Light", "2.5 sec", { "5%", "Base Mana" },
+        "Heals a friendly target for 425 to 479.", 1042), "Healing per Second | 180.8")
+    test.check("a free spell has no per mana", rates("Holy Light", "2.5 sec", nil,
+        "Heals a friendly target for 425 to 479.", 1042), "Healing per Second | 180.8")
+    test.check("a spell that does not scale has no rates", rates("Shield Bash", "Instant", { "10", "Rage" },
+        "Bashes the target with your shield for 8 damage."), "none")
 end

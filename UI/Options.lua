@@ -193,6 +193,10 @@ function ns.Options.register()
     detailBox("spellPower", "Spell power breakdown", "Under the description, each amount's spell power "
         .. "coefficient and its split into base and spell power. No game API has coefficients: they follow "
         .. "Classic's rules, checked against Forever's spell data, and ones marked ~ are estimates.")
+    detailBox("spellRates", "Damage and healing rates", "Under the spell power breakdown, the average a cast "
+        .. "deals or heals per second and per mana. Per second, what lands at "
+        .. "once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time "
+        .. "over its duration. Crits and talents do not count.")
     rightColumn.y = rightColumn.y - 12
 
     section(rightColumn, "Gathering")

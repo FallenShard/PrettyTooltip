@@ -29,7 +29,7 @@ rank: "Rank 1"
 requirements: {}
 spellPower: 10
 == sample render
-panel 308 x 249
+panel 308 x 279
 texture at -16,-16 0x0 rgb=1,0.43,0.11,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -67,3 +67,7 @@ text at 19,202 w=190 size=11 rgb=0.82,0.78,0.71 "42.9% Coefficient"
 text at 221,202 w=68 size=11 rgb=0.82,0.78,0.71 "12 to 21 + |cffFF99604|r"
 text at 19,217 w=228.5 size=11 rgb=0.82,0.78,0.71 "0.0% Coefficient over time"
 text at 259.5,217 w=29.5 size=11 rgb=0.82,0.78,0.71 "2 + |cffFF99600|r"
+text at 19,232 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Second"
+text at 265,232 w=24 size=11 rgb=0.82,0.78,0.71 "14.2"
+text at 19,247 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Mana"
+text at 265,247 w=24 size=11 rgb=0.82,0.78,0.71 "0.75"
