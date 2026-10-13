@@ -49,4 +49,14 @@ return function(test)
     test.check("malformed DB uses defaults", ns.option("itemPanels"), true)
     ns.setElementSetting("spellTitle", "size", 22)
     test.check("writing repairs malformed DB", ns.style("spellTitle").size, 22)
+
+    -- The text size scales every part's own size, a custom one too.
+    ns.resetOptions()
+    local title, custom = ns.style("title").size, ns.ELEMENT_BY_KEY.stats.size
+    ns.setElementSetting("stats", "size", 15)
+    ns.setOption("fontScale", 1.2)
+    test.check("the text size scales each part", { ns.style("title").size, ns.style("stats").size },
+        { title * 1.2, 15 * 1.2 })
+    test.check("a part's own size stays unscaled in the editor", ns.elementSetting("stats", "size"), 15)
+    test.check("the default stats size is unchanged", ns.ELEMENT_BY_KEY.stats.size, custom)
 end

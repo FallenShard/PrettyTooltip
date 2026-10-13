@@ -4,6 +4,7 @@ local setOption = ns.setOption
 
 local page, category
 ns.Options = {}
+local SCALE_MIN, SCALE_MAX = 80, 150
 
 -- Called by the entry file after saved settings arrive.
 function ns.Options.register()
@@ -97,6 +98,44 @@ function ns.Options.register()
             .. "its position is left to the game and other addons.")
         leftColumn.y = leftColumn.y - 22
     end
+
+    -- A scale on every part's own size.
+    section(rightColumn, "Text Size")
+    local scale = CreateFrame("Slider", nil, page)
+    scale:SetOrientation("HORIZONTAL")
+    scale:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
+    scale:SetSize(150, 16)
+    scale:SetMinMaxValues(SCALE_MIN, SCALE_MAX)
+    scale:SetValueStep(5)
+    if scale.SetObeyStepOnDrag then scale:SetObeyStepOnDrag(true) end
+    local track = scale:CreateTexture(nil, "BACKGROUND")
+    track:SetColorTexture(.4, .4, .4, .8)
+    track:SetPoint("LEFT")
+    track:SetPoint("RIGHT")
+    track:SetHeight(4)
+    scale:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
+    local scaleValue = page:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    scaleValue:SetPoint("LEFT", scale, "RIGHT", 10, 0)
+    local function percent() return math.floor(ns.option("fontScale") * 100 + .5) end
+    scale:SetScript("OnValueChanged", function(self, value)
+        if self.updating then return end
+        value = math.floor(value / 5 + .5) * 5
+        -- The default is saved as no setting.
+        setOption("fontScale", value ~= 100 and value / 100 or nil)
+        scaleValue:SetText(value .. "%")
+    end)
+    scale:EnableMouseWheel(true)
+    scale:SetScript("OnMouseWheel", function(self, delta) self:SetValue(self:GetValue() + delta * 5) end)
+    scale.refresh = function()
+        scale.updating = true
+        scale:SetValue(percent())
+        scale.updating = false
+        scaleValue:SetText(percent() .. "%")
+    end
+    controls[#controls + 1] = scale
+    explain(scale, "Text size", "Scales the text of every tooltip panel, on top of each part's own size "
+        .. "in the style editor. 100% is the default.")
+    rightColumn.y = rightColumn.y - 34
 
     local MODIFIERS = {
         { "CTRL", "CTRL", "Hold CTRL to see the game's own tooltip instead of the panel." },

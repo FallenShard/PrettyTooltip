@@ -46,6 +46,8 @@ local DEFAULTS = {
     -- "NONE", "OUTLINE", or "THICKOUTLINE", for elements without their own.
     outline = "NONE",
     -- The panels' inner padding, and the width a panel is at least.
+    -- Every part's text size is multiplied by this.
+    fontScale = 1,
     padding = 19,
     minWidth = 260,
     headerTopAlpha = nil,
@@ -314,7 +316,7 @@ function ns.style(key)
     return {
         key = key,
         title = element.title,
-        size = tonumber(ns.elementSetting(key, "size")) or element.size,
+        size = (tonumber(ns.elementSetting(key, "size")) or element.size) * ns.option("fontScale"),
         font = ns.fontPath(ns.elementSetting(key, "font")),
         flags = (outline == "OUTLINE" or outline == "THICKOUTLINE") and outline or "",
         color = color and { color[1], color[2], color[3] },
