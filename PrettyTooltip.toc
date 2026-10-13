@@ -34,6 +34,7 @@ Tooltips\PetAction.lua
 Tooltips\Minimap.lua
 Tooltips\FlightPath.lua
 UI\Options.lua
+UI\Samples.lua
 UI\Editor.lua
 Integration\Native.lua
 Integration\Hooks.lua

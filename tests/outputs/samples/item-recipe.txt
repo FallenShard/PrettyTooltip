@@ -15,6 +15,7 @@ created:
   footerRight: {}
   header: {}
   icon: "Interface\\Icons\\INV_Gauntlets_05"
+  kinds: {}
   levelRequirement:
     met: true
     text: "Requires Level 15"
@@ -55,6 +56,7 @@ header:
       2: 0.93
       3: 0.88
 icon: "Interface\\Icons\\INV_Scroll_03"
+kinds: {}
 name: "Plans: Veteran's Gloves"
 primary: {}
 quality: 2

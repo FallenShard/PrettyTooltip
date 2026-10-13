@@ -499,6 +499,16 @@ local function renderSpell(panel, tooltip, model)
     ui.renderView(panel, tooltip, spellView(model))
 end
 
+-- A spell model from given fields: the editor's samples.
+ui.spellModel = function(fields)
+    local model = newModel(fields.icon)
+    for key, value in pairs(fields) do model[key] = value end
+    for _, field in ipairs({ "cost", "cast", "cooldown", "range" }) do
+        if model[field] then model.cells[#model.cells + 1] = model[field] end
+    end
+    return model
+end
+
 ui.defineTooltipType(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
 })

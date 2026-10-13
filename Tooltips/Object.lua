@@ -282,7 +282,10 @@ local function renderObject(panel, tooltip, model)
     ui.renderView(panel, tooltip, objectView(model))
 end
 
-ui.objectModel = function(fields) return completeModel(fields, ns.Game) end
+ui.objectModel = function(fields)
+    for _, list in ipairs({ "details", "quests", "extras" }) do fields[list] = fields[list] or {} end
+    return completeModel(fields, ns.Game)
+end
 ui.defineTooltipType(OBJECT, {
     read = readObject, render = renderObject, key = objectKey, option = "objectPanels",
 })

@@ -56,6 +56,7 @@ header:
       2: 0.93
       3: 0.88
 icon: "Interface\\Icons\\INV_Misc_QuestionMark"
+kinds: {}
 level: 63
 name: "Blackhand Doomsaw"
 primary:

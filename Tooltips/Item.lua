@@ -238,6 +238,13 @@ local function newItemModel()
     }
 end
 
+-- An item model from given fields, each list it lacks empty: the editor's samples.
+ui.itemModel = function(fields)
+    local model = newItemModel()
+    for key, value in pairs(fields) do model[key] = value end
+    return model
+end
+
 -- How many the shown stack holds: its bag slot knows, else the data line's
 -- price, which covers the stack, gives it away.
 local function stackCount(data, unitPrice, linePrice, game)
