@@ -376,8 +376,8 @@ local function drawStrip(panel, model, y, color, styles)
             colors.caption, "CENTER")
         if index > 1 then
             local separator = ui.acquireTexture(panel)
-            separator:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -(y + 2))
-            separator:SetSize(1, height - 8)
+            separator:SetPoint("TOPLEFT", panel, "TOPLEFT", ui.snap(panel, x), -ui.snap(panel, y + 2))
+            separator:SetSize(ui.pixel(panel), height - 8)
             separator:SetVertexColor(color[1] * .6, color[2] * .6, color[3] * .6, .5)
         end
     end

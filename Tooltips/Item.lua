@@ -906,12 +906,13 @@ local function drawCreated(panel, created, styles, y, inner)
     local indent = 0
     local top = y
     if created.icon then
+        local px = ui.pixel(panel)
         local border = acquireTexture(panel, nil, 0)
-        border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y)
-        border:SetSize(CREATED_ICON + 2, CREATED_ICON + 2)
+        border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -ui.snap(panel, y))
+        border:SetSize(CREATED_ICON + 2 * px, CREATED_ICON + 2 * px)
         border:SetVertexColor(quality[1] * .8, quality[2] * .8, quality[3] * .8, 1)
         local icon = acquireTexture(panel, created.icon, 1)
-        icon:SetPoint("TOPLEFT", border, "TOPLEFT", 1, -1)
+        icon:SetPoint("TOPLEFT", border, "TOPLEFT", px, -px)
         icon:SetSize(CREATED_ICON, CREATED_ICON)
         icon:SetTexCoord(.08, .92, .08, .92)
         indent = CREATED_ICON + 10

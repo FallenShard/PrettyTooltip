@@ -1,4 +1,4 @@
--- Debug commands: /ptip anchors and /ptip perf.
+-- Debug commands: /ptip anchors, /ptip perf, and /ptip pixel.
 local addonName, ns = ...
 local ui = ns.ui
 if not ui then return end
@@ -38,6 +38,16 @@ function ns.dumpAnchors()
         end
     end
     if #shown == 0 then print("PrettyTooltip: no panel is shown.") end
+end
+
+-- /ptip pixel: whether lines are snapped by the game's PixelUtil or the
+-- addon's own math, and what one screen pixel is at the current scale.
+function ns.dumpPixel()
+    local native = PixelUtil and PixelUtil.GetNearestPixelSize and PixelUtil.GetPixelToUIUnitFactor
+    local width, height = GetPhysicalScreenSize()
+    local scale = UIParent:GetEffectiveScale()
+    print(("PrettyTooltip: snapping with %s; screen %dx%d, UI scale %.3f, one pixel = %.4f units."):format(
+        native and "the game's PixelUtil" or "the addon's own math", width, height, scale, ui.pixel(UIParent)))
 end
 
 -- The addon's own memory in KB, as the game counts it; nil where it cannot.

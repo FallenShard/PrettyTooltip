@@ -41,6 +41,38 @@ local ICON_SIZE = 43
 local function pad() return ns.option("padding") end
 local function titleTop() return pad() + 2 end
 local function minWidth() return ns.option("minWidth") end
+
+-- One screen pixel in a region's units. A line one unit thick covers one
+-- pixel only at some UI scales; elsewhere its edges round apart, and alike
+-- lines come out one or two pixels. The game's PixelUtil where the client has
+-- it; the same math where not; 1 where the screen size is unknown.
+local function pixelFactor()
+    if PixelUtil and PixelUtil.GetPixelToUIUnitFactor then return PixelUtil.GetPixelToUIUnitFactor() end
+    if not GetPhysicalScreenSize then return end
+    local _, height = GetPhysicalScreenSize()
+    if type(height) == "number" and height > 0 then return 768 / height end
+end
+
+local function scaleOf(region)
+    local scale = region and region:GetEffectiveScale()
+    if type(scale) == "number" and scale > 0 then return scale end
+end
+
+local function pixel(region)
+    local factor, scale = pixelFactor(), scaleOf(region)
+    if not (factor and scale) then return 1 end
+    return factor / scale
+end
+
+-- A position or size on whole pixels.
+local function snap(region, value)
+    local scale = scaleOf(region)
+    if scale and PixelUtil and PixelUtil.GetNearestPixelSize then
+        return PixelUtil.GetNearestPixelSize(value, scale)
+    end
+    local px = pixel(region)
+    return math.floor(value / px + .5) * px
+end
 local BADGE_GAP = 5
 local BADGE_HEIGHT = 16
 local EXTRA_COLOR = colors.extras
@@ -524,8 +556,8 @@ local function rule(panel, y, color, before)
     if not ns.option("separators") then return y end
     y = y + (before or 0)
     local line = acquireTexture(panel)
-    line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y)
-    line:SetSize(panel.width - 2 * pad(), 1)
+    line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y))
+    line:SetSize(panel.width - 2 * pad(), pixel(panel))
     line:SetVertexColor(color[1], color[2], color[3], .45)
     return y + 9
 end
@@ -533,13 +565,14 @@ end
 local function divider(panel, y, color, before)
     if not ns.option("separators") then return y end
     y = y + (before or 0)
+    local px, side = pixel(panel), snap(panel, (panel.width - 2 * pad() - 18) / 2)
     local left = acquireTexture(panel)
-    left:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y - 5)
-    left:SetSize((panel.width - 2 * pad() - 18) / 2, 1)
+    left:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y + 5))
+    left:SetSize(side, px)
     left:SetVertexColor(color[1] * .52, color[2] * .52, color[3] * .52, .8)
     local right = acquireTexture(panel)
-    right:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(), -y - 5)
-    right:SetSize((panel.width - 2 * pad() - 18) / 2, 1)
+    right:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(), -snap(panel, y + 5))
+    right:SetSize(side, px)
     right:SetVertexColor(color[1] * .52, color[2] * .52, color[3] * .52, .8)
     local center = acquireTexture(panel, ART .. "stat-marker")
     center:SetPoint("TOP", panel, "TOP", 0, -y)
@@ -558,8 +591,8 @@ local function caption(panel, y, text, style, color)
         local middle = y + math.floor(style.size / 2) + 1
         for _, point in ipairs({ { "TOPLEFT", pad() }, { "TOPRIGHT", -pad() } }) do
             local line = acquireTexture(panel)
-            line:SetPoint(point[1], panel, point[1], point[2], -middle)
-            line:SetSize(side, 1)
+            line:SetPoint(point[1], panel, point[1], point[2], -snap(panel, middle))
+            line:SetSize(snap(panel, side), pixel(panel))
             line:SetVertexColor(GOLD_RULE[1] * .52, GOLD_RULE[2] * .52, GOLD_RULE[3] * .52, .8)
         end
     end
@@ -634,6 +667,14 @@ end
 -- Returns the header height the icon and badge need.
 local function drawChrome(panel, tooltip, style)
     applyBackdrop(panel)
+    local px = pixel(panel)
+    panel.edges[1]:SetHeight(2 * px)
+    panel.edges[2]:SetHeight(px)
+    panel.edges[3]:SetWidth(px)
+    panel.edges[4]:SetWidth(px)
+    panel.badgeFill:ClearAllPoints()
+    panel.badgeFill:SetPoint("TOPLEFT", panel.badge, "TOPLEFT", px, -px)
+    panel.badgeFill:SetPoint("BOTTOMRIGHT", panel.badge, "BOTTOMRIGHT", -px, px)
     -- Panels are shared across tooltip types; the one that wants a watermark shows it.
     if panel.watermark then panel.watermark:Hide() end
     local color = style.color
@@ -714,7 +755,7 @@ local function drawChrome(panel, tooltip, style)
     elseif panel.equipped then
         panel.equipped:Hide()
     end
-    local iconSize = style.iconSize or ICON_SIZE
+    local iconSize = snap(panel, style.iconSize or ICON_SIZE)
     panel.icon:SetSize(iconSize, iconSize)
     panel.icon:ClearAllPoints()
     if ns.option("iconRight") then
@@ -722,7 +763,7 @@ local function drawChrome(panel, tooltip, style)
     else
         panel.icon:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -titleTop())
     end
-    panel.iconBorder:SetSize(iconSize + 2, iconSize + 2)
+    panel.iconBorder:SetSize(iconSize + 2 * px, iconSize + 2 * px)
     -- Icons carry their own dark frame in the outer texels; cropping it lets
     -- the art meet the panel's colored border directly.
     panel.icon:SetTexCoord(.08, .92, .08, .92)
@@ -746,7 +787,7 @@ local function drawChrome(panel, tooltip, style)
         panel.badgeText:SetTextColor(textColor[1], textColor[2], textColor[3])
         panel.badgeText:SetText(style.badge)
         local height = math.max(BADGE_HEIGHT, text.size + 6)
-        badge:SetSize(math.max(iconSize + 2, panel.badgeText:GetStringWidth() + 10), height)
+        badge:SetSize(snap(panel, math.max(iconSize + 2 * px, panel.badgeText:GetStringWidth() + 10)), snap(panel, height))
         badge:SetVertexColor(plate[1] * .8, plate[2] * .8, plate[3] * .8, .9)
         panel.badgeFill:SetVertexColor(plate[1] * .14, plate[2] * .14, plate[3] * .14, 1)
         badge:Show()
@@ -859,6 +900,8 @@ ns.ui = {
     finishPanel = finishPanel,
     caption = caption,
     pad = pad,
+    pixel = pixel,
+    snap = snap,
     titleTop = titleTop,
     minWidth = minWidth,
     MAX_WIDTH = MAX_WIDTH,

@@ -57,6 +57,10 @@ local function handleCommand(message)
         if ns.dumpAnchors then pcall(ns.dumpAnchors) end
         return
     end
+    if wanted == "pixel" then
+        if ns.dumpPixel then pcall(ns.dumpPixel) end
+        return
+    end
     -- /ptip capture <name>, list, or clear: tooltips saved as test fixtures.
     local command, argument = wanted:match("^(%S+)%s*(.-)$")
     if command == "capture" and ns.capture then

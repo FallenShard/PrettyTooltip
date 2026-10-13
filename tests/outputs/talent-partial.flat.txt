@@ -60,8 +60,8 @@ texture TOPRIGHT panel TOPRIGHT -19,-76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=270 size=12 rgb=0.92,0.87,0.76 "Increases the critical strike damage bonus of your Frost spells by |cff82D8FA40%|r."
 text at 132.8,130 w=42.5 size=9 rgb=0.6,0.57,0.52 "NEXT RANK"
-texture at 19,135 105.8x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
-texture TOPRIGHT panel TOPRIGHT -19,-135 105.8x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture at 19,135 106x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-135 106x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 text at 19,148 w=270 size=12 rgb=0.82,0.78,0.71 "Increases the critical strike damage bonus of your Frost spells by |cff82D8FA60%|r."
 texture at 19,189 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
 text at 19,198 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
