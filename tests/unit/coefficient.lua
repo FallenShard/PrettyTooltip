@@ -1,7 +1,7 @@
 -- Spell power coefficients and the base and spell power split, against values
 -- checked in game (30 spell damage) and on foreverchanges.pro.
 return function(test)
-    local ns = test.load({ "Core/Util.lua", "Data/Coefficients.lua" })
+    local ns = test.load({ "Core/Util.lua", "Data/Schools.lua", "Data/SpellRanks.lua", "Data/Coefficients.lua" })
     -- The player's power, given as the game would answer it.
     local game = { spellDamage = function() return 30 end, spellHealing = function() return 300 end }
 
@@ -30,13 +30,23 @@ return function(test)
         "A word of darkness that causes 30 Shadow damage over 18 sec."), "120.0% Coefficient over time | 0 + 36")
     -- foreverchanges.pro: 28.6% at once, 7.1% a tick for seven ticks.
     test.check("Regrowth", rows("Regrowth", "2 sec", "Heals a friendly target for 89 to 103 and another 91 over 21 sec."),
-        "28.6% Coefficient | 4 to 18 + 85\n50.0% Coefficient over time | 0 + 150")
+        "28.6% Coefficient | 4 to 18 + 85\n49.7% Coefficient over time | 0 + 149")
     test.check("Holy Light rank 5", rows("Holy Light", "2.5 sec", "Heals a friendly target for 425 to 479.", 1042),
         "71.4% Coefficient | 211 to 265 + 214")
     test.check("an unknown spell is an estimate", rows("Mystery Bolt", "2.5 sec",
         "Hits the target for 221 to 261 Shadow damage."), "~71.4% Coefficient | 200 to 240 + 21")
-    test.check("an unknown channeled spell shows nothing", rows("Arcane Missiles", "Channeled",
-        "Launches Arcane Missiles at the enemy, causing 230 Arcane damage each second for 5 sec."), "none")
+    test.check("a channel's amount each second gains its share of the whole", rows("Arcane Missiles", "Channeled",
+        "Launches Arcane Missiles at the enemy, causing 230 Arcane damage each second for 5 sec."),
+        "143.0% Coefficient over time | 222 + 8 each")
+    test.check("a heal every few seconds, which never says heal", rows("Tranquility", "Channeled",
+        "Regenerates all nearby group members for 1425 every 2 sec for 10 sec."),
+        "33.5% Coefficient over time | 1405 + 20 each")
+    test.check("an unknown channeled spell shows nothing", rows("Mystery Channel", "Channeled",
+        "Channels a mystery, causing 230 Arcane damage each second for 5 sec."), "none")
     test.check("a physical ability shows nothing", rows("Shield Bash", "Instant",
         "Bashes the target with your shield for 8 damage."), "none")
+    test.check("a class spell the table lacks gains nothing", rows("Dampen Magic", "Instant",
+        "Decreases magic damage taken by up to 10 and the amount healed by healing spells by up to 11."), "none")
+    test.check("health is not healing", rows("Mystery Totem", "Instant",
+        "Summons a Mystery Totem with 5 health at the feet of the caster for 45 sec."), "none")
 end

@@ -19,6 +19,7 @@ Data\Stats.lua
 Panel\Layout.lua
 Panel\Render.lua
 Data\Disenchant.lua
+Data\SpellRanks.lua
 Data\Coefficients.lua
 Tooltips\Item.lua
 Tooltips\Spell.lua
