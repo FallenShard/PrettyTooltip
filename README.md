@@ -101,7 +101,7 @@ Under **Layout and color** (hover one for its description):
 - **Show icon** turns the icon or portrait on or off for the kind of tooltip shown.
 - **Icon on the right** moves the icon and its item level badge to the right of the name.
 - **Item level badge** and **Stat markers** turn those elements off.
-- **Stat colors**: off, every stat is parchment.
+- **Stat colors**: off, every stat is parchment. The **Stat colors** row below sets each category's own color, a swatch each (click to choose, right-click for the default); the stat's name takes a lighter shade of it.
 - **Tint the panel**: off, every panel is neutral; names keep their quality color.
 - **Separators**: off, the gold dividers between sections and the thin rules are hidden, along with the space around them.
 - **DialogueUI backdrop** (on by default, only with DialogueUI installed): off, the panel uses its plain dark gradient.

@@ -1,5 +1,7 @@
--- Item wording and formatting rules. Settings are explicit arguments; no game hooks.
+-- Item wording and formatting rules. Settings are explicit arguments, but for
+-- the category colors the style editor may replace; no game hooks.
 local _, ns = ...
+local util = ns.util
 local stats = {}
 ns.Stats = stats
 
@@ -51,14 +53,21 @@ local schools = {
 
 -- Category colors are soft and evenly light, so every kind of stat reads
 -- alike on the dark panel; the vivid school colors stay apart from them.
--- Labels are lighter, less saturated shades.
-local PRIMARY_COLOR = "E9DDC4"
-local PHYSICAL_COLOR = "FAA365"
-local DEFENSE_COLOR = "A6C1DD"
-local MAGIC_COLOR = "C6A9FC"
-local HEALING_COLOR = "89DA9B"
-local MANA_COLOR = "9EB8FE"
-local NEGATIVE_COLOR = "F66D67"
+-- Each has a lighter, less saturated shade for the stat's name. The style
+-- editor can replace a category's color (setting statColor plus its name),
+-- and the shade then follows from it.
+local CATEGORIES = {
+    { key = "Primary", label = "Primary attributes", value = "E9DDC4", name = "EEE7DA" },
+    { key = "Attack", label = "Attack", value = "FAA365", name = "F7C5A5" },
+    { key = "Defense", label = "Defense", value = "A6C1DD", name = "C7D6E6" },
+    { key = "Magic", label = "Magic", value = "C6A9FC", name = "D7C8F7" },
+    { key = "Healing", label = "Healing", value = "89DA9B", name = "BDE8C4" },
+    { key = "Mana", label = "Mana", value = "9EB8FE", name = "C0D0FA" },
+    { key = "Negative", label = "Negative values", value = "F66D67" },
+}
+local CATEGORY = {}
+for _, category in ipairs(CATEGORIES) do CATEGORY[category.key] = category end
+stats.CATEGORIES = CATEGORIES
 local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  "
 
 local schoolColors = {
@@ -71,12 +80,6 @@ local schoolColors = {
 }
 
 local labelColors = {
-    [PRIMARY_COLOR] = "EEE7DA",
-    [PHYSICAL_COLOR] = "F7C5A5",
-    [DEFENSE_COLOR] = "C7D6E6",
-    [MAGIC_COLOR] = "D7C8F7",
-    [HEALING_COLOR] = "BDE8C4",
-    [MANA_COLOR] = "C0D0FA",
     [schoolColors.Arcane] = "F0ADE6",
     [schoolColors.Fire] = "EE9F72",
     [schoolColors.Frost] = "9EDCF5",
@@ -85,50 +88,64 @@ local labelColors = {
     [schoolColors.Shadow] = "C9A2EE",
 }
 
-local statColors = {
-    Strength = PRIMARY_COLOR,
-    Agility = PRIMARY_COLOR,
-    Stamina = PRIMARY_COLOR,
-    Intellect = PRIMARY_COLOR,
-    Spirit = PRIMARY_COLOR,
-    ["All Stats"] = PRIMARY_COLOR,
+local statCategories = {
+    Strength = "Primary",
+    Agility = "Primary",
+    Stamina = "Primary",
+    Intellect = "Primary",
+    Spirit = "Primary",
+    ["All Stats"] = "Primary",
 
-    ["Attack Power"] = PHYSICAL_COLOR,
-    ["Ranged Attack Power"] = PHYSICAL_COLOR,
-    ["Hit Chance"] = PHYSICAL_COLOR,
-    ["Critical Strike Chance"] = PHYSICAL_COLOR,
-    ["Hit Rating"] = PHYSICAL_COLOR,
-    ["Critical Strike Rating"] = PHYSICAL_COLOR,
-    ["Haste Rating"] = PHYSICAL_COLOR,
-    ["Expertise Rating"] = PHYSICAL_COLOR,
+    ["Attack Power"] = "Attack",
+    ["Ranged Attack Power"] = "Attack",
+    ["Hit Chance"] = "Attack",
+    ["Critical Strike Chance"] = "Attack",
+    ["Hit Rating"] = "Attack",
+    ["Critical Strike Rating"] = "Attack",
+    ["Haste Rating"] = "Attack",
+    ["Expertise Rating"] = "Attack",
 
-    Armor = DEFENSE_COLOR,
-    ["Defense Skill"] = DEFENSE_COLOR,
-    ["Defense Rating"] = DEFENSE_COLOR,
-    ["Dodge Chance"] = DEFENSE_COLOR,
-    ["Dodge Rating"] = DEFENSE_COLOR,
-    ["Parry Chance"] = DEFENSE_COLOR,
-    ["Parry Rating"] = DEFENSE_COLOR,
-    ["Block Chance"] = DEFENSE_COLOR,
-    ["Block Rating"] = DEFENSE_COLOR,
-    ["Shield Block Value"] = DEFENSE_COLOR,
-    ["Resilience Rating"] = DEFENSE_COLOR,
-    ["All Resistances"] = DEFENSE_COLOR,
+    Armor = "Defense",
+    ["Defense Skill"] = "Defense",
+    ["Defense Rating"] = "Defense",
+    ["Dodge Chance"] = "Defense",
+    ["Dodge Rating"] = "Defense",
+    ["Parry Chance"] = "Defense",
+    ["Parry Rating"] = "Defense",
+    ["Block Chance"] = "Defense",
+    ["Block Rating"] = "Defense",
+    ["Shield Block Value"] = "Defense",
+    ["Resilience Rating"] = "Defense",
+    ["All Resistances"] = "Defense",
 
-    ["Spell Power"] = MAGIC_COLOR,
-    ["Spell Damage Power"] = MAGIC_COLOR,
-    ["Spell Penetration"] = MAGIC_COLOR,
-    ["Spell Hit Chance"] = MAGIC_COLOR,
-    ["Spell Critical Strike Chance"] = MAGIC_COLOR,
-    ["Spell Hit Rating"] = MAGIC_COLOR,
-    ["Spell Critical Strike Rating"] = MAGIC_COLOR,
-    ["Spell Haste Rating"] = MAGIC_COLOR,
+    ["Spell Power"] = "Magic",
+    ["Spell Damage Power"] = "Magic",
+    ["Spell Penetration"] = "Magic",
+    ["Spell Hit Chance"] = "Magic",
+    ["Spell Critical Strike Chance"] = "Magic",
+    ["Spell Hit Rating"] = "Magic",
+    ["Spell Critical Strike Rating"] = "Magic",
+    ["Spell Haste Rating"] = "Magic",
 
-    ["Healing Power"] = HEALING_COLOR,
-    ["Health per 5 sec"] = HEALING_COLOR,
-    ["Mana per 5 sec"] = MANA_COLOR,
-    Mana = MANA_COLOR,
+    ["Healing Power"] = "Healing",
+    ["Health per 5 sec"] = "Healing",
+    ["Mana per 5 sec"] = "Mana",
+    Mana = "Mana",
 }
+
+-- A category's color and its name's shade, as "RRGGBB": the style editor's,
+-- if set, with a shade lifted toward white, else the defaults.
+local function categoryColors(key)
+    local category = CATEGORY[key]
+    local custom = ns.option and ns.option("statColor" .. key)
+    if type(custom) == "table" and type(custom[1]) == "number" then
+        local shade = {}
+        for index = 1, 3 do shade[index] = custom[index] + (1 - custom[index]) * .45 end
+        return util.hex(custom), util.hex(shade)
+    end
+    return category.value, category.name or category.value
+end
+stats.categoryColors = categoryColors
 
 local function colorizeStat(text, colors)
     local sign, amount, percent, label = text:match("^([%+%-])([%d%.,]+)(%%?) (.+)$")
@@ -137,18 +154,21 @@ local function colorizeStat(text, colors)
 
     -- A bonus against one kind of creature, "Attack Power vs Undead", takes
     -- its stat's color.
-    local color = statColors[label] or statColors[label:match("^(.-) vs %a+$") or ""]
-    if not color then
+    local category = statCategories[label] or statCategories[label:match("^(.-) vs %a+$") or ""]
+    local value, name
+    if category then
+        value, name = categoryColors(category)
+    else
         local school = label:match("^(%a+) Spell Power$")
             or label:match("^(%a+) Spell Damage Power$")
             or label:match("^(%a+) Resistance$")
-        color = school and schoolColors[school]
+        value = school and schoolColors[school]
+        name = value and labelColors[value]
     end
-    if not color then return end
+    if not value then return end
 
-    local value, name = color, labelColors[color] or color
     if not colors then value, name = "F2E8D5", "A89F8E" end
-    if sign == "-" then value = NEGATIVE_COLOR end
+    if sign == "-" then value = categoryColors("Negative") end
     return "|cff" .. value .. sign .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
 end
 
@@ -157,7 +177,7 @@ end
 function stats.isMagical(text)
     local label = text:match("^[%+%-][%d%.,]+%%? (.+)$")
     if not label then return false end
-    return statColors[label] == MAGIC_COLOR or label == "Healing Power"
+    return statCategories[label] == "Magic" or label == "Healing Power"
         or label:match("^%a+ Spell Power$") ~= nil or label:match("^%a+ Spell Damage Power$") ~= nil
 end
 
