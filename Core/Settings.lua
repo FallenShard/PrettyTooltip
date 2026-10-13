@@ -32,7 +32,8 @@ local DEFAULTS = {
     separators = true,
     spellPanels = true,
     disenchant = true,
-    nodeLoot = true,
+    -- What herb and ore nodes and skinnable creatures give, on their panels.
+    gatheringLoot = true,
     sellPrice = true,
     spellPower = true,
     -- Only takes effect while DialogueUI is installed.
@@ -146,7 +147,7 @@ ns.ELEMENTS = {
         tooltipType = "object", note = "Quest names gold, finished objectives green, unless set." },
     { key = "objectLoot", label = "Contents", size = 11, color = colors.detail, tooltipType = "object",
         note = "A herb or ore node's yield over its taps, then what else it may hold and the chance each tap. "
-            .. "Turned off under Herbs and Ore in the options." },
+            .. "Turned off by Gathering contents in the options." },
     { key = "objectPrices", label = "Prices", size = 11, color = { .88, .78, .60 },
         tooltipType = "object", note = "The yielded item's sell price, and its auction price with Auctionator." },
     { key = "unitName", label = "Name", size = 17, title = true, color = { 1, 1, 1 },
@@ -157,6 +158,9 @@ ns.ELEMENTS = {
     { key = "unitBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "unit",
         note = "Elite, rare, faction, PvP, AFK, and dead." },
     { key = "unitHealth", label = "Health", size = 11, color = { .82, .78, .71 }, tooltipType = "unit" },
+    { key = "unitSkinning", label = "Skinning", size = 11, color = colors.detail, tooltipType = "unit",
+        note = "On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what "
+            .. "it may give. Turned off by Gathering contents in the options." },
     { key = "unitDetails", label = "Target and owner", size = 11, color = colors.detail,
         tooltipType = "unit" },
     { key = "unitQuests", label = "Quest lines", size = 12, color = colors.objective,

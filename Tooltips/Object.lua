@@ -231,7 +231,7 @@ local function objectView(model)
         sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "rows", rows = details,
             style = styles.objectDetails, color = DETAIL_COLOR, gap = 2 }
     end
-    if model.loot and ns.option("nodeLoot") then
+    if model.loot and ns.option("gatheringLoot") then
         local rows = {}
         for index, row in ipairs(model.loot) do
             rows[index] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,

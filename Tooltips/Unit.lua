@@ -41,7 +41,7 @@ local FACTION_ART = {
     Alliance = { "faction-alliance", { .40, .60, 1 } },
     Horde = { "faction-horde", { .90, .25, .20 } },
 }
-local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitHealth", "unitDetails",
+local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitHealth", "unitSkinning", "unitDetails",
     "unitQuests", "extras" }
 
 -- The mouseover token can still be the previous unit; the data's GUID cannot.
@@ -87,6 +87,34 @@ local function number(value)
     return tostring(value)
 end
 
+-- Skinning a corpse: the skill a creature's level needs, as Classic sets it,
+-- and what it may give, by its ID from its GUID ("Creature-0-...-<ID>-...").
+local SKINNABLE_COLOR = { .80, .62, .42 }
+local LOOT_ICON = 14
+local RARE = 5
+
+local function skinningNeeded(level)
+    if level <= 10 then return 1 end
+    if level <= 20 then return (level - 10) * 10 end
+    return level * 5
+end
+
+local function skinning(model, game)
+    if not (model.dead and ns.skinningLoot and type(model.guid) == "string") then return end
+    local creatureID = tonumber(model.guid:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
+    local drops = creatureID and ns.skinningLoot(creatureID)
+    if not drops then return end
+    local needed = type(model.level) == "number" and model.level > 0 and skinningNeeded(model.level) or nil
+    local rows = {}
+    for _, drop in ipairs(drops) do
+        local icon = game.itemIcon(drop[1])
+        local count = drop[4] == drop[5] and "" or (" (" .. drop[4] .. " to " .. drop[5] .. ")")
+        rows[#rows + 1] = { left = (icon and ("|T" .. icon .. ":" .. LOOT_ICON .. "|t ") or "") .. drop[2] .. count,
+            right = drop[3] .. "%", rare = drop[3] < RARE }
+    end
+    return { needed = needed, player = game.skill("Skinning"), rows = rows }
+end
+
 local function completeModel(model, unit, game)
     if unit then
         model.isPlayer = game.unitIsPlayer(unit)
@@ -126,6 +154,7 @@ local function completeModel(model, unit, game)
             table.remove(model.extras, index)
         end
     end
+    model.skinning = model.skinning or skinning(model, game)
     if model.isPlayer then
         model.color = game.classColor(model.classFile)
     elseif model.tapped then
@@ -144,7 +173,8 @@ end
 local function readUnit(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local unit = unitFor(tooltip, data.guid, game)
-    local model = { quests = {}, extras = {}, lineIndices = {}, unit = unit }
+    local model = { quests = {}, extras = {}, lineIndices = {}, unit = unit,
+        guid = not isSecret(data.guid) and data.guid or nil }
     for _, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then return end
         if line.lineIndex then
@@ -160,7 +190,7 @@ local function readUnit(tooltip, data, game)
                 elseif text:match("^<.+>$") and not model.tag then
                     model.tag = text
                 elseif text == "Alliance" or text == "Horde" or text == "PvP" or text == "Dead"
-                    or text == "Corpse" then
+                    or text == "Corpse" or text == "Skinnable" then
                     -- Shown as badges.
                 elseif LINE.UnitOwner and line.type == LINE.UnitOwner then
                     model.owner = text
@@ -221,6 +251,7 @@ local function badges(model)
     if model.afk then list[#list + 1] = { "AFK", MUTED } end
     if model.dnd then list[#list + 1] = { "DND", MUTED } end
     if model.dead then list[#list + 1] = { "Dead", TAPPED } end
+    if model.skinning then list[#list + 1] = { "Skinnable", SKINNABLE_COLOR } end
     return list
 end
 
@@ -346,6 +377,22 @@ local function unitView(model)
     if #details > 0 then
         sections[#sections + 1] = { separator = separator, kind = "rows", rows = details,
             style = styles.unitDetails, color = DETAIL_COLOR, gap = 2 }
+        separator = nil
+    end
+    local skin = model.skinning
+    if skin and ns.option("gatheringLoot") then
+        local rows = {}
+        if skin.needed then
+            rows[1] = { left = "Requires Skinning " .. skin.needed,
+                right = skin.player and ("Your skill " .. skin.player) or "",
+                color = ns.Palette.skillUpColor(skin.needed, skin.player) or DETAIL_COLOR, rightColor = colors.caption }
+        end
+        for _, row in ipairs(skin.rows) do
+            rows[#rows + 1] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
+                rightColor = row.rare and colors.caption or nil }
+        end
+        sections[#sections + 1] = { separator = separator or { rule = EXTRAS_RULE, before = 4 }, kind = "rows",
+            rows = rows, style = styles.unitSkinning, color = DETAIL_COLOR, gap = 2 }
     end
     if #model.quests > 0 then
         local quests = {}

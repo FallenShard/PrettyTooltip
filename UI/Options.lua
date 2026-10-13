@@ -195,10 +195,11 @@ function ns.Options.register()
         .. "Classic's rules, checked against Forever's spell data, and ones marked ~ are estimates.")
     rightColumn.y = rightColumn.y - 12
 
-    section(rightColumn, "Herbs and Ore")
-    detailBox("nodeLoot", "Node contents", "What a herb or ore node holds: its yield over all the times it can "
-        .. "be gathered, then the stone, gems, and other herbs it may give and the chance each time. From "
-        .. "Classic's loot tables.")
+    section(rightColumn, "Gathering")
+    detailBox("gatheringLoot", "Gathering contents", "What a herb or ore node holds: its yield over all the times "
+        .. "it can be gathered, then the stone, gems, and other herbs it may give and the chance each time. On a "
+        .. "dead creature that can be skinned, the Skinning it needs, in its skill-up color, and the leather, "
+        .. "hides, and scales it may give. From Classic's loot tables.")
 
     page:SetScript("OnShow", refreshControls)
     -- Hooks the settings window calls on canvas pages: when it shows them, and

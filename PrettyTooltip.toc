@@ -20,6 +20,7 @@ Panel\Layout.lua
 Panel\Render.lua
 Data\Disenchant.lua
 Data\Nodes.lua
+Data\Skinning.lua
 Data\SpellRanks.lua
 Data\Coefficients.lua
 Tooltips\Item.lua

@@ -40,6 +40,20 @@ function palette.gradient(school)
     if parts then return { palette.schools[parts[1]], palette.schools[parts[2]] } end
 end
 
+-- Gathering's skill-up colors, by how far the player's skill is past what a
+-- node or corpse needs: red below it, then orange, yellow, green, and grey.
+local SKILL_UP = { { 25, { 1, .50, .25 } }, { 50, { 1, 1, 0 } }, { 100, { .25, .75, .25 } } }
+local TRIVIAL = { .50, .50, .50 }
+
+function palette.skillUpColor(level, player)
+    if type(level) ~= "number" or type(player) ~= "number" then return end
+    if player < level then return palette.roles.unmet end
+    for _, step in ipairs(SKILL_UP) do
+        if player < level + step[1] then return step[2] end
+    end
+    return TRIVIAL
+end
+
 local schoolNames = {}
 for name in pairs(palette.schools) do schoolNames[name:lower()] = name end
 

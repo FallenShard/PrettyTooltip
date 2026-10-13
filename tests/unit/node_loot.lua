@@ -16,6 +16,6 @@ return function(test)
     test.check("the yield over all taps, then the chance of the rest", { model.loot[1].right, model.loot[2].right },
         { "2 to 4", "44%" })
     test.check("shown by default", shown():find("Rough Stone", 1, true) ~= nil, true)
-    ns.setOption("nodeLoot", false)
+    ns.setOption("gatheringLoot", false)
     test.check("hidden when turned off", shown():find("Rough Stone", 1, true) ~= nil, false)
 end

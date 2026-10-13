@@ -15,18 +15,7 @@ local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
 local EXTRAS_RULE = { .50, .50, .54 }
 -- The game's mark for a blip above or below you.
 local ARROW = "|T[^|]*PositionArrows[^|]*|t"
--- Gathering's skill-up colors, by how far the player's skill is past the node's.
-local SKILL_UP = { { 25, { 1, .50, .25 } }, { 50, { 1, 1, 0 } }, { 100, { .25, .75, .25 } } }
-local TRIVIAL = { .50, .50, .50 }
-
-local function skillColor(level, player)
-    if type(level) ~= "number" or type(player) ~= "number" then return end
-    if player < level then return colors.unmet end
-    for _, step in ipairs(SKILL_UP) do
-        if player < level + step[1] then return step[2] end
-    end
-    return TRIVIAL
-end
+local skillColor = ns.Palette.skillUpColor
 
 -- A blip's name, and what is known of it: a node's skill, its meta
 -- on the line's right side in metaColor; or a player's class color.
