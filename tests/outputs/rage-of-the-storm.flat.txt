@@ -1,0 +1,372 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132878
+      id: 11139
+      name: "Large Glowing Shard"
+  skill: 100
+effects: {}
+enchants:
+  1:
+    left: "|cff4CE64C+5|r |cffA6EBA6Weapon Damage|r"
+    right: ""
+equipEffects:
+  1:
+    left: "Increases the damage dealt by your Stormstrike ability by 10%."
+    right: ""
+equippable: true
+extras:
+  1:
+    color:
+      1: 0
+      2: 0.85
+      3: 0
+    left: "Windfury 1"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+flavor: {}
+footerLeft:
+  1:
+    left: "You haven't collected this appearance"
+    right: ""
+footerRight:
+  1:
+    left: "1|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 62|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 35|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "Binds when picked up"
+    right: ""
+icon: 133522
+kinds: {}
+level: 40
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+  10: true
+  12: true
+link: "|cnIQ3:|Hitem:280604:1897:::::::30:1486::11:::::::|h[Rage of the Storm]|h|r"
+name: "Rage of the Storm"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+12|r |cffEEE7DAIntellect|r"
+    right: ""
+  2:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+15|r |cffEEE7DAStamina|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 16235
+setBonuses: {}
+setItems: {}
+slot: "Mace · Two-Hand"
+weaponBonus: {}
+weaponDamage: "94 - 141 Damage"
+weaponDps: "35.6"
+weaponSpeed: "Speed 3.30"
+== tooltip render
+panel 330 x 418
+texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x94 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x40 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 19,21 43x43 rgb=1,1,1,1 133522
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "iLvl 40"
+texture at 0,0 0x2 rgb=0.256,0.472,0.784,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+text at 72,21 w=239 size=19 rgb=0.32,0.59,0.98 "RAGE OF THE STORM"
+text at 72,47 w=239 size=13 rgb=0.66,0.795,0.99 "Mace · Two-Hand"
+text at 72,66 w=239 size=12 rgb=0.78,0.72,0.63 "Binds when picked up"
+texture at 19,100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D535.6|r |cffA89F8EDamage per Second|r"
+text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "94 - 141 Damage  ·  Speed 3.30"
+text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+12|r |cffEEE7DAIntellect|r"
+text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+15|r |cffEEE7DAStamina|r"
+texture at 19,204 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-204 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-199 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,217 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t"
+text at 41,217 w=270 size=13 rgb=0.48,0.88,0.48 "Increases the damage dealt by your Stormstrike ability by |cffFFF6E410%|r."
+text at 19,250 w=22 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sparkle:11:11:-1:-2:32:32:0:32:0:32:90:230:60|t"
+text at 41,250 w=270 size=13 rgb=0.9,0.85,0.74 "|cff4CE64C+5|r |cffA6EBA6Weapon Damage|r"
+texture at 19,281 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-281 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-276 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,294 w=151.5 size=11 rgb=0.86,0.74,0.45 "Disenchant"
+text at 182.5,294 w=128.5 size=11 rgb=0.55,0.53,0.5 "Requires Enchanting 100"
+text at 19,311 w=256 size=11 rgb=0.88,0.84,0.76 "|T132878:0|t Large Glowing Shard"
+text at 287,311 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+texture at 19,336 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,345 w=292 size=11 rgb=0,0.85,0 "Windfury 1"
+text at 19,360 w=292 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 237.5,384 w=73.5 size=11 rgb=0.88,0.78,0.6 "1|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 62|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 35|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 19,384 w=206.5 size=11 rgb=0.82,0.78,0.71 "You haven't collected this appearance"
+
+== comparison 1 model
+armor: {}
+comparison: true
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132879
+      id: 11138
+      name: "Small Glowing Shard"
+  skill: 75
+effects: {}
+enchants: {}
+equipEffects:
+  1:
+    left: "Ignite the target in the flames of the Great Forge, dealing 39 to 59 Holyfire damage. Deals 3 times as much damage to Fire Elementals and Earth Elementals."
+    onHit: true
+    right: ""
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "If you replace this item, the following stat changes will occur:"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    left: "|cff00ff00+10.0|r damage per second"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 1
+      3: 1
+      4: 1
+  3:
+    color:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    left: "|cff00ff00+6|r Intellect"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 1
+      3: 1
+      4: 1
+  4:
+    color:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    left: "|cffff2020-10|r Spirit"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 1
+      3: 1
+      4: 1
+  5:
+    color:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    left: "|cff00ff00+10|r Stamina"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 1
+      3: 1
+      4: 1
+flavor: {}
+footerLeft:
+  1:
+    durability:
+      1: 99
+      2: 100
+    left: "Durability 99 / 100"
+    right: ""
+footerRight:
+  1:
+    left: "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "Soulbound"
+    right: ""
+icon: 133042
+kinds: {}
+level: 31
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+  10: true
+link: 6953
+name: "Verigan's Fist"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAIntellect|r"
+    right: ""
+  2:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStamina|r"
+    right: ""
+  3:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DASpirit|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 7443
+setBonuses: {}
+setItems: {}
+slot: "Mace · Two-Hand"
+weaponBonus: {}
+weaponDamage: "65 - 99 Damage"
+weaponDps: "25.6"
+weaponSpeed: "Speed 3.20"
+== comparison 1 render
+panel 330 x 506
+texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x94 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x40 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 19,21 43x43 rgb=1,1,1,1 133042
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "iLvl 31"
+texture at 0,0 0x2 rgb=0.256,0.472,0.784,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture TOPLEFT Frame TOPLEFT 0,0 0x0 rgb=0.55,0.45,0.3,0.9 WHITE8X8
+texture TOPLEFT Frame TOPLEFT 1,-1 0x0 rgb=0.07,0.055,0.05,1 WHITE8X8
+text CENTER Frame CENTER 0,0 w=0 size=10 rgb=0.93,0.8,0.52 "EQUIPPED"
+text at 72,21 w=239 size=19 rgb=0.32,0.59,0.98 "VERIGAN'S FIST"
+text at 72,47 w=239 size=13 rgb=0.66,0.795,0.99 "Mace · Two-Hand"
+text at 72,66 w=239 size=12 rgb=0.78,0.72,0.63 "Soulbound"
+texture at 19,100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D525.6|r |cffA89F8EDamage per Second|r"
+text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "65 - 99 Damage  ·  Speed 3.20"
+text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAIntellect|r"
+text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStamina|r"
+text at 19,196 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DASpirit|r"
+texture at 19,222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-217 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,235 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sword:11:11:-1:-2:32:32:0:32:0:32:200:210:225|t"
+text at 41,235 w=270 size=13 rgb=0.48,0.88,0.48 "Ignite the target in the flames of the Great Forge, dealing |cffFDB46A39|r to |cffFDB46A59|r Holyfire damage. Deals |cffFDB46A3|r times as much damage to Fire Elementals and Earth Elementals."
+texture at 19,311 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-311 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-306 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,324 w=157 size=11 rgb=0.86,0.74,0.45 "Disenchant"
+text at 188,324 w=123 size=11 rgb=0.55,0.53,0.5 "Requires Enchanting 75"
+text at 19,341 w=256 size=11 rgb=0.88,0.84,0.76 "|T132879:0|t Small Glowing Shard"
+text at 287,341 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+texture at 19,366 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,375 w=292 size=11 rgb=0.85,0.7,0 "If you replace this item, the following stat changes will occur:"
+text at 19,403 w=292 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+10.0|r damage per second"
+text at 19,418 w=292 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+6|r Intellect"
+text at 19,433 w=292 size=11 rgb=0.6,0.6,0.63 "|cffff2020-10|r Spirit"
+text at 19,448 w=292 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+10|r Stamina"
+text at 259.5,472 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+texture at 19,477 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
+text at 80,472 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"

@@ -140,6 +140,28 @@ local MARKED = {
     use = { USE_MARKER, "Use: " },
 }
 
+-- Whether a line is of a type the client names. Its text is the fallback,
+-- for clients and lines without one.
+local function isType(lineType, name)
+    return LINE ~= nil and LINE[name] ~= nil and lineType == LINE[name]
+end
+
+-- A requirement is met by the line's own usable flag where it has one, else
+-- by its wording and color.
+local function requirementOf(line, lineType, text, game)
+    local usable = line.usable
+    if isType(lineType, "UsageRequirement") and not isSecret(usable) and type(usable) == "boolean" then
+        return usable
+    end
+    return requirementMet(text, line.leftColor, game)
+end
+
+-- The text after a label the game puts first, as "Use:".
+local function withoutLabel(text, label)
+    if label and text:sub(1, #label) == label then return (text:sub(#label + 1):gsub("^%s+", "")) end
+    return text
+end
+
 local function readCopyLine(model, left, right)
     if right ~= "" then return false end
     local text = plainText(left):match("^%s*(.-)%s*$")
@@ -375,13 +397,13 @@ local function readModel(tooltip, data, game)
                 m.hasSellPrice = true
             elseif trimmed:match("^Requires Level %d+$") and right == "" then
                 m.levelRequirement = {
-                    text = trimmed, met = requirementMet(trimmed, line.leftColor, game),
+                    text = trimmed, met = requirementOf(line, lineType, trimmed, game),
                 }
-            elseif trimmed:match("^Requires ") then
+            elseif isType(lineType, "UsageRequirement") or trimmed:match("^Requires ") then
                 add(m.footerRight, left, right)
                 local entry = m.footerRight[#m.footerRight]
                 entry.requirement = true
-                entry.met = requirementMet(trimmed, line.leftColor, game)
+                entry.met = requirementOf(line, lineType, trimmed, game)
             elseif trimmed:match("^Durability %d+ / %d+$") then
                 add(m.footerLeft, trimmed, right)
                 local current, maximum = trimmed:match("(%d+) / (%d+)")
@@ -425,20 +447,25 @@ local function readModel(tooltip, data, game)
                     add(PRIMARY_STATS[label] and m.primary or m.secondary, piece, right)
                     right = ""
                 end
-            elseif trimmed:match('^".+"$') then
+            elseif isType(lineType, "FlavorText") or trimmed:match('^".+"$') then
                 add(m.flavor, left, right)
+            elseif isType(lineType, "ItemEnchantmentPermanent") and right == "" then
+                -- The enchant follows its label, "Enchanted:".
+                local text = util.trim(plainText(left))
+                for _, row in ipairs(enchantRows(text:match("^[^:]-:%s*(.+)$") or text)) do add(m.enchants, row, "") end
             elseif readCopyLine(m, left, right) then
                 -- Crafter or enchant, taken into their own rows.
             elseif trimmed:match("^<.+>$") then
                 add(m.effects, left, right)
-            elseif trimmed:match("^Equip:") and right == "" then
+            elseif (isType(lineType, "ItemSpellTriggerOnEquip") or trimmed:match("^Equip:")) and right == "" then
                 -- Unparsed equip effects join the stats; the list implies "Equip:".
-                add(m.equipEffects, (trimmed:gsub("^Equip:%s*", "")), "")
-            elseif trimmed:match("^Use:") and right == "" then
+                add(m.equipEffects, withoutLabel(withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP), "Equip:"), "")
+            elseif (isType(lineType, "ItemSpellTriggerOnUse") or trimmed:match("^Use:")) and right == "" then
                 -- Its gear marker stands for the words.
-                add(m.effects, (trimmed:gsub("^Use:%s*", "")), "")
+                add(m.effects, withoutLabel(withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONUSE), "Use:"), "")
                 m.effects[#m.effects].use = true
-            elseif trimmed:match("^Equip:") or trimmed:match("^Use:") then
+            elseif isType(lineType, "ItemSpellTriggerOnUse") or isType(lineType, "ItemSpellTriggerOnEquip")
+                or trimmed:match("^Equip:") or trimmed:match("^Use:") then
                 add(m.effects, left, right)
             else
                 addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
