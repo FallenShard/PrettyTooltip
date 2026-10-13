@@ -1,0 +1,79 @@
+== tooltip model
+armor: {}
+comparison: false
+effects: {}
+enchants: {}
+equipEffects: {}
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+flavor:
+  1:
+    left: "\"Fragmented remnants of the construct, refracting light like a kaleidoscope.\""
+    right: ""
+footerLeft: {}
+footerRight: {}
+header:
+  1:
+    left: "Soulbound"
+    right: ""
+  2:
+    left: "Unique"
+    right: ""
+icon: 294481
+kinds: {}
+level: 1
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+link: "|cnIQ1:|Hitem:270865::::::::30:1486:::::::::|h[Titan Relic]|h|r"
+name: "Titan Relic"
+nameColor:
+  1: 1
+  2: 1
+  3: 1
+primary: {}
+quality: 1
+quest: true
+secondary: {}
+setBonuses: {}
+setItems: {}
+startsQuest: "This Item Begins a Quest"
+weaponBonus: {}
+== tooltip render
+panel 308 x 177
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
+texture at 4,4 0x83 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture unplaced 16x16 rgb=1,0.82,0,1 tooltip-TopLeftCorner
+texture unplaced 16x16 rgb=1,0.82,0,1 tooltip-TopRightCorner
+texture unplaced 16x16 rgb=1,0.82,0,1 tooltip-BottomLeftCorner
+texture unplaced 16x16 rgb=1,0.82,0,1 tooltip-BottomRightCorner
+texture unplaced 0x0 rgb=1,0.82,0,1 tooltip-TopEdge
+texture unplaced 0x0 rgb=1,0.82,0,1 tooltip-BottomEdge
+texture unplaced 0x0 rgb=1,0.82,0,1 tooltip-LeftEdge
+texture unplaced 0x0 rgb=1,0.82,0,1 tooltip-RightEdge
+text at 19,21 w=270 size=19 rgb=0.77,0.77,0.77 "TITAN RELIC"
+text at 19,47 w=270 size=12 rgb=0.78,0.72,0.63 "Soulbound"
+text at 19,64 w=270 size=12 rgb=0.78,0.72,0.63 "Unique"
+text at 19,89 w=270 size=13 rgb=1,0.82,0 "|TInterface\\GossipFrame\\AvailableQuestIcon:0|t This Item Begins a Quest"
+text at 19,114 w=270 size=12 rgb=0.86,0.74,0.45 "\"Fragmented remnants of the construct, refracting light like a kaleidoscope.\""
+text at 19,145 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"

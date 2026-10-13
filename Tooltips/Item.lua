@@ -39,6 +39,7 @@ local PRIMARY_STATS = {
     Strength = true, Agility = true, Stamina = true, Intellect = true, Spirit = true,
     ["All Stats"] = true,
 }
+local QUEST_MARK = "|TInterface\\GossipFrame\\AvailableQuestIcon:0|t "
 local ITEM_KINDS = { "Crafting Reagent", "Scarce" }
 local ITEM_KIND_NAMES = {}
 for _, kind in ipairs(ITEM_KINDS) do ITEM_KIND_NAMES[kind:lower()] = kind end
@@ -331,6 +332,8 @@ local function readModel(tooltip, data, game)
             addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
         elseif trimmed:match("^Use: Teaches you how to") then
             model.teaches = { left = left, right = right }
+        elseif m == model and trimmed:match("^This Item Begins a Quest") then
+            model.startsQuest = trimmed
         elseif m == model and professionRequirement(trimmed) then
             local name, level = professionRequirement(trimmed)
             model.skill = { name = name, level = level, text = left, met = requirementMet(trimmed, line.leftColor, game) }
@@ -706,6 +709,7 @@ local function fitWidth(panel, model, title, styles, iconSize)
     end
     local indent = model.icon and iconSize + 10 or 0
     consider(measureStyled(panel, title, styles.title) + indent)
+    if model.startsQuest then consider(measureStyled(panel, QUEST_MARK .. model.startsQuest, styles.effects)) end
     if model.slot then consider(measureStyled(panel, model.slot, styles.subtitle) + indent) end
     group(model.header, styles.header, indent)
     if model.weaponDps then
@@ -969,6 +973,11 @@ local function render(panel, tooltip, model)
     y = math.max(y + 6, headerMin)
     panel.header:SetHeight(y - panel.inset)
 
+    -- A quest the item begins comes first, as the game's quest givers mark it.
+    if model.startsQuest then
+        y = drawRow(panel, { left = QUEST_MARK .. model.startsQuest, right = "" }, y + 2, styles.effects,
+            colors.quest) + 2
+    end
     local sectioned
     y, sectioned = drawBody(panel, model, styles, y, inner, false)
     if model.created then
