@@ -1,6 +1,5 @@
 -- Items as a panel: the reader, which turns the game's item lines into a
--- model, and the renderer, which draws it. The panel, its chrome, and the
--- hooks that show it are in Panel/Layout.lua.
+-- model, and the view, which says what to draw; Panel/Render.lua draws it.
 local _, ns = ...
 local ui = ns.ui
 local ITEM = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item
@@ -14,19 +13,18 @@ local isSecret, safeText, number = util.isSecret, util.safeText, util.number
 local plainText, rgb = util.plainText, util.rgb
 local LINE = Enum.TooltipDataLineType
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
-local pad, minWidth, titleTop = ui.pad, ui.minWidth, ui.titleTop
-local MAX_WIDTH, PROSE_WIDTH, COLUMN_GAP = ui.MAX_WIDTH, ui.PROSE_WIDTH, ui.COLUMN_GAP
+local pad, PROSE_WIDTH, COLUMN_GAP = ui.pad, ui.PROSE_WIDTH, ui.COLUMN_GAP
 local ICON_SIZE, EXTRA_COLOR, GOLD_RULE, FLAVOR_GOLD, probe, bodyFont = ui.ICON_SIZE, ui.EXTRA_COLOR, ui.GOLD_RULE, ui.FLAVOR_GOLD, ui.probe, ui.bodyFont
 local isComparison = ui.isComparison
 local isRed, add, colorOf = ns.TooltipData.isRed, ns.TooltipData.add, ns.TooltipData.colorOf
 local appendedRows, requirementMet = ns.TooltipData.appendedRows, ns.TooltipData.requirementMet
-local formatMoney, enchantRows, styleOf, clearPool, styledAt, measureStyled = ui.formatMoney, ui.enchantRows, ui.styleOf, ui.clearPool, ui.styledAt, ui.measureStyled
-local rowWidth, headerInsets, drawRow, acquireTexture, rule, divider = ui.rowWidth, ui.headerInsets, ui.drawRow, ui.acquireTexture, ui.rule, ui.divider
-local caption, drawGroup, drawChrome, finishPanel = ui.caption, ui.drawGroup, ui.drawChrome, ui.finishPanel
+local formatMoney, enchantRows, styleOf, styledAt, measureStyled = ui.formatMoney, ui.enchantRows, ui.styleOf, ui.styledAt, ui.measureStyled
+local rowWidth, drawRow, acquireTexture, divider, drawGroup = ui.rowWidth, ui.drawRow, ui.acquireTexture, ui.divider, ui.drawGroup
 
 local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
 local CONSUMABLE_CLASS = Enum.ItemClass and Enum.ItemClass.Consumable or 0
 local DURABILITY_BAR = 54
+local EXTRAS_RULE = { .50, .50, .54 }
 local QUALITY = {
     [0] = { .62, .62, .62 },
     [1] = { .77, .77, .77 },
@@ -582,6 +580,7 @@ local function readModel(tooltip, data, game)
     end
     model.quest = model.quest or classID == QUEST_CLASS
     model.comparison = isComparison(tooltip)
+    model.equippedWith = model.comparison and game.isEquipped(model.link) == false or nil
     return model
 end
 readModel = probe("read item", readModel)
@@ -723,98 +722,81 @@ local function itemIconSize(panel, badge, style)
     return math.max(ICON_SIZE, math.ceil(measureStyled(panel, "iLvl 88", style)) + 8)
 end
 
-local function fitWidth(panel, model, title, styles, iconSize)
+-- The widest of a list's rows, each plus extra; prose rows wrap.
+local function listWidth(panel, list, style, extra, prose)
     local need = 0
-    local function consider(width) if width > need then need = width end end
-    local function group(list, style, extra, prose)
-        for _, row in ipairs(list) do
-            local width = rowWidth(panel, row, style)
-            if prose and (not row.right or row.right == "") then
-                width = math.min(width, PROSE_WIDTH)
-            end
-            consider(width + extra)
-        end
+    for _, row in ipairs(list) do
+        local width = rowWidth(panel, row, style)
+        if prose and (not row.right or row.right == "") then width = math.min(width, PROSE_WIDTH) end
+        need = math.max(need, width + extra)
     end
-    -- Use effects are indented past their gear.
-    local function effects(list)
-        for _, row in ipairs(list) do
-            group({ row }, styles.effects, row.use and markerIndent(panel, styles.effects) or 0, true)
-        end
-    end
-    local indent = model.icon and iconSize + 10 or 0
-    consider(measureStyled(panel, title, styles.title) + indent)
-    if model.startsQuest then consider(measureStyled(panel, QUEST_MARK .. model.startsQuest, styles.effects)) end
-    if model.slot then consider(measureStyled(panel, model.slot, styles.subtitle) + indent) end
-    group(model.header, styles.header, indent)
-    if model.weaponDps then
-        consider(measureStyled(panel, valueLabel(model.weaponDps, "Damage per Second"), styles.dps))
-    end
-    if model.weaponDamage then
-        consider(measureStyled(panel, weaponText(model), styles.damage) + 7)
-    end
-    for _, bonus in ipairs(model.weaponBonus) do
-        consider(measureStyled(panel, damageText(bonus), styles.damage) + 7)
-    end
-    group(model.armor, styles.armor, 0)
-    group(model.primary, styles.stats, 0)
-    group(model.secondary, styles.stats, 0)
+    return need
+end
+
+-- Whether an item has stats, effects, or flavor, drawn under the first divider.
+local function hasStats(model)
+    return model.weaponDps or model.weaponDamage or #model.weaponBonus > 0 or #model.armor > 0
+        or #model.primary > 0 or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
+        or #model.effects > 0 or #model.flavor > 0
+end
+
+local function statsWidth(panel, model, styles)
+    local need = math.max(
+        listWidth(panel, model.armor, styles.armor, 0),
+        listWidth(panel, model.primary, styles.stats, 0),
+        listWidth(panel, model.secondary, styles.stats, 0),
+        listWidth(panel, model.enchants, styles.enchants, markerIndent(panel, styles.enchants)),
+        listWidth(panel, model.flavor, styles.flavor, 0, true))
     for _, row in ipairs(model.equipEffects) do
-        consider(math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
+        need = math.max(need, math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
             + markerIndent(panel, styles.equipEffects))
     end
-    group(model.enchants, styles.enchants, markerIndent(panel, styles.enchants))
-    effects(model.effects)
-    group(model.flavor, styles.flavor, 0, true)
-    if model.setName then
-        local countWidth = measureStyled(panel, model.setCount or "", setCountStyle(styles.setName))
-        consider(measureStyled(panel, model.setName, styles.setName)
-            + math.max(45, countWidth + COLUMN_GAP))
-        group(model.setItems, styles.setItems, 20)
-        group(model.setBonuses, styles.setBonuses, 3, true)
+    -- Use effects are indented past their gear.
+    for _, row in ipairs(model.effects) do
+        need = math.max(need, listWidth(panel, { row }, styles.effects,
+            row.use and markerIndent(panel, styles.effects) or 0, true))
     end
-    if model.disenchant and ns.option("disenchant") then
-        consider(rowWidth(panel, disenchantHeading(model.disenchant), styles.disenchant))
-        group(disenchantRows(model.disenchant), styles.disenchant, 0)
+    if model.weaponDps then
+        need = math.max(need, measureStyled(panel, valueLabel(model.weaponDps, "Damage per Second"), styles.dps))
     end
-    if model.created then
-        local created = model.created
-        consider(measureStyled(panel, created.name, styles.createdName) + CREATED_ICON + 8)
-        local subtitle = createdSubtitle(created)
-        if subtitle then consider(math.min(measureStyled(panel, subtitle, styles.subtitle), PROSE_WIDTH) + CREATED_ICON + 8) end
-        local body = { "armor", "primary", "secondary", "enchants" }
-        for _, key in ipairs(body) do
-            local style = styles[key == "armor" and "armor" or key == "enchants" and "enchants" or "stats"]
-            group(created[key], style, key == "enchants" and markerIndent(panel, style) or 0)
-        end
-        effects(created.effects)
-        group(created.flavor, styles.flavor, 0, true)
-        for _, row in ipairs(created.equipEffects) do
-            consider(math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
-                + markerIndent(panel, styles.equipEffects))
-        end
-        if created.weaponDps then
-            consider(measureStyled(panel, valueLabel(created.weaponDps, "Damage per Second"), styles.dps))
-        end
+    if model.weaponDamage then need = math.max(need, measureStyled(panel, weaponText(model), styles.damage) + 7) end
+    for _, bonus in ipairs(model.weaponBonus) do
+        need = math.max(need, measureStyled(panel, damageText(bonus), styles.damage) + 7)
     end
-    group(reagentRows(model), styles.reagents, 0)
-    group(model.extras, styles.extras, 0, true)
-    local footerRight = shownFooterRight(model)
+    return need
+end
+
+local function setWidth(panel, model, styles)
+    local countWidth = measureStyled(panel, model.setCount or "", setCountStyle(styles.setName))
+    return math.max(measureStyled(panel, model.setName, styles.setName) + math.max(45, countWidth + COLUMN_GAP),
+        listWidth(panel, model.setItems, styles.setItems, 20),
+        listWidth(panel, model.setBonuses, styles.setBonuses, 3, true))
+end
+
+local function createdWidth(panel, created, styles)
+    local need = math.max(measureStyled(panel, created.name, styles.createdName) + CREATED_ICON + 8,
+        statsWidth(panel, created, styles), created.setName and setWidth(panel, created, styles) or 0)
+    local subtitle = createdSubtitle(created)
+    if subtitle then
+        need = math.max(need, math.min(measureStyled(panel, subtitle, styles.subtitle), PROSE_WIDTH) + CREATED_ICON + 8)
+    end
+    return need
+end
+
+local function footerWidth(panel, model, footerRight, style)
+    local need = 0
     for index = 1, math.max(#model.footerLeft, #footerRight) do
         local left, right = model.footerLeft[index], footerRight[index]
         local leftWidth = 0
         if left and left.durability then
-            leftWidth = DURABILITY_BAR + 7 + measureStyled(panel,
-                left.durability[1] .. " / " .. left.durability[2], styles.footer)
+            leftWidth = DURABILITY_BAR + 7 + measureStyled(panel, left.durability[1] .. " / " .. left.durability[2], style)
         elseif left then
-            leftWidth = measureStyled(panel, left.left, styles.footer)
+            leftWidth = measureStyled(panel, left.left, style)
         end
-        consider(leftWidth + COLUMN_GAP
-            + (right and measureStyled(panel, footerText(right), styles.footer) or 0))
+        need = math.max(need, leftWidth + COLUMN_GAP + (right and measureStyled(panel, footerText(right), style) or 0))
     end
-    local width = math.ceil(need + 2 * pad())
-    return math.max(minWidth(), math.min(MAX_WIDTH, width))
+    return need
 end
-fitWidth = probe("fit width", fitWidth)
 
 local function durabilityColor(current, maximum)
     local ratio = maximum > 0 and current / maximum or 0
@@ -842,100 +824,88 @@ local function drawDurability(panel, durability, y, style)
         math.max(90, style.size * 8), style, healthy and { .82, .78, .71 } or color)
 end
 
--- A shield or off-hand is also compared against the one-hander from the bags
--- it would be worn with; Blizzard heads that one "Equipped With". Asked
--- while drawing, until Phase 5 moves it into the model.
-local function isEquipped(model)
-    return ns.Game.isEquipped(model.link) ~= false
+-- Weapon damage, armor, stats, and effects.
+local function drawStats(panel, model, styles, y)
+    local inner = panel.width - 2 * pad()
+    if model.weaponDps then
+        y = drawRow(panel, {
+            left = valueLabel(model.weaponDps, "Damage per Second"), right = "",
+        }, y, styles.dps, { .93, .87, .75 }) + 2
+    end
+    if model.weaponDamage or #model.weaponBonus > 0 then
+        if model.weaponDamage then
+            y = y + styledAt(panel, weaponText(model), pad() + 7, y, inner - 7, styles.damage,
+                { .71, .72, .73 })
+        end
+        for _, bonus in ipairs(model.weaponBonus) do
+            y = y + 2 + styledAt(panel, damageText(bonus), pad() + 7, y + 2, inner - 7, styles.damage,
+                { .71, .72, .73 })
+        end
+        y = y + 7
+    end
+    for _, row in ipairs(model.armor) do
+        y = drawRow(panel, {
+            left = row.value and valueLabel(row.value, "Armor") or row.left,
+            right = row.right, rightColor = row.rightColor,
+        }, y, styles.armor, { .93, .87, .75 })
+    end
+    if #model.armor > 0 then y = y + 5 end
+    y = drawGroup(panel, model.primary, y, styles.stats, { .90, .85, .74 })
+    -- The rest of the stats sit under a divider, whatever comes above them:
+    -- a wand often has its damage and no primary stats.
+    local above = #model.primary > 0 or #model.armor > 0 or model.weaponDps or model.weaponDamage
+        or #model.weaponBonus > 0
+    if (#model.secondary > 0 or #model.equipEffects > 0) and above then
+        y = divider(panel, y, GOLD_RULE, 3)
+    end
+    y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
+    y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
+    y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
+    if #model.effects > 0 then y = y + 5 end
+    y = drawEffects(panel, model.effects, y, styles.effects, { .48, .88, .48 })
+    if #model.flavor > 0 then
+        y = drawGroup(panel, model.flavor, y + 5, styles.flavor, FLAVOR_GOLD)
+    end
+    return y
 end
 
--- Stats, effects, and the set, below a header; opened skips the first divider.
-local function drawBody(panel, model, styles, y, inner, opened)
-    local sectioned = false
-    if model.weaponDps or model.weaponDamage or #model.weaponBonus > 0 or #model.armor > 0 or #model.primary > 0
-        or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
-        or #model.effects > 0 or #model.flavor > 0 then
-        if not opened then y = divider(panel, y, GOLD_RULE) end
-        if model.weaponDps then
-            y = drawRow(panel, {
-                left = valueLabel(model.weaponDps, "Damage per Second"), right = "",
-            }, y, styles.dps, { .93, .87, .75 }) + 2
+-- The set's name and count, its pieces, and its bonuses.
+local function drawSet(panel, model, styles, y)
+    local inner = panel.width - 2 * pad()
+    local countStyle = setCountStyle(styles.setName)
+    local count = model.setCount or ""
+    local countWidth = math.max(42, measureStyled(panel, count, countStyle) + 2)
+    local titleHeight = styledAt(panel, model.setName, pad(), y, inner - countWidth - 3,
+        styles.setName, { 1, .76, .18 })
+    local countHeight = styledAt(panel, count, panel.width - pad() - countWidth, y, countWidth,
+        countStyle, { 1, .76, .18 }, "RIGHT")
+    y = y + math.max(24, titleHeight + 7, countHeight + 7)
+    for _, row in ipairs(model.setItems) do
+        local bullet, color = "|cff756C60-  |r", { .61, .58, .54 }
+        if row.active == true then
+            bullet, color = "|cffD9B36A-  |r", { .94, .89, .77 }
+        elseif row.active == false then
+            bullet, color = "|cff4A4540-  |r", { .44, .42, .40 }
         end
-        if model.weaponDamage or #model.weaponBonus > 0 then
-            if model.weaponDamage then
-                y = y + styledAt(panel, weaponText(model), pad() + 7, y, inner - 7, styles.damage,
-                    { .71, .72, .73 })
-            end
-            for _, bonus in ipairs(model.weaponBonus) do
-                y = y + 2 + styledAt(panel, damageText(bonus), pad() + 7, y + 2, inner - 7, styles.damage,
-                    { .71, .72, .73 })
-            end
-            y = y + 7
-        end
-        for _, row in ipairs(model.armor) do
-            y = drawRow(panel, {
-                left = row.value and valueLabel(row.value, "Armor") or row.left,
-                right = row.right, rightColor = row.rightColor,
-            }, y, styles.armor, { .93, .87, .75 })
-        end
-        if #model.armor > 0 then y = y + 5 end
-        y = drawGroup(panel, model.primary, y, styles.stats, { .90, .85, .74 })
-        -- The rest of the stats sit under a divider, whatever comes above them:
-        -- a wand often has its damage and no primary stats.
-        local above = #model.primary > 0 or #model.armor > 0 or model.weaponDps or model.weaponDamage
-            or #model.weaponBonus > 0
-        if (#model.secondary > 0 or #model.equipEffects > 0) and above then
-            y = divider(panel, y, GOLD_RULE, 3)
-        end
-        y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
-        y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
-        y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
-        if #model.effects > 0 then y = y + 5 end
-        y = drawEffects(panel, model.effects, y, styles.effects, { .48, .88, .48 })
-        if #model.flavor > 0 then
-            y = drawGroup(panel, model.flavor, y + 5, styles.flavor, FLAVOR_GOLD)
-        end
-        sectioned = true
+        y = drawRow(panel, { left = bullet .. row.left, right = row.right },
+            y, styles.setItems, color, 5)
     end
-
-    if model.setName then
-        y = divider(panel, y, GOLD_RULE, sectioned and 11 or 0)
-        sectioned = true
-        local setTitle = model.setName
-        local countStyle = setCountStyle(styles.setName)
-        local count = model.setCount or ""
-        local countWidth = math.max(42, measureStyled(panel, count, countStyle) + 2)
-        local titleHeight = styledAt(panel, setTitle, pad(), y, inner - countWidth - 3,
-            styles.setName, { 1, .76, .18 })
-        local countHeight = styledAt(panel, count, panel.width - pad() - countWidth, y, countWidth,
-            countStyle, { 1, .76, .18 }, "RIGHT")
-        y = y + math.max(24, titleHeight + 7, countHeight + 7)
-        for _, row in ipairs(model.setItems) do
-            local bullet, color = "|cff756C60-  |r", { .61, .58, .54 }
-            if row.active == true then
-                bullet, color = "|cffD9B36A-  |r", { .94, .89, .77 }
-            elseif row.active == false then
-                bullet, color = "|cff4A4540-  |r", { .44, .42, .40 }
-            end
-            y = drawRow(panel, { left = bullet .. row.left, right = row.right },
-                y, styles.setItems, color, 5)
+    if #model.setBonuses > 0 then y = y + 7 end
+    for _, row in ipairs(model.setBonuses) do
+        local color = { .68, .65, .57 }
+        if row.active == true then
+            color = { .48, .88, .48 }
+        elseif row.active == false then
+            color = { .44, .42, .40 }
         end
-        if #model.setBonuses > 0 then y = y + 7 end
-        for _, row in ipairs(model.setBonuses) do
-            local color = { .68, .65, .57 }
-            if row.active == true then
-                color = { .48, .88, .48 }
-            elseif row.active == false then
-                color = { .44, .42, .40 }
-            end
-            y = drawRow(panel, row, y, styles.setBonuses, color, 3)
-        end
+        y = drawRow(panel, row, y, styles.setBonuses, color, 3)
     end
-    return y, sectioned
+    return y
 end
 
 -- The item a recipe crafts: a small header, then its own stats and effects.
-local function drawCreated(panel, created, styles, y, inner)
+local function drawCreated(panel, created, styles, y)
+    local inner = panel.width - 2 * pad()
     local quality = QUALITY[created.quality] or created.nameColor or QUALITY[1]
     local indent = 0
     local top = y
@@ -959,123 +929,134 @@ local function drawCreated(panel, created, styles, y, inner)
             unmet and UNUSABLE_COLOR or { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 2
     end
     y = math.max(y, top + CREATED_ICON + 2) + 8
-    return (drawBody(panel, created, styles, y, inner, true))
+    local stats = hasStats(created)
+    if stats then y = drawStats(panel, created, styles, y) end
+    if created.setName then y = drawSet(panel, created, styles, divider(panel, y, GOLD_RULE, stats and 11 or 0)) end
+    return y
 end
 
-local function render(panel, tooltip, model)
-    panel:Show()
-    clearPool(panel)
+-- Durability and requirements on the left, prices on the right.
+local function drawFooter(panel, model, footerRight, footer, y)
+    local inner = panel.width - 2 * pad()
+    for index = 1, math.max(#model.footerLeft, #footerRight) do
+        local left = model.footerLeft[index]
+        local right = footerRight[index]
+        local h1, h2 = 0, 0
+        local rightWidth = 0
+        if right then
+            local content = footerText(right)
+            local color = { .88, .78, .60 }
+            if right.requirement then
+                color = right.met and { 1, 1, 1 } or { 1, .34, .28 }
+            end
+            rightWidth = math.min(measureStyled(panel, content, footer) + 2, inner * .6)
+            h2 = styledAt(panel, content, panel.width - pad() - rightWidth, y,
+                rightWidth, footer, color, "RIGHT")
+        end
+        if left and left.durability then
+            h1 = drawDurability(panel, left.durability, y, footer)
+        elseif left then
+            h1 = styledAt(panel, left.left, pad(), y, inner - rightWidth - COLUMN_GAP,
+                footer, left.color or { .82, .78, .71 })
+        end
+        y = y + math.max(h1, h2, footer.size + 2) + 4
+    end
+    return y
+end
+
+local function itemStyles()
     local styles = {}
     for _, element in ipairs(ns.ELEMENTS) do
         if not element.tooltipType or element.tooltipType == "shared" then
             styles[element.key] = styleOf(element.key)
         end
     end
-    if not ns.option("iconItems") then model.icon = nil end
-    local title = model.name
-    local badge = model.icon and ns.option("itemLevelBadge") and model.level
-        and (model.equippable or model.levelLine) and ("iLvl " .. model.level)
-    local iconSize = itemIconSize(panel, badge, styles.badge)
-    panel.width = fitWidth(panel, model, title, styles, iconSize)
-    panel:SetWidth(panel.width)
+    return styles
+end
+
+local function itemView(panel, model)
+    local styles = itemStyles()
+    local icon = ns.option("iconItems") and model.icon or nil
+    local badge = icon and ns.option("itemLevelBadge") and model.level
+        and (model.equippable or model.levelLine) and ("iLvl " .. model.level) or nil
     local quality = QUALITY[model.quality] or QUALITY[1]
-    local tag
-    if model.comparison then
-        tag = isEquipped(model) and "EQUIPPED" or "EQUIPPED WITH"
-    end
     local accent = model.quest and colors.quest or quality
-    local headerMin = drawChrome(panel, tooltip, {
-        tooltipType = "item",
-        color = accent,
-        tint = (model.quest or model.quality >= 2) and accent or nil,
-        icon = model.icon,
-        iconSize = iconSize,
-        badge = badge,
-        tag = tag,
-    })
-
-    local y = titleTop()
-    local inner = panel.width - 2 * pad()
-    local indent = model.icon and iconSize + 10 or 0
-    local leftIndent, rightIndent = headerInsets(indent)
-    y = y + styledAt(panel, title, pad() + leftIndent, y, inner - indent, styles.title, quality) + 4
+    local header = { { text = model.name, style = styles.title, color = quality, gap = 4 } }
     if model.slot and model.slot ~= "" then
-        y = y + styledAt(panel, model.slot, pad() + leftIndent, y, inner - indent, styles.subtitle,
-            { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 4
+        header[#header + 1] = { text = model.slot, style = styles.subtitle,
+            color = { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }, gap = 4 }
     end
-    y = drawGroup(panel, model.header, y, styles.header, { .78, .72, .63 }, leftIndent, nil,
-        rightIndent)
-    y = math.max(y + 6, headerMin)
-    panel.header:SetHeight(y - panel.inset)
+    header[#header + 1] = { rows = model.header, style = styles.header, color = { .78, .72, .63 }, gap = 3 }
 
+    local sections, sectioned = {}, false
+    local function section(entry) sections[#sections + 1] = entry end
     -- A quest the item begins comes first, as the game's quest givers mark it.
     if model.startsQuest then
-        y = drawRow(panel, { left = QUEST_MARK .. model.startsQuest, right = "" }, y + 2, styles.effects,
-            colors.quest) + 2
+        section({ separator = { space = 2 }, kind = "rows", rows = { { left = QUEST_MARK .. model.startsQuest, right = "" } },
+            style = styles.effects, color = colors.quest, gap = 5 })
     end
-    local sectioned
-    y, sectioned = drawBody(panel, model, styles, y, inner, false)
+    if hasStats(model) then
+        section({ separator = { divider = GOLD_RULE }, kind = "custom",
+            measure = function(p) return statsWidth(p, model, styles) end,
+            draw = function(p, y) return drawStats(p, model, styles, y) end })
+        sectioned = true
+    end
+    if model.setName then
+        section({ separator = { divider = GOLD_RULE, before = sectioned and 11 or 0 }, kind = "custom",
+            measure = function(p) return setWidth(p, model, styles) end,
+            draw = function(p, y) return drawSet(p, model, styles, y) end })
+        sectioned = true
+    end
     if model.created then
-        y = caption(panel, y + (sectioned and 6 or 0), "Creates", styles.caption)
-        y = drawCreated(panel, model.created, styles, y, inner)
+        section({ separator = { caption = "Creates", style = styles.caption, before = sectioned and 6 or 0 },
+            kind = "custom",
+            measure = function(p) return createdWidth(p, model.created, styles) end,
+            draw = function(p, y) return drawCreated(p, model.created, styles, y) end })
         sectioned = true
     end
     if model.reagents then
-        y = caption(panel, y + 4, "Reagents", styles.caption)
-        y = drawGroup(panel, reagentRows(model), y, styles.reagents, { .90, .85, .74 }, 0, 3)
+        section({ separator = { caption = "Reagents", style = styles.caption, before = 4 }, kind = "rows",
+            rows = reagentRows(model), style = styles.reagents, color = { .90, .85, .74 }, gap = 3 })
         sectioned = true
     end
-
     if model.disenchant and ns.option("disenchant") then
-        y = divider(panel, y, GOLD_RULE, sectioned and 8 or 0)
+        section({ separator = { divider = GOLD_RULE, before = sectioned and 8 or 0 }, kind = "rows",
+            rows = { disenchantHeading(model.disenchant) }, style = styles.disenchant, color = FLAVOR_GOLD, gap = 4 })
+        section({ kind = "rows", rows = disenchantRows(model.disenchant), style = styles.disenchant,
+            color = { .88, .84, .76 }, gap = 2 })
         sectioned = true
-        y = drawRow(panel, disenchantHeading(model.disenchant), y, styles.disenchant, FLAVOR_GOLD, 0, 4)
-        y = drawGroup(panel, disenchantRows(model.disenchant), y, styles.disenchant, { .88, .84, .76 }, 0, 2)
     end
-
     if #model.extras > 0 then
-        if sectioned then
-            y = rule(panel, y, { .50, .50, .54 }, 10)
-        else
-            y = y + 12
-        end
-        y = drawGroup(panel, model.extras, y, styles.extras, EXTRA_COLOR, 0, 2)
+        section({ separator = sectioned and { rule = EXTRAS_RULE, before = 10 } or { space = 12 }, kind = "rows",
+            rows = model.extras, style = styles.extras, color = EXTRA_COLOR, gap = 2, wrap = true })
     end
 
     local footerRight = shownFooterRight(model)
+    local footer
     if #model.footerLeft > 0 or #footerRight > 0 then
-        y = y + 9
-        local footerStart = y
-        local footer = styles.footer
-        local rows = math.max(#model.footerLeft, #footerRight)
-        for index = 1, rows do
-            local left = model.footerLeft[index]
-            local right = footerRight[index]
-            local h1, h2 = 0, 0
-            local rightWidth = 0
-            if right then
-                local content = footerText(right)
-                local color = { .88, .78, .60 }
-                if right.requirement then
-                    color = right.met and { 1, 1, 1 } or { 1, .34, .28 }
-                end
-                rightWidth = math.min(measureStyled(panel, content, footer) + 2, inner * .6)
-                h2 = styledAt(panel, content, panel.width - pad() - rightWidth, y,
-                    rightWidth, footer, color, "RIGHT")
-            end
-            if left and left.durability then
-                h1 = drawDurability(panel, left.durability, y, footer)
-            elseif left then
-                h1 = styledAt(panel, left.left, pad(), y, inner - rightWidth - COLUMN_GAP,
-                    footer, left.color or { .82, .78, .71 })
-            end
-            y = y + math.max(h1, h2, footer.size + 2) + 4
-        end
-        panel.footer:SetHeight(y - footerStart + 23)
-    else
-        panel.footer:SetHeight(0)
+        footer = {
+            measure = function(p) return footerWidth(p, model, footerRight, styles.footer) end,
+            draw = function(p, y) return drawFooter(p, model, footerRight, styles.footer, y) end,
+        }
     end
-    finishPanel(panel, tooltip, y)
+    return {
+        tooltipType = "item",
+        color = accent,
+        tint = (model.quest or model.quality >= 2) and accent or nil,
+        icon = icon,
+        iconSize = itemIconSize(panel, badge, styles.badge),
+        badge = badge,
+        -- A shield or off-hand is also compared against the one-hander from the
+        -- bags it would be worn with; Blizzard heads that one "Equipped With".
+        tag = model.comparison and (model.equippedWith and "EQUIPPED WITH" or "EQUIPPED") or nil,
+        header = header,
+        sections = sections,
+        footer = footer,
+    }
+end
+
+local function render(panel, tooltip, model)
+    ui.renderView(panel, tooltip, itemView(panel, model))
 end
 render = probe("render item", render)
 

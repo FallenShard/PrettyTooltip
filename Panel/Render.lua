@@ -14,9 +14,12 @@
 --     header = {                         in order, beside the icon
 --         { text = "Name", style = styles.auraName, color = TITLE, gap = 4 },
 --         { badges = { { "Buff", BLUE } }, style = styles.auraBadges, before = 1, gap = 4 },
+--         { rows = { { left, right } }, style, color, gap = 3 },
 --     },
+--     tag = "EQUIPPED",                  the comparison's label above the panel
 --     sections = {                       in order, below the header
---         { separator = { divider = GOLD } | { rule = color, before = 8 } | { space = 4 },
+--         { separator = { divider = GOLD } | { rule = color, before = 8 } | { space = 4 }
+--               | { caption = "Reagents", style, before = 4 },
 --           kind = "prose", sentences = { ... }, style, color, numbers = "FFF6E4", gap = 5 },
 --         { kind = "rows", rows = { { left, right, color, rightColor, indent } }, style, color, gap = 2,
 --           wrap = true },             rows with nothing on the right wrap at prose width
@@ -24,6 +27,7 @@
 --           measure = function(panel) return width end },    measure is optional
 --     },
 --     footer = { rows = { ... }, style, color, gap = 4 },    the dark band at the bottom
+--           or { draw = function(panel, y) return y end, measure = function(panel) return width end },
 --     minWidth = 0,                      narrower than panels usually are, to fit the content
 -- }
 local _, ns = ...
@@ -107,6 +111,8 @@ local function fitWidth(panel, view)
             consider(ui.measureStyled(panel, item.text, item.style) + indent)
         elseif item.badges and #item.badges > 0 then
             consider(badgesWidth(panel, item.badges, item.style) + indent)
+        elseif item.rows then
+            for _, row in ipairs(item.rows) do consider(ui.rowWidth(panel, row, item.style) + indent) end
         end
     end
     for _, section in ipairs(view.sections) do
@@ -124,8 +130,10 @@ local function fitWidth(panel, view)
             end
         end
     end
-    for _, row in ipairs(view.footer and view.footer.rows or {}) do
-        consider(ui.rowWidth(panel, row, view.footer.style))
+    local footer = view.footer
+    if footer and footer.measure then consider(footer.measure(panel)) end
+    for _, row in ipairs(footer and footer.rows or {}) do
+        consider(ui.rowWidth(panel, row, footer.style))
     end
     return math.max(view.minWidth or ui.minWidth(), math.min(ui.MAX_WIDTH, math.ceil(need + 2 * pad())))
 end
@@ -134,6 +142,9 @@ local function drawSeparator(panel, y, separator)
     if not separator then return y end
     if separator.divider then return ui.divider(panel, y, separator.divider, separator.before) end
     if separator.rule then return ui.rule(panel, y, separator.rule, separator.before) end
+    if separator.caption then
+        return ui.caption(panel, y + (separator.before or 0), separator.caption, separator.style, separator.color)
+    end
     return y + (separator.space or 0)
 end
 
@@ -174,11 +185,12 @@ local function renderView(panel, tooltip, view)
         badge = view.badge,
         badgeColor = view.badgeColor,
         gradient = view.gradient,
+        tag = view.tag,
     })
     if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
 
     local indent = indentOf(view)
-    local leftIndent = ui.headerInsets(indent)
+    local leftIndent, rightIndent = ui.headerInsets(indent)
     local inner = panel.width - 2 * pad()
     local y = ui.titleTop()
     for _, item in ipairs(view.header) do
@@ -187,11 +199,17 @@ local function renderView(panel, tooltip, view)
                 + item.gap
         elseif item.badges and #item.badges > 0 then
             y = drawBadges(panel, item.badges, pad() + leftIndent, y + (item.before or 0), item.style) + item.gap
+        elseif item.rows then
+            for _, row in ipairs(item.rows) do
+                y = ui.drawRow(panel, row, y, item.style, item.color, leftIndent, item.gap, rightIndent)
+            end
         end
     end
+    local footer = view.footer
+    local hasFooter = footer and (footer.draw or #footer.rows > 0)
     if #view.header > 0 or view.icon then
         -- A header alone ends as far below its last line as its first is from the top.
-        local alone = #view.sections == 0 and not (view.footer and #view.footer.rows > 0)
+        local alone = #view.sections == 0 and not hasFooter
         y = math.max(alone and y or y + 6, headerMin)
         panel.header:SetHeight(y - panel.inset)
     else
@@ -205,12 +223,15 @@ local function renderView(panel, tooltip, view)
         y = drawSeparator(panel, y, section.separator)
         y = DRAW[section.kind](panel, y, section)
     end
-    local footer = view.footer
-    if footer and #footer.rows > 0 then
+    if hasFooter then
         y = y + FOOTER_TOP
         local top = y
-        for _, row in ipairs(footer.rows) do
-            y = ui.drawRow(panel, row, y, footer.style, footer.color, 0, footer.gap)
+        if footer.draw then
+            y = footer.draw(panel, y)
+        else
+            for _, row in ipairs(footer.rows) do
+                y = ui.drawRow(panel, row, y, footer.style, footer.color, 0, footer.gap)
+            end
         end
         panel.footer:SetHeight(y - top + 23)
     end

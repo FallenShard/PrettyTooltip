@@ -13,7 +13,7 @@ return function(test)
             { left = { text = "This Item Begins a Quest" } }, { left = { text = '"A schedule of gold pickups."' } } },
     }
     local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
-        "Game/TooltipData.lua", "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Item.lua" }, capture)
+        "Game/TooltipData.lua", "Data/Stats.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Item.lua" }, capture)
     local model = ns.TooltipTypes[0].read(world.main, capture.data, ns.Game)
     test.check("it is read as beginning a quest", { model.startsQuest, model.quest }, { "This Item Begins a Quest", true })
     test.check("and kept out of the extras", #model.extras, 0)
