@@ -32,6 +32,7 @@ local DEFAULTS = {
     separators = true,
     spellPanels = true,
     disenchant = true,
+    nodeLoot = true,
     sellPrice = true,
     spellPower = true,
     -- Only takes effect while DialogueUI is installed.
@@ -143,6 +144,9 @@ ns.ELEMENTS = {
         note = "The skill in its skill-up color, unmet requirements red, unless set." },
     { key = "objectQuests", label = "Quest lines", size = 12, color = colors.objective,
         tooltipType = "object", note = "Quest names gold, finished objectives green, unless set." },
+    { key = "objectLoot", label = "Contents", size = 11, color = colors.detail, tooltipType = "object",
+        note = "A herb or ore node's yield over its taps, then what else it may hold and the chance each tap. "
+            .. "Turned off under Herbs and Ore in the options." },
     { key = "objectPrices", label = "Prices", size = 11, color = { .88, .78, .60 },
         tooltipType = "object", note = "The yielded item's sell price, and its auction price with Auctionator." },
     { key = "unitName", label = "Name", size = 17, title = true, color = { 1, 1, 1 },

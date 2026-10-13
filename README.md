@@ -118,6 +118,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
 - **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with selected Equip effects shortened and the game's colors kept, but for magical stats and effects (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items, and **Sell price** the sell price rows in the footer.
 - **Spell Details**: **Spell power breakdown** shows or hides the coefficients and the base and spell power split on spells.
+- **Herbs and Ore**: **Node contents** shows or hides what a herb or ore node holds: its yield over all its taps, and the stone, gems, or other herbs it may give, with the chance each tap.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never**.
 
 ## Install

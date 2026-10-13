@@ -11,6 +11,11 @@ look:
     3: 0.32
   icon: "Interface\\Icons\\Trade_Herbalism"
   label: "Herb"
+loot:
+  1:
+    left: "Bruiseweed"
+    rare: false
+    right: "1 to 3"
 name: "Bruiseweed"
 prices: {}
 quests: {}
@@ -24,7 +29,7 @@ skillRow:
   name: "Herbalism"
   player: 105
 == tooltip render
-panel 268 x 122
+panel 268 x 150
 texture at -16,-16 0x0 rgb=0.36,0.78,0.32,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -46,3 +51,6 @@ texture TOPRIGHT panel TOPRIGHT -19,-76 106x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=132 size=12 rgb=1,0.502,0.251 "Requires Herbalism 100"
 text at 163,89 w=86 size=12 rgb=0.6,0.57,0.52 "Your skill 105"
+texture at 19,109 230x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,118 w=183 size=11 rgb=0.82,0.78,0.71 "Bruiseweed"
+text at 214,118 w=35 size=11 rgb=0.82,0.78,0.71 "1 to 3"

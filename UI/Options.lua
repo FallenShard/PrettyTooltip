@@ -193,6 +193,12 @@ function ns.Options.register()
     detailBox("spellPower", "Spell power breakdown", "Under the description, each amount's spell power "
         .. "coefficient and its split into base and spell power. No game API has coefficients: they follow "
         .. "Classic's rules, checked against Forever's spell data, and ones marked ~ are estimates.")
+    rightColumn.y = rightColumn.y - 12
+
+    section(rightColumn, "Herbs and Ore")
+    detailBox("nodeLoot", "Node contents", "What a herb or ore node holds: its yield over all the times it can "
+        .. "be gathered, then the stone, gems, and other herbs it may give and the chance each time. From "
+        .. "Classic's loot tables.")
 
     page:SetScript("OnShow", refreshControls)
     -- Hooks the settings window calls on canvas pages: when it shows them, and

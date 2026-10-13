@@ -20,6 +20,31 @@ look:
     3: 0.3
   icon: "Interface\\Icons\\Trade_Mining"
   label: "Mining node"
+loot:
+  1:
+    left: "Mithril Ore"
+    rare: false
+    right: "2 to 4"
+  2:
+    left: "Solid Stone"
+    rare: false
+    right: "40%"
+  3:
+    left: "Black Vitriol"
+    rare: true
+    right: "1%"
+  4:
+    left: "Citrine"
+    rare: true
+    right: "0.8%"
+  5:
+    left: "Aquamarine"
+    rare: true
+    right: "0.7%"
+  6:
+    left: "Star Ruby"
+    rare: true
+    right: "0.7%"
 name: "Mithril Deposit"
 prices: {}
 quests: {}
@@ -29,7 +54,7 @@ skillRow:
   level: 175
   name: "Mining"
 == sample render
-panel 260 x 154
+panel 260 x 257
 texture at -16,-16 0x0 rgb=0.85,0.55,0.3,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -50,5 +75,18 @@ texture at 19,76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=222 size=12 rgb=1,0.34,0.28 "Requires Mining 175"
-texture at 19,113 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,122 w=222 size=11 rgb=0.17,0.51,0.77 "Gathered here 12 times"
+texture at 19,109 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,118 w=175 size=11 rgb=0.82,0.78,0.71 "Mithril Ore"
+text at 206,118 w=35 size=11 rgb=0.82,0.78,0.71 "2 to 4"
+text at 19,133 w=191.5 size=11 rgb=0.82,0.78,0.71 "Solid Stone"
+text at 222.5,133 w=18.5 size=11 rgb=0.82,0.78,0.71 "40%"
+text at 19,148 w=197 size=11 rgb=0.6,0.57,0.52 "Black Vitriol"
+text at 228,148 w=13 size=11 rgb=0.6,0.57,0.52 "1%"
+text at 19,163 w=186 size=11 rgb=0.6,0.57,0.52 "Citrine"
+text at 217,163 w=24 size=11 rgb=0.6,0.57,0.52 "0.8%"
+text at 19,178 w=186 size=11 rgb=0.6,0.57,0.52 "Aquamarine"
+text at 217,178 w=24 size=11 rgb=0.6,0.57,0.52 "0.7%"
+text at 19,193 w=186 size=11 rgb=0.6,0.57,0.52 "Star Ruby"
+text at 217,193 w=24 size=11 rgb=0.6,0.57,0.52 "0.7%"
+texture at 19,216 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,225 w=222 size=11 rgb=0.17,0.51,0.77 "Gathered here 12 times"

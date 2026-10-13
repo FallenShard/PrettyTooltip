@@ -18,7 +18,7 @@ local UNMET_COLOR = colors.unmet
 local QUEST_GOLD = colors.quest
 local PRICE_LABEL = { .88, .78, .60 }
 local EXTRAS_RULE = { .50, .50, .54 }
-local PARTS = { "objectTitle", "objectKind", "objectDetails", "objectQuests", "objectPrices",
+local PARTS = { "objectTitle", "objectKind", "objectDetails", "objectLoot", "objectQuests", "objectPrices",
     "extras" }
 
 local SKILLS = {
@@ -80,8 +80,33 @@ local function itemInfo(itemID, game)
     return info.name, game.itemIcon(itemID), info.price
 end
 
+-- A herb or ore node's contents, from Data/Nodes.lua: the yield's count over
+-- all its taps, then each other drop's chance per tap.
+local LOOT_ICON = 14
+local RARE = 5
+local function lootRows(name, game)
+    local loot = ns.nodeLoot and ns.nodeLoot[(name:gsub("^Ooze Covered ", ""))]
+    if not loot then return end
+    local rows = {}
+    for _, drop in ipairs(loot) do
+        local id, item, chance, low, high = drop[1], drop[2], drop[3], drop[4], drop[5]
+        local icon = game.itemIcon(id)
+        local right
+        if chance >= 100 then
+            low, high = low * loot.taps[1], high * loot.taps[2]
+            right = low == high and tostring(low) or (low .. " to " .. high)
+        else
+            right = chance .. "%"
+        end
+        rows[#rows + 1] = { left = (icon and ("|T" .. icon .. ":" .. LOOT_ICON .. "|t ") or "") .. item, right = right,
+            rare = chance < RARE }
+    end
+    return rows
+end
+
 local function completeModel(model, game)
     local node = nodeFor(model.name)
+    model.loot = model.loot or lootRows(model.name, game)
     model.look = model.skill and SKILLS[model.skill] or (#model.quests > 0 and QUEST) or nil
     if model.skill and SKILLS[model.skill] and model.skill ~= "Lockpicking" then
         model.skillRow = {
@@ -205,6 +230,15 @@ local function objectView(model)
     if #details > 0 then
         sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "rows", rows = details,
             style = styles.objectDetails, color = DETAIL_COLOR, gap = 2 }
+    end
+    if model.loot and ns.option("nodeLoot") then
+        local rows = {}
+        for index, row in ipairs(model.loot) do
+            rows[index] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
+                rightColor = row.rare and colors.caption or nil }
+        end
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 4 } or { divider = ui.GOLD_RULE },
+            kind = "rows", rows = rows, style = styles.objectLoot, color = DETAIL_COLOR, gap = 2 }
     end
     if #model.quests > 0 then
         local quests = {}
