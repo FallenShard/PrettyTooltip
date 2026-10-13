@@ -166,6 +166,11 @@ local function readLine(model, line, left, right, game)
         end
         return
     end
+    -- "Passive" by its type, where the line has one; readStat knows the word.
+    if LINE.SpellPassive and line.type == LINE.SpellPassive and rightText == "" then
+        model.passive = text
+        return
+    end
     if rightText ~= "" and readStat(model, rightText) then rightText = "" end
     if text ~= "" and readStat(model, text) then
         if rightText ~= "" then add(model.details, rightText, "") end
