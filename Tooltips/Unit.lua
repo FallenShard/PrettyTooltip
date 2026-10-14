@@ -15,7 +15,6 @@ local LINE = Enum.TooltipDataLineType or {}
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local ICON_SIZE = 38
 local TINT_STRENGTH = .7
-local BAR_HEIGHT = 5
 local TAPPED = { .55, .55, .55 }
 local DETAIL_COLOR = colors.detail
 local MUTED = colors.caption
@@ -41,7 +40,7 @@ local FACTION_ART = {
     Alliance = { "faction-alliance", { .40, .60, 1 } },
     Horde = { "faction-horde", { .90, .25, .20 } },
 }
-local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitHealth", "unitSkinning", "unitDetails",
+local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitSkinning", "unitDetails",
     "unitQuests", "extras" }
 
 -- The mouseover token can still be the previous unit; the data's GUID cannot.
@@ -73,18 +72,6 @@ end
 local function levelColor(level)
     if level == -1 then return UNMET_COLOR end
     return ns.Game.difficultyColor(level)
-end
-
-local function healthColor(current, maximum)
-    local ratio = maximum > 0 and current / maximum or 0
-    if ratio < .25 then return { 1, .34, .28 } end
-    if ratio < .5 then return { .95, .76, .30 } end
-    return { .45, .80, .40 }
-end
-
-local function number(value)
-    if BreakUpLargeNumbers then return BreakUpLargeNumbers(value) end
-    return tostring(value)
 end
 
 -- Skinning a corpse: the skill a creature's level needs, as Classic sets it,
@@ -133,7 +120,6 @@ local function completeModel(model, unit, game)
         model.dead = game.unitIsDead(unit)
         model.reaction = game.unitReaction(unit, "player")
         model.tapped = game.unitIsTapDenied(unit)
-        model.health, model.healthMax = game.unitHealth(unit)
         local target = unit .. "target"
         if game.unitExists(target) then
             model.target = game.unitName(target)
@@ -271,57 +257,6 @@ local function detailRows(model)
     return rows
 end
 
-local function healthRow(model)
-    local current, maximum = model.health, model.healthMax
-    if type(current) ~= "number" or type(maximum) ~= "number" or maximum <= 0 then return end
-    return {
-        left = number(current) .. " / " .. number(maximum),
-        right = math.floor(current / maximum * 100 + .5) .. "%",
-    }
-end
-
-local function drawHealthFill(bar, current, maximum)
-    local ratio = maximum > 0 and math.max(0, math.min(1, current / maximum)) or 0
-    local color = healthColor(current, maximum)
-    bar.fill:SetWidth(math.max(1, bar.width * ratio))
-    bar.fill:SetVertexColor(color[1], color[2], color[3], 1)
-    bar.fill:SetShown(ratio > 0)
-end
-
--- The health row and a bar under it, red, then yellow, then green; both
--- follow the unit while the panel shows.
-local function healthSection(model, row, style, separator)
-    return {
-        separator = separator,
-        kind = "custom",
-        measure = function(panel) return ui.rowWidth(panel, row, style) end,
-        draw = function(panel, y)
-            y = ui.drawRow(panel, row, y, style, DETAIL_COLOR, 0, 2)
-            local bar = {
-                width = panel.width - 2 * ui.pad(),
-                current = model.health, maximum = model.healthMax,
-                -- The row's two halves, the last two strings drawn.
-                left = panel.pool[panel.used - 1], right = panel.pool[panel.used],
-            }
-            bar.fill = ui.drawTrack(panel, y, BAR_HEIGHT)
-            drawHealthFill(bar, model.health, model.healthMax)
-            if model.unit then
-                ui.setLive(panel, function()
-                    local current, maximum = ns.Game.unitHealth(model.unit)
-                    if type(current) == "number" and type(maximum) == "number" and maximum > 0
-                        and (current ~= bar.current or maximum ~= bar.maximum) then
-                        bar.current, bar.maximum = current, maximum
-                        drawHealthFill(bar, current, maximum)
-                        bar.left:SetText(number(current) .. " / " .. number(maximum))
-                        bar.right:SetText(math.floor(current / maximum * 100 + .5) .. "%")
-                    end
-                end)
-            end
-            return y + BAR_HEIGHT + 8
-        end,
-    }
-end
-
 -- The crest runs off the top right; a panel cannot clip what it draws, so only
 -- the part over the panel is drawn, cut from the texture.
 local function showWatermark(panel, faction)
@@ -368,16 +303,10 @@ local function unitView(model)
     header[#header + 1] = { badges = badges(model), style = styles.unitBadges, before = 1, gap = 4 }
 
     local sections = {}
-    local health, details = healthRow(model), detailRows(model)
-    local separator = (health or #details > 0) and { divider = ui.GOLD_RULE } or nil
-    if health then
-        sections[#sections + 1] = healthSection(model, health, styles.unitHealth, separator)
-        separator = nil
-    end
+    local details = detailRows(model)
     if #details > 0 then
-        sections[#sections + 1] = { separator = separator, kind = "rows", rows = details,
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "rows", rows = details,
             style = styles.unitDetails, color = DETAIL_COLOR, gap = 2 }
-        separator = nil
     end
     local skin = model.skinning
     if skin and ns.option("gatheringLoot") then
@@ -391,7 +320,7 @@ local function unitView(model)
             rows[#rows + 1] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
                 rightColor = row.rare and colors.caption or nil }
         end
-        sections[#sections + 1] = { separator = separator or { rule = EXTRAS_RULE, before = 4 }, kind = "rows",
+        sections[#sections + 1] = { separator = { rule = EXTRAS_RULE, before = 4 }, kind = "rows",
             rows = rows, style = styles.unitSkinning, color = DETAIL_COLOR, gap = 2 }
     end
     if #model.quests > 0 then

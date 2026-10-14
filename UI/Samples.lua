@@ -223,7 +223,7 @@ local TYPES = {
                     name = "Somniferie", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_02",
                     isPlayer = true, level = 60, race = "Human", className = "Warrior",
                     classFile = "WARRIOR", guild = "Dawnbreakers", faction = "Alliance", pvp = true,
-                    health = 4230, healthMax = 5100, target = "Ragnaros", targetColor = { 1, .27, .22 },
+                    target = "Ragnaros", targetColor = { 1, .27, .22 },
                     extras = { { left = "Item Level 61", right = "", color = { .60, .60, .63 } } },
                 },
             },
@@ -232,7 +232,7 @@ local TYPES = {
                 fields = {
                     name = "Defias Pillager", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_01",
                     level = 15, creature = "Humanoid", classification = "elite", reaction = 2,
-                    health = 512, healthMax = 980, target = "Somniferie", targetIsYou = true,
+                    target = "Somniferie", targetIsYou = true,
                     quests = {
                         { left = "The Defias Brotherhood", right = "", title = true },
                         { left = "- Defias Pillager slain: 4/10", right = "" },
@@ -244,7 +244,6 @@ local TYPES = {
                 fields = {
                     name = "Innkeeper Farley", iconPath = "Interface\\Icons\\INV_Misc_Head_Dwarf_01",
                     tag = "<Innkeeper>", level = 30, creature = "Humanoid", reaction = 5,
-                    health = 1420, healthMax = 1420,
                 },
             },
             {
@@ -252,7 +251,6 @@ local TYPES = {
                 fields = {
                     name = "Mother Fang", iconPath = "Interface\\Icons\\Ability_Hunter_Pet_Spider",
                     level = 10, creature = "Beast", classification = "rare", reaction = 2,
-                    health = 330, healthMax = 330,
                 },
             },
         },

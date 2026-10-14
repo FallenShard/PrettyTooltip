@@ -219,7 +219,6 @@ function game.unitIsPVP(unit) return call(UnitIsPVP, unit) end
 function game.unitIsDead(unit) return call(UnitIsDeadOrGhost, unit) end
 function game.unitReaction(unit, other) return call(UnitReaction, unit, other) end
 function game.unitIsTapDenied(unit) return call(UnitIsTapDenied, unit) end
-function game.unitHealth(unit) return call(UnitHealth, unit), call(UnitHealthMax, unit) end
 
 -- A class's color, by its file name, as { r, g, b }.
 -- The units a nearby player may be: the group, target, focus, mouseover, and
