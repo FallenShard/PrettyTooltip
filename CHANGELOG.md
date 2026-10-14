@@ -1,3 +1,11 @@
+# PrettyTooltip 1.1.2
+
+## Tooltips
+
+- Added optional damage and healing per second and per mana under a spell's spell power breakdown.
+- Unit tooltips now fade out smoothly, without the game's tooltip showing through behind them. ([#2](https://github.com/FallenShard/PrettyTooltip/issues/2))
+- Removed the unit health bar, since WoW Forever does not let addons read unit health. ([#3](https://github.com/FallenShard/PrettyTooltip/issues/3))
+
 # PrettyTooltip 1.1.1
 
 ## Tooltips
