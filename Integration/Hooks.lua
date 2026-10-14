@@ -92,6 +92,11 @@ local function onTooltipData(dataType, tooltip, data)
     -- The editor reads this one itself.
     if tooltip.prettyTooltipScanner then return end
     local panel = getPanel(tooltip)
+    -- New content over a panel still fading out, even the same unit's, starts afresh.
+    if native.isFading(panel) then
+        native.stopFade(panel)
+        panel:Hide()
+    end
     local previousKey, previousDataType = panel.key, panel.dataType
     local key = TooltipTypes[dataType].key(tooltip, data)
     panel.dataType = dataType
@@ -141,6 +146,8 @@ local function onTooltipData(dataType, tooltip, data)
             faded:SetAlpha(0)
             panel.settingAlpha = false
         end)
+        -- Hooked after follow cursor's, which hides a following tooltip first.
+        if tooltip.FadeOut then hooksecurefunc(tooltip, "FadeOut", native.fadeOut) end
         panel.hooked = true
         panel:SetScript("OnUpdate", function(self, elapsed)
             if self.nativeAlpha and tooltip:GetAlpha() ~= 0 then

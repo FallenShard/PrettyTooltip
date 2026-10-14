@@ -178,12 +178,58 @@ local function releaseNative(tooltip, panel)
     end
 end
 
+-- A world unit's tooltip fades out once the mouse leaves the unit. The game
+-- sets that fade's alpha itself, past the SetAlpha hook, so the hidden tooltip
+-- shows through whenever its fade runs after the panel's OnUpdate; it goes at
+-- once instead, and the panel fades in its place.
+local FADE_TIME = .5
+
+local function stopFade(panel)
+    panel.fadePending = false
+    if not panel.fade then return end
+    panel.fade:Stop()
+    panel:SetAlpha(1)
+end
+
+local function fadeOut(tooltip)
+    local panel = panels[tooltip]
+    -- Following the cursor hides the tooltip at once, before this hook runs.
+    if not (panel and panel:IsShown() and panel.nativeAlpha and tooltip:IsShown()) then return end
+    if not panel.fade then
+        local fade = panel:CreateAnimationGroup()
+        local alpha = fade:CreateAnimation("Alpha")
+        alpha:SetFromAlpha(1)
+        alpha:SetToAlpha(0)
+        alpha:SetDuration(FADE_TIME)
+        fade:SetToFinalAlpha(true)
+        fade:SetScript("OnFinished", function()
+            panel:Hide()
+            panel:SetAlpha(1)
+        end)
+        panel.fade = fade
+    end
+    panel.fade:Play()
+    -- The restore this hide schedules leaves the panel to its fade.
+    panel.fadePending = true
+    tooltip:Hide()
+end
+fadeOut = probe("fade out", fadeOut)
+
+local function isFading(panel)
+    return panel.fade and panel.fade:IsPlaying() or false
+end
+
 local function restoreNative(tooltip)
     local panel = panels[tooltip]
     if not panel then return end
     panel.restorePending = false
     pcall(releaseNative, tooltip, panel)
-    panel:Hide()
+    if panel.fadePending then
+        panel.fadePending = false
+    else
+        stopFade(panel)
+        panel:Hide()
+    end
     panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil
     if panel.nativeAlpha then
         tooltip:SetAlpha(panel.nativeAlpha)
@@ -202,4 +248,7 @@ native.anchorToPanels = anchorToPanels
 native.refitNative = refitNative
 native.refitUnlessPartial = refitUnlessPartial
 native.restoreNative = restoreNative
+native.fadeOut = fadeOut
+native.isFading = isFading
+native.stopFade = stopFade
 native.showsDataType = showsDataType
