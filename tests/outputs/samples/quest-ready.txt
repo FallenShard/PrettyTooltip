@@ -21,7 +21,7 @@ objectives:
 ready: true
 tags: {}
 == sample render
-panel 308 x 233
+panel 308 x 226
 texture at -16,-16 0x0 rgb=0.86,0.74,0.45,0.2475 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x65 rgb=1,1,1,1 WHITE8X8
@@ -48,8 +48,6 @@ texture TOPLEFT Texture TOPLEFT 1,-1 8x8 rgb=0.2025,0.36,0.18,1 WHITE8X8
 texture CENTER Texture CENTER 1,1 16x16 rgb=1,1,1,1 UI-CheckBox-Check
 text at 36,160 w=221 size=12 rgb=0.45,0.8,0.4 "Tough Wolf Meat"
 text at 269,160 w=20 size=12 rgb=0.45,0.8,0.4 "8/8"
-texture at 36,177 253x3 rgb=0.16,0.14,0.13,1 WHITE8X8
-texture TOPLEFT Texture TOPLEFT 0,0 253x3 rgb=0.36,0.64,0.32,1 WHITE8X8
-texture at 19,192 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,201 w=162.5 size=11 rgb=0.6,0.6,0.63 "Ended by"
-text at 193.5,201 w=95.5 size=11 rgb=0.6,0.6,0.63 "Eagan Peltskinner"
+texture at 19,185 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,194 w=162.5 size=11 rgb=0.6,0.6,0.63 "Ended by"
+text at 193.5,194 w=95.5 size=11 rgb=0.6,0.6,0.63 "Eagan Peltskinner"

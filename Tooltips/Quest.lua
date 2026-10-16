@@ -16,7 +16,6 @@ local ICON_SIZE = 38
 local TINT_STRENGTH = .45
 local CHECK_SIZE = 10
 local OBJECTIVE_INDENT = CHECK_SIZE + 7
-local BAR_HEIGHT = 3
 local QUEST_GOLD = colors.quest
 local PARCHMENT = colors.flavor
 local DONE_COLOR = colors.done
@@ -40,6 +39,8 @@ local function questKey(_, data)
 end
 
 local function completeModel(model, questID, game)
+    -- The quest log's tooltip names no level.
+    if questID and not model.level then model.level = game.questLevel(questID) end
     if questID and not model.active then
         -- nil without a quest log to ask.
         local completed = game.questCompleted(questID)
@@ -111,6 +112,8 @@ local function readRow(model, row, state)
     elseif row.objective or text:match("^%-") or text:match("%d+%s*/%s*%d+%s*$") then
         local name = text:gsub("^%-%s*", "")
         local goal, progress = name:match("^(.-):%s*(%d+%s*/%s*%d+)$")
+        -- The quest log puts the count first: "0/1 Head of Deepfury".
+        if not goal then progress, goal = name:match("^(%d+%s*/%s*%d+)%s+(.+)$") end
         local objective = { left = goal or name, right = progress or right, completed = row.completed }
         objective.completed = objectiveDone(objective)
         model.objectives[#model.objectives + 1] = objective
@@ -124,10 +127,15 @@ local function readRow(model, row, state)
         end
     elseif isRed(codeColor(row.left) or row.textColor) then
         model.extras[#model.extras + 1] = { left = text, right = right, color = FAILED_COLOR }
-    elseif right == "" and #text >= 30 then
+    -- The description comes before the objectives; long lines after them are
+    -- other addons'.
+    elseif right == "" and #text >= 30 and #model.objectives == 0 and #model.extras == 0 then
         model.description[#model.description + 1] = text
     else
-        model.extras[#model.extras + 1] = { left = text, right = right, color = row.color, rightColor = row.rightColor }
+        -- A color code on the line outranks the font's color, dimmed as other addons' rows are.
+        local code = codeColor(row.left)
+        local color = code and { code[1] * .85, code[2] * .85, code[3] * .85 } or row.color
+        model.extras[#model.extras + 1] = { left = text, right = right, color = color, rightColor = row.rightColor }
     end
 end
 
@@ -190,11 +198,6 @@ local function quoted(model)
     return list
 end
 
-local function progressOf(row)
-    local have, need = (row.right or ""):match("(%d+)%s*/%s*(%d+)")
-    if have then return tonumber(have), tonumber(need) end
-end
-
 local function checkbox(panel, y, done, size)
     local top = y + math.max(0, math.floor((size - CHECK_SIZE) / 2)) + 1
     local px = ui.pixel(panel)
@@ -217,24 +220,7 @@ local function checkbox(panel, y, done, size)
     end
 end
 
-local function progressBar(panel, y, have, need, done)
-    local width = panel.width - 2 * pad() - OBJECTIVE_INDENT
-    local track = ui.acquireTexture(panel, nil, 0)
-    track:SetPoint("TOPLEFT", panel, "TOPLEFT", pad() + OBJECTIVE_INDENT, -y)
-    track:SetSize(width, BAR_HEIGHT)
-    track:SetVertexColor(.16, .14, .13, 1)
-    if have > 0 then
-        local color = done and DONE_COLOR or QUEST_GOLD
-        local fill = ui.acquireTexture(panel, nil, 1)
-        fill:SetPoint("TOPLEFT", track, "TOPLEFT")
-        fill:SetSize(math.max(1, width * math.min(1, have / need)), BAR_HEIGHT)
-        fill:SetVertexColor(color[1] * .8, color[2] * .8, color[3] * .8, 1)
-    end
-    return y + BAR_HEIGHT + 6
-end
-
--- The objectives under their caption, each with a checkbox, and a progress
--- bar under those that count to more than one.
+-- The objectives under their caption, each with a checkbox.
 local function objectivesSection(model, styles, after)
     local style = styles.questObjectives
     return {
@@ -250,11 +236,8 @@ local function objectivesSection(model, styles, after)
             y = ui.caption(panel, y + (after and 4 or 0), "Objectives", styles.questCaption, colors.caption)
             for _, row in ipairs(model.objectives) do
                 checkbox(panel, y, row.completed, style.size)
-                local have, need = progressOf(row)
-                local bar = need and need > 1
                 y = ui.drawRow(panel, row, y, style, row.completed and DONE_COLOR or colors.objective,
-                    OBJECTIVE_INDENT, bar and 3 or 5)
-                if bar then y = progressBar(panel, y, have, need, row.completed) end
+                    OBJECTIVE_INDENT, 5)
             end
             return y
         end,
@@ -329,15 +312,31 @@ hooksecurefunc("SetItemRef", function(link)
     if id then drawQuestie(ItemRefTooltip, id) end
 end)
 
+-- The world map's quest log fills the tooltip with lines too, from its title
+-- buttons; their quest is the button's.
+local function questLogButton(owner)
+    local contents = QuestScrollFrame and QuestScrollFrame.Contents
+    return contents and owner and owner.GetParent and owner:GetParent() == contents
+end
+
 -- Questie may hook the chat frames before or after this file, so its Show is
--- caught too.
+-- caught too. Other addons add their lines to the quest log's and show it again.
 local hovered
+local drawing = false
 hooksecurefunc(GameTooltip, "Show", function(tooltip)
-    if hovered and not hovered.drawing and tooltip:GetOwner() == hovered.frame then
-        hovered.drawing = true
-        drawQuestie(tooltip, hovered.id)
-        hovered.drawing = false
+    if drawing then return end
+    local owner = tooltip:GetOwner()
+    local id
+    if hovered and owner == hovered.frame then
+        id = hovered.id
+    elseif questLogButton(owner) then
+        id = readable(owner.questID)
+    else
+        return
     end
+    drawing = true
+    drawQuestie(tooltip, id)
+    drawing = false
 end)
 for index = 1, NUM_CHAT_WINDOWS or 10 do
     local frame = _G["ChatFrame" .. index]

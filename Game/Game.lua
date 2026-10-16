@@ -275,6 +275,15 @@ function game.onQuest(questID)
     if C_QuestLog then return call(C_QuestLog.IsOnQuest, questID) == true end
 end
 
+-- A quest's level while it is in the quest log; nil otherwise.
+function game.questLevel(questID)
+    if not (C_QuestLog and C_QuestLog.GetLogIndexForQuestID and C_QuestLog.GetInfo) then return end
+    local index = call(C_QuestLog.GetLogIndexForQuestID, questID)
+    if type(index) ~= "number" then return end
+    local info = call(C_QuestLog.GetInfo, index)
+    if type(info) == "table" and type(info.level) == "number" and info.level > 0 then return info.level end
+end
+
 -- Other addons ----------------------------------------------------------------
 
 -- Installed, whether enabled or not.

@@ -28,7 +28,7 @@ read_globals = {
     "date", "tinsert", "issecretvalue", "debugprofilestop", "hooksecurefunc",
     -- Frames and UI
     "CreateFrame", "CreateColor", "UIParent", "GameTooltip", "ItemRefTooltip", "GameTooltipText",
-    "GameTooltipHeaderText", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",
+    "GameTooltipHeaderText", "QuestScrollFrame", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",
     "SetPortraitTexture", "ChatEdit_InsertLink", "GetCursorPosition", "NUM_CHAT_WINDOWS",
     "Settings", "SettingsPanel", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory",
     "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "ITEM_DELTA_DESCRIPTION", "ITEM_SPELL_TRIGGER_ONUSE", "ITEM_SPELL_TRIGGER_ONEQUIP", "NineSliceUtil",

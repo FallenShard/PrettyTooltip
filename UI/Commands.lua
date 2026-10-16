@@ -9,6 +9,9 @@ local function dumpTooltip()
         print("PrettyTooltip: hover something first; there is no tooltip to dump.")
         return
     end
+    -- Who filled it, to tell which frame or addon a lines-only tooltip is from.
+    local owner = tooltip:GetOwner()
+    print("PrettyTooltip dump: owned by " .. tostring(owner and owner.GetDebugName and owner:GetDebugName() or owner))
     local data = tooltip.GetTooltipData and tooltip:GetTooltipData()
     if type(data) ~= "table" then
         -- Filled by an addon with lines alone, as Questie's quest links.
