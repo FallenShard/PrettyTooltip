@@ -27,7 +27,7 @@ read_globals = {
     -- Lua the game adds
     "date", "tinsert", "issecretvalue", "debugprofilestop", "hooksecurefunc",
     -- Frames and UI
-    "CreateFrame", "CreateColor", "UIParent", "GameTooltip", "ItemRefTooltip", "GameTooltipText",
+    "CreateFrame", "CreateColor", "UIParent", "GameTooltip", "GameTooltipStatusBar", "ItemRefTooltip", "GameTooltipText",
     "GameTooltipHeaderText", "QuestScrollFrame", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",
     "SetPortraitTexture", "ChatEdit_InsertLink", "GetCursorPosition", "NUM_CHAT_WINDOWS",
     "Settings", "SettingsPanel", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory",

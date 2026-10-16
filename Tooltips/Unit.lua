@@ -62,6 +62,9 @@ local DRAGONS = {
     rareelite = { atlas = ATLAS .. "Rare-Silver-Winged", x = 8, y = 8 },
 }
 local NO_TINT = { 1, 1, 1 }
+-- The game's health bar at the bottom of the panel: the space above it, and
+-- its height.
+local HEALTH_BEFORE, HEALTH_HEIGHT = 6, 6
 local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitSkinning", "unitDetails",
     "unitQuests", "extras" }
 
@@ -329,7 +332,7 @@ local function dragonArt(classification, game)
 end
 
 -- What the panel shows, for Panel/Render.lua to draw.
-local function unitView(model)
+local function unitView(model, healthBar)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local color = model.color or colors.neutral
@@ -381,6 +384,14 @@ local function unitView(model)
         sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
             kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
+    -- Room at the bottom for the game's health bar, which the panel borrows
+    -- once it is drawn.
+    if healthBar then
+        sections[#sections + 1] = { separator = { space = HEALTH_BEFORE }, kind = "custom", draw = function(panel, y)
+            panel.healthTop = y
+            return y + HEALTH_HEIGHT
+        end }
+    end
     return {
         tooltipType = "unit",
         color = color,
@@ -396,8 +407,98 @@ local function unitView(model)
     }
 end
 
+-- The game's own health bar, which it fills from values the addon may not
+-- read: lent to the panel while it shows a unit, into the room left for it
+-- at the bottom, and given back to the game's tooltip as it was when the
+-- panel hides or draws anything else.
+local lent
+
+-- A bar into the room left for it, as wide as the rows.
+local function placeBar(bar, panel)
+    local top = -ui.snap(panel, panel.healthTop)
+    bar:ClearAllPoints()
+    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", ui.pad(), top)
+    bar:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -ui.pad(), top)
+    bar:SetHeight(HEALTH_HEIGHT)
+end
+
+local function placeHealthBar()
+    if not lent.panel.healthTop then return end
+    lent.placing = true
+    placeBar(lent.bar, lent.panel)
+    lent.placing = false
+end
+
+local function returnHealthBar(panel)
+    panel.release = nil
+    if not (lent and lent.panel == panel) then return end
+    local bar = lent.bar
+    lent.placing = true
+    bar:SetParent(lent.parent)
+    bar:ClearAllPoints()
+    for _, point in ipairs(lent.points) do bar:SetPoint(unpack(point)) end
+    bar:SetHeight(lent.height)
+    lent.placing = false
+    lent = nil
+end
+
+local function lendHealthBar(panel, bar)
+    if not (lent and lent.panel == panel) then
+        local points = {}
+        for index = 1, bar:GetNumPoints() do points[index] = { bar:GetPoint(index) } end
+        lent = { bar = bar, panel = panel, parent = bar:GetParent(), points = points, height = bar:GetHeight() }
+        if not bar.prettyTooltipHooked then
+            -- The game may place its bar again while the panel has it.
+            hooksecurefunc(bar, "SetPoint", function()
+                if lent and lent.bar == bar and not lent.placing then placeHealthBar() end
+            end)
+            bar.prettyTooltipHooked = true
+        end
+        if not panel.returnsHealthBar then
+            panel:HookScript("OnHide", returnHealthBar)
+            panel.returnsHealthBar = true
+        end
+    end
+    bar:SetParent(panel)
+    placeHealthBar()
+    panel.release = returnHealthBar
+end
+
+-- The editor's samples have no unit for the game to fill its bar from, so
+-- they show one of their own, as the game's looks, filled to the sample's
+-- health; it goes when the preview draws anything else.
+local SAMPLE_BAR = "Interface\\TargetingFrame\\UI-StatusBar"
+
+local function hideSampleHealth(panel)
+    panel.release = nil
+    if panel.sampleHealth then panel.sampleHealth:Hide() end
+end
+
+local function showSampleHealth(panel, share)
+    local bar = panel.sampleHealth
+    if not bar then
+        bar = CreateFrame("StatusBar", nil, panel)
+        local texture = GameTooltipStatusBar and GameTooltipStatusBar:GetStatusBarTexture()
+        bar:SetStatusBarTexture(texture and texture:GetTexture() or SAMPLE_BAR)
+        bar:SetStatusBarColor(0, 1, 0)
+        bar:SetMinMaxValues(0, 1)
+        panel.sampleHealth = bar
+    end
+    bar:SetValue(share)
+    placeBar(bar, panel)
+    bar:Show()
+    panel.release = hideSampleHealth
+end
+
 local function renderUnit(panel, tooltip, model)
-    ui.renderView(panel, tooltip, unitView(model))
+    -- Only the game's main tooltip has the bar, and the game hides it for
+    -- units without one to show.
+    local shown = ns.option("unitHealthBar")
+    local bar = shown and tooltip == GameTooltip and GameTooltipStatusBar
+    if not (bar and bar:IsShown()) then bar = nil end
+    local sample = shown and panel.isPreview and model.healthShare
+    panel.healthTop = nil
+    ui.renderView(panel, tooltip, unitView(model, bar ~= nil or sample ~= nil))
     local art
     if model.isPlayer then
         art = FACTION_ART[model.faction]
@@ -405,6 +506,13 @@ local function renderUnit(panel, tooltip, model)
         art = dragonArt(model.classification, ns.Game)
     end
     if art then showWatermark(panel, art) end
+    if panel.healthTop then
+        if bar then
+            lendHealthBar(panel, bar)
+        elseif sample then
+            showSampleHealth(panel, sample)
+        end
+    end
 end
 
 ui.unitModel = function(fields)

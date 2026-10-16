@@ -199,6 +199,12 @@ function ns.Options.register()
         .. "over its duration. Crits and talents do not count.")
     rightColumn.y = rightColumn.y - 12
 
+    section(rightColumn, "Unit Details")
+    detailBox("unitHealthBar", "Health bar", "The game's own health bar at the bottom of player and NPC "
+        .. "panels. The game fills it, so it stays live without the addon reading health, which WoW Forever "
+        .. "keeps from addons.")
+    rightColumn.y = rightColumn.y - 12
+
     section(rightColumn, "Gathering")
     detailBox("gatheringLoot", "Gathering contents", "What a herb or ore node holds: its yield over all the times "
         .. "it can be gathered, then the stone, gems, and other herbs it may give and the chance each time. On a "

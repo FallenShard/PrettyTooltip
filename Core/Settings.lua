@@ -38,6 +38,8 @@ local DEFAULTS = {
     spellPower = true,
     -- Damage or healing per second and per mana, under the spell power breakdown.
     spellRates = true,
+    -- The game's health bar at the bottom of unit panels.
+    unitHealthBar = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
     -- nil chooses: DialogueUI's art when installed, flat with EllesmereUI, else

@@ -15,6 +15,7 @@ extras:
     right: ""
 faction: "Alliance"
 guild: "Dawnbreakers"
+healthShare: 1
 iconPath: "Interface\\Icons\\INV_Misc_Head_Human_02"
 isPlayer: true
 level: 60
@@ -28,7 +29,7 @@ targetColor:
   2: 0.27
   3: 0.22
 == sample render
-panel 260 x 184
+panel 260 x 196
 texture at -16,-16 0x0 rgb=0.78,0.61,0.43,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x98 rgb=1,1,1,1 WHITE8X8

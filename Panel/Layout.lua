@@ -866,6 +866,8 @@ local function renderPreview(anchor, model, dataType)
         panel = createPanel(anchor)
         panel:SetFrameStrata(anchor:GetFrameStrata())
         panel:SetClampedToScreen(false)
+        -- What a tooltip type draws from the game, the editor's samples stand in for.
+        panel.isPreview = true
         anchor.prettyTooltipPreview = panel
     end
     panel.hits = {}

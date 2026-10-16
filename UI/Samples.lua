@@ -222,7 +222,7 @@ local TYPES = {
                 fields = {
                     name = "Somniferie", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_02",
                     isPlayer = true, level = 60, race = "Human", className = "Warrior",
-                    classFile = "WARRIOR", guild = "Dawnbreakers", faction = "Alliance", pvp = true,
+                    classFile = "WARRIOR", guild = "Dawnbreakers", faction = "Alliance", pvp = true, healthShare = 1,
                     target = "Ragnaros", targetColor = { 1, .27, .22 },
                     extras = { { left = "Item Level 61", right = "", color = { .60, .60, .63 } } },
                 },
@@ -231,7 +231,7 @@ local TYPES = {
                 label = "Enemy",
                 fields = {
                     name = "Defias Pillager", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_01",
-                    level = 15, creature = "Humanoid", classification = "elite", reaction = 2,
+                    level = 15, creature = "Humanoid", classification = "elite", reaction = 2, healthShare = .64,
                     target = "Somniferie", targetIsYou = true,
                     quests = {
                         { left = "The Defias Brotherhood", right = "", title = true },
@@ -243,28 +243,28 @@ local TYPES = {
                 label = "Vendor",
                 fields = {
                     name = "Innkeeper Farley", iconPath = "Interface\\Icons\\INV_Misc_Head_Dwarf_01",
-                    tag = "<Innkeeper>", level = 30, creature = "Humanoid", reaction = 5,
+                    tag = "<Innkeeper>", level = 30, creature = "Humanoid", reaction = 5, healthShare = 1,
                 },
             },
             {
                 label = "Rare",
                 fields = {
                     name = "Mother Fang", iconPath = "Interface\\Icons\\Ability_Hunter_Pet_Spider",
-                    level = 10, creature = "Beast", classification = "rare", reaction = 2,
+                    level = 10, creature = "Beast", classification = "rare", reaction = 2, healthShare = .38,
                 },
             },
             {
                 label = "Rare elite",
                 fields = {
                     name = "Foe Reaper 4000", iconPath = "Interface\\Icons\\INV_Misc_Gear_01",
-                    level = 20, creature = "Mechanical", classification = "rareelite", reaction = 2,
+                    level = 20, creature = "Mechanical", classification = "rareelite", reaction = 2, healthShare = .82,
                 },
             },
             {
                 label = "Boss",
                 fields = {
                     name = "Azuregos", iconPath = "Interface\\Icons\\INV_Misc_Head_Dragon_01",
-                    level = -1, creature = "Dragonkin", classification = "worldboss", reaction = 2,
+                    level = -1, creature = "Dragonkin", classification = "worldboss", reaction = 2, healthShare = .91,
                 },
             },
         },
