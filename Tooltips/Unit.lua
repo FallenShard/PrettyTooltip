@@ -30,16 +30,34 @@ local BADGES = {
     rare = { "Rare", { .70, .80, .95 } },
     worldboss = { "Boss", { 1, .35, .25 } },
 }
-local WATERMARK_SIZE = 200
-local WATERMARK_ALPHA = .12
--- How far the crest runs off the panel's right and top edges, as parts of its size.
-local WATERMARK_BLEED_RIGHT, WATERMARK_BLEED_TOP = .22, .12
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
--- White silhouettes, tinted here.
+-- Watermarks in the panel's top right, the same size on every panel, so a
+-- taller panel shows more of one: width by height, right and top the gaps to
+-- the panel's edges (negative runs off them); coords, the part of the file
+-- drawn. The faction crests are white silhouettes, tinted here.
+local FACTION_SIZE = { width = 200, height = 200, right = -44, top = -24, alpha = .12,
+    coords = { 0, 1, 0, 1 } }
+local function factionArt(file, color)
+    return setmetatable({ file = ART .. file, color = color }, { __index = FACTION_SIZE })
+end
 local FACTION_ART = {
-    Alliance = { "faction-alliance", { .40, .60, 1 } },
-    Horde = { "faction-horde", { .90, .25, .20 } },
+    Alliance = factionArt("faction-alliance", { .40, .60, 1 }),
+    Horde = factionArt("faction-horde", { .90, .25, .20 }),
 }
+-- Elites, rares, and bosses get the dragon from the game's target frame,
+-- drawn from the client's own art. Every dragon shares the scale that makes
+-- the elite's DRAGON_HEIGHT tall, and right and top place the elite's; x and
+-- y move each other's top right corner from it, right and down, in atlas
+-- pixels, as the target frame lines them up around its portrait.
+local DRAGON_HEIGHT, DRAGON_RIGHT, DRAGON_TOP, DRAGON_ALPHA = 229, -19, 17, .35
+local ATLAS = "UI-HUD-UnitFrame-Target-PortraitOn-Boss-"
+local DRAGONS = {
+    elite = { atlas = ATLAS .. "Gold", x = 0, y = 0 },
+    worldboss = { atlas = ATLAS .. "Gold-Winged", x = 11, y = 5 },
+    rare = { atlas = ATLAS .. "Rare-Silver", x = 0, y = 0 },
+    rareelite = { atlas = ATLAS .. "Rare-Silver-Winged", x = 8, y = 8 },
+}
+local NO_TINT = { 1, 1, 1 }
 local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitSkinning", "unitDetails",
     "unitQuests", "extras" }
 
@@ -257,31 +275,51 @@ local function detailRows(model)
     return rows
 end
 
--- The crest runs off the top right; a panel cannot clip what it draws, so only
--- the part over the panel is drawn, cut from the texture.
-local function showWatermark(panel, faction)
+-- A watermark that runs off the top right is cut to the part over the panel,
+-- since a panel cannot clip what it draws.
+local function showWatermark(panel, art)
     local mark = panel.watermark
     if not mark then
         mark = panel:CreateTexture(nil, "BORDER", nil, 3)
         panel.watermark = mark
     end
-    local size, inset = WATERMARK_SIZE, panel.inset or 1
+    local inset = panel.inset or 1
     local width, height = panel:GetWidth(), panel:GetHeight()
-    local left, top = width - size * (1 - WATERMARK_BLEED_RIGHT), -size * WATERMARK_BLEED_TOP
-    local x0, x1 = math.max(left, inset), math.min(left + size, width - inset)
-    local y0, y1 = math.max(top, inset), math.min(top + size, height - inset)
+    local w, h = art.width, art.height
+    local left, top = width - w - art.right, art.top
+    local x0, x1 = math.max(left, inset), math.min(left + w, width - inset)
+    local y0, y1 = math.max(top, inset), math.min(top + h, height - inset)
     if x1 <= x0 or y1 <= y0 then
         mark:Hide()
         return
     end
-    local art = FACTION_ART[faction]
-    mark:SetTexture(ART .. art[1])
-    mark:SetTexCoord((x0 - left) / size, (x1 - left) / size, (y0 - top) / size, (y1 - top) / size)
+    local u0, u1, v0, v1 = art.coords[1], art.coords[2], art.coords[3], art.coords[4]
+    local function u(x) return u0 + (u1 - u0) * (x - left) / w end
+    local function v(y) return v0 + (v1 - v0) * (y - top) / h end
+    mark:SetTexture(art.file)
+    mark:SetTexCoord(u(x0), u(x1), v(y0), v(y1))
     mark:ClearAllPoints()
     mark:SetPoint("TOPLEFT", panel, "TOPLEFT", x0, -y0)
     mark:SetSize(x1 - x0, y1 - y0)
-    mark:SetVertexColor(art[2][1], art[2][2], art[2][3], WATERMARK_ALPHA)
+    mark:SetVertexColor(art.color[1], art.color[2], art.color[3], art.alpha)
     mark:Show()
+end
+
+-- A classification's dragon as a watermark; nil without one, or where the
+-- client has no such art.
+local function dragonArt(classification, game)
+    local dragon = DRAGONS[classification]
+    local info = dragon and game.atlasInfo(dragon.atlas)
+    local elite = info and game.atlasInfo(DRAGONS.elite.atlas)
+    if not elite then return end
+    local scale = DRAGON_HEIGHT / elite.height
+    return {
+        file = info.file,
+        coords = { info.leftTexCoord, info.rightTexCoord, info.topTexCoord, info.bottomTexCoord },
+        width = info.width * scale, height = info.height * scale,
+        right = DRAGON_RIGHT - dragon.x * scale, top = DRAGON_TOP + dragon.y * scale,
+        alpha = DRAGON_ALPHA, color = NO_TINT,
+    }
 end
 
 -- What the panel shows, for Panel/Render.lua to draw.
@@ -354,9 +392,13 @@ end
 
 local function renderUnit(panel, tooltip, model)
     ui.renderView(panel, tooltip, unitView(model))
-    if model.isPlayer and (model.faction == "Alliance" or model.faction == "Horde") then
-        showWatermark(panel, model.faction)
+    local art
+    if model.isPlayer then
+        art = FACTION_ART[model.faction]
+    else
+        art = dragonArt(model.classification, ns.Game)
     end
+    if art then showWatermark(panel, art) end
 end
 
 ui.unitModel = function(fields)

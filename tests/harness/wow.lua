@@ -474,6 +474,28 @@ return function(fixture, enums, report)
             GetRGBA = function(self) return self.r, self.g, self.b, self.a end,
             GetRGB = function(self) return self.r, self.g, self.b end }
     end
+    -- The atlases the addon draws, as WoW Forever 1.60.1 reports them: fixed
+    -- client data, like the enums, so no capture records them.
+    local atlases = {
+        ["ui-hud-unitframe-target-portraiton-boss-gold"] =
+            { width = 100, height = 100, coords = { 0.001953, 0.392578, 0.001953, 0.392578 } },
+        ["ui-hud-unitframe-target-portraiton-boss-gold-winged"] =
+            { width = 110, height = 90, coords = { 0.001953, 0.431641, 0.396484, 0.748047 } },
+        ["ui-hud-unitframe-target-portraiton-boss-rare-silver"] =
+            { width = 100, height = 100, coords = { 0.396484, 0.787109, 0.001953, 0.392578 } },
+        ["ui-hud-unitframe-target-portraiton-boss-rare-silver-winged"] =
+            { width = 109, height = 88, coords = { 0.435547, 0.861328, 0.396484, 0.742188 } },
+    }
+    C_Texture = {
+        GetAtlasInfo = function(name)
+            local atlas = type(name) == "string" and atlases[name:lower()]
+            if not atlas then return end
+            local coords = atlas.coords
+            return { file = 8244544, width = atlas.width, height = atlas.height,
+                leftTexCoord = coords[1], rightTexCoord = coords[2], topTexCoord = coords[3],
+                bottomTexCoord = coords[4] }
+        end,
+    }
     C_Timer = {
         After = function() end,
         NewTimer = function() return { Cancel = noop } end,

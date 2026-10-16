@@ -3,7 +3,7 @@
 -- behind, whether or not a test runs that code.
 std = "lua51"
 -- The harness defines the game's globals rather than using them.
-exclude_files = { "tests/**", ".release/**" }
+exclude_files = { "tests/**", ".release/**", "art_unused/**" }
 
 -- Style, not correctness: long data lines, as the cast time table, are fine.
 max_line_length = false
@@ -35,7 +35,7 @@ read_globals = {
     -- Tooltip data
     "TooltipDataProcessor", "Enum",
     -- Game state
-    "C_Item", "C_Spell", "C_AddOns", "C_QuestLog", "C_UnitAuras", "C_Timer", "C_CurrencyInfo",
+    "C_Item", "C_Spell", "C_Texture", "C_AddOns", "C_QuestLog", "C_UnitAuras", "C_Timer", "C_CurrencyInfo",
     "GetLocale", "GetBuildInfo", "GetTime", "IsAltKeyDown", "IsControlKeyDown",
     "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
     "GetNumMacros", "GetMacroSpell", "GetMacroItem", "MAX_ACCOUNT_MACROS", "GetPetActionInfo",

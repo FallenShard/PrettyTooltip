@@ -284,6 +284,18 @@ function game.questLevel(questID)
     if type(info) == "table" and type(info.level) == "number" and info.level > 0 then return info.level end
 end
 
+-- Art -------------------------------------------------------------------------
+
+-- An atlas's file, texture coordinates, and size; nil where the client lacks it.
+function game.atlasInfo(name)
+    if not (C_Texture and C_Texture.GetAtlasInfo) then return end
+    local info = call(C_Texture.GetAtlasInfo, name)
+    if type(info) == "table" and info.file and type(info.width) == "number" and type(info.height) == "number"
+        and info.height > 0 then
+        return info
+    end
+end
+
 -- Other addons ----------------------------------------------------------------
 
 -- Installed, whether enabled or not.

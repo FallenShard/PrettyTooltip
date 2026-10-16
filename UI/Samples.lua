@@ -253,6 +253,20 @@ local TYPES = {
                     level = 10, creature = "Beast", classification = "rare", reaction = 2,
                 },
             },
+            {
+                label = "Rare elite",
+                fields = {
+                    name = "Foe Reaper 4000", iconPath = "Interface\\Icons\\INV_Misc_Gear_01",
+                    level = 20, creature = "Mechanical", classification = "rareelite", reaction = 2,
+                },
+            },
+            {
+                label = "Boss",
+                fields = {
+                    name = "Azuregos", iconPath = "Interface\\Icons\\INV_Misc_Head_Dragon_01",
+                    level = -1, creature = "Dragonkin", classification = "worldboss", reaction = 2,
+                },
+            },
         },
     },
     {

@@ -9,8 +9,10 @@ ignore:
   - deploy.py
   - tools
   - art/*.py
+  - art_unused
   - art/README.md
   - art/logo-400.png
   - tests
+  - output
   - README.md
   - UI/Capture.lua
