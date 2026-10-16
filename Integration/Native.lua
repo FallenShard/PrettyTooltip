@@ -141,6 +141,8 @@ function refitNative(tooltip, panel)
     panel.fitting = true
     pcall(fitNative, tooltip, panel)
     panel.fitting = false
+    -- A tooltip anchored by its bottom moves its top as it is fitted.
+    pcall(ui.alignPanel, panel, tooltip)
 end
 refitNative = probe("refit hidden tooltip", refitNative)
 

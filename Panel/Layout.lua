@@ -804,6 +804,21 @@ local function drawChrome(panel, tooltip, style)
 end
 drawChrome = probe("chrome", drawChrome)
 
+-- What a panel's parts are placed on whole pixels from is its corner, so the
+-- corner must sit on one too: half a pixel off, a one-pixel line rounds to none
+-- or two. The tooltip's corner is wherever its anchor and height put it.
+local function gridOffset(panel, tooltip, side)
+    local x = side == "RIGHT" and tooltip:GetRight() or tooltip:GetLeft()
+    local y = tooltip:GetTop()
+    local scale, panelScale = scaleOf(tooltip), scaleOf(panel)
+    if isSecret(x) or isSecret(y) or type(x) ~= "number" or type(y) ~= "number"
+        or not (scale and panelScale) then
+        return 0, 0
+    end
+    x, y = x * scale / panelScale, y * scale / panelScale
+    return snap(panel, x) - x, snap(panel, y) - y
+end
+
 -- The hidden tooltip is often wider than its panel, as long as its longest
 -- unwrapped line. Pin the panel to the side the tooltip itself is anchored
 -- by, so the spare width faces away from whatever it is attached to.
@@ -813,15 +828,19 @@ local function alignPanel(panel, tooltip)
     if not isSecret(point) and type(point) == "string" and point:find("RIGHT") then
         side = "RIGHT"
     end
-    if panel.side == side and panel:GetNumPoints() > 0 then return end
-    panel.side = side
+    local dx, dy = gridOffset(panel, tooltip, side)
+    if panel.side == side and panel:GetNumPoints() > 0
+        and math.abs(dx - (panel.gridX or 0)) < .001 and math.abs(dy - (panel.gridY or 0)) < .001 then
+        return
+    end
+    panel.side, panel.gridX, panel.gridY = side, dx, dy
     panel:ClearAllPoints()
-    panel:SetPoint("TOP" .. side, tooltip, "TOP" .. side)
+    panel:SetPoint("TOP" .. side, tooltip, "TOP" .. side, dx, dy)
 end
 alignPanel = probe("align panel", alignPanel)
 
 local function finishPanel(panel, tooltip, y)
-    panel:SetHeight(y + pad() - 2)
+    panel:SetHeight(snap(panel, y + pad() - 2))
     alignPanel(panel, tooltip)
     panel:Show()
 end

@@ -173,7 +173,8 @@ local function renderView(panel, tooltip, view)
     panel:Show()
     ui.clearPool(panel)
     live[panel] = nil
-    panel.width = fitWidth(panel, view)
+    -- Whole pixels, so the edges away from the aligned corner are on pixels too.
+    panel.width = ui.snap(panel, fitWidth(panel, view))
     panel:SetWidth(panel.width)
     local headerMin = ui.drawChrome(panel, tooltip, {
         tooltipType = view.tooltipType,
