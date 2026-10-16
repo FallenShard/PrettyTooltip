@@ -30,6 +30,10 @@ local BADGES = {
     rare = { "Rare", { .70, .80, .95 } },
     worldboss = { "Boss", { 1, .35, .25 } },
 }
+-- The rank the tooltip's level line names, as "Level ?? (Boss)". It outranks
+-- UnitClassification, which answers "elite" for bosses such as faction
+-- leaders that the tooltip and the target frame show as bosses.
+local RANKS = { Boss = "worldboss", Elite = "elite", Rare = "rare", ["Rare Elite"] = "rareelite" }
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
 -- Watermarks in the panel's top right, the same size on every panel, so a
 -- taller panel shows more of one: width by height, right and top the gaps to
@@ -145,6 +149,8 @@ local function completeModel(model, unit, game)
             model.targetColor = unitColor(target, game)
         end
     end
+    local rank = not model.isPlayer and model.levelLine and RANKS[model.levelLine:match("%(([^)]+)%)%s*$")]
+    if rank then model.classification = rank end
     -- Forever puts the guild, unbracketed, and the class on lines of their own;
     -- the header already shows them.
     local shown = {}

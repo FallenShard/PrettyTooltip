@@ -1,0 +1,69 @@
+== tooltip model
+classification: "worldboss"
+color:
+  1: 0.3
+  2: 0.85
+  3: 0.35
+creature: "Humanoid"
+dead: false
+extras:
+  1:
+    color:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    left: "Stormwind"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Creature"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+guid: "Creature-0-6783-0-2-1748-E44BD0BCCD"
+isPlayer: false
+level: -1
+levelLine: "Level ?? (Boss)"
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+name: "Highlord Bolvar Fordragon"
+pvp: true
+quests: {}
+reaction: 6
+tapped: false
+unit: "target"
+== tooltip render
+panel 299 x 141
+texture at -16,-16 0x0 rgb=0.3,0.85,0.35,0.385 glow
+texture at 0,0 0x0 rgb=0.7795,0.9527,0.7953,0.9 TooltipBackground-Temp.png
+texture at 0,0 0x0 rgb=0.3,0.85,0.35,0.2205 TooltipBackground-Temp.png
+texture at 6,6 0x84 rgb=1,1,1,1 band
+texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x0 rgb=0.1,0.075,0.08,0.6 band
+texture at 19,21 38x38 rgb=1,1,1,1 WHITE8X8
+texture CENTER Texture CENTER 0,0 40x40 rgb=0.3,0.85,0.35,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 40x16 rgb=0.8,0.272,0.224,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.14,0.0476,0.0392,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=1,0.703,0.676 "??"
+text at 67,21 w=213 size=17 rgb=0.3,0.85,0.35 "HIGHLORD BOLVAR FORDRAGON"
+text at 67,43 w=213 size=12 rgb=0.82,0.78,0.71 "Humanoid"
+text at 67,62 w=62 size=12 rgb=0.82,0.78,0.71 "|cffFF8B79Boss|r |cff999185·|r |cffFF9D8BPvP|r"
+text at 19,94 w=261 size=11 rgb=0.6,0.6,0.63 "Stormwind"
+text at 19,109 w=261 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Creature"
+texture at 91.29,28.45 201.7x106.5 rgb=1,1,1,0.35 8244544
