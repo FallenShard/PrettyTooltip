@@ -152,7 +152,7 @@ refitNative = probe("refit hidden tooltip", refitNative)
 -- item keeps its padding, and is checked next frame in case the lines never come.
 local function refitUnlessPartial(tooltip, panel)
     local lines = tooltip:NumLines()
-    if lines > (panel.fullLines or 0) then panel.fullLines = lines end
+    panel.fullLines = math.max(panel.fullLines or 0, lines)
     if lines < panel.fullLines then
         tally("refit skipped (partial)")
         recheckNextFrame(tooltip, panel)
