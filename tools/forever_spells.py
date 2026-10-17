@@ -457,12 +457,12 @@ def describe(c, sid, depth=0):
 
 # --------------------------------------------------------------------------------------------- the database
 
-def class_spells(t, c):
+def class_spells(t, c, skip=SKIP_LINES):
     """(class, spell id) -> skill line name, from SkillLineAbility rows on the class skill lines, and the set of those
     the client marks "never learned". An unranked "never learned" spell is kept only when a talent teaches it (the
     rest are leftovers such as Season of Discovery runes); a ranked one stays, and loses to a learnable spell of the
     same rank later. Spells a learned talent swaps in are added beside the talent."""
-    lines = {r['ID']: r for r in t['SkillLine'] if r.get('CategoryID') == '7' and r['DisplayName_lang'] not in SKIP_LINES}
+    lines = {r['ID']: r for r in t['SkillLine'] if r.get('CategoryID') == '7' and r['DisplayName_lang'] not in skip}
     owner = collections.defaultdict(collections.Counter)  # a line's class, from its rows that name one
     for r in t['SkillLineAbility']:
         if r['SkillLine'] in lines and n(r['ClassMask']):

@@ -56,7 +56,7 @@ Each stat value takes a color and its name a lighter shade of the same hue. The 
 
 Spells use the same panel: the icon and name, small badges for the spell's school, its rank, and **Passive** for passive spells and talents, and a strip with cost, cast time, cooldown, and range. The description follows one sentence per line, with its numbers highlighted.
 
-The panel is tinted by the spell's school, read from the damage its description names (`Fire damage`) or a school that starts its name (`Holy Light`). Spells with neither are tinted by the resource they cost: blue for mana, red for rage, yellow for energy.
+The panel is tinted by the spell's school: a class spell's comes from WoW Forever's client spell data, which the addon carries, and any other spell's is read from the damage its description names (`Fire damage`) or a school that starts its name (`Holy Light`). Spells with neither are tinted by the resource they cost: blue for mana, red for rage, yellow for energy.
 
 A spell that carries another spell inside its tooltip, such as Feral Charge with its Cat Form version, shows the inner spell as a second section with its own name, strip, requirements, and description. Talents get the spell panel too.
 
@@ -134,7 +134,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 
 ## Known limitations
 
-- No game API names a spell's school, so it is read from the spell's text. A spell that never names its damage type may get no school, or the wrong one if its name starts with one.
+- No game API names a spell's school. Class spells take theirs from the client data the addon carries; any other spell's is read from its text, so one that never names its damage type may get no school, or the wrong one if its name starts with one.
 - Spell power coefficients are not read from the game. Those marked `~` are estimates, and a talent or effect that changes a spell's damage or healing makes its base off by that much.
 - Profession recipe spells do not show the crafted item as an item panel.
 - Herb and ore nodes show their yield, skill level, and prices only for the classic herbs and ores; other nodes show their skill alone. Chest and quest object tooltips are less tested.

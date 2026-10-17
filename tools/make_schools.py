@@ -1,79 +1,39 @@
 """Writes Data/Schools.lua: each class spell's magic school, by name.
 
-The spells and every rank's spell ID come from foreverchanges.pro's spellbooks,
-one page per class, talents included. Each ID's school comes from Classic's own
-spell data (SpellMisc's SchoolMask) as wago.tools publishes it; Forever keeps
-Classic's spell IDs. Every rank of a spell shares its name, so the table needs
-one entry per spell. Physical spells are left out: they have no school tint.
+The spells and their schools come from WoW Forever's own client tables, as
+tools/forever_spells.py reads them from wago.tools: every spell a class learns
+(SkillLineAbility, talents included) and its SchoolMask. Every rank of a spell
+shares its name, so the table needs one entry per spell, the school most of
+its ranks have. Physical spells are left out: they have no school tint. So are
+pet spells, and the "Effect" and "(Passive)" helpers spells hand their work to.
 
-python tools/make_schools.py            download what is missing, then write
-python tools/make_schools.py --refresh  download everything again
+python tools/make_schools.py                       newest Forever build
+python tools/make_schools.py --build 1.60.1.70450  a specific build
+python tools/make_schools.py --offline             tables already downloaded
 """
 
-import csv
-import io
 import json
-import re
 import sys
-import tempfile
-import urllib.request
 from argparse import ArgumentParser
 from collections import Counter, defaultdict
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CACHE = Path(tempfile.gettempdir()) / "prettytooltip-schools"
-CLASSES = ["warrior", "paladin", "hunter", "rogue", "priest", "shaman", "mage", "warlock", "druid"]
-SPELLBOOK = "https://foreverchanges.pro/spellbook/{}"
-SPELL_MISC = "https://wago.tools/db2/SpellMisc/csv?branch=wow_classic_era"
 
-# SchoolMask bits, as the game numbers them.
+# SchoolMask bits, as the game numbers them, in the order a tie between ranks
+# is settled.
 BITS = [(2, "Holy"), (4, "Fire"), (8, "Nature"), (16, "Frost"), (32, "Shadow"), (64, "Arcane")]
 # Masks naming more than one school that the palette has a tint for.
 BLENDS = {2 | 4: "Holyfire", 4 | 16: "Frostfire"}
 
-# Forever's own spells, which Classic's data lacks, with their schools by hand.
-# Used only where the data has nothing; the data wins any disagreement.
-EXTRA = {
-    "Holy Strike": "Holy", "Seal of Fury": "Holy", "Light's Vigil": "Holy", "Hammer of the Righteous": "Holy",
-    "Voice of Truth": "Holy", "Swift Judgement": "Holy", "Templar's Bulwark": "Holy",
-    "Divine Grace": "Holy", "Chastise": "Holy", "Confounding Flash": "Holy", "Contingency Plan": "Holy",
-    "Penance": "Holy", "Dark Sacrifice": "Shadow", "Shadow Word: Death": "Shadow",
-    "Summon Hawk": "Nature", "Aspect of the Viper": "Nature", "Aspect of the Falcon": "Nature", "Strider Kick": "Nature",
-    "Venom": "Nature", "Occult Poison": "Nature", "Atrophic Poison": "Nature", "Numbing Poison": "Nature",
-    "Sebacious Poison": "Nature", "Totemic Projection": "Nature", "Totemic Recall": "Nature",
-    "Call of the Elements": "Nature", "Call of the Ancestors": "Nature", "Call of the Spirits": "Nature",
-    "Feral Charge": "Nature", "Shifting Power": "Nature",
-    "Teleport: Dalaran": "Arcane", "Comprehend Scroll": "Arcane", "Study": "Arcane",
-    "Portal of Summoning": "Shadow", "Explorer Imp": "Shadow", "Wrack": "Shadow", "Bane of Havoc": "Shadow",
+# Schools the data cannot give: a name two classes give to spells of different
+# schools, as the table holds one, and a spell the data leaves without one.
+BY_HAND = {
+    # The priest's is Holy, the shaman's Nature.
+    "Cure Disease": "Nature",
+    # A curse the client gives no school; tinted as the warlock's other banes.
+    "Bane of Havoc": "Shadow",
 }
-
-
-def fetch(url, name, refresh):
-    path = CACHE / name
-    if refresh or not path.exists():
-        CACHE.mkdir(parents=True, exist_ok=True)
-        request = urllib.request.Request(url, headers={"User-Agent": "PrettyTooltip tools/make_schools.py"})
-        with urllib.request.urlopen(request, timeout=120) as response:
-            path.write_bytes(response.read())
-    return path.read_text(encoding="utf-8")
-
-
-def spellbook(html):
-    """{name: [spell IDs of every Forever rank]} from a spellbook page's data."""
-    # The page's data is a JSON stream inside script strings, its quotes escaped.
-    payload = html.replace('\\"', '"').replace("\\\\", "\\")
-    spells = {}
-    for match in re.finditer(r'\{"id":"[a-z]+-[^"]+","name":"((?:[^"\\]|\\.)*)","tab":', payload):
-        name = json.loads('"' + match.group(1) + '"')
-        # This spell's data runs to the next spell's opening.
-        end = payload.find('{"id":"', match.end())
-        chunk = payload[match.end():end if end != -1 else len(payload)]
-        ids = [int(i) for i in re.findall(r'"forever":\{"spell_id":(\d+)', chunk)]
-        if ids:
-            spells.setdefault(name, [])
-            spells[name] += [i for i in ids if i not in spells[name]]
-    return spells
 
 
 def school_of(mask):
@@ -85,44 +45,57 @@ def school_of(mask):
     return None
 
 
+def helper(name):
+    return name.endswith(" Effect") or "(Passive" in name
+
+
 def main():
     parser = ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--refresh", action="store_true", help="download everything again")
+    parser.add_argument("--build", help="Forever build, e.g. 1.60.1.70450 (default: newest on wago.tools)")
+    parser.add_argument("--offline", action="store_true", help="use only tables already downloaded")
     args = parser.parse_args()
 
-    masks = {}
-    for row in csv.DictReader(io.StringIO(fetch(SPELL_MISC, "SpellMisc.csv", args.refresh))):
-        if row["DifficultyID"] == "0":
-            masks[int(row["SpellID"])] = int(row["SchoolMask"])
+    # The builder beside this script, without leaving a __pycache__ in tools/.
+    sys.dont_write_bytecode = True
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    import forever_spells as fs
 
-    schools = defaultdict(set)
-    disagree, missing, total = [], [], 0
-    for cls in CLASSES:
-        spells = spellbook(fetch(SPELLBOOK.format(cls), f"{cls}.html", args.refresh))
-        if not spells:
-            sys.exit(f"no spells read from the {cls} spellbook; has the page changed?")
-        for name, ids in spells.items():
-            total += 1
-            found = Counter(school_of(masks[i]) for i in ids if i in masks)
-            if not found and name in EXTRA:
-                schools[EXTRA[name]].add(name)
-                continue
-            if not found:
-                missing.append(f"{cls}: {name} {ids}")
-                continue
-            school, _ = found.most_common(1)[0]
-            if len(found) > 1:
-                disagree.append(f"{cls}: {name} {dict(found)}, kept {school}")
-            if school:
-                schools[school].add(name)
-            if name in EXTRA and EXTRA[name] != school:
-                disagree.append(f"{cls}: {name} is {school} in the data, {EXTRA[name]} by hand; kept the data")
+    build = args.build
+    if not build:
+        if args.offline:
+            cached = sorted((p.name for p in Path(fs.CACHE).iterdir() if p.is_dir()), key=fs.version_key)
+            build = next((b for b in reversed(cached) if b.startswith("1.6")), None)
+        else:
+            build, _ = fs.newest_builds()
+    if not build:
+        sys.exit("No Forever build found. Pass --build.")
+    tables = fs.load_tables(fs.FOREVER_TABLES, build, fs.CACHE, args.offline)
+    client = fs.Client(build, tables)
+    # The class mounts are on the mounts skill line, with every other mount;
+    # those are physical, and left out with the rest.
+    members, _ = fs.class_spells(tables, client, fs.SKIP_LINES - {"Mounts"})
+
+    found = defaultdict(Counter)
+    for (_, spell_id), line in members.items():
+        name = client.names.get(spell_id)
+        if not name or line.startswith("Pet:") or helper(name):
+            continue
+        found[name][school_of(client.info(spell_id)["school"])] += 1
+    order = {school: index for index, (_, school) in enumerate(BITS)}
+    schools, mixed = defaultdict(set), []
+    for name, counts in found.items():
+        # Most ranks win; a tie goes to a school over none, then in BITS order.
+        school = max(counts, key=lambda s: (counts[s], s is not None, -order.get(s, len(order))))
+        school = BY_HAND.get(name, school)
+        if len(counts) > 1:
+            mixed.append(f"{name} {dict(counts)}, kept {school}" + (" (by hand)" if name in BY_HAND else ""))
+        if school:
+            schools[school].add(name)
 
     lines = [
         "-- Each class spell's magic school by name, which every rank shares; physical",
-        "-- spells are left out. Generated by tools/make_schools.py from",
-        "-- foreverchanges.pro's spellbooks (each rank's spell ID) and Classic's spell",
-        "-- data (each ID's school). Run it again when Forever adds spells.",
+        "-- spells are left out. Generated by tools/make_schools.py from WoW Forever's",
+        f"-- client spell tables (build {build}). Run it again when Forever adds spells.",
         "local _, ns = ...",
         "",
         "local SCHOOLS = {",
@@ -149,17 +122,10 @@ def main():
         "",
     ]
     (ROOT / "Data" / "Schools.lua").write_text("\n".join(lines), encoding="utf-8", newline="\n")
-    kept = sum(len(names) for names in schools.values())
-    print(f"{total} spells read, {kept} with a magic school written to Data/Schools.lua")
-    for school in sorted(schools):
-        print(f"  {school}: {len(schools[school])}")
-    if disagree:
-        print("ranks that disagree (the most common school is kept):")
-        for line in disagree:
-            print("  " + line)
-    if missing:
-        print(f"{len(missing)} spells with no Classic data (left out):")
-        for line in missing:
+    print(f"{sum(len(names) for names in schools.values())} spells written to Data/Schools.lua")
+    if mixed:
+        print(f"{len(mixed)} spells with ranks in different schools:")
+        for line in sorted(mixed):
             print("  " + line)
 
 
