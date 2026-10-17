@@ -35,6 +35,7 @@ Tooltips\Minimap.lua
 Tooltips\FlightPath.lua
 UI\Options.lua
 UI\Samples.lua
+UI\EditorSkin.lua
 UI\Editor.lua
 Integration\Native.lua
 Integration\Hooks.lua

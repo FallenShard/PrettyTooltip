@@ -91,6 +91,8 @@ Herbs, ore, chests, and quest objects get a panel too. A herb or ore node shows 
 
 ## Style editor
 
+The editor uses Blizzard's settings frame borders and native controls by default. Choose its appearance under **AddOns > PrettyTooltip > Style Editor Appearance** in the game's settings. With **EllesmereUI** installed, **Flat (EllesmereUI)** offers the flat editor appearance. This choice affects the editor window; **Panel style** inside the editor controls the tooltips themselves.
+
 Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items**, **Spells**, **Objects**, **Units**, **Buffs**, and **Quests** switch between the kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal; for objects a herb, an ore node you cannot mine yet, a locked chest, and a quest object; for units a player, a hostile elite with a quest, a friendly innkeeper, a rare, a rare elite, and a boss; for buffs a buff, a curse, and a stacked poison; for quests one in progress, one ready to turn in, and one not taken) cover every part, and the editor switches to one that has the part you pick from its list.
 
 To preview a real item or spell instead (objects, units, auras, and quests have no ID), type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.

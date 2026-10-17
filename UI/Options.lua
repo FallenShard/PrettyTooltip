@@ -124,12 +124,43 @@ function ns.Options.register()
     end
     rightColumn.y = rightColumn.y - 12
 
+    section(rightColumn, "Style Editor Appearance")
+    for _, appearance in ipairs({
+        { "native", "Blizzard", "Use the game's settings frame borders and controls." },
+        { "flat", "Flat (EllesmereUI)", "Use the flat editor appearance. Requires EllesmereUI to be installed." },
+    }) do
+        local value, label, note = appearance[1], appearance[2], appearance[3]
+        local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
+        button:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
+        local caption = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        caption:SetPoint("LEFT", button, "RIGHT", 6, 0)
+        caption:SetText(label)
+        button:SetHitRectInsets(0, -(caption:GetStringWidth() + 8), 0, 0)
+        button:SetMotionScriptsWhileDisabled(true)
+        button:SetScript("OnClick", function()
+            if value == "flat" and not ns.Game.addonInstalled("EllesmereUI") then return end
+            setOption("editorStyle", value)
+            if ns.refreshEditorStyle then ns.refreshEditorStyle() end
+            refreshControls()
+        end)
+        button.refresh = function()
+            local available = value == "native" or ns.Game.addonInstalled("EllesmereUI")
+            button:SetEnabled(available)
+            caption:SetFontObject(available and "GameFontHighlight" or "GameFontDisable")
+            button:SetChecked(ns.editorStyle() == value)
+        end
+        controls[#controls + 1] = button
+        explain(button, label, note)
+        rightColumn.y = rightColumn.y - 22
+    end
+
     page:SetScript("OnShow", refreshControls)
     -- Hooks the settings window calls on canvas pages: when it shows them, and
     -- from its Defaults button.
     page.OnRefresh = refreshControls
     page.OnDefault = function()
         ns.resetOptions()
+        if ns.refreshEditorStyle then ns.refreshEditorStyle() end
         refreshControls()
     end
 

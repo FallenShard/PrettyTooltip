@@ -11,7 +11,7 @@ local WIDTH = 820
 local EDITOR_HEIGHT = 720
 -- Below the controls column: a gap, then the buttons along the bottom.
 local BUTTONS_SPACE = 50
-local PREVIEW_TOP = 106
+local PREVIEW_TOP = 118
 local PREVIEW_WIDTH = 460
 -- Room around the panel for its rarity halo and the Equipped tag above it.
 local PREVIEW_MARGIN = 26
@@ -30,6 +30,7 @@ local FIELD_HOVER = { .16, .13, .12 }
 local LINE = { .32, .26, .19 }
 local GOLD = { .93, .80, .52 }
 local RESET_ICON = "Interface\\Buttons\\UI-RefreshButton"
+local skin = ns.EditorSkin.create()
 local BACKDROP_STYLES = {
     { text = "Automatic" },
     { value = "native", text = "Blizzard border" },
@@ -96,25 +97,33 @@ local function plainFont(font)
     ui.setFont(font, path, size, flags)
 end
 
-local function flatButton(parent, label, width, onClick)
-    local button = CreateFrame("Button", nil, parent)
+local function editorButton(parent, label, width, onClick)
+    local button = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+    local parts = skin.templateParts(button)
     button:SetSize(width, 22)
     button.bg = background(button, FIELD)
-    outline(button, LINE)
+    local edges = outline(button, LINE)
     button.label = text(button, "GameFontHighlightSmall", label)
     button.label:SetPoint("CENTER")
-    local function paint(self, hover)
-        local color = self.selected and { .36, .27, .13 } or (hover and FIELD_HOVER or FIELD)
-        self.bg:SetVertexColor(color[1], color[2], color[3], 1)
-    end
-    button:SetScript("OnEnter", function(self) paint(self, true) end)
-    button:SetScript("OnLeave", function(self) paint(self, false) end)
+    local paint = skin:button(button, button.bg, edges, parts)
+    button:SetScript("OnEnter", function(self) self.hovered = true paint() end)
+    button:SetScript("OnLeave", function(self) self.hovered = false paint() end)
     button:SetScript("OnClick", onClick)
     function button:SetSelected(selected)
         self.selected = selected
-        paint(self, false)
+        paint()
     end
     return button
+end
+
+local function editorTab(parent, label, width, onClick)
+    local tab = CreateFrame("Button", nil, parent, "MinimalTabTemplate")
+    tab:SetWidth(width)
+    tab.label = tab.Text
+    tab.label:SetText(label)
+    skin:tab(tab, background(tab, FIELD), outline(tab, LINE))
+    tab:SetScript("OnClick", onClick)
+    return tab
 end
 
 -- The window -----------------------------------------------------------------
@@ -133,16 +142,32 @@ editor:SetScript("OnDragStart", editor.StartMoving)
 editor:SetScript("OnDragStop", editor.StopMovingOrSizing)
 editor:Hide()
 tinsert(UISpecialFrames, "PrettyTooltipEditor")
-background(editor, BACKGROUND)
-outline(editor, LINE)
+skin:surface(editor, background(editor, BACKGROUND), outline(editor, LINE), true)
 
-local heading = text(editor, "GameFontNormalLarge", "PrettyTooltip style editor")
+-- The native border is a child frame; its title bar covers regions drawn on
+-- the editor itself. Keep the title above it in either appearance.
+local titleContainer = CreateFrame("Frame", nil, editor)
+titleContainer:SetPoint("TOPLEFT")
+titleContainer:SetPoint("TOPRIGHT")
+titleContainer:SetHeight(32)
+titleContainer:SetFrameLevel(editor:GetFrameLevel() + 2)
+local heading = text(titleContainer, "GameFontNormalLarge", "PrettyTooltip Style Editor")
 heading:SetPoint("TOPLEFT", 16, -14)
 local subheading = text(editor, "GameFontDisableSmall",
     "Click any part of the sample to restyle it. Tooltips use the new look the next time they open.")
 subheading:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -4)
 local close = CreateFrame("Button", nil, editor, "UIPanelCloseButton")
 close:SetPoint("TOPRIGHT", -2, -2)
+skin:bind(function(native)
+    -- Leave room inside the native frame for the scrollbar's arrow buttons.
+    editor:SetWidth(WIDTH + (native and 16 or 0))
+    heading:ClearAllPoints()
+    heading:SetFontObject(native and "GameFontNormal" or "GameFontNormalLarge")
+    if native then heading:SetPoint("TOP", 0, -5) else heading:SetPoint("TOPLEFT", 16, -14) end
+    subheading:ClearAllPoints()
+    if native then subheading:SetPoint("TOPLEFT", editor, "TOPLEFT", 16, -34)
+    else subheading:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -4) end
+end)
 
 -- The controls column scrolls, so the window keeps its size whatever the
 -- tooltip type shown has to set.
@@ -159,13 +184,15 @@ columnBar:SetPoint("TOPLEFT", column, "TOPRIGHT", 6, 0)
 columnBar:SetPoint("BOTTOMLEFT", column, "BOTTOMRIGHT", 6, 0)
 columnBar:SetWidth(6)
 columnBar:SetValueStep(1)
-fill(columnBar, "BACKGROUND", LINE, .6):SetAllPoints()
+local columnTrack = fill(columnBar, "BACKGROUND", LINE, .6)
+columnTrack:SetAllPoints()
 columnBar:SetThumbTexture(WHITE)
 local columnThumb = columnBar:GetThumbTexture()
 columnThumb:SetWidth(6)
 columnThumb:SetVertexColor(GOLD[1], GOLD[2], GOLD[3], .7)
 columnBar:Hide()
 columnBar:SetScript("OnValueChanged", function(_, offset) column:SetVerticalScroll(math.floor(offset + .5)) end)
+skin:scrollbar(columnBar, columnTrack, 6, SCROLL_STEP)
 column:EnableMouseWheel(true)
 column:SetScript("OnMouseWheel", function(_, delta)
     if columnBar:IsShown() then columnBar:SetValue(columnBar:GetValue() - delta * SCROLL_STEP) end
@@ -196,21 +223,20 @@ local host = CreateFrame("Frame", nil, editor)
 host:SetPoint("TOPLEFT", 16, -PREVIEW_TOP)
 host:SetWidth(PREVIEW_WIDTH)
 host:SetClipsChildren(true)
-background(host, { .02, .016, .02 })
-outline(host, LINE, .8)
+skin:surface(host, background(host, { .02, .016, .02 }), outline(host, LINE, .8))
 -- Stands in for the game's tooltip; the panel pins itself to it.
 local anchor = CreateFrame("Frame", nil, host)
 anchor:SetSize(1, 1)
 anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN)
 local typeTabs = {}
 for index, tooltipType in ipairs(TYPE_ORDER) do
-    local tab = flatButton(editor, TOOLTIP_TYPES[tooltipType].label, 64, function() switchTooltipType(tooltipType) end)
+    local tab = editorTab(editor, TOOLTIP_TYPES[tooltipType].label, 64, function() switchTooltipType(tooltipType) end)
     tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 68, 34)
     typeTabs[tooltipType] = tab
 end
 local sampleTabs = {}
 for index = 1, MAX_SAMPLES do
-    local tab = flatButton(editor, "", 56, function()
+    local tab = editorButton(editor, "", 56, function()
         state.sample, state.lookup = index, nil
         refresh()
     end)
@@ -247,6 +273,12 @@ local function scrollTo(offset)
     anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN + offset)
 end
 scrollBar:SetScript("OnValueChanged", function(_, offset) scrollTo(math.floor(offset + .5)) end)
+skin:scrollbar(scrollBar, scrollTrack, 8, SCROLL_STEP)
+skin:bind(function(native)
+    scrollBar:ClearAllPoints()
+    scrollBar:SetPoint("TOPRIGHT", native and -12 or -3, native and -8 or -3)
+    scrollBar:SetPoint("BOTTOMRIGHT", native and -12 or -3, native and 8 or 3)
+end)
 overlay:EnableMouseWheel(true)
 overlay:SetScript("OnMouseWheel", function(_, delta)
     if scrollBar:IsShown() then scrollBar:SetValue(scrollBar:GetValue() - delta * SCROLL_STEP) end
@@ -387,6 +419,7 @@ local function drawSample()
     end
     offset = math.min(offset, range)
     scrollBar:SetValue(offset)
+    scrollBar:UpdateScrollMetrics(host:GetHeight(), sampleHeight)
     scrollTo(offset)
 end
 
@@ -422,8 +455,7 @@ local menu = CreateFrame("Frame", nil, catcher)
 menu:SetFrameStrata("FULLSCREEN_DIALOG")
 menu:EnableMouse(true)
 menu:EnableMouseWheel(true)
-background(menu, { .07, .06, .06 })
-outline(menu, LINE)
+skin:surface(menu, background(menu, { .07, .06, .06 }), outline(menu, LINE))
 local scrollThumb = fill(menu, "ARTWORK", GOLD, .5)
 scrollThumb:SetWidth(2)
 menu.rows = {}
@@ -522,13 +554,14 @@ local function dropdown(width, items, current, pick)
     local button = CreateFrame("Button", nil, content)
     button:SetSize(width, 22)
     button.bg = background(button, FIELD)
-    outline(button, LINE)
+    local edges = outline(button, LINE)
     button.label = text(button, "GameFontHighlightSmall")
     button.label:SetPoint("LEFT", 8, 0)
     button.label:SetPoint("RIGHT", -20, 0)
     button.label:SetWordWrap(false)
     local arrow = text(button, "GameFontNormalSmall", "v")
     arrow:SetPoint("RIGHT", -8, 0)
+    skin:field(button, button.bg, edges, arrow)
     button.items, button.current, button.pick = items, current, pick
     button:SetScript("OnEnter", function(self)
         self.bg:SetVertexColor(FIELD_HOVER[1], FIELD_HOVER[2], FIELD_HOVER[3], 1)
@@ -568,7 +601,8 @@ end
 local function slider(width, current, set, low, high, suffix)
     local holder = CreateFrame("Frame", nil, content)
     holder:SetSize(width, 22)
-    local bar = CreateFrame("Slider", nil, holder)
+    local bar = CreateFrame("Slider", nil, holder, "MinimalSliderTemplate")
+    local parts = skin.templateParts(bar)
     bar:SetOrientation("HORIZONTAL")
     bar:SetPoint("LEFT", 0, 0)
     bar:SetSize(width - 46, 16)
@@ -596,10 +630,15 @@ local function slider(width, current, set, low, high, suffix)
     end)
     bar:EnableMouseWheel(true)
     bar:SetScript("OnMouseWheel", function(self, delta) self:SetValue(self:GetValue() + delta) end)
+    local updateSteppers = skin:slider(bar, track, parts)
+    skin:bind(function(native)
+        value:SetFontObject(native and "GameFontNormal" or "GameFontHighlight")
+    end)
     holder.refresh = function()
         bar.updating = true
         bar:SetValue(current())
         bar.updating = false
+        updateSteppers()
         value:SetText(current() .. (suffix or ""))
     end
     controls[#controls + 1] = holder
@@ -650,7 +689,7 @@ local function colorControl()
     chip:SetPoint("BOTTOMRIGHT", -3, 3)
     local status = text(holder, "GameFontHighlightSmall")
     status:SetPoint("LEFT", swatch, "RIGHT", 8, 0)
-    local automatic = flatButton(holder, "Automatic", 80, function()
+    local automatic = editorButton(holder, "Automatic", 80, function()
         ns.setElementSetting(state.selected, "color", nil)
         refresh()
     end)
@@ -726,8 +765,7 @@ lookupLabel:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18, 11)
 local lookupBox = CreateFrame("EditBox", nil, editor)
 lookupBox:SetSize(CONTROLS_WIDTH - LABEL_WIDTH - 70, 22)
 lookupBox:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18 + LABEL_WIDTH, 6)
-background(lookupBox, FIELD)
-outline(lookupBox, LINE)
+skin:field(lookupBox, background(lookupBox, FIELD), outline(lookupBox, LINE))
 lookupBox:SetFontObject("GameFontHighlightSmall")
 lookupBox:SetTextInsets(8, 8, 0, 0)
 lookupBox:SetAutoFocus(false)
@@ -746,7 +784,7 @@ lookupBox:SetScript("OnEditFocusGained", function() lookupPlaceholder:Hide() end
 lookupBox:SetScript("OnEditFocusLost", function(self)
     lookupPlaceholder:SetShown(self:GetText() == "")
 end)
-local lookupClear = flatButton(editor, "Clear", 62, function()
+local lookupClear = editorButton(editor, "Clear", 62, function()
     state.lookup = nil
     refresh()
 end)
@@ -961,7 +999,7 @@ controls[#controls + 1] = allCaps
 row("Letters", allCaps, partSetting("caps"))
 
 local resetHolder = entry(32)
-local resetPart = flatButton(resetHolder, "Reset this part", 120, function()
+local resetPart = editorButton(resetHolder, "Reset this part", 120, function()
     ns.resetElement(state.selected)
     refresh()
 end)
@@ -1194,18 +1232,19 @@ local function layoutColumn()
         columnThumb:SetHeight(math.max(24, columnBar:GetHeight() * column:GetHeight() / (y + 8)))
     end
     columnBar:SetValue(math.min(columnBar:GetValue(), range))
+    columnBar:UpdateScrollMetrics(column:GetHeight(), y + 8)
     column:SetVerticalScroll(math.min(columnBar:GetValue(), range))
 end
 
 editor:SetHeight(EDITOR_HEIGHT)
 host:SetHeight(EDITOR_HEIGHT - PREVIEW_TOP - 16)
 
-local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
+local resetAll = editorButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()
     refresh()
 end)
 resetAll:SetPoint("BOTTOMLEFT", editor, "BOTTOMLEFT", CONTROLS_X, 16)
-local moreOptions = flatButton(editor, "More options", 100, function()
+local moreOptions = editorButton(editor, "More options", 100, function()
     editor:Hide()
     ns.openSettings()
 end)
@@ -1232,7 +1271,12 @@ refresh = function()
     showHint()
 end
 
-editor:SetScript("OnShow", function() refresh() end)
+function ns.refreshEditorStyle()
+    closeMenu()
+    skin:refresh()
+end
+
+editor:SetScript("OnShow", function() ns.refreshEditorStyle() refresh() end)
 editor:SetScript("OnHide", closeMenu)
 editor:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 editor:SetScript("OnEvent", function(_, _, itemID)

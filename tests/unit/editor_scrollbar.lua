@@ -1,0 +1,96 @@
+-- Native scrolling reports fractions; the editor stores pixel offsets. Keep
+-- arrows, wheel input, thumb dragging, and appearance changes in agreement.
+return function(test)
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+        "UI/EditorSkin.lua" })
+    ns.Game.addonInstalled = function() return true end
+    local skin = ns.EditorSkin.create()
+    local holder = CreateFrame("Frame", nil, UIParent)
+
+    -- Supply the C Slider's value-change event, which this harness normally
+    -- leaves to the caller. The native template's callback goes through it.
+    local function eventfulSlider(template)
+        local slider = CreateFrame("Slider", nil, holder, template)
+        local setValue = slider.SetValue
+        function slider:SetValue(value)
+            local low, high = self:GetMinMaxValues()
+            value = math.max(low, math.min(high, value))
+            local previous = self:GetValue()
+            setValue(self, value)
+            local changed = self:GetScript("OnValueChanged")
+            if changed and previous ~= value then changed(self, value) end
+        end
+        return slider
+    end
+
+    local bar = eventfulSlider()
+    bar:SetSize(6, 400)
+    bar:SetMinMaxValues(0, 800)
+    local offset = 0
+    bar:SetScript("OnValueChanged", function(_, value) offset = value end)
+    local track = bar:CreateTexture()
+    skin:scrollbar(bar, track, 6, 40)
+    bar:UpdateScrollMetrics(200, 1000)
+    skin:refresh()
+    local native = bar.nativeScrollBar
+    test.check("native thumb represents the visible portion", native:GetVisibleExtentPercentage(), .2)
+    test.check("up is disabled at the beginning", native.Back:IsEnabled(), false)
+    test.check("down is enabled while there is more content", native.Forward:IsEnabled(), true)
+    native:GetScript("OnMouseWheel")(native, -1)
+    test.check("native wheel advances the pixel offset", offset, 40)
+    test.check("wheel scrolling updates the native position", native:GetScrollPercentage(), .05)
+    native.Forward:GetScript("OnMouseDown")(native.Forward)
+    test.check("the down arrow advances one step", offset, 80)
+    native.Back:GetScript("OnMouseDown")(native.Back)
+    test.check("the up arrow reverses one step", offset, 40)
+    native:SetScrollPercentage(.75)
+    test.check("dragging the thumb updates the pixel position", offset, 600)
+    native:SetScrollPercentage(1)
+    test.check("the thumb can reach the final row", offset, 800)
+    test.check("down is disabled at the end", native.Forward:IsEnabled(), false)
+    native:GetScript("OnMouseWheel")(native, -1)
+    test.check("wheel input cannot overscroll the end", offset, 800)
+
+    ns.setOption("editorStyle", "flat")
+    skin:refresh()
+    test.check("switching to Flat keeps the scroll offset", offset, 800)
+    test.check("Flat hides the native scrollbar", native:IsShown(), false)
+    test.check("Flat restores the original slider input", bar:IsMouseEnabled(), true)
+    test.check("Flat restores its thumb", bar:GetThumbTexture():IsShown(), true)
+    bar:SetValue(320)
+    ns.setOption("editorStyle", "native")
+    skin:refresh()
+    test.check("switching back preserves the flat position", native:GetScrollPercentage(), .4)
+    test.check("native mode hides the flat thumb", bar:GetThumbTexture():IsShown(), false)
+    bar:SetMinMaxValues(0, 0)
+    bar:SetValue(0)
+    bar:UpdateScrollMetrics(200, 100)
+    test.check("short content disables both arrows", { native.Back:IsEnabled(), native.Forward:IsEnabled() }, { false, false })
+    test.check("short content hides the native thumb", native.Track.Thumb:IsShown(), false)
+
+    local slider = eventfulSlider("MinimalSliderTemplate")
+    slider:SetSize(150, 16)
+    slider:SetMinMaxValues(8, 30)
+    slider:SetValueStep(1)
+    slider:SetValue(19)
+    local parts = skin.templateParts(slider)
+    local update = skin:slider(slider, slider:CreateTexture(), parts)
+    skin:refresh()
+    slider.Forward:GetScript("OnClick")(slider.Forward)
+    test.check("the horizontal right arrow increases one step", slider:GetValue(), 20)
+    slider.Back:GetScript("OnClick")(slider.Back)
+    test.check("the horizontal left arrow decreases one step", slider:GetValue(), 19)
+    slider:SetValue(8)
+    test.check("the left arrow disables at the minimum", slider.Back:IsEnabled(), false)
+    slider:SetValue(30)
+    test.check("the right arrow disables at the maximum", slider.Forward:IsEnabled(), false)
+    ns.setOption("editorStyle", "flat")
+    skin:refresh()
+    test.check("Flat hides both horizontal arrows", { slider.Back:IsShown(), slider.Forward:IsShown() }, { false, false })
+    slider:SetValue(15)
+    update()
+    ns.setOption("editorStyle", "native")
+    skin:refresh()
+    test.check("the slider's value survives switching", slider:GetValue(), 15)
+    test.check("native mode restores the horizontal arrows", { slider.Back:IsShown(), slider.Forward:IsShown() }, { true, true })
+end

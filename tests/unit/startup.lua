@@ -1,6 +1,6 @@
 -- Registration waits for the addon's own event and uses saved settings.
 return function(test)
-    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Data/Stats.lua",
+    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Data/Stats.lua",
         "Integration/ItemLite.lua", "UI/Options.lua", "UI/Commands.lua", "PrettyTooltip.lua" }
     local fixture = { enums = { TooltipDataType = { Item = 0 } } }
     local ns, world = test.load(files, fixture)

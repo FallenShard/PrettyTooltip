@@ -144,6 +144,22 @@ return function(fixture, enums, report)
     function Object:IsObjectType(kind) return self._kind == kind end
     function Object:GetName() return self._name end
     function Object:GetParent() return self._parent end
+    function Object:GetRegions()
+        local regions = {}
+        for _, object in ipairs(self._children) do
+            if object._kind == "Texture" or object._kind == "FontString" then regions[#regions + 1] = object end
+        end
+        return unpack(regions)
+    end
+    function Object:GetChildren()
+        local frames = {}
+        for _, object in ipairs(self._children) do
+            if object._kind ~= "Texture" and object._kind ~= "FontString"
+                and object._kind ~= "MaskTexture" and object._kind ~= "AnimationGroup"
+                and object._kind ~= "Animation" then frames[#frames + 1] = object end
+        end
+        return unpack(frames)
+    end
     function Object:SetParent(parent) self._parent = parent end
     function Object:Show() self._shown = true end
     function Object:Hide() self._shown = false end
@@ -202,6 +218,8 @@ return function(fixture, enums, report)
     function Object:SetFrameStrata(strata) self._strata = strata end
     function Object:GetFrameStrata() return self._strata end
     function Object:IsMouseOver() return false end
+    function Object:EnableMouse(enabled) self._mouseEnabled = enabled end
+    function Object:IsMouseEnabled() return self._mouseEnabled ~= false end
     function Object:SetScript(event, handler) self._scripts[event] = handler end
     function Object:GetScript(event) return self._scripts[event] end
     function Object:HookScript(event, handler)
@@ -272,6 +290,8 @@ return function(fixture, enums, report)
     function Object:GetMinMaxValues() return self._min or 0, self._max or 0 end
     function Object:SetValue(value) self._value = value end
     function Object:GetValue() return self._value or 0 end
+    function Object:SetValueStep(step) self._valueStep = step end
+    function Object:GetValueStep() return self._valueStep or 0 end
     function Object:SetThumbTexture(path) child(self, "_thumb", "Texture"):SetTexture(path) end
     function Object:GetThumbTexture() return child(self, "_thumb", "Texture") end
     function Object:SetScrollChild(scrollChild) self._scrollChild = scrollChild end
@@ -468,7 +488,73 @@ return function(fixture, enums, report)
         RAID_CLASS_COLORS[class] = { r = color[1], g = color[2], b = color[3] }
     end
 
-    CreateFrame = function(kind, name, parent) return new(kind, name, parent) end
+    CreateFrame = function(kind, name, parent, template)
+        local frame = new(kind, name, parent)
+        frame._template = template
+        -- Only the decorative regions used by the editor; no template scripts.
+        if template == "UIPanelButtonTemplate" then
+            for _, part in ipairs({ "Left", "Middle", "Right" }) do
+                frame[part] = new("Texture", nil, frame)
+                frame[part]:SetTexture("panel-button-" .. part)
+            end
+        elseif template == "UISliderTemplate" or template == "InsetFrameTemplate" then
+            frame.NineSlice = new("Frame", nil, frame)
+            if template == "InsetFrameTemplate" then
+                frame.Bg = new("Texture", nil, frame)
+                frame.Bg:SetTexture("Interface\\FrameGeneral\\UI-Background-Marble")
+            end
+        elseif template == "FlatPanelBackgroundTemplate" then
+            frame.TopSection = new("Texture", nil, frame)
+        elseif template == "MinimalTabTemplate" then
+            for _, part in ipairs({ "Left", "Middle", "Right" }) do frame[part] = new("Texture", nil, frame) end
+            frame.Text = new("FontString", nil, frame)
+            function frame:OnSelected(selected)
+                self.Left:SetAtlas(selected and "Options_Tab_Active_Left" or "Options_Tab_Left")
+                self.Middle:SetAtlas(selected and "Options_Tab_Active_Middle" or "Options_Tab_Middle")
+                self.Right:SetAtlas(selected and "Options_Tab_Active_Right" or "Options_Tab_Right")
+                self.Text:SetPoint("BOTTOM", 0, selected and 6 or 4)
+            end
+            function frame:SetSelected(selected) self.selected = selected self:OnSelected(selected) end
+            frame:SetSelected(false)
+        elseif template == "MinimalSliderTemplate" then
+            for _, part in ipairs({ "Left", "Middle", "Right" }) do
+                frame[part] = new("Texture", nil, frame)
+                frame[part]:SetAtlas("Minimal_SliderBar_" .. part)
+            end
+            frame:SetThumbTexture("minimal-slider-thumb")
+        elseif template == "MinimalScrollBar" then
+            frame.Track = new("Frame", nil, frame)
+            frame.Track.Thumb = new("Button", nil, frame.Track)
+            frame.Back = new("Button", nil, frame)
+            frame.Forward = new("Button", nil, frame)
+            frame._percentage, frame._visiblePercentage, frame._panPercentage = 0, 0, .1
+            local callbacks = {}
+            function frame:RegisterCallback(event, callback, owner) callbacks[event] = { callback, owner } end
+            local function update()
+                local scrollable = frame._visiblePercentage > 0 and frame._visiblePercentage < 1
+                frame.Back:SetEnabled(scrollable and frame._percentage > 0)
+                frame.Forward:SetEnabled(scrollable and frame._percentage < 1)
+                frame.Track.Thumb:SetShown(scrollable)
+            end
+            function frame:SetVisibleExtentPercentage(value) self._visiblePercentage = value update() end
+            function frame:GetVisibleExtentPercentage() return self._visiblePercentage end
+            function frame:SetPanExtentPercentage(value) self._panPercentage = value end
+            function frame:SetScrollPercentage(value)
+                self._percentage = math.max(0, math.min(1, value))
+                update()
+                local callback = callbacks.OnScroll
+                if callback then callback[1](callback[2], self._percentage) end
+            end
+            function frame:GetScrollPercentage() return self._percentage end
+            frame.Back:SetScript("OnMouseDown", function()
+                frame:SetScrollPercentage(frame._percentage - frame._panPercentage)
+            end)
+            frame.Forward:SetScript("OnMouseDown", function()
+                frame:SetScrollPercentage(frame._percentage + frame._panPercentage)
+            end)
+        end
+        return frame
+    end
     CreateColor = function(r, g, b, a)
         return { r = r, g = g, b = b, a = a or 1,
             GetRGBA = function(self) return self.r, self.g, self.b, self.a end,
@@ -544,7 +630,10 @@ return function(fixture, enums, report)
         "TopEdge", "BottomEdge", "LeftEdge", "RightEdge", "Center" }
     NineSliceUtil = {
         ApplyLayoutByName = function(frame, layout)
-            if layout ~= "TooltipDefaultLayout" then error("no layout " .. tostring(layout)) end
+            if layout ~= "TooltipDefaultLayout" and layout ~= "ButtonFrameTemplateNoPortrait" then
+                error("no layout " .. tostring(layout))
+            end
+            frame._layout = layout
             for _, piece in ipairs(PIECES) do
                 frame[piece] = frame[piece] or frame:CreateTexture(piece)
                 frame[piece]._texture = "tooltip-" .. piece

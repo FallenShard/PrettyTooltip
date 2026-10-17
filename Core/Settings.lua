@@ -45,6 +45,8 @@ local DEFAULTS = {
     -- nil chooses: DialogueUI's art when installed, flat with EllesmereUI, else
     -- the game's own tooltip border. "native", "flat", or "dialogue" to pick one.
     backdropStyle = nil,
+    -- The editor's frame treatment, independent of the tooltips it previews.
+    editorStyle = "native",
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
     bodyFont = nil,
@@ -64,6 +66,13 @@ function ns.option(key)
     local db = PrettyTooltipDB
     if type(db) == "table" and db[key] ~= nil then return db[key] end
     return DEFAULTS[key]
+end
+
+function ns.editorStyle()
+    if ns.option("editorStyle") == "flat" and ns.Game.addonInstalled("EllesmereUI") then
+        return "flat"
+    end
+    return "native"
 end
 
 -- Counts setting changes, so a panel drawn before one is drawn again.
