@@ -4,7 +4,6 @@ local setOption = ns.setOption
 
 local page, category
 ns.Options = {}
-local SCALE_MIN, SCALE_MAX = 80, 150
 
 -- Called by the entry file after saved settings arrive.
 function ns.Options.register()
@@ -42,8 +41,9 @@ function ns.Options.register()
         widget:SetScript("OnLeave", function() GameTooltip:Hide() end)
     end
 
-    explain(editorButton, "Style editor", "The look of the tooltip: fonts, sizes, and colors for every part, "
-        .. "the icon side, the badge, markers, and tints, with a live sample. Also /ptip.")
+    explain(editorButton, "Style editor", "The look of every kind of tooltip, with a live sample: fonts, "
+        .. "sizes, and colors for every part, text size, tints, and opacities, and each kind's own details, "
+        .. "as disenchant results, the spell power breakdown, and the health bar. Also /ptip.")
     editorButton:SetScript("OnClick", function()
         if SettingsPanel and SettingsPanel:IsShown() then HideUIPanel(SettingsPanel) end
         if ns.openEditor then ns.openEditor() end
@@ -99,44 +99,6 @@ function ns.Options.register()
         leftColumn.y = leftColumn.y - 22
     end
 
-    -- A scale on every part's own size.
-    section(rightColumn, "Text Size")
-    local scale = CreateFrame("Slider", nil, page)
-    scale:SetOrientation("HORIZONTAL")
-    scale:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
-    scale:SetSize(150, 16)
-    scale:SetMinMaxValues(SCALE_MIN, SCALE_MAX)
-    scale:SetValueStep(5)
-    if scale.SetObeyStepOnDrag then scale:SetObeyStepOnDrag(true) end
-    local track = scale:CreateTexture(nil, "BACKGROUND")
-    track:SetColorTexture(.4, .4, .4, .8)
-    track:SetPoint("LEFT")
-    track:SetPoint("RIGHT")
-    track:SetHeight(4)
-    scale:SetThumbTexture("Interface\\Buttons\\UI-SliderBar-Button-Horizontal")
-    local scaleValue = page:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-    scaleValue:SetPoint("LEFT", scale, "RIGHT", 10, 0)
-    local function percent() return math.floor(ns.option("fontScale") * 100 + .5) end
-    scale:SetScript("OnValueChanged", function(self, value)
-        if self.updating then return end
-        value = math.floor(value / 5 + .5) * 5
-        -- The default is saved as no setting.
-        setOption("fontScale", value ~= 100 and value / 100 or nil)
-        scaleValue:SetText(value .. "%")
-    end)
-    scale:EnableMouseWheel(true)
-    scale:SetScript("OnMouseWheel", function(self, delta) self:SetValue(self:GetValue() + delta * 5) end)
-    scale.refresh = function()
-        scale.updating = true
-        scale:SetValue(percent())
-        scale.updating = false
-        scaleValue:SetText(percent() .. "%")
-    end
-    controls[#controls + 1] = scale
-    explain(scale, "Text size", "Scales the text of every tooltip panel, on top of each part's own size "
-        .. "in the style editor. 100% is the default.")
-    rightColumn.y = rightColumn.y - 34
-
     local MODIFIERS = {
         { "CTRL", "CTRL", "Hold CTRL to see the game's own tooltip instead of the panel." },
         { "ALT", "ALT", "Hold ALT to see the game's own tooltip instead of the panel." },
@@ -161,55 +123,6 @@ function ns.Options.register()
         rightColumn.y = rightColumn.y - 22
     end
     rightColumn.y = rightColumn.y - 12
-
-    local function detailBox(key, label, note)
-        local box = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
-        box:SetSize(24, 24)
-        box:SetPoint("TOPLEFT", rightColumn.x + 4, rightColumn.y + 4)
-        local text = box:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-        text:SetPoint("LEFT", box, "RIGHT", 4, 0)
-        text:SetText(label)
-        box:SetHitRectInsets(0, -(text:GetStringWidth() + 8), 0, 0)
-        box:SetScript("OnClick", function(self) setOption(key, self:GetChecked() and true or false) end)
-        box.refresh = function() box:SetChecked(ns.option(key)) end
-        controls[#controls + 1] = box
-        explain(box, label, note)
-        rightColumn.y = rightColumn.y - 24
-    end
-
-    section(rightColumn, "Item Details")
-    detailBox("itemLite", "Lite item tooltips", "Keep the game's own item tooltip, with its Equip effects "
-        .. "shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and "
-        .. "chance on hit effects in their stat colors. Hold the modifier for the full wording. "
-        .. "The panel's item settings, such as disenchant results, do not apply.")
-    detailBox("disenchant", "Disenchant results", "Green, blue, and purple armor and weapons list what "
-        .. "they disenchant into, with each result's chance and the Enchanting it needs; with "
-        .. "Auctionator, the expected value.")
-    detailBox("sellPrice", "Sell price", "The vendor price in the footer; for a stack, the price of "
-        .. "one and of the whole stack.")
-    rightColumn.y = rightColumn.y - 12
-
-    section(rightColumn, "Spell Details")
-    detailBox("spellPower", "Spell power breakdown", "Under the description, each amount's spell power "
-        .. "coefficient and its split into base and spell power. No game API has coefficients: they follow "
-        .. "Classic's rules, checked against Forever's spell data, and ones marked ~ are estimates.")
-    detailBox("spellRates", "Damage and healing rates", "Under the spell power breakdown, the average a cast "
-        .. "deals or heals per second and per mana. Per second, what lands at "
-        .. "once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time "
-        .. "over its duration. Crits and talents do not count.")
-    rightColumn.y = rightColumn.y - 12
-
-    section(rightColumn, "Unit Details")
-    detailBox("unitHealthBar", "Health bar", "The game's own health bar at the bottom of player and NPC "
-        .. "panels. The game fills it, so it stays live without the addon reading health, which WoW Forever "
-        .. "keeps from addons.")
-    rightColumn.y = rightColumn.y - 12
-
-    section(rightColumn, "Gathering")
-    detailBox("gatheringLoot", "Gathering contents", "What a herb or ore node holds: its yield over all the times "
-        .. "it can be gathered, then the stone, gems, and other herbs it may give and the chance each time. On a "
-        .. "dead creature that can be skinned, the Skinning it needs, in its skill-up color, and the leather, "
-        .. "hides, and scales it may give. From Classic's loot tables.")
 
     page:SetScript("OnShow", refreshControls)
     -- Hooks the settings window calls on canvas pages: when it shows them, and

@@ -12,8 +12,8 @@ Top to bottom, an item panel shows:
 - **Equip effects and enchants.** Equip effects that are not a plain stat, such as a zone-limited speed bonus, join the stat list in green without the `Equip:` prefix. A chance on hit joins them too, marked with a small sword instead of its `Chance on hit:` prefix. Its numbers follow the spell tooltip's highlighting: a lighter school color when the description names that school's damage, or a neutral highlight otherwise. Holyfire blends Holy and Fire. These highlights follow **Stat colors** and a custom **Equip effects** color in the panel. Enchants follow as green rows marked with a sparkle, one per bonus: `Enchanted: Stamina +1 and Armor +8` becomes `+1 Stamina` and `+8 Armor`.
 - **Use effects and flavor text,** as the game words them, each use effect marked with a small gear instead of its `Use:` prefix.
 - **Item set.** The set name and how many pieces you own, the pieces you own highlighted, and the set bonuses, with active ones highlighted.
-- **Disenchant.** For green, blue, and purple armor and weapons: what the item disenchants into, each result with its icon, count, and chance, and the Enchanting it needs, red while your skill is too low and grey if you have no Enchanting. The chances are Classic's published tables (Warcraft Wiki's *Disenchanting tables*); the game has no way to ask. Turned off under **Item Details** in the options.
-- **Footer.** Durability as a small bar, the crafter's name for crafted items, other requirements such as skills or classes, and the sell price as coins alone; a stack shows its total first, then the count and one item's price, dimmed (`2g  (20 × 10s)`), which can be turned off under **Item Details** in the options.
+- **Disenchant.** For green, blue, and purple armor and weapons: what the item disenchants into, each result with its icon, count, and chance, and the Enchanting it needs, red while your skill is too low and grey if you have no Enchanting. The chances are Classic's published tables (Warcraft Wiki's *Disenchanting tables*); the game has no way to ask. Turned off under **Item Details** in the style editor.
+- **Footer.** Durability as a small bar, the crafter's name for crafted items, other requirements such as skills or classes, and the sell price as coins alone; a stack shows its total first, then the count and one item's price, dimmed (`2g  (20 × 10s)`), which can be turned off under **Item Details** in the style editor.
 
 While the game shows a comparison, the comparison panels are tagged **Equipped**, and the game's own "If you replace this item" stat changes appear among the rows at the bottom, in their usual green and red.
 
@@ -36,7 +36,7 @@ Common Equip wordings become short stat rows:
 
 ### Lite item tooltips
 
-With **Lite item tooltips** turned on under **Item Details** in the options, items keep the game's own tooltip, with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat colors** is on. Combined bonuses split into separate lines. Everything else, including the stat markers and the disenchant section, is left out.
+With **Lite tooltips** turned on under **Item Details** in the style editor, items keep the game's own tooltip, with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat colors** is on. Combined bonuses split into separate lines. Everything else, including the stat markers and the disenchant section, is left out.
 
 ### Colors
 
@@ -60,7 +60,7 @@ The panel is tinted by the spell's school: a class spell's comes from WoW Foreve
 
 A spell that carries another spell inside its tooltip, such as Feral Charge with its Cat Form version, shows the inner spell as a second section with its own name, strip, requirements, and description. Talents get the spell panel too.
 
-Spells that deal magic damage or heal show their spell power under the description: each amount's coefficient, one row for what lands at once and one for what comes over time, and the amount split into its base and what your spell power adds, as `Healing Power Coefficient` and `85.7% · 441 to 595 + 120`, the coefficient in the spell school's color. WoW Forever's tooltips already count your spell power in, so the base is the shown amount less spell power times the coefficient. No game API has coefficients, so the addon carries them: every rank of the caster classes' damage, healing, and absorb spells takes its own from Forever's client spell data, with the corrections in Blizzard's development notes, including what it hands to the spells it triggers, as a missile, an area's ticks, or a seal's strike. Other spells follow Classic's rules (cast time / 3.5, duration / 15), which Forever keeps without Classic's cap on spells over time or its penalty for spells learned before level 20; a coefficient marked `~` is the rules' estimate, and a channeled spell the addon has no data for shows none. Turned off under **Spell Details** in the options.
+Spells that deal magic damage or heal show their spell power under the description: each amount's coefficient, one row for what lands at once and one for what comes over time, and the amount split into its base and what your spell power adds, as `Healing Power Coefficient` and `85.7% · 441 to 595 + 120`, the coefficient in the spell school's color. WoW Forever's tooltips already count your spell power in, so the base is the shown amount less spell power times the coefficient. No game API has coefficients, so the addon carries them: every rank of the caster classes' damage, healing, and absorb spells takes its own from Forever's client spell data, with the corrections in Blizzard's development notes, including what it hands to the spells it triggers, as a missile, an area's ticks, or a seal's strike. Other spells follow Classic's rules (cast time / 3.5, duration / 15), which Forever keeps without Classic's cap on spells over time or its penalty for spells learned before level 20; a coefficient marked `~` is the rules' estimate, and a channeled spell the addon has no data for shows none. Turned off under **Spell Details** in the style editor.
 
 ## Players and NPCs
 
@@ -82,7 +82,7 @@ Herbs, ore, chests, and quest objects get a panel too. A herb or ore node shows 
 
 - Rows other addons add to a tooltip are kept, below a thin rule in smaller, muted text, in their original order and colors.
 - Comparison tooltips, screen-edge clamping, and anything anchored to the tooltip follow the panel's real size.
-- With **DialogueUI** installed, the panel uses its dark tooltip backdrop, unless turned off in the options. Text uses the game's own tooltip fonts, so a UI addon that changes the default font is followed; with **EllesmereUI** installed, names use its Expressway font. Both are used from those addons' own folders; nothing of theirs is bundled.
+- With **DialogueUI** installed, the panel uses its dark tooltip backdrop, unless another **Panel style** is picked in the style editor. Text uses the game's own tooltip fonts, so a UI addon that changes the default font is followed; with **EllesmereUI** installed, names use its Expressway font. Both are used from those addons' own folders; nothing of theirs is bundled.
 - Whenever a tooltip cannot be read safely, such as spell details restricted during combat, the game's own tooltip is shown instead.
 
 ## Style editor
@@ -91,35 +91,26 @@ Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything ab
 
 To preview a real item or spell instead (objects, units, auras, and quests have no ID), type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
 
-- **Font**: every font registered with LibSharedMedia, which includes EllesmereUI's fonts when it is installed, plus the game's own. **Global Settings** sets the font for everything at once, with a separate font for names; a part's own font overrides it.
-- **Color**: a custom color replaces every color the part would have had, including quality, category, and red or grey states. **Automatic** goes back to the normal colors.
-- **All caps** sets a part in capitals. It is on by default for item, spell, and set names (off, they keep the game's capitalization) and off for every other part.
-- **Reset this part** and **Reset all fonts and colors** go back to the defaults.
+The controls on the right follow the kind of panel shown, top to bottom (hover a setting for its description):
 
-Under **Layout and color** (hover one for its description):
+- **Selected Part**: the part you clicked, or picked from the list. **Font** offers every font registered with LibSharedMedia, which includes EllesmereUI's fonts when it is installed, plus the game's own; a part's own font overrides the ones below. A custom **Color** replaces every color the part would have had, including quality, category, and red or grey states; **Automatic** goes back to the normal colors. **All caps** is on by default for item, spell, and set names (off, they keep the game's capitalization) and off for every other part. **Reset this part** puts it back.
+- **All Tooltips**: the text and name fonts, the outline, the **Text size** every part's own size is scaled by, the **Panel style** (the game's tooltip border, flat, or DialogueUI's art), padding, and minimum width; **Icon on the right** moves the icon and its item level badge to the right of the name, **Tint the panel** off leaves every panel neutral (names keep their quality color), and **Separators** off hides the gold dividers and thin rules with the space around them.
+- **Items Panel**, **Spells Panel**, and so on, for the kind shown: **Show icon**, and the opacity of the header band at its top and bottom edges, of the panel's body (**Backdrop**), of the soft rarity **Glow** around it, and of the darker band behind the **Footer**.
+- The kind's own details:
+  - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Lite tooltips** (see *Lite item tooltips* above), the disenchant section, and the sell price.
+  - **Spell Details**: the spell power breakdown and the damage and healing rates under it.
+  - **Unit Details**: the level badge (off, the level stays in the info line), the health bar, and what a skinnable creature gives.
+  - **Object Details**: what herbs and ore give: a node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap.
 
-- **Show icon** turns the icon or portrait on or off for the kind of tooltip shown.
-- **Icon on the right** moves the icon and its item level badge to the right of the name.
-- **Item level badge** and **Stat markers** turn those elements off.
-- **Stat colors**: off, every stat is parchment. The **Stat colors** row below sets each category's own color, a swatch each (click to choose, right-click for the default); the stat's name takes a lighter shade of it.
-- **Tint the panel**: off, every panel is neutral; names keep their quality color.
-- **Separators**: off, the gold dividers between sections and the thin rules are hidden, along with the space around them.
-- **DialogueUI backdrop** (on by default, only with DialogueUI installed): off, the panel uses its plain dark gradient.
-- **Band top**, **Band bottom**, **Backdrop**, **Glow**, and **Footer** set, for the kind of tooltip shown, the opacity of the header band at its top and bottom edges, of the panel's body, of the soft rarity glow around it, and of the darker band behind the footer.
-
-Tooltips use the new look the next time they open.
+**Reset all fonts and colors** puts every part back. Tooltips use the new look the next time they open.
 
 ## Options
 
-Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor and has the settings that are not about the look; hover a setting for what it does.
+Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor, which has every setting about the look and each kind's details, and holds the rest; hover a setting for what it does.
 
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
   - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
-- **Item Details**: **Lite item tooltips** keeps the game's own item tooltip with selected Equip effects shortened and the game's colors kept, but for magical stats and effects (see *Lite item tooltips* above). **Disenchant results** shows or hides the disenchant section on items, and **Sell price** the sell price rows in the footer.
-- **Spell Details**: **Spell power breakdown** shows or hides the coefficients and the base and spell power split on spells.
-- **Unit Details**: **Health bar** shows or hides the health bar at the bottom of player and NPC panels.
-- **Gathering**: **Gathering contents** shows or hides what herbs, ore, and skinnable creatures give: a herb or ore node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap; and on a dead creature that can be skinned, the Skinning it needs (in its skill-up color, beside yours) and the leather, hides, and scales it may give.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never**.
 
 ## Install

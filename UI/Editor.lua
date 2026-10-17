@@ -7,6 +7,8 @@ end
 
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local WIDTH = 820
+-- The window keeps one height; the controls column scrolls within it.
+local EDITOR_HEIGHT = 720
 -- Below the controls column: a gap, then the buttons along the bottom.
 local BUTTONS_SPACE = 50
 local PREVIEW_TOP = 106
@@ -16,8 +18,10 @@ local PREVIEW_MARGIN = 26
 local SCROLL_STEP = 40
 local CONTROLS_X = PREVIEW_WIDTH + 34
 local CONTROLS_WIDTH = WIDTH - CONTROLS_X - 18
+local CONTROLS_TOP = PREVIEW_TOP + 10
 local LABEL_WIDTH = 86
-local FIELD_WIDTH = CONTROLS_WIDTH - LABEL_WIDTH
+-- Resets have their own gutter, so a changed label never runs into its icon.
+local FIELD_WIDTH = CONTROLS_WIDTH - LABEL_WIDTH - 24
 local SIZE_MIN, SIZE_MAX = 8, 30
 local MENU_ROWS, MENU_ROW_HEIGHT = 12, 20
 local BACKGROUND = { .055, .045, .05 }
@@ -139,6 +143,33 @@ local subheading = text(editor, "GameFontDisableSmall",
 subheading:SetPoint("TOPLEFT", heading, "BOTTOMLEFT", 0, -4)
 local close = CreateFrame("Button", nil, editor, "UIPanelCloseButton")
 close:SetPoint("TOPRIGHT", -2, -2)
+
+-- The controls column scrolls, so the window keeps its size whatever the
+-- tooltip type shown has to set.
+local column = CreateFrame("ScrollFrame", nil, editor)
+column:SetPoint("TOPLEFT", CONTROLS_X, -CONTROLS_TOP)
+column:SetSize(CONTROLS_WIDTH, EDITOR_HEIGHT - CONTROLS_TOP - BUTTONS_SPACE)
+column:SetClipsChildren(true)
+local content = CreateFrame("Frame", nil, column)
+content:SetSize(CONTROLS_WIDTH, 1)
+column:SetScrollChild(content)
+local columnBar = CreateFrame("Slider", nil, editor)
+columnBar:SetOrientation("VERTICAL")
+columnBar:SetPoint("TOPLEFT", column, "TOPRIGHT", 6, 0)
+columnBar:SetPoint("BOTTOMLEFT", column, "BOTTOMRIGHT", 6, 0)
+columnBar:SetWidth(6)
+columnBar:SetValueStep(1)
+fill(columnBar, "BACKGROUND", LINE, .6):SetAllPoints()
+columnBar:SetThumbTexture(WHITE)
+local columnThumb = columnBar:GetThumbTexture()
+columnThumb:SetWidth(6)
+columnThumb:SetVertexColor(GOLD[1], GOLD[2], GOLD[3], .7)
+columnBar:Hide()
+columnBar:SetScript("OnValueChanged", function(_, offset) column:SetVerticalScroll(math.floor(offset + .5)) end)
+column:EnableMouseWheel(true)
+column:SetScript("OnMouseWheel", function(_, delta)
+    if columnBar:IsShown() then columnBar:SetValue(columnBar:GetValue() - delta * SCROLL_STEP) end
+end)
 
 local state = { tooltipType = "item", sample = 1, selected = "title", saved = {} }
 local controls = {}
@@ -347,12 +378,12 @@ local function drawSample()
     local showing = state.tooltipType .. ":" .. state.sample .. ":" .. tostring(state.lookup)
     local offset = showing == scrolledFor and scrollBar:GetValue() or 0
     scrolledFor = showing
-    local content = (shown and shown:IsShown()) and shown:GetHeight() + 2 * PREVIEW_MARGIN or 0
-    local range = math.max(0, math.ceil(content - host:GetHeight()))
+    local sampleHeight = (shown and shown:IsShown()) and shown:GetHeight() + 2 * PREVIEW_MARGIN or 0
+    local range = math.max(0, math.ceil(sampleHeight - host:GetHeight()))
     scrollBar:SetMinMaxValues(0, range)
     scrollBar:SetShown(range > 0)
     if range > 0 then
-        scrollThumbTexture:SetHeight(math.max(24, scrollBar:GetHeight() * host:GetHeight() / content))
+        scrollThumbTexture:SetHeight(math.max(24, scrollBar:GetHeight() * host:GetHeight() / sampleHeight))
     end
     offset = math.min(offset, range)
     scrollBar:SetValue(offset)
@@ -361,6 +392,8 @@ end
 
 local function selectPart(key)
     state.selected = key
+    -- The part's settings head the column.
+    columnBar:SetValue(0)
     if not hasPart(key) and not state.lookup then
         for index = 1, #samples() do
             if index ~= state.sample then
@@ -486,7 +519,7 @@ end
 -- items() lists { value, text, font }; current() is the chosen value, nil for
 -- the default; pick(value) saves a choice.
 local function dropdown(width, items, current, pick)
-    local button = CreateFrame("Button", nil, editor)
+    local button = CreateFrame("Button", nil, content)
     button:SetSize(width, 22)
     button.bg = background(button, FIELD)
     outline(button, LINE)
@@ -533,7 +566,7 @@ end
 -- Other controls -------------------------------------------------------------
 
 local function slider(width, current, set, low, high, suffix)
-    local holder = CreateFrame("Frame", nil, editor)
+    local holder = CreateFrame("Frame", nil, content)
     holder:SetSize(width, 22)
     local bar = CreateFrame("Slider", nil, holder)
     bar:SetOrientation("HORIZONTAL")
@@ -606,7 +639,7 @@ local function selectedElement()
 end
 
 local function colorControl()
-    local holder = CreateFrame("Frame", nil, editor)
+    local holder = CreateFrame("Frame", nil, content)
     holder:SetSize(FIELD_WIDTH, 22)
     local swatch = CreateFrame("Button", nil, holder)
     swatch:SetSize(22, 22)
@@ -643,7 +676,7 @@ local function colorControl()
 end
 
 local function checkbox(label, key, description, isAvailable)
-    local button = CreateFrame("CheckButton", nil, editor, "UICheckButtonTemplate")
+    local button = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
     button:SetSize(22, 22)
     local caption = text(button, "GameFontHighlightSmall", label)
     caption:SetPoint("LEFT", button, "RIGHT", 2, 1)
@@ -691,7 +724,7 @@ end
 local lookupLabel = text(editor, "GameFontHighlightSmall")
 lookupLabel:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18, 11)
 local lookupBox = CreateFrame("EditBox", nil, editor)
-lookupBox:SetSize(FIELD_WIDTH - 70, 22)
+lookupBox:SetSize(CONTROLS_WIDTH - LABEL_WIDTH - 70, 22)
 lookupBox:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18 + LABEL_WIDTH, 6)
 background(lookupBox, FIELD)
 outline(lookupBox, LINE)
@@ -742,15 +775,38 @@ end
 
 -- The controls column ----------------------------------------------------------
 
-local y = -PREVIEW_TOP + 4
+-- The column lists, in order, the part selected, what every tooltip shares,
+-- what the tooltip type shown keeps for itself, and what only that type has.
+-- Each entry is a frame of its own; one with shown() appears only while it
+-- says so, and the column lays out the entries shown on every refresh.
+local entries = {}
 
-local function section(title)
-    local label = text(editor, "GameFontNormal", title)
-    label:SetPoint("TOPLEFT", CONTROLS_X, y)
-    local rule = fill(editor, "ARTWORK", LINE)
-    rule:SetPoint("TOPLEFT", CONTROLS_X, y - 16)
+local function entry(height, shown)
+    local holder = CreateFrame("Frame", nil, content)
+    holder:SetSize(CONTROLS_WIDTH, height)
+    entries[#entries + 1] = { holder = holder, height = height, shown = shown }
+    return holder, entries[#entries]
+end
+
+-- shown() for an entry of some tooltip types alone.
+local function forTypes(...)
+    local wanted = {}
+    for _, tooltipType in ipairs({ ... }) do wanted[tooltipType] = true end
+    return function() return wanted[state.tooltipType] == true end
+end
+
+-- title is text, or a function giving it, for one that names the type shown.
+local function section(title, shown, first)
+    local top = first and 0 or 8
+    local holder = entry(top + 26, shown)
+    local label = text(holder, "GameFontNormal")
+    label:SetPoint("TOPLEFT", 0, -top)
+    local rule = fill(holder, "ARTWORK", LINE)
+    rule:SetPoint("TOPLEFT", 0, -top - 16)
     rule:SetSize(CONTROLS_WIDTH, 1)
-    y = y - 26
+    controls[#controls + 1] = {
+        refresh = function() label:SetText(type(title) == "function" and title() or title) end,
+    }
 end
 
 -- What a row's reset button clears: saved gives the stored value, nil while
@@ -771,11 +827,19 @@ local function optionSetting(key)
     }
 end
 
--- A changed setting's label reads gold, with a button to put it back.
-local function resetButton(caption, setting)
-    local button = CreateFrame("Button", nil, editor)
+-- A label, the control beside it, and, once the setting is changed, the label
+-- in gold with a button to put it back.
+local function row(label, control, setting, shown)
+    local holder = entry(30, shown)
+    local caption = text(holder, "GameFontHighlightSmall", label)
+    caption:SetPoint("TOPLEFT", 0, -5)
+    control:SetParent(holder)
+    control:ClearAllPoints()
+    control:SetPoint("TOPLEFT", LABEL_WIDTH, 0)
+    if not setting then return end
+    local button = CreateFrame("Button", nil, holder)
     button:SetSize(16, 16)
-    button:SetPoint("TOPRIGHT", editor, "TOPLEFT", CONTROLS_X + LABEL_WIDTH - 8, y - 3)
+    button:SetPoint("TOPRIGHT", holder, "TOPLEFT", CONTROLS_WIDTH, -3)
     button:SetNormalTexture(RESET_ICON)
     button:SetHighlightTexture(RESET_ICON, "ADD")
     button:SetScript("OnClick", function()
@@ -797,15 +861,37 @@ local function resetButton(caption, setting)
     }
 end
 
-local function row(label, control, setting)
-    local caption = text(editor, "GameFontHighlightSmall", label)
-    caption:SetPoint("TOPLEFT", CONTROLS_X, y - 5)
-    control:SetPoint("TOPLEFT", CONTROLS_X + LABEL_WIDTH, y)
-    if setting then resetButton(caption, setting) end
-    y = y - 30
+-- Checkboxes two to a line, each { label, key, description, shown }: those
+-- shown close up, so a type's own come out without gaps.
+local function toggles(list, shown)
+    local holder, item = entry(0, shown)
+    local boxes = {}
+    for index, toggle in ipairs(list) do
+        local box = checkbox(toggle[1], toggle[2], toggle[3])
+        box:SetParent(holder)
+        boxes[index] = { box = box, shown = toggle[4] }
+    end
+    -- The height is what the boxes shown take, so it is worked out at layout.
+    item.layout = function()
+        local count = 0
+        for _, entryBox in ipairs(boxes) do
+            local visible = not entryBox.shown or entryBox.shown()
+            entryBox.box:SetShown(visible)
+            if visible then
+                local side = count % 2
+                entryBox.box:ClearAllPoints()
+                entryBox.box:SetPoint("TOPLEFT", side * (CONTROLS_WIDTH / 2), -math.floor(count / 2) * 26)
+                count = count + 1
+            end
+        end
+        return count > 0 and math.ceil(count / 2) * 26 + 4 or 0
+    end
 end
 
-section("Selection Settings")
+-- The part selected ------------------------------------------------------------
+
+section("Selected Part", nil, true)
+local pickerHolder = entry(26)
 local partPicker = dropdown(CONTROLS_WIDTH, function()
     local items = {}
     for _, element in ipairs(ns.ELEMENTS) do
@@ -816,14 +902,14 @@ local partPicker = dropdown(CONTROLS_WIDTH, function()
     end
     return items
 end, function() return state.selected end, function(key) selectPart(key) end)
-partPicker:SetPoint("TOPLEFT", CONTROLS_X, y)
-y = y - 26
-local partNote = text(editor, "GameFontDisableSmall")
-partNote:SetPoint("TOPLEFT", CONTROLS_X, y)
+partPicker:SetParent(pickerHolder)
+partPicker:SetPoint("TOPLEFT")
+local noteHolder = entry(28)
+local partNote = text(noteHolder, "GameFontDisableSmall")
+partNote:SetPoint("TOPLEFT")
 partNote:SetWidth(CONTROLS_WIDTH)
 partNote:SetHeight(24)
 partNote:SetJustifyV("TOP")
-y = y - 28
 
 row("Font", dropdown(FIELD_WIDTH, function()
     return fontItems(selectedElement().title and "Name font" or "Text font")
@@ -852,7 +938,7 @@ end, function(value)
 end), partSetting("outline"))
 
 -- The part's default is saved as no setting.
-local allCaps = CreateFrame("CheckButton", nil, editor, "UICheckButtonTemplate")
+local allCaps = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
 allCaps:SetSize(22, 22)
 local allCapsLabel = text(allCaps, "GameFontHighlightSmall", "All caps")
 allCapsLabel:SetPoint("LEFT", allCaps, "RIGHT", 2, 1)
@@ -874,14 +960,16 @@ end
 controls[#controls + 1] = allCaps
 row("Letters", allCaps, partSetting("caps"))
 
-local resetPart = flatButton(editor, "Reset this part", 120, function()
+local resetHolder = entry(32)
+local resetPart = flatButton(resetHolder, "Reset this part", 120, function()
     ns.resetElement(state.selected)
     refresh()
 end)
-resetPart:SetPoint("TOPLEFT", CONTROLS_X + LABEL_WIDTH, y)
-y = y - 36
+resetPart:SetPoint("TOPLEFT", LABEL_WIDTH, 0)
 
-section("Global Settings")
+-- Every tooltip ------------------------------------------------------------------
+
+section("All Tooltips")
 row("Text font", dropdown(FIELD_WIDTH, function()
     return fontItems("Game default")
 end, function() return ns.option("bodyFont") end, function(name)
@@ -898,39 +986,118 @@ row("Outline", dropdown(FIELD_WIDTH, function() return OUTLINES end, function()
 end, function(value)
     ns.setOption("outline", value ~= "NONE" and value or nil)
 end), optionSetting("outline"))
+-- A scale on every part's own size, in steps of 5%; the default is saved as no setting.
+row("Text size", slider(FIELD_WIDTH, function()
+    return math.floor(ns.option("fontScale") * 100 + .5)
+end, function(percent)
+    percent = math.floor(percent / 5 + .5) * 5
+    ns.setOption("fontScale", percent ~= 100 and percent / 100 or nil)
+end, 80, 150, "%"), optionSetting("fontScale"))
+-- Automatic draws the game's tooltip border, flat beside EllesmereUI, and
+-- DialogueUI's art while that addon is installed.
+row("Panel style", dropdown(FIELD_WIDTH, function() return BACKDROP_STYLES end, function()
+    return ns.option("backdropStyle")
+end, function(value)
+    ns.setOption("backdropStyle", value)
+end), optionSetting("backdropStyle"))
 
-section("Layout and color")
-local function showingItems() return state.tooltipType == "item" end
--- Items and units each have a level plate under the icon, turned on and off apart.
-local LEVEL_BADGES = { item = "itemLevelBadge", unit = "unitLevelBadge" }
-local TOGGLES = {
-    { "Show icon", function() return "icon" .. ns.TYPE_SUFFIX[state.tooltipType] end,
-        "The icon or portrait in the header, for the kind of tooltip shown." },
+-- Shared by every tooltip type. The default is saved as no setting.
+local function panelSize(key, low, high)
+    return slider(FIELD_WIDTH, function() return ns.option(key) end, function(value)
+        ns.setOption(key, nil)
+        if ns.option(key) ~= value then ns.setOption(key, value) end
+    end, low, high)
+end
+row("Padding", panelSize("padding", 8, 32), optionSetting("padding"))
+row("Min width", panelSize("minWidth", 120, 400), optionSetting("minWidth"))
+toggles({
     { "Icon on the right", "iconRight",
         "Moves the item or spell icon, and the item level badge under it, to the right of the name." },
-    { "Level badge", function() return LEVEL_BADGES[state.tooltipType] or "itemLevelBadge" end,
-        "The level on a plate under the icon: an item's iLvl under equipment, a unit's level under "
-            .. "its portrait. Off, a unit's level stays in its info line.",
-        function() return LEVEL_BADGES[state.tooltipType] ~= nil end },
-    { "Stat markers", "statMarkers", "The small diamond before each stat; enchants use a green one.",
-        showingItems },
-    { "Stat colors", "statColors",
-        "Teal for attributes, orange for attack, blue for defense, purple for magic, green for "
-            .. "healing, and the school colors. Off, every stat is parchment.", showingItems },
     { "Tint the panel", "qualityTint",
         "Washes the panel in the item's quality color, or the spell's school or resource. Off, "
             .. "every panel is neutral; the name keeps its quality color." },
     { "Separators", "separators",
         "The gold dividers between sections and the thin rules above other addons' rows. Off, "
             .. "they are hidden along with the space around them." },
-}
-for index, toggle in ipairs(TOGGLES) do
-    local box = checkbox(toggle[1], toggle[2], toggle[3], toggle[4])
-    local column = (index - 1) % 2
-    box:SetPoint("TOPLEFT", CONTROLS_X + column * (CONTROLS_WIDTH / 2), y)
-    if column == 1 or index == #TOGGLES then y = y - 26 end
+})
+
+-- The tooltip type shown -----------------------------------------------------------
+
+-- Settings kept per tooltip type, named for the one shown.
+local function bandKey(edge)
+    return function() return "header" .. edge .. "Alpha" .. ns.TYPE_SUFFIX[state.tooltipType] end
 end
-y = y - 4
+local function typeKey(name)
+    return function() return name .. ns.TYPE_SUFFIX[state.tooltipType] end
+end
+
+section(function() return TOOLTIP_TYPES[state.tooltipType].label .. " Panel" end)
+toggles({
+    { "Show icon", typeKey("icon"), "The icon or portrait in the header, for the kind of tooltip shown." },
+})
+
+-- A default value is saved as no setting, so it keeps following the backdrop.
+local function bandOpacity(edge)
+    local key = bandKey(edge)
+    -- What the tooltip type shows with no setting of its own.
+    local function fallback() return ns.option("header" .. edge .. "Alpha") or ui.defaultHeaderAlpha() end
+    return slider(FIELD_WIDTH, function()
+        return math.floor((ns.headerAlpha(state.tooltipType, edge) or ui.defaultHeaderAlpha()) * 100 + .5)
+    end, function(percent)
+        local alpha = percent / 100
+        ns.setOption(key(), math.abs(alpha - fallback()) > .001 and alpha or nil)
+    end, 0, 100, "%")
+end
+row("Band top", bandOpacity("Top"), optionSetting(bandKey("Top")))
+row("Band bottom", bandOpacity("Bottom"), optionSetting(bandKey("Bottom")))
+
+-- The default opacity is saved as no setting.
+local function typeOpacity(name, default)
+    local key = typeKey(name)
+    return slider(FIELD_WIDTH, function()
+        return math.floor((ns.option(key()) or default) * 100 + .5)
+    end, function(percent)
+        ns.setOption(key(), math.abs(percent / 100 - default) > .001 and percent / 100 or nil)
+    end, 0, 100, "%")
+end
+row("Backdrop", typeOpacity("backdropAlpha", ns.BACKDROP_ALPHA), optionSetting(typeKey("backdropAlpha")))
+row("Glow", typeOpacity("glowAlpha", 1), optionSetting(typeKey("glowAlpha")))
+row("Footer", typeOpacity("footerAlpha", 1), optionSetting(typeKey("footerAlpha")))
+
+-- What only the type shown has ---------------------------------------------------------
+
+local DETAILS = { item = "Item Details", spell = "Spell Details", unit = "Unit Details", object = "Object Details" }
+section(function() return DETAILS[state.tooltipType] end, function() return DETAILS[state.tooltipType] ~= nil end)
+local items, spells, units = forTypes("item"), forTypes("spell"), forTypes("unit")
+toggles({
+    { "Level badge", "itemLevelBadge", "The item level on a plate under the icon, for equipment.", items },
+    { "Level badge", "unitLevelBadge",
+        "The level on a plate under the portrait. Off, the level stays in the info line.", units },
+    { "Stat markers", "statMarkers", "The small diamond before each stat; enchants use a green one.", items },
+    { "Stat colors", "statColors",
+        "Each kind of stat in its color below, and the school colors. Off, every stat is parchment.", items },
+    { "Lite tooltips", "itemLite", "Keep the game's own item tooltip, with its Equip effects shortened, "
+        .. "as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit "
+        .. "effects in their stat colors. Hold the modifier for the full wording. The panel's item settings, "
+        .. "such as disenchant results, do not apply.", items },
+    { "Disenchant", "disenchant", "Green, blue, and purple armor and weapons list what they disenchant into, "
+        .. "with each result's chance and the Enchanting it needs; with Auctionator, the expected value.", items },
+    { "Sell price", "sellPrice", "The vendor price in the footer; for a stack, the price of one and of the "
+        .. "whole stack.", items },
+    { "Spell power", "spellPower", "Under the description, each amount's spell power coefficient and its "
+        .. "split into base and spell power. No game API has coefficients: they come from Forever's client "
+        .. "data, and ones marked ~ are estimates.", spells },
+    { "Rates", "spellRates", "Under the spell power breakdown, the average a cast deals or heals per second "
+        .. "and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec "
+        .. "global cooldown) and what comes over time over its duration. Crits and talents do not count.", spells },
+    { "Health bar", "unitHealthBar", "The game's own health bar at the bottom of player and NPC panels. The "
+        .. "game fills it, so it stays live without the addon reading health, which WoW Forever keeps from "
+        .. "addons.", units },
+    { "Gathering", "gatheringLoot", "What a herb or ore node holds: its yield over all the times it can be "
+        .. "gathered, then the stone, gems, and other herbs it may give and the chance each time. On a dead "
+        .. "creature that can be skinned, the Skinning it needs and the leather, hides, and scales it may give. "
+        .. "From Classic's loot tables.", forTypes("object", "unit") },
+})
 
 -- The stat category colors, a swatch each: click one to choose its color,
 -- right-click it for the default. The stat's name takes a lighter shade.
@@ -938,7 +1105,7 @@ local function hexColor(hex)
     return { tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255 }
 end
 local function statSwatches()
-    local holder = CreateFrame("Frame", nil, editor)
+    local holder = CreateFrame("Frame", nil, content)
     holder:SetSize(FIELD_WIDTH, 22)
     local chips = {}
     for index, category in ipairs(ns.Stats.CATEGORIES) do
@@ -990,65 +1157,37 @@ local statColorsSetting = {
         for _, category in ipairs(ns.Stats.CATEGORIES) do ns.setOption("statColor" .. category.key, nil) end
     end,
 }
-row("Stat colors", statSwatches(), statColorsSetting)
+row("Stat colors", statSwatches(), statColorsSetting, items)
 
--- Settings kept per tooltip type, named for the one shown.
-local function bandKey(edge)
-    return function() return "header" .. edge .. "Alpha" .. ns.TYPE_SUFFIX[state.tooltipType] end
-end
-local function typeKey(name)
-    return function() return name .. ns.TYPE_SUFFIX[state.tooltipType] end
+-- Lays out the entries shown, top to bottom, and sizes the scroll to them.
+local function layoutColumn()
+    local y = 0
+    for _, item in ipairs(entries) do
+        local visible = not item.shown or item.shown()
+        local height = visible and (item.layout and item.layout() or item.height) or 0
+        if height > 0 then
+            item.holder:ClearAllPoints()
+            item.holder:SetPoint("TOPLEFT", 0, -y)
+            item.holder:SetHeight(height)
+            item.holder:Show()
+            y = y + height
+        else
+            item.holder:Hide()
+        end
+    end
+    content:SetHeight(y + 8)
+    local range = math.max(0, math.ceil(y + 8 - column:GetHeight()))
+    columnBar:SetMinMaxValues(0, range)
+    columnBar:SetShown(range > 0)
+    if range > 0 then
+        columnThumb:SetHeight(math.max(24, columnBar:GetHeight() * column:GetHeight() / (y + 8)))
+    end
+    columnBar:SetValue(math.min(columnBar:GetValue(), range))
+    column:SetVerticalScroll(math.min(columnBar:GetValue(), range))
 end
 
--- A default value is saved as no setting, so it keeps following the backdrop.
-local function bandOpacity(edge)
-    local key = bandKey(edge)
-    -- What the tooltip type shows with no setting of its own.
-    local function fallback() return ns.option("header" .. edge .. "Alpha") or ui.defaultHeaderAlpha() end
-    return slider(FIELD_WIDTH, function()
-        return math.floor((ns.headerAlpha(state.tooltipType, edge) or ui.defaultHeaderAlpha()) * 100 + .5)
-    end, function(percent)
-        local alpha = percent / 100
-        ns.setOption(key(), math.abs(alpha - fallback()) > .001 and alpha or nil)
-    end, 0, 100, "%")
-end
-row("Band top", bandOpacity("Top"), optionSetting(bandKey("Top")))
-row("Band bottom", bandOpacity("Bottom"), optionSetting(bandKey("Bottom")))
-
--- The default opacity is saved as no setting.
-local function typeOpacity(name, default)
-    local key = typeKey(name)
-    return slider(FIELD_WIDTH, function()
-        return math.floor((ns.option(key()) or default) * 100 + .5)
-    end, function(percent)
-        ns.setOption(key(), math.abs(percent / 100 - default) > .001 and percent / 100 or nil)
-    end, 0, 100, "%")
-end
--- Automatic draws the game's tooltip border, flat beside EllesmereUI, and
--- DialogueUI's art while that addon is installed.
-row("Panel style", dropdown(FIELD_WIDTH, function() return BACKDROP_STYLES end, function()
-    return ns.option("backdropStyle")
-end, function(value)
-    ns.setOption("backdropStyle", value)
-end), optionSetting("backdropStyle"))
-row("Backdrop", typeOpacity("backdropAlpha", ns.BACKDROP_ALPHA), optionSetting(typeKey("backdropAlpha")))
-row("Glow", typeOpacity("glowAlpha", 1), optionSetting(typeKey("glowAlpha")))
-row("Footer", typeOpacity("footerAlpha", 1), optionSetting(typeKey("footerAlpha")))
-
--- Shared by every tooltip type. The default is saved as no setting.
-local function panelSize(key, low, high)
-    return slider(FIELD_WIDTH, function() return ns.option(key) end, function(value)
-        ns.setOption(key, nil)
-        if ns.option(key) ~= value then ns.setOption(key, value) end
-    end, low, high)
-end
-row("Padding", panelSize("padding", 8, 32), optionSetting("padding"))
-row("Min width", panelSize("minWidth", 120, 400), optionSetting("minWidth"))
-
--- As tall as the controls column, so a row added never runs into the buttons.
-local height = -y + BUTTONS_SPACE
-editor:SetHeight(height)
-host:SetHeight(height - PREVIEW_TOP - 16)
+editor:SetHeight(EDITOR_HEIGHT)
+host:SetHeight(EDITOR_HEIGHT - PREVIEW_TOP - 16)
 
 local resetAll = flatButton(editor, "Reset all fonts and colors", 170, function()
     ns.resetStyles()
@@ -1076,6 +1215,7 @@ refresh = function()
     end
     refreshLookup()
     partNote:SetText(selectedElement().note or "")
+    layoutColumn()
     for _, control in ipairs(controls) do control.refresh() end
     paintHighlights()
     showHint()
