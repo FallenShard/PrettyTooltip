@@ -1,5 +1,5 @@
--- The options page changes the editor's treatment live, while addon removal
--- and Defaults always leave a usable Blizzard appearance.
+-- Both editor treatments are available without other addons. The options
+-- page switches them live, and Defaults restores the Blizzard appearance.
 return function(test)
     local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
         "UI/Options.lua", "UI/EditorSkin.lua" })
@@ -10,6 +10,7 @@ return function(test)
     test.check("Blizzard is the default without EllesmereUI", ns.editorStyle(), "native")
     installed = true
     test.check("installing EllesmereUI keeps the Blizzard default", ns.editorStyle(), "native")
+    installed = false
 
     local skin = ns.EditorSkin.create()
     local window = CreateFrame("Frame", nil, UIParent)
@@ -45,12 +46,12 @@ return function(test)
         if child:GetObjectType() == "CheckButton" then
             for _, label in ipairs({ child:GetRegions() }) do
                 if label:GetText() == "Blizzard" then nativeChoice = child end
-                if label:GetText() == "Flat (EllesmereUI)" then flatChoice = child end
+                if label:GetText() == "Flat" then flatChoice = child end
             end
         end
     end
     test.check("main options selects Blizzard initially", nativeChoice:GetChecked(), true)
-    test.check("EllesmereUI unlocks Flat", flatChoice:IsEnabled(), true)
+    test.check("Flat is available without EllesmereUI", flatChoice:IsEnabled(), true)
     ns.refreshEditorStyle()
     test.check("native button artwork is visible", button.Left:IsShown(), true)
     test.check("flat artwork starts hidden", flatBackground:IsShown(), false)
@@ -72,19 +73,23 @@ return function(test)
     ns.resetStyles()
     test.check("reset fonts and colors keeps editor appearance", ns.editorStyle(), "flat")
 
+    installed = true
+    page.OnRefresh()
+    ns.refreshEditorStyle()
+    test.check("installing EllesmereUI keeps the Flat choice", ns.editorStyle(), "flat")
     installed = false
     page.OnRefresh()
     ns.refreshEditorStyle()
-    test.check("removing EllesmereUI falls back to Blizzard", ns.editorStyle(), "native")
-    test.check("Flat is disabled without EllesmereUI", flatChoice:IsEnabled(), false)
-    test.check("fallback selects the Blizzard radio", nativeChoice:GetChecked(), true)
-    test.check("the fallback restores native controls", button.Left:IsShown(), true)
-    test.check("the fallback restores tab artwork", tab.Left:IsShown(), true)
-    test.check("the selected tab survives switching", tab.selected, true)
-    test.check("the fallback hides flat controls", flatButton:IsShown(), false)
+    test.check("removing EllesmereUI keeps the Flat choice", ns.editorStyle(), "flat")
+    test.check("Flat stays available without EllesmereUI", flatChoice:IsEnabled(), true)
+    test.check("Flat stays selected in the options", flatChoice:GetChecked(), true)
     nativeChoice:GetScript("OnClick")(nativeChoice)
+    test.check("choosing Blizzard restores native controls", button.Left:IsShown(), true)
+    test.check("choosing Blizzard restores tab artwork", tab.Left:IsShown(), true)
+    test.check("the selected tab survives switching", tab.selected, true)
+    test.check("choosing Blizzard hides flat controls", flatButton:IsShown(), false)
     flatChoice:GetScript("OnClick")(flatChoice)
-    test.check("Flat cannot be chosen without EllesmereUI", ns.option("editorStyle"), "native")
+    test.check("Flat can be chosen without EllesmereUI", ns.option("editorStyle"), "flat")
 
     installed = true
     flatChoice:GetScript("OnClick")(flatChoice)

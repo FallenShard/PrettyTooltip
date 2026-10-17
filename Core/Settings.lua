@@ -71,7 +71,7 @@ function ns.option(key)
 end
 
 function ns.editorStyle()
-    if ns.option("editorStyle") == "flat" and ns.Game.addonInstalled("EllesmereUI") then
+    if ns.option("editorStyle") == "flat" then
         return "flat"
     end
     return "native"
