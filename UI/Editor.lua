@@ -829,13 +829,13 @@ end
 
 -- A label, the control beside it, and, once the setting is changed, the label
 -- in gold with a button to put it back.
-local function row(label, control, setting, shown)
-    local holder = entry(30, shown)
+local function row(label, control, setting, shown, stacked)
+    local holder = entry(stacked and 54 or 30, shown)
     local caption = text(holder, "GameFontHighlightSmall", label)
     caption:SetPoint("TOPLEFT", 0, -5)
     control:SetParent(holder)
     control:ClearAllPoints()
-    control:SetPoint("TOPLEFT", LABEL_WIDTH, 0)
+    control:SetPoint("TOPLEFT", stacked and 0 or LABEL_WIDTH, stacked and -24 or 0)
     if not setting then return end
     local button = CreateFrame("Button", nil, holder)
     button:SetSize(16, 16)
@@ -967,6 +967,69 @@ local resetPart = flatButton(resetHolder, "Reset this part", 120, function()
 end)
 resetPart:SetPoint("TOPLEFT", LABEL_WIDTH, 0)
 
+-- Color groups share picker, cancel, and reset behavior. Their swatches
+-- sit below the label, clear of its reset button.
+local function hexColor(hex)
+    return { tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255 }
+end
+
+local function colorSwatches(list, prefix, colorOf)
+    local holder = CreateFrame("Frame", nil, content)
+    holder:SetSize(CONTROLS_WIDTH, 22)
+    local chips = {}
+    for index, choice in ipairs(list) do
+        local key = prefix .. choice.key
+        local swatch = CreateFrame("Button", nil, holder)
+        swatch:SetSize(22, 22)
+        swatch:SetPoint("LEFT", (index - 1) * 28, 0)
+        outline(swatch, LINE)
+        local chip = fill(swatch, "ARTWORK", { 1, 1, 1 })
+        chip:SetPoint("TOPLEFT", 3, -3)
+        chip:SetPoint("BOTTOMRIGHT", -3, 3)
+        swatch:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+        swatch:SetScript("OnClick", function(_, button)
+            if button == "RightButton" then
+                ns.setOption(key, nil)
+                refresh()
+                return
+            end
+            local saved = ns.savedOption(key)
+            pickColor(colorOf(choice.key) or ns.Palette.roles.neutral,
+                function(color) ns.setOption(key, color) end,
+                function() ns.setOption(key, saved) end)
+        end)
+        swatch:SetScript("OnEnter", function(self)
+            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+            GameTooltip:SetText(choice.label, 1, 1, 1)
+            GameTooltip:AddLine("Click to choose its color; right-click for the default.", nil, nil, nil, true)
+            GameTooltip:Show()
+        end)
+        swatch:SetScript("OnLeave", function() GameTooltip:Hide() end)
+        chips[choice.key] = chip
+    end
+    holder.refresh = function()
+        for key, chip in pairs(chips) do
+            local color = colorOf(key) or ns.Palette.roles.neutral
+            chip:SetVertexColor(color[1], color[2], color[3], 1)
+        end
+    end
+    controls[#controls + 1] = holder
+    return holder
+end
+
+local function colorGroupSetting(list, prefix)
+    return {
+        saved = function()
+            for _, choice in ipairs(list) do
+                if ns.savedOption(prefix .. choice.key) ~= nil then return true end
+            end
+        end,
+        reset = function()
+            for _, choice in ipairs(list) do ns.setOption(prefix .. choice.key, nil) end
+        end,
+    }
+end
+
 -- Every tooltip ------------------------------------------------------------------
 
 section("All Tooltips")
@@ -1020,6 +1083,8 @@ toggles({
         "The gold dividers between sections and the thin rules above other addons' rows. Off, "
             .. "they are hidden along with the space around them." },
 })
+row("School colors", colorSwatches(ns.Palette.SCHOOLS, "schoolColor", ns.Palette.school),
+    colorGroupSetting(ns.Palette.SCHOOLS, "schoolColor"), nil, true)
 
 -- The tooltip type shown -----------------------------------------------------------
 
@@ -1099,65 +1164,9 @@ toggles({
         .. "From Classic's loot tables.", forTypes("object", "unit") },
 })
 
--- The stat category colors, a swatch each: click one to choose its color,
--- right-click it for the default. The stat's name takes a lighter shade.
-local function hexColor(hex)
-    return { tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255 }
-end
-local function statSwatches()
-    local holder = CreateFrame("Frame", nil, content)
-    holder:SetSize(FIELD_WIDTH, 22)
-    local chips = {}
-    for index, category in ipairs(ns.Stats.CATEGORIES) do
-        local key = "statColor" .. category.key
-        local swatch = CreateFrame("Button", nil, holder)
-        swatch:SetSize(22, 22)
-        swatch:SetPoint("LEFT", (index - 1) * 28, 0)
-        outline(swatch, LINE)
-        local chip = fill(swatch, "ARTWORK", { 1, 1, 1 })
-        chip:SetPoint("TOPLEFT", 3, -3)
-        chip:SetPoint("BOTTOMRIGHT", -3, 3)
-        swatch:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-        swatch:SetScript("OnClick", function(_, button)
-            if button == "RightButton" then
-                ns.setOption(key, nil)
-                refresh()
-                return
-            end
-            local saved = ns.savedOption(key)
-            local start = type(saved) == "table" and saved or hexColor((ns.Stats.categoryColors(category.key)))
-            pickColor(start, function(color) ns.setOption(key, color) end, function() ns.setOption(key, saved) end)
-        end)
-        swatch:SetScript("OnEnter", function(self)
-            GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText(category.label, 1, 1, 1)
-            GameTooltip:AddLine("Click to choose its color; right-click for the default.", nil, nil, nil, true)
-            GameTooltip:Show()
-        end)
-        swatch:SetScript("OnLeave", function() GameTooltip:Hide() end)
-        chips[category.key] = chip
-    end
-    holder.refresh = function()
-        for key, chip in pairs(chips) do
-            local color = hexColor((ns.Stats.categoryColors(key)))
-            chip:SetVertexColor(color[1], color[2], color[3], 1)
-        end
-    end
-    controls[#controls + 1] = holder
-    return holder
-end
--- Its reset puts every category back.
-local statColorsSetting = {
-    saved = function()
-        for _, category in ipairs(ns.Stats.CATEGORIES) do
-            if ns.savedOption("statColor" .. category.key) ~= nil then return true end
-        end
-    end,
-    reset = function()
-        for _, category in ipairs(ns.Stats.CATEGORIES) do ns.setOption("statColor" .. category.key, nil) end
-    end,
-}
-row("Stat colors", statSwatches(), statColorsSetting, items)
+row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)
+    return hexColor((ns.Stats.categoryColors(key)))
+end), colorGroupSetting(ns.Stats.CATEGORIES, "statColor"), items, true)
 
 -- Lays out the entries shown, top to bottom, and sizes the scroll to them.
 local function layoutColumn()

@@ -24,4 +24,17 @@ return function(test)
     test.check("a single school clears the edge's gradient", border.TopEdge._gradient, nil)
     test.check("a single school's edge is one color", border.TopEdge._color, rgba(frost))
     test.check("a single school's band runs down again", panel.header._gradient[1], "VERTICAL")
+
+    ns.setOption("schoolColorFrost", { 0, 1, 0 })
+    ns.setOption("schoolColorFire", { 1, 0, 0 })
+    ns.ui.renderPreview(anchor, spell("Frostfire Bolt", "Deals 40 Frostfire damage."), SPELL)
+    test.check("a changed school updates the left edge", border.LeftEdge._color, { 0, 1, 0, 1 })
+    test.check("a changed school updates the right edge", border.RightEdge._color, { 1, 0, 0, 1 })
+    test.check("the gradient reads current school settings", border.TopEdge._gradient,
+        { "HORIZONTAL", { 0, 1, 0, 1 }, { 1, 0, 0, 1 } })
+    ns.setOption("schoolColorFrost", nil)
+    ns.setOption("schoolColorFire", nil)
+    ns.ui.renderPreview(anchor, spell("Frostfire Bolt", "Deals 40 Frostfire damage."), SPELL)
+    test.check("reset restores the original gradient", border.TopEdge._gradient,
+        { "HORIZONTAL", rgba(frost), rgba(fire) })
 end

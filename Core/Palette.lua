@@ -19,25 +19,61 @@ palette.roles = {
     extras = { .60, .60, .63 },
 }
 
-palette.schools = {
-    Arcane = { .92, .38, .84 },
-    Fire = { 1, .43, .11 },
-    Frost = { .30, .78, .97 },
-    Holy = { .98, .73, .22 },
-    Nature = { .50, .80, .28 },
+-- The original item tones have slightly different rounding and hand-picked
+-- label shades. Keep them alongside the panel colors so defaults stay exact.
+palette.SCHOOLS = {
+    { key = "Arcane", label = "Arcane", color = { .92, .38, .84 }, statValue = "EB60D6", statName = "F0ADE6" },
+    { key = "Fire", label = "Fire", color = { 1, .43, .11 }, statValue = "FF6D1B", statName = "EE9F72" },
+    { key = "Frost", label = "Frost", color = { .30, .78, .97 }, statValue = "4CC6F7", statName = "9EDCF5" },
+    { key = "Holy", label = "Holy", color = { .98, .73, .22 }, statValue = "FBBA38", statName = "F6D28A" },
+    { key = "Nature", label = "Nature", color = { .50, .80, .28 }, statValue = "7FCD48", statName = "A6D783" },
     -- Lifted from a darker violet that read poorly on the panel.
-    Shadow = { .76, .45, 1 },
+    { key = "Shadow", label = "Shadow", color = { .76, .45, 1 }, statValue = "C174FF", statName = "C9A2EE" },
+    { key = "Holyfire", label = "Holyfire", color = { .99, .58, .165 } },
+    -- Frostfire is picked by hand: blending frost and fire gives grey.
+    { key = "Frostfire", label = "Frostfire", color = { .18, .78, .72 } },
 }
--- Frostfire is picked by hand: blending frost and fire gives grey.
-palette.schools.Holyfire = { .99, .58, .165 }
-palette.schools.Frostfire = { .18, .78, .72 }
+palette.schools = {}
+local SCHOOL = {}
+for _, school in ipairs(palette.SCHOOLS) do
+    palette.schools[school.key] = school.color
+    SCHOOL[school.key] = school
+end
+
+
+local function customColor(key)
+    local color = ns.option and ns.option(key)
+    if type(color) ~= "table" then return end
+    for index = 1, 3 do
+        if type(color[index]) ~= "number" or not (color[index] >= 0 and color[index] <= 1) then return end
+    end
+    return color
+end
+
+-- Read settings when drawing; saved variables and picker changes arrive
+-- after these files load. Shared defaults are never changed by a picker.
+function palette.school(name)
+    local default = name and palette.schools[name]
+    if default then return customColor("schoolColor" .. name) or default end
+end
+
+function palette.schoolStatColors(name)
+    local color = palette.school(name)
+    if not color then return end
+    local school = SCHOOL[name]
+    if color == school.color and school.statValue then return school.statValue, school.statName end
+    local shade = {}
+    for index = 1, 3 do shade[index] = color[index] + (1 - color[index]) * .45 end
+    return util.hex(color), util.hex(shade)
+end
+
 
 -- Left to right.
 local DUAL_SCHOOLS = { Frostfire = { "Frost", "Fire" }, Holyfire = { "Holy", "Fire" } }
 
 function palette.gradient(school)
     local parts = school and DUAL_SCHOOLS[school]
-    if parts then return { palette.schools[parts[1]], palette.schools[parts[2]] } end
+    if parts then return { palette.school(parts[1]), palette.school(parts[2]) } end
 end
 
 -- Gathering's skill-up colors, by how far the player's skill is past what a

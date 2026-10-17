@@ -1,5 +1,5 @@
 -- Item wording and formatting rules. Settings are explicit arguments, but for
--- the category colors the style editor may replace; no game hooks.
+-- the category and school colors the style editor may replace; no game hooks.
 local _, ns = ...
 local util = ns.util
 local stats = {}
@@ -69,24 +69,6 @@ local CATEGORY = {}
 for _, category in ipairs(CATEGORIES) do CATEGORY[category.key] = category end
 stats.CATEGORIES = CATEGORIES
 local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  "
-
-local schoolColors = {
-    Arcane = "EB60D6",
-    Fire = "FF6D1B",
-    Frost = "4CC6F7",
-    Holy = "FBBA38",
-    Nature = "7FCD48",
-    Shadow = "C174FF",
-}
-
-local labelColors = {
-    [schoolColors.Arcane] = "F0ADE6",
-    [schoolColors.Fire] = "EE9F72",
-    [schoolColors.Frost] = "9EDCF5",
-    [schoolColors.Holy] = "F6D28A",
-    [schoolColors.Nature] = "A6D783",
-    [schoolColors.Shadow] = "C9A2EE",
-}
 
 local statCategories = {
     Strength = "Primary",
@@ -162,8 +144,7 @@ local function colorizeStat(text, colors)
         local school = label:match("^(%a+) Spell Power$")
             or label:match("^(%a+) Spell Damage Power$")
             or label:match("^(%a+) Resistance$")
-        value = school and schoolColors[school]
-        name = value and labelColors[value]
+        value, name = ns.Palette.schoolStatColors(school)
     end
     if not value then return end
 
@@ -192,9 +173,9 @@ end
 -- "64 - 120 Shadow Damage", or a bonus "+5 - 7 Fire Damage".
 function stats.styleDamage(text, colors)
     local amount, school = text:match("^%s*(%+?%s*[%d,]+%s*%-%s*[%d,]+) (%a+) Damage%s*$")
-    local color = school and schoolColors[school]
+    local color, label = ns.Palette.schoolStatColors(school)
     if not color or not colors then return text end
-    return "|cff" .. color .. amount .. "|r |cff" .. labelColors[color] .. school .. " Damage|r"
+    return "|cff" .. color .. amount .. "|r |cff" .. label .. school .. " Damage|r"
 end
 
 -- Item effects (procs, Use, and Equip) use the same school detection and
@@ -203,7 +184,7 @@ function stats.styleEffect(text, colors)
     if not colors then return text end
     text = ns.util.uncolored(text)
     local school = ns.Palette.detectSchool({ text })
-    return ns.util.colorNumbers(text, ns.Palette.numberCode(school and ns.Palette.schools[school]))
+    return ns.util.colorNumbers(text, ns.Palette.numberCode(ns.Palette.school(school)))
 end
 
 local chanceRules = {

@@ -29,7 +29,6 @@ local ICON_SIZE = 38
 -- Spells are tinted a little less than items; the school is only a hint.
 local SPELL_TINT = .7
 local EXTRAS_RULE = { .50, .50, .54 }
-local SCHOOL_COLORS = ns.Palette.schools
 local POWER_COLORS = {
     Mana = { .25, .55, 1 },
     Rage = { .90, .22, .20 },
@@ -110,7 +109,7 @@ local colorNumbers = util.colorNumbers
 
 local function badges(model, school)
     local list = {}
-    if school then list[#list + 1] = { school, SCHOOL_COLORS[school] } end
+    if school then list[#list + 1] = { school, ns.Palette.school(school) } end
     if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_BADGE } end
     if model.passive then list[#list + 1] = { model.passive, RANK_BADGE } end
     if model.talent then
@@ -449,9 +448,9 @@ local function spellView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local school = ns.Palette.detectSchool(model.description, model.name)
-    local numberCode = ns.Palette.numberCode(school and SCHOOL_COLORS[school])
+    local numberCode = ns.Palette.numberCode(ns.Palette.school(school))
     local power = model.power and POWER_COLORS[model.power]
-    local accent = school and SCHOOL_COLORS[school] or power
+    local accent = ns.Palette.school(school) or power
     local color = accent or colors.neutral
     -- The spell power breakdown and the rates under it, each by its option.
     local function powerRows(part)

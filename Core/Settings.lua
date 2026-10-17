@@ -306,6 +306,11 @@ function ns.resetStyles()
     PrettyTooltipDB.styles = nil
     PrettyTooltipDB.bodyFont, PrettyTooltipDB.titleFont, PrettyTooltipDB.outline = nil, nil, nil
     PrettyTooltipDB.headerTopAlpha, PrettyTooltipDB.headerBottomAlpha = nil, nil
+    for key in pairs(PrettyTooltipDB) do
+        if type(key) == "string" and (key:match("^statColor%u") or key:match("^schoolColor%u")) then
+            PrettyTooltipDB[key] = nil
+        end
+    end
     for _, suffix in pairs(ns.TYPE_SUFFIX) do
         PrettyTooltipDB["headerTopAlpha" .. suffix] = nil
         PrettyTooltipDB["headerBottomAlpha" .. suffix] = nil

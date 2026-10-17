@@ -52,6 +52,8 @@ Each stat value takes a color and its name a lighter shade of the same hue. The 
 | Mana regeneration | Periwinkle |
 | Spell schools and resistances | Arcane, Fire, Frost, Holy, Nature, and Shadow each in their own color |
 
+Set **School colors** under **All Tooltips** in the style editor. The same choices color spell panels, school badges, highlighted numbers, item spell-power and resistance stats, school weapon damage, and macro accents. Holyfire and Frostfire have their own swatches; their panel gradients follow their two component schools. Click a swatch to choose its color, right-click it for the default, or use the row's reset to restore every school. With no overrides, the original colors are kept.
+
 ## Spell tooltips
 
 Spells use the same panel: the icon and name, small badges for the spell's school, its rank, and **Passive** for passive spells and talents, and a strip with cost, cast time, cooldown, and range. The description follows one sentence per line, with its numbers highlighted.
@@ -95,6 +97,7 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 
 - **Selected Part**: the part you clicked, or picked from the list. **Font** offers every font registered with LibSharedMedia, which includes EllesmereUI's fonts when it is installed, plus the game's own; a part's own font overrides the ones below. A custom **Color** replaces every color the part would have had, including quality, category, and red or grey states; **Automatic** goes back to the normal colors. **All caps** is on by default for item, spell, and set names (off, they keep the game's capitalization) and off for every other part. **Reset this part** puts it back.
 - **All Tooltips**: the text and name fonts, the outline, the **Text size** every part's own size is scaled by, the **Panel style** (the game's tooltip border, flat, or DialogueUI's art), padding, and minimum width; **Icon on the right** moves the icon and its item level badge to the right of the name, **Tint the panel** off leaves every panel neutral (names keep their quality color), and **Separators** off hides the gold dividers and thin rules with the space around them.
+- **School colors**, below the shared switches: a swatch for each of the six spell schools, followed by Holyfire and Frostfire. These colors apply across tooltip types, including item stats.
 - **Items Panel**, **Spells Panel**, and so on, for the kind shown: **Show icon**, and the opacity of the header band at its top and bottom edges, of the panel's body (**Backdrop**), of the soft rarity **Glow** around it, and of the darker band behind the **Footer**.
 - The kind's own details:
   - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Lite tooltips** (see *Lite item tooltips* above), the disenchant section, and the sell price.
@@ -102,7 +105,7 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
   - **Unit Details**: the level badge (off, the level stays in the info line), the health bar, and what a skinnable creature gives.
   - **Object Details**: what herbs and ore give: a node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap.
 
-**Reset all fonts and colors** puts every part back. Tooltips use the new look the next time they open.
+**Reset all fonts and colors** puts every part back and clears custom stat-category and school colors. The restyle and detail switches keep their settings. Tooltips use the new look the next time they open.
 
 ## Options
 
