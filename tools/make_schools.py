@@ -33,6 +33,8 @@ BY_HAND = {
     "Cure Disease": "Nature",
     # A curse the client gives no school; tinted as the warlock's other banes.
     "Bane of Havoc": "Shadow",
+    # A paladin spell against the undead the client, as Classic's, files as Nature.
+    "Turn Undead": "Holy",
 }
 
 

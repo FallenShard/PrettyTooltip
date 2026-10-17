@@ -54,8 +54,8 @@ local SCHOOLS = {
         "Repentance", "Resurrection", "Retribution Aura", "Revoke", "Righteous Fury", "Salvation",
         "Seal of Command", "Seal of Fury", "Seal of Justice", "Seal of Light", "Seal of Righteousness",
         "Seal of Wisdom", "Seal of the Crusader", "Sense Undead", "Shackle Undead", "Shadow Resistance Aura",
-        "Smite", "Summon Charger", "Summon Forsaken Charger", "Summon Warhorse", "Templar's Bulwark", "Vindication",
-        "Voice of Truth",
+        "Smite", "Summon Charger", "Summon Forsaken Charger", "Summon Warhorse", "Templar's Bulwark", "Turn Undead",
+        "Vindication", "Voice of Truth",
     },
     Nature = {
         "Abolish Poison", "Ancestral Fortitude", "Ancestral Spirit", "Aspect of the Beast", "Aspect of the Cheetah",
@@ -70,9 +70,9 @@ local SCHOOLS = {
         "Rebirth", "Regrowth", "Reincarnation", "Rejuvenation", "Revive Pet", "Riptide", "Rockbiter Weapon",
         "Scare Beast", "Scorpid Sting", "Sentry Totem", "Serpent Sting", "Soothe Animal", "Spirit Bond",
         "Stoneclaw Totem", "Stoneskin Totem", "Strength of Earth Totem", "Swiftmend", "Tame Beast", "Thorns",
-        "Totemic Projection", "Totemic Recall", "Tranquility", "Tranquilizing Shot", "Tremor Totem", "Turn Undead",
-        "Viper Sting", "Water Breathing", "Water Walking", "Wild Growth", "Windfury Totem", "Windfury Weapon",
-        "Windwall Totem", "Wrath",
+        "Totemic Projection", "Totemic Recall", "Tranquility", "Tranquilizing Shot", "Tremor Totem", "Viper Sting",
+        "Water Breathing", "Water Walking", "Wild Growth", "Windfury Totem", "Windfury Weapon", "Windwall Totem",
+        "Wrath",
     },
     Shadow = {
         "Amplify Curse", "Bane of Agony", "Bane of Doom", "Bane of Havoc", "Banish", "Black Arrow", "Corruption",
