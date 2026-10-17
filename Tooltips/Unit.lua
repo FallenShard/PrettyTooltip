@@ -87,7 +87,7 @@ end
 local function unitColor(unit, game)
     if game.unitIsPlayer(unit) then
         local _, classFile = game.unitClass(unit)
-        return game.classColor(classFile)
+        return ns.Palette.classColor(classFile, game)
     end
     local reaction = game.unitReaction(unit, "player")
     return reaction and REACTION[reaction]
@@ -169,7 +169,7 @@ local function completeModel(model, unit, game)
     end
     model.skinning = model.skinning or skinning(model, game)
     if model.isPlayer then
-        model.color = game.classColor(model.classFile)
+        model.color = ns.Palette.classColor(model.classFile, game)
     elseif model.tapped then
         model.color = TAPPED
     else

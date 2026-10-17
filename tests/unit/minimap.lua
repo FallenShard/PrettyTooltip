@@ -40,4 +40,11 @@ return function(test)
     end
     test.check("a list, a name and its detail a row", shown,
         { "Peacebloom", "Herbalism 1", "Copper Vein", "Mining 1", "Thrall", "Stranger" })
+
+    ns.setOption("classColorSHAMAN", { 1, 0, 0 })
+    model = ns.TooltipTypes[MINIMAP].read(world.main, capture.data, ns.Game)
+    test.check("minimap players follow custom class colors", blip(3), { "Thrall", false, { 1, 0, 0 } })
+    ns.setOption("classColorSHAMAN", nil)
+    model = ns.TooltipTypes[MINIMAP].read(world.main, capture.data, ns.Game)
+    test.check("minimap reset follows the game again", blip(3), { "Thrall", false, shaman })
 end

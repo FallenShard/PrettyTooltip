@@ -1167,6 +1167,8 @@ toggles({
 row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)
     return hexColor((ns.Stats.categoryColors(key)))
 end), colorGroupSetting(ns.Stats.CATEGORIES, "statColor"), items, true)
+row("Class colors", colorSwatches(ns.Palette.CLASSES, "classColor", ns.Palette.classColor),
+    colorGroupSetting(ns.Palette.CLASSES, "classColor"), units, true)
 
 -- Lays out the entries shown, top to bottom, and sizes the scroll to them.
 local function layoutColumn()

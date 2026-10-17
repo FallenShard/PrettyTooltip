@@ -40,6 +40,13 @@ for _, school in ipairs(palette.SCHOOLS) do
     SCHOOL[school.key] = school
 end
 
+palette.CLASSES = {
+    { key = "WARRIOR", label = "Warrior" }, { key = "PALADIN", label = "Paladin" },
+    { key = "HUNTER", label = "Hunter" }, { key = "ROGUE", label = "Rogue" },
+    { key = "PRIEST", label = "Priest" }, { key = "SHAMAN", label = "Shaman" },
+    { key = "MAGE", label = "Mage" }, { key = "WARLOCK", label = "Warlock" },
+    { key = "DRUID", label = "Druid" },
+}
 
 local function customColor(key)
     local color = ns.option and ns.option(key)
@@ -67,6 +74,13 @@ function palette.schoolStatColors(name)
     return util.hex(color), util.hex(shade)
 end
 
+function palette.classColor(classFile, game)
+    if type(classFile) ~= "string" then return end
+    local color = customColor("classColor" .. classFile)
+    if color then return color end
+    game = game or ns.Game
+    if game and game.classColor then return game.classColor(classFile) end
+end
 
 -- Left to right.
 local DUAL_SCHOOLS = { Frostfire = { "Frost", "Fire" }, Holyfire = { "Holy", "Fire" } }

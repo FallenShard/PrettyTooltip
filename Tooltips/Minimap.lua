@@ -29,7 +29,7 @@ local function readBlip(text, game)
         blip.metaColor = skillColor(node.level, game.skill(node.skill))
     else
         local _, classFile = game.playerClass(name)
-        blip.color = classFile and game.classColor(classFile)
+        blip.color = ns.Palette.classColor(classFile, game)
     end
     return blip
 end
