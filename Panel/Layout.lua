@@ -86,6 +86,7 @@ local HALO_MARGIN = 24
 local BAND_MARGIN = 16
 -- Another author's art: used from DialogueUI's folder, never copied here.
 local DIALOGUE_BACKDROP = "Interface\\AddOns\\DialogueUI\\Art\\Theme_Dark\\TooltipBackground-Temp.png"
+local QUEST_PARCHMENT = "Interface\\AddOns\\DialogueUI\\Art\\Theme_Brown\\GenericFrame-Tiled-Large.png"
 local panels = setmetatable({}, { __mode = "k" })
 
 -- /ptip perf: how often the panel's work runs and how long it takes. While no
@@ -377,14 +378,18 @@ local function colorNativeBorder(border, tint, gradient)
 end
 
 -- Chosen per render so the option applies without a reload.
-local function applyBackdrop(panel)
-    local style = backdropStyle()
+local function applyBackdrop(panel, chrome)
+    local parchment = chrome.quest and ns.option("questParchment") and hasDialogueBackdrop()
+        and panel.background.SetTextureSliceMargins ~= nil
+    local style = parchment and "parchment" or backdropStyle()
     local textured = style == "dialogue" and panel.glow ~= nil
     local border = style == "native" and nativeBorder(panel) or nil
-    local mode = textured and "dialogue" or border and "native" or "flat"
+    local mode = parchment and "parchment" or textured and "dialogue" or border and "native" or "flat"
     if panel.backdropMode == mode then return end
     panel.backdropMode = mode
     panel.textured = textured
+    panel.parchment = parchment and true or false
+    panel.halo:SetShown(not parchment)
     if panel.nativeBorder then panel.nativeBorder:SetShown(mode == "native") end
     -- Inside the game's border, the backdrop takes the place of the game's own
     -- background, so none of it shows past the border's rounded corners.
@@ -394,10 +399,11 @@ local function applyBackdrop(panel)
     else
         panel.background:SetAllPoints()
     end
-    if textured then
-        panel.background:SetTexture(DIALOGUE_BACKDROP)
+    if textured or parchment then
+        panel.background:SetTexture(parchment and QUEST_PARCHMENT or DIALOGUE_BACKDROP)
         panel.background:SetTextureSliceMargins(32, 32, 32, 32)
         panel.background:SetTextureSliceMode(1)
+        if parchment and panel.glow then panel.glow:Hide() end
     else
         if panel.background.SetTextureSliceMargins then
             panel.background:SetTextureSliceMargins(0, 0, 0, 0)
@@ -407,6 +413,7 @@ local function applyBackdrop(panel)
         if panel.glow then panel.glow:Hide() end
     end
     for _, band in ipairs({ panel.header, panel.footer }) do
+        band:SetShown(not parchment)
         if textured then
             band:SetTexture(ART .. "band")
             band:SetTextureSliceMargins(BAND_MARGIN, BAND_MARGIN, BAND_MARGIN, BAND_MARGIN)
@@ -417,7 +424,7 @@ local function applyBackdrop(panel)
     end
     for _, region in ipairs(panel.shades) do region:SetShown(mode == "flat") end
     for _, region in ipairs(panel.edges) do region:SetShown(mode == "flat") end
-    panel.inset = textured and 6 or border and NATIVE_INSET or 1
+    panel.inset = (textured or parchment) and 6 or border and NATIVE_INSET or 1
     local inset = panel.inset
     panel.header:ClearAllPoints()
     panel.header:SetPoint("TOPLEFT", panel, "TOPLEFT", inset, -inset)
@@ -465,10 +472,32 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align,
     return math.max(size + 2, font:GetStringHeight() or 0)
 end
 
+-- Bright tooltip colors become readable ink on paper. Neutral text takes
+-- Deep brown ink for neutral text; colored states keep their hue in a darker shade.
+local function inkColor(color)
+    local r, g, b = color[1], color[2], color[3]
+    local high, low = math.max(r, g, b), math.min(r, g, b)
+    if high - low < .14 then return { .11, .085, .055 } end
+    local brightness = .2126 * r + .7152 * g + .0722 * b
+    local scale = math.min(1, .19 / brightness, .4 / high)
+    return { r * scale, g * scale, b * scale }
+end
+
+local function inkText(content)
+    return (content:gsub("|c(%x%x)(%x%x)(%x%x)(%x%x)", function(alpha, r, g, b)
+        local color = inkColor({ tonumber(r, 16) / 255, tonumber(g, 16) / 255, tonumber(b, 16) / 255 })
+        return "|c" .. alpha .. util.hex(color)
+    end))
+end
+
 -- A custom color replaces every color, inline codes included.
 local function styledAt(panel, content, x, y, width, style, color, align)
     if style.caps then content = capitalize(content) end
-    if style.color then content, color = uncolored(content), style.color end
+    if style.color then
+        content, color = uncolored(content), style.color
+    elseif panel.parchment then
+        content, color = inkText(content), inkColor(color)
+    end
     local height = textAt(panel, content, x, y, width, style.size, color, style.font, align,
         style.flags)
     if panel.hits and style.key then
@@ -557,6 +586,7 @@ end
 -- before is the gap above a separator; a hidden one takes its gap with it.
 local function rule(panel, y, color, before)
     if not ns.option("separators") then return y end
+    if panel.parchment then color = inkColor(color) end
     y = y + (before or 0)
     local line = acquireTexture(panel)
     line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y))
@@ -567,6 +597,7 @@ end
 
 local function divider(panel, y, color, before)
     if not ns.option("separators") then return y end
+    if panel.parchment then color = inkColor(color) end
     y = y + (before or 0)
     local px, side = pixel(panel), snap(panel, (panel.width - 2 * pad() - 18) / 2)
     local left = acquireTexture(panel)
@@ -580,7 +611,8 @@ local function divider(panel, y, color, before)
     local center = acquireTexture(panel, ART .. "stat-marker")
     center:SetPoint("TOP", panel, "TOP", 0, -y)
     center:SetSize(10, 10)
-    center:SetVertexColor(.9, .76, .48, .9)
+    if panel.parchment then center:SetVertexColor(.35, .21, .10, .9)
+    else center:SetVertexColor(.9, .76, .48, .9) end
     return y + 18
 end
 
@@ -669,7 +701,7 @@ end
 
 -- Returns the header height the icon and badge need.
 local function drawChrome(panel, tooltip, style)
-    applyBackdrop(panel)
+    applyBackdrop(panel, style)
     local px = pixel(panel)
     panel.edges[1]:SetHeight(2 * px)
     panel.edges[2]:SetHeight(px)
@@ -690,7 +722,9 @@ local function drawChrome(panel, tooltip, style)
     local glow = ns.option("glowAlpha" .. suffix) or 1
     local footer = ns.option("footerAlpha" .. suffix) or 1
     panel.footer:SetVertexColor(.10, .075, .08, (panel.textured and .6 or .95) * footer)
-    if panel.textured then
+    if panel.parchment then
+        panel.background:SetVertexColor(1, 1, 1, body)
+    elseif panel.textured then
         panel.background:SetVertexColor(1 - .45 * strength + .45 * strength * tint[1],
             1 - .45 * strength + .45 * strength * tint[2],
             1 - .45 * strength + .45 * strength * tint[3], body)

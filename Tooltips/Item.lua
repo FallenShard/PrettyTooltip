@@ -1050,6 +1050,7 @@ local function itemView(panel, model)
     end
     return {
         tooltipType = "item",
+        questItem = model.quest,
         color = accent,
         tint = (model.quest or model.quality >= 2) and accent or nil,
         icon = icon,

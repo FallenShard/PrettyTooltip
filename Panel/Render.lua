@@ -191,6 +191,7 @@ local function renderView(panel, tooltip, view)
     panel:SetWidth(panel.width)
     local headerMin = ui.drawChrome(panel, tooltip, {
         tooltipType = view.tooltipType,
+        quest = view.tooltipType == "quest" or view.questItem,
         color = view.color,
         tint = view.tint,
         strength = view.strength,

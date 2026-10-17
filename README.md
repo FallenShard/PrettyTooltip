@@ -76,6 +76,8 @@ Auras show their icon and name, badges for buff or debuff, the dispel type in th
 
 ## Quests
 
+With **DialogueUI** installed, enable **Quest parchment** under **Quest Details** or **Item Details** in the style editor for its brown parchment and darker ink. The shared toggle applies to quest tooltips, items marked **Quest Item**, and items that begin a quest; the **Quest item** sample on the Items tab previews it. It is off by default. Per-part custom text colors still take precedence, and the artwork is read from DialogueUI's folder.
+
 Quest links read like a page of the quest log: the quest's name and the dungeon it is in, then badges for its level in the game's difficulty color, tags such as Elite or Dungeon, and where it stands (in progress, ready to turn in, completed, failed, repeatable). Below sit the quest giver's words in quotes and the objectives as a checklist with their progress, ticked and green once finished. The header has no icon unless **Show icon** is turned on in the style editor. With **Questie** installed, which draws quest links itself, the panel is built from Questie's tooltip, both for a clicked link and for one hovered in chat; who starts or ends the quest and where follow as label and value rows. Quests hovered in the world map's quest log get the same panel, with the level from your quest log; rows other addons add, such as a guide's note, are kept below.
 
 ## World objects

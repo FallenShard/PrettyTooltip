@@ -42,6 +42,8 @@ local DEFAULTS = {
     unitHealthBar = true,
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
+    -- DialogueUI's brown paper for quests and quest items, when installed.
+    questParchment = false,
     -- nil chooses: DialogueUI's art when installed, flat with EllesmereUI, else
     -- the game's own tooltip border. "native", "flat", or "dialogue" to pick one.
     backdropStyle = nil,

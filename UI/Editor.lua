@@ -717,6 +717,7 @@ end
 local function checkbox(label, key, description, isAvailable)
     local button = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
     button:SetSize(22, 22)
+    if isAvailable then button:SetMotionScriptsWhileDisabled(true) end
     local caption = text(button, "GameFontHighlightSmall", label)
     caption:SetPoint("LEFT", button, "RIGHT", 2, 1)
     button:SetHitRectInsets(0, -(caption:GetStringWidth() + 6), 0, 0)
@@ -905,7 +906,7 @@ local function toggles(list, shown)
     local holder, item = entry(0, shown)
     local boxes = {}
     for index, toggle in ipairs(list) do
-        local box = checkbox(toggle[1], toggle[2], toggle[3])
+        local box = checkbox(toggle[1], toggle[2], toggle[3], toggle[5])
         box:SetParent(holder)
         boxes[index] = { box = box, shown = toggle[4] }
     end
@@ -1169,10 +1170,14 @@ row("Footer", typeOpacity("footerAlpha", 1), optionSetting(typeKey("footerAlpha"
 
 -- What only the type shown has ---------------------------------------------------------
 
-local DETAILS = { item = "Item Details", spell = "Spell Details", unit = "Unit Details", object = "Object Details" }
+local DETAILS = { item = "Item Details", spell = "Spell Details", unit = "Unit Details", object = "Object Details",
+    quest = "Quest Details" }
 section(function() return DETAILS[state.tooltipType] end, function() return DETAILS[state.tooltipType] ~= nil end)
 local items, spells, units = forTypes("item"), forTypes("spell"), forTypes("unit")
 toggles({
+    { "Quest parchment", "questParchment", "DialogueUI's brown parchment for quest tooltips, Quest Items, "
+        .. "and items that begin a quest, with darker ink for readability. Requires DialogueUI to be installed.",
+        forTypes("item", "quest"), function() return ns.Game.addonInstalled("DialogueUI") end },
     { "Level badge", "itemLevelBadge", "The item level on a plate under the icon, for equipment.", items },
     { "Level badge", "unitLevelBadge",
         "The level on a plate under the portrait. Off, the level stays in the info line.", units },

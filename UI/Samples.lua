@@ -130,6 +130,15 @@ local TYPES = {
                     footerRight = { { left = { money = 400 }, right = "", sellPrice = true } },
                 },
             },
+            {
+                label = "Quest item",
+                fields = {
+                    name = "Gold Pickup Schedule", quality = 1, icon = { item = 1307 },
+                    quest = true, slot = "Quest Item", startsQuest = "This Item Begins a Quest",
+                    header = { { left = "Soulbound", right = "" } },
+                    flavor = { { left = '"A schedule of gold pickups."', right = "" } },
+                },
+            },
         },
     },
     {

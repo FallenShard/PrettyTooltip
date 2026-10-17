@@ -213,6 +213,7 @@ local function checkbox(panel, y, done, size)
     border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -ui.snap(panel, top))
     border:SetSize(CHECK_SIZE, CHECK_SIZE)
     local edge = done and DONE_COLOR or PARCHMENT
+    if panel.parchment then edge = { .35, .21, .10 } end
     border:SetVertexColor(edge[1] * .7, edge[2] * .7, edge[3] * .7, .9)
     local fill = ui.acquireTexture(panel, nil, 1)
     fill:SetPoint("TOPLEFT", border, "TOPLEFT", px, -px)
@@ -222,9 +223,10 @@ local function checkbox(panel, y, done, size)
         local mark = ui.acquireTexture(panel, "Interface\\Buttons\\UI-CheckBox-Check", 2)
         mark:SetPoint("CENTER", border, "CENTER", 1, 1)
         mark:SetSize(CHECK_SIZE + 6, CHECK_SIZE + 6)
-        mark:SetVertexColor(1, 1, 1, 1)
+        if panel.parchment then mark:SetVertexColor(.11, .085, .055, 1)
+        else mark:SetVertexColor(1, 1, 1, 1) end
     else
-        fill:SetVertexColor(.08, .07, .06, 1)
+        fill:SetVertexColor(.08, .07, .06, panel.parchment and 0 or 1)
     end
 end
 
