@@ -1,104 +1,79 @@
 """Writes Data/SpellRanks.lua: every class spell rank's spell power
 coefficients and the level it is learned at, by spell ID.
 
-The numbers come from foreverchanges.pro's downrank calculator, which embeds
-the Forever beta client's spell data (rank, spell ID, level, cast, and each
-effect's coefficient) in its page; one page holds every class. Spells it has
-only Classic data for are left out, as are physical abilities, which it does
-not list. An effect over time gives its coefficient per tick; the table holds
-the whole duration's, as the tooltip's amount covers it. EXTRA adds the
-spells the calculator lacks, by hand.
+The numbers come from a WoW Forever spell database, which
+tools/forever_spells.py builds from the client's own spell tables on
+wago.tools, with the scaling Blizzard's development notes state the client
+lacks. For each ability rank it lists the effects that carry its scaling,
+those of the spells it triggers (a missile, an area tick) included, as direct
+or periodic, and as damage, healing, or an absorb. Pet spells and the physical
+classes are left out. EXTRA adds the spells the database lacks, by hand.
 
-python tools/make_coefficients.py            download if missing, then write
-python tools/make_coefficients.py --refresh  download again
+python tools/make_coefficients.py                       newest Forever build
+python tools/make_coefficients.py --build 1.60.1.70425  a specific build
+python tools/make_coefficients.py --offline             tables already downloaded
+python tools/make_coefficients.py forever_spells.json   a database saved before
 """
 
 import json
-import re
-import tempfile
-import urllib.request
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-CACHE = Path(tempfile.gettempdir()) / "prettytooltip-coefficients"
-CALCULATOR = "https://foreverchanges.pro/downrank-calculator?class=paladin&spell=holy-light"
 CLASSES = ["priest", "druid", "paladin", "shaman", "mage", "warlock"]
 
-# Spells the calculator lacks: name, class, the coefficients every rank shares
+# Spells the database lacks: name, class, the coefficients every rank shares
 # (direct, over time), whether they are the cast time rule's estimate, and each
-# rank's spell ID and learned level from foreverchanges.pro's spellbooks.
+# rank's spell ID and learned level. The school database knows them as class
+# spells, so without an entry they would show no breakdown at all.
 EXTRA = [
-    # Instant, so 1.5 / 3.5, as the spell data confirms.
-    ("Holy Shock", "paladin", .429, None, False,
-     [(1311606, 30), (20473, 40), (20929, 48), (20930, 56)]),
-    ("Desperate Prayer", "priest", .429, None, False,
-     [(13908, 10), (19236, 18), (19238, 26), (19240, 34), (19241, 42), (19242, 50), (19243, 58)]),
-    # Its damage lands after one minute: 60 / 15.
-    ("Bane of Doom", "warlock", 4, None, False, [(603, 60)]),
-    # The rule's estimate from each rank's own cast time.
-    ("Arcane Blast", "mage", .714, None, True,
-     [(400574, 20), (1239696, 30), (1239697, 40), (1239699, 50), (1239700, 60)]),
     ("Mana Burn", "priest", .857, None, True, [(8129, 24), (8131, 32), (10874, 40), (10875, 48), (10876, 56)]),
-    ("Inferno", "warlock", .571, None, True, [(1122, 50)]),
-    ("Light's Vigil", "paladin", .429, None, True, [(1310911, 40), (1311590, 50), (1311595, 60)]),
 ]
 
 
-def fetch(url, name, refresh):
-    path = CACHE / name
-    if refresh or not path.exists():
-        CACHE.mkdir(parents=True, exist_ok=True)
-        request = urllib.request.Request(url, headers={"User-Agent": "PrettyTooltip tools/make_coefficients.py"})
-        with urllib.request.urlopen(request, timeout=120) as response:
-            path.write_bytes(response.read())
-    return path.read_text(encoding="utf-8")
+def shares(spell, spells):
+    """A rank's direct and over-time coefficients, each None where it gains
+    nothing that way, and whether it scales with healing.
 
+    The tooltip shows one amount of each kind, so a kind takes its largest
+    coefficient: Binding Heal lists its heal for each of its two targets, and
+    a part may carry no coefficient beside the one that does. A spell that
+    both damages and heals, as Holy Shock, names its damage first, and the
+    damage decides. One tick, as Bane of Doom's after a minute, reads as an
+    amount at once; so does a pulse without a tick count, as a totem's, whose
+    tooltip gives the amount of one pulse."""
+    parts = [part for part in spell.get("parts", []) if part["kind"] in ("direct", "periodic")]
+    counted = [part for part in parts if part.get("inTotal")]
 
-def calculator_data(html):
-    """The class map the page's script is given: { class: [spell, ...] }."""
-    chunks = re.findall(r'self\.__next_f\.push\(\[1,"(.*?)"\]\)', html, re.S)
-    payload = "".join(json.loads('"' + chunk + '"') for chunk in chunks)
-    match = re.search(r'\{"(' + "|".join(CLASSES) + r')":\[', payload)
-    if not match:
-        raise SystemExit("no spell data in the calculator page; has the page changed?")
-    # The object ends where its braces balance, strings aside.
-    depth, in_string, escaped = 0, False, False
-    for index in range(match.start(), len(payload)):
-        char = payload[index]
-        if in_string:
-            if escaped:
-                escaped = False
-            elif char == "\\":
-                escaped = True
-            elif char == '"':
-                in_string = False
-        elif char == '"':
-            in_string = True
-        elif char in "{[":
-            depth += 1
-        elif char in "}]":
-            depth -= 1
-            if depth == 0:
-                return json.loads(payload[match.start():index + 1])
-    raise SystemExit("the calculator's spell data does not end; has the page changed?")
+    def coefficient(part):
+        return spells[str(part["spell"])]["effects"][part["effectIndex"]].get("spCoef") or 0
 
-
-def shares(rank):
-    """A rank's direct and over-time coefficients, each None where it has no
-    such effect, an effect without a coefficient gaining nothing; and whether
-    it scales with healing, which a text may not say, as Tranquility's
-    "Regenerates" or a shield's absorb."""
+    # Hellfire's area tick is listed as an ability of its own; with nothing
+    # else to go by, it is the spell's.
+    if not any(coefficient(part) > 0 for part in counted):
+        counted = parts
+    scaling = [part for part in counted if coefficient(part) > 0]
+    damage = any(part["category"] == "damage" for part in scaling)
+    # The kinds of what it deals, a kind that gains nothing kept at 0, as
+    # Fireball's burn: the tooltip shows it gains no spell power.
+    categories = {"damage"} if damage else {part["category"] for part in scaling}
+    chosen = [part for part in counted if part["category"] in categories]
     direct = periodic = None
-    effects = set()
-    for part in rank["parts"]:
-        coefficient = part.get("coef", 0)
-        effects.add(part["effect"])
-        if part.get("type") == "periodic":
-            periodic = round(coefficient * part.get("ticks", 1), 4)
+    for part in chosen:
+        ticks = part.get("ticks")
+        if part["kind"] == "periodic" and ticks and ticks > 1:
+            periodic = max(periodic or 0, round(coefficient(part) * ticks, 4))
         else:
-            direct = coefficient
-    return direct, periodic, "damage" not in effects
+            direct = max(direct or 0, coefficient(part))
+    if not scaling:
+        return None, None, False
+    return direct, periodic, not damage
+
+
+def is_pet_spell(spell):
+    tree = spell.get("tree") or ""
+    return tree.startswith("Pet:") or tree == "Beast Training"
 
 
 def entry(spell_id, level, direct, periodic, heals=False, estimate=False):
@@ -115,61 +90,72 @@ def number(value):
 
 def main():
     parser = ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("--refresh", action="store_true", help="download the calculator page again")
+    parser.add_argument("database", type=Path, nargs="?", help="a forever_spells.json to read instead of building one")
+    parser.add_argument("--build", help="Forever build, e.g. 1.60.1.70425 (default: newest on wago.tools)")
+    parser.add_argument("--offline", action="store_true", help="use only tables already downloaded")
     args = parser.parse_args()
 
-    data = calculator_data(fetch(CALCULATOR, "calculator.html", args.refresh))
+    if args.database:
+        data = json.loads(args.database.read_text(encoding="utf-8"))
+    else:
+        # The builder beside this script, without leaving a __pycache__ in tools/.
+        sys.dont_write_bytecode = True
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        import forever_spells
+        data = forever_spells.database(args.build, no_era=True, offline=args.offline)
+    meta, spells = data["meta"], data["spells"]
+    hotfixes = f", hotfixes through {meta['hotfixesThrough']}" if meta.get("hotfixesThrough") else ""
     lines = [
         "-- Each class spell rank's spell power coefficients and the level it is",
         "-- learned at, by spell ID: { level, direct, over time }, a coefficient nil",
         "-- where the rank has no such effect. heals: it scales with healing, as a",
         "-- heal or absorb; estimate: the cast time rule's value, not the client's.",
-        "-- Generated by tools/make_coefficients.py from foreverchanges.pro's downrank",
-        "-- calculator, the Forever beta client's data, and its list of the spells the",
-        "-- calculator lacks. Run it again when Forever changes spells.",
+        "-- Generated by tools/make_coefficients.py from a WoW Forever spell database",
+        f"-- (client {meta['clientBuild']}{hotfixes}) and its list of",
+        "-- the spells the database lacks. Run it again when Forever changes spells.",
         "local _, ns = ...",
         "",
         "ns.spellRanks = {",
     ]
-    spells, ranks, skipped, written = 0, 0, [], set()
+    spell_count, rank_count, written = 0, 0, set()
     # Each spell's ranks in order, for what names a spell but not its ID.
     by_name = {}
     for cls in CLASSES:
-        for spell in data.get(cls, []):
-            forever = spell.get("forever")
-            if not forever:
-                skipped.append(f"{cls}: {spell['name']}")
-                continue
-            spells += 1
-            lines.append(f"    -- {spell['name']} ({cls.capitalize()})")
-            for rank in forever["ranks"]:
-                ranks += 1
-                direct, periodic, heals = shares(rank)
-                written.add(rank["spell_id"])
-                by_name.setdefault(spell["name"], {})[rank["rank"]] = rank["spell_id"]
-                lines.append(entry(rank["spell_id"], rank["level"], direct, periodic, heals=heals))
-    lines.append("    -- Not in the calculator: by hand, in tools/make_coefficients.py.")
+        for name, rank_ids in sorted(data["abilities"].get(cls, {}).items()):
+            ranks = []
+            for rank_id in rank_ids:
+                spell = spells[str(rank_id)]
+                if is_pet_spell(spell):
+                    break
+                direct, periodic, heals = shares(spell, spells)
+                if direct is None and periodic is None:
+                    continue
+                level = (spell.get("levels") or {}).get("spell") or 0
+                ranks.append(entry(rank_id, level, direct, periodic, heals=heals))
+                written.add(rank_id)
+            if ranks:
+                # Every rank, in order, so a rank's number still finds its ID.
+                by_name[name] = list(rank_ids)
+                spell_count, rank_count = spell_count + 1, rank_count + len(ranks)
+                lines.append(f"    -- {name} ({cls.capitalize()})")
+                lines += ranks
+    lines.append("    -- Not in the database: by hand, in tools/make_coefficients.py.")
     for name, cls, direct, periodic, estimate, extra_ranks in EXTRA:
         lines.append(f"    -- {name} ({cls.capitalize()})")
         for spell_id, level in extra_ranks:
-            # The calculator's data wins; an extra it now has must be dropped from EXTRA.
-            if spell_id in written:
-                raise SystemExit(f"{name} {spell_id} is in the calculator now; remove it from EXTRA")
-            spells, ranks = spells + (spell_id == extra_ranks[0][0]), ranks + 1
-            by_name.setdefault(name, {})[len(by_name.get(name, {})) + 1] = spell_id
+            # The database wins; an extra it now has must be dropped from EXTRA.
+            if spell_id in written or str(spell_id) in spells:
+                raise SystemExit(f"{name} {spell_id} is in the database now; remove it from EXTRA")
+            by_name.setdefault(name, []).append(spell_id)
             lines.append(entry(spell_id, level, direct, periodic, estimate=estimate))
+        spell_count, rank_count = spell_count + 1, rank_count + len(extra_ranks)
     lines += ["}", "", "-- By name, each rank's spell ID in rank order: for a spell named without its ID.",
               "ns.spellRankByName = {"]
     for name in sorted(by_name):
-        ids = [by_name[name][number] for number in sorted(by_name[name])]
-        lines.append(f"    [{json.dumps(name)}] = {{ {', '.join(map(str, ids))} }},")
+        lines.append(f"    [{json.dumps(name)}] = {{ {', '.join(map(str, by_name[name]))} }},")
     lines += ["}", ""]
     (ROOT / "Data" / "SpellRanks.lua").write_text("\n".join(lines), encoding="utf-8", newline="\n")
-    print(f"{spells} spells, {ranks} ranks written to Data/SpellRanks.lua")
-    if skipped:
-        print(f"{len(skipped)} spells with Classic data only (left out):")
-        for line in skipped:
-            print("  " + line)
+    print(f"{spell_count} spells, {rank_count} ranks written to Data/SpellRanks.lua")
 
 
 if __name__ == "__main__":
