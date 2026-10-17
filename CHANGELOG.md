@@ -1,3 +1,23 @@
+# PrettyTooltip 1.2.0
+
+## Tooltips
+
+- Added an experimental **Quest parchment** option under **Quest Details** and **Item Details** in the style editor. With DialogueUI installed, quest tooltips, Quest Items, and items that begin a quest can use its brown parchment with dark ink. Off by default.
+- Updated spell power coefficients from WoW Forever's client data, covering every rank of caster damage, healing, and absorb spells.
+- Spell power breakdowns now distinguish **Spell Power Coefficient** from **Healing Power Coefficient**, with the percentage beside the base amount and spell power bonus.
+- Updated spell schools from the latest client data, including correcting Turn Undead to Holy.
+- Improved spacing around section dividers and separators across tooltip types.
+- Fixed quest objectives for quests not in the log and quests already completed, and removed the duplicate Requirements heading.
+
+## Editor
+
+- Reorganized the settings column into **Selected Part**, **All Tooltips**, and the selected type's **Panel** and **Details** sections. The column scrolls within a fixed-height window; clicking a part returns to its controls. Per-type settings now live in the editor.
+- The editor now uses Blizzard's settings frame artwork, controls, scrollbars, and tooltip type tabs by default. Choose **Blizzard** or **Flat** in the main addon options.
+- Added eight school color swatches under **All Tooltips**, including Holyfire and Frostfire. Choices apply to spell panels, item stats and effects, and macros, and update without a reload.
+- Added nine class color swatches under **Unit Details** for player names, panel accents, guild shades, player targets, and minimap players. Unset colors follow the game's class colors, including changes from other addons.
+- **Reset all fonts and colors** now also restores stat-category, school, and class colors.
+- Added a **Quest item** sample to the Items tab.
+
 # PrettyTooltip 1.1.3
 
 ## Tooltips
