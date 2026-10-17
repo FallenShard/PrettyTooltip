@@ -63,10 +63,10 @@ texture at 222,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
 texture at 19,131 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8
 text at 19,140 w=270 size=12 rgb=0.92,0.87,0.76 "Hurls a fiery ball that causes |cffFF996016|r to |cffFF996025|r Fire damage and an additional |cffFF99602|r Fire damage over |cffFF99604|r sec."
 texture at 19,193 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8
-text at 19,202 w=190 size=11 rgb=0.82,0.78,0.71 "42.9% Coefficient"
-text at 221,202 w=68 size=11 rgb=0.82,0.78,0.71 "12 to 21 + |cffFF99604|r"
-text at 19,217 w=228.5 size=11 rgb=0.82,0.78,0.71 "0.0% Coefficient over time"
-text at 259.5,217 w=29.5 size=11 rgb=0.82,0.78,0.71 "2 + |cffFF99600|r"
+text at 19,202 w=146 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient"
+text at 177,202 w=112 size=11 rgb=0.82,0.78,0.71 "|cffFF996042.9%|r |cff999185·|r 12 to 21 + |cffFF99604|r"
+text at 19,217 w=190 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient over time"
+text at 221,217 w=68 size=11 rgb=0.82,0.78,0.71 "|cffFF99600.0%|r |cff999185·|r 2 + |cffFF99600|r"
 text at 19,232 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Second"
 text at 265,232 w=24 size=11 rgb=0.82,0.78,0.71 "14.2"
 text at 19,247 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Mana"

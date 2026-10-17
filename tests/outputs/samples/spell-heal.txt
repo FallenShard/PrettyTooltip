@@ -36,7 +36,7 @@ rank: "Rank 1"
 requirements: {}
 spellPower: 10
 == sample render
-panel 284 x 268
+panel 300 x 268
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -51,30 +51,30 @@ texture unplaced 0x0 rgb=0.98,0.73,0.22,1 tooltip-TopEdge
 texture unplaced 0x0 rgb=0.98,0.73,0.22,1 tooltip-BottomEdge
 texture unplaced 0x0 rgb=0.98,0.73,0.22,1 tooltip-LeftEdge
 texture unplaced 0x0 rgb=0.98,0.73,0.22,1 tooltip-RightEdge
-text at 67,21 w=198 size=17 rgb=0.96,0.92,0.84 "HOLY LIGHT"
+text at 67,21 w=214 size=17 rgb=0.96,0.92,0.84 "HOLY LIGHT"
 text at 67,46 w=80 size=12 rgb=0.82,0.78,0.71 "|cffFBCF74Holy|r |cff999185·|r |cffB8B0A6Rank 1|r"
-texture at 19,76 114x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
-texture TOPRIGHT panel TOPRIGHT -19,-76 114x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture at 19,76 122x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-76 122x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
-text at 19,89 w=61.5 size=13 rgb=0.6625,0.7975,1 "35"
-text at 19,106 w=61.5 size=9 rgb=0.6,0.57,0.52 "MANA"
-text at 80.5,89 w=61.5 size=13 rgb=0.96,0.92,0.84 "2.5 sec"
-text at 80.5,106 w=61.5 size=9 rgb=0.6,0.57,0.52 "CAST"
-texture at 81,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-text at 142,89 w=61.5 size=13 rgb=0.6,0.57,0.52 "None"
-text at 142,106 w=61.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
-texture at 142,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-text at 203.5,89 w=61.5 size=13 rgb=0.96,0.92,0.84 "40 yd"
-text at 203.5,106 w=61.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
-texture at 204,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-texture at 19,131 246x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
-text at 19,140 w=246 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cffFBCF7442|r to |cffFBCF7451|r."
-texture at 19,165 246x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
-text at 19,174 w=166 size=11 rgb=0.82,0.78,0.71 "71.4% Coefficient"
-text at 197,174 w=68 size=11 rgb=0.82,0.78,0.71 "35 to 44 + |cffFBCF747|r"
-text at 19,189 w=210 size=11 rgb=0.82,0.78,0.71 "Healing per Second"
-text at 241,189 w=24 size=11 rgb=0.82,0.78,0.71 "18.6"
-text at 19,204 w=210 size=11 rgb=0.82,0.78,0.71 "Healing per Mana"
-text at 241,204 w=24 size=11 rgb=0.82,0.78,0.71 "1.33"
-texture at 19,227 246x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,236 w=246 size=11 rgb=0.6,0.6,0.63 "Spell ID: 635"
+text at 19,89 w=65.5 size=13 rgb=0.6625,0.7975,1 "35"
+text at 19,106 w=65.5 size=9 rgb=0.6,0.57,0.52 "MANA"
+text at 84.5,89 w=65.5 size=13 rgb=0.96,0.92,0.84 "2.5 sec"
+text at 84.5,106 w=65.5 size=9 rgb=0.6,0.57,0.52 "CAST"
+texture at 85,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 150,89 w=65.5 size=13 rgb=0.6,0.57,0.52 "None"
+text at 150,106 w=65.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
+texture at 150,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 215.5,89 w=65.5 size=13 rgb=0.96,0.92,0.84 "40 yd"
+text at 215.5,106 w=65.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
+texture at 216,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+texture at 19,131 262x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,140 w=262 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cffFBCF7442|r to |cffFBCF7451|r."
+texture at 19,165 262x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,174 w=138 size=11 rgb=0.82,0.78,0.71 "Healing Power Coefficient"
+text at 169,174 w=112 size=11 rgb=0.82,0.78,0.71 "|cffFBCF7471.4%|r |cff999185·|r 35 to 44 + |cffFBCF747|r"
+text at 19,189 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Second"
+text at 257,189 w=24 size=11 rgb=0.82,0.78,0.71 "18.6"
+text at 19,204 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Mana"
+text at 257,204 w=24 size=11 rgb=0.82,0.78,0.71 "1.33"
+texture at 19,227 262x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,236 w=262 size=11 rgb=0.6,0.6,0.63 "Spell ID: 635"

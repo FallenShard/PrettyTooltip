@@ -9,6 +9,9 @@ local _, ns = ...
 
 local util = ns.util
 
+-- Between a row's coefficient and its split, dim, as between badges.
+local SEPARATOR = " |cff" .. util.hex(ns.Palette.roles.caption) .. "\194\183|r "
+
 -- As GetSpellBonusDamage numbers the schools.
 local SCHOOLS = { Holy = 2, Fire = 3, Nature = 4, Frost = 5, Shadow = 6, Arcane = 7 }
 
@@ -176,13 +179,16 @@ function ns.spellPowerRows(part, bonusCode, game)
 
     local power = part.spellPower or playerPower(game, school, healing) or 0
     local rows = {}
+    local label = (healing and "Healing Power" or "Spell Power") .. " Coefficient"
     local function addRow(amount, share, suffix)
         if not (amount and share) then return end
         -- An amount per tick gains its share of the whole duration's bonus.
         local bonus = math.floor(power * share / (amount.ticks or 1) + 1e-6)
+        -- The share in the school's color, as the bonus it brings, then the split.
         rows[#rows + 1] = {
-            left = (estimate and "~" or "") .. string.format("%.1f%% Coefficient", share * 100) .. suffix,
-            right = range(math.max(0, amount.low - bonus), math.max(0, amount.high - bonus))
+            left = label .. suffix,
+            right = "|cff" .. bonusCode .. (estimate and "~" or "") .. string.format("%.1f%%", share * 100) .. "|r"
+                .. SEPARATOR .. range(math.max(0, amount.low - bonus), math.max(0, amount.high - bonus))
                 .. " + |cff" .. bonusCode .. bonus .. "|r" .. (amount.ticks and " each" or ""),
         }
     end
