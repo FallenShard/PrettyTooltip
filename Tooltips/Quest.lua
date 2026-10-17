@@ -49,6 +49,10 @@ local function completeModel(model, questID, game)
             model.active = model.active or game.onQuest(questID)
         end
     end
+    -- A quest turned in has done all it asked, whatever its lines count.
+    if model.completed then
+        for _, objective in ipairs(model.objectives) do objective.completed = true end
+    end
     model.color = game.difficultyColor(model.level) or QUEST_GOLD
     model.icon = model.icon or QUEST_ICON
     return model
@@ -105,7 +109,9 @@ local function readRow(model, row, state)
         model.completed = true
     elseif text:match("^This quest is repeatable") then
         model.repeatable = true
-    elseif text:match("^You have not done this quest") or text == "Objectives" or text:match("^Your progress") then
+    -- The game's headings over the objectives; the panel has its own caption.
+    elseif text:match("^You have not done this quest") or text == "Objectives" or text == "Requirements:"
+        or text:match("^Your progress") then
         return
     elseif text:match("^Instance: ") then
         model.zone = text:match("^Instance: (.+)")
@@ -114,6 +120,8 @@ local function readRow(model, row, state)
         local goal, progress = name:match("^(.-):%s*(%d+%s*/%s*%d+)$")
         -- The quest log puts the count first: "0/1 Head of Deepfury".
         if not goal then progress, goal = name:match("^(%d+%s*/%s*%d+)%s+(.+)$") end
+        -- A quest not in the log names how many: "15 x Dark Iron Dwarf".
+        if not goal then progress, goal = name:match("^(%d+) x (.+)$") end
         local objective = { left = goal or name, right = progress or right, completed = row.completed }
         objective.completed = objectiveDone(objective)
         model.objectives[#model.objectives + 1] = objective
