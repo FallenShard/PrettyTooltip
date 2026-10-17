@@ -153,6 +153,8 @@ local function timeBar(model, color)
         bar.fill:SetVertexColor(color[1], color[2], color[3], 1)
         drawBarFill(bar)
         ui.setLive(panel, function() drawBarFill(bar) end)
+        -- The bar ends its section: a rule after it counts in the space below it.
+        panel.rowTail = 8
         return y + BAR_HEIGHT + 8
     end
 end
@@ -170,7 +172,7 @@ local function auraView(model)
     end
     local time = timeRow(model)
     if time or hasBar(model) then
-        local separator = #sections > 0 and { rule = { color[1] * .7, color[2] * .7, color[3] * .7 }, before = 4 }
+        local separator = #sections > 0 and { rule = { color[1] * .7, color[2] * .7, color[3] * .7 } }
             or { divider = ui.GOLD_RULE }
         if time then
             time.rightColor = MUTED
@@ -183,7 +185,7 @@ local function auraView(model)
         end
     end
     if #model.extras > 0 then
-        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 4 },
             kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     return {

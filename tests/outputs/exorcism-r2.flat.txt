@@ -56,7 +56,7 @@ rank: "Rank 2"
 requirements: {}
 spellID: 5614
 == tooltip render
-panel 308 x 282
+panel 308 x 268
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
@@ -87,14 +87,14 @@ texture at 154,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
 text at 221.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "30 yd"
 text at 221.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
 texture at 222,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-texture at 19,131 270x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
-text at 19,140 w=270 size=12 rgb=0.92,0.87,0.76 "Causes |cffFBCF74135|r to |cffFBCF74154|r Holy damage to an Undead or Demon target."
-texture at 19,179 270x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
-text at 19,188 w=135 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient"
-text at 166,188 w=123 size=11 rgb=0.82,0.78,0.71 "|cffFBCF7442.9%|r |cff999185·|r 135 to 154 + |cffFBCF740|r"
-text at 19,203 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Second"
-text at 265,203 w=24 size=11 rgb=0.82,0.78,0.71 "96.3"
-text at 19,218 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Mana"
-text at 265,218 w=24 size=11 rgb=0.82,0.78,0.71 "1.98"
-texture at 19,241 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,250 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+texture at 19,124 270x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,133 w=270 size=12 rgb=0.92,0.87,0.76 "Causes |cffFBCF74135|r to |cffFBCF74154|r Holy damage to an Undead or Demon target."
+texture at 19,168 270x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,177 w=135 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient"
+text at 166,177 w=123 size=11 rgb=0.82,0.78,0.71 "|cffFBCF7442.9%|r |cff999185·|r 135 to 154 + |cffFBCF740|r"
+text at 19,192 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Second"
+text at 265,192 w=24 size=11 rgb=0.82,0.78,0.71 "96.3"
+text at 19,207 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Mana"
+text at 265,207 w=24 size=11 rgb=0.82,0.78,0.71 "1.98"
+texture at 19,227 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,236 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"

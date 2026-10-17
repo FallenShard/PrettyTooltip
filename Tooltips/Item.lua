@@ -25,6 +25,10 @@ local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
 local CONSUMABLE_CLASS = Enum.ItemClass and Enum.ItemClass.Consumable or 0
 local DURABILITY_BAR = 54
 local EXTRAS_RULE = { .50, .50, .54 }
+-- The space a divider or the rule over other addons' rows adds after rows,
+-- which end with their own gap: a divider then shows as much space above its
+-- line as below, 13 px, and the rule 9 px.
+local DIVIDER_AFTER, RULE_AFTER = 3, 5
 local QUALITY = {
     [0] = { .62, .62, .62 },
     [1] = { .77, .77, .77 },
@@ -827,6 +831,7 @@ end
 -- Weapon damage, armor, stats, and effects.
 local function drawStats(panel, model, styles, y)
     local inner = panel.width - 2 * pad()
+    local top = y
     if model.weaponDps then
         y = drawRow(panel, {
             left = valueLabel(model.weaponDps, "Damage per Second"), right = "",
@@ -856,15 +861,17 @@ local function drawStats(panel, model, styles, y)
     local above = #model.primary > 0 or #model.armor > 0 or model.weaponDps or model.weaponDamage
         or #model.weaponBonus > 0
     if (#model.secondary > 0 or #model.equipEffects > 0) and above then
-        y = divider(panel, y, GOLD_RULE, 3)
+        y = divider(panel, y, GOLD_RULE, DIVIDER_AFTER)
     end
     y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
     y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
-    if #model.effects > 0 then y = y + 5 end
+    -- Use effects and flavor stand apart from the stats above them; first under
+    -- the divider, they start where anything would.
+    if #model.effects > 0 and y > top then y = y + 5 end
     y = drawEffects(panel, model.effects, y, styles.effects, { .48, .88, .48 })
     if #model.flavor > 0 then
-        y = drawGroup(panel, model.flavor, y + 5, styles.flavor, FLAVOR_GOLD)
+        y = drawGroup(panel, model.flavor, y > top and y + 5 or y, styles.flavor, FLAVOR_GOLD)
     end
     return y
 end
@@ -1002,7 +1009,9 @@ local function itemView(panel, model)
         sectioned = true
     end
     if model.setName then
-        section({ separator = { divider = GOLD_RULE, before = sectioned and 11 or 0 }, kind = "custom",
+        -- A divider after a section's rows sits as far below the last as above the
+        -- next, as the one inside the stats does: the rows end with their gap.
+        section({ separator = { divider = GOLD_RULE, before = sectioned and DIVIDER_AFTER or 0 }, kind = "custom",
             measure = function(p) return setWidth(p, model, styles) end,
             draw = function(p, y) return drawSet(p, model, styles, y) end })
         sectioned = true
@@ -1020,14 +1029,14 @@ local function itemView(panel, model)
         sectioned = true
     end
     if model.disenchant and ns.option("disenchant") then
-        section({ separator = { divider = GOLD_RULE, before = sectioned and 8 or 0 }, kind = "rows",
+        section({ separator = { divider = GOLD_RULE, before = sectioned and DIVIDER_AFTER or 0 }, kind = "rows",
             rows = { disenchantHeading(model.disenchant) }, style = styles.disenchant, color = FLAVOR_GOLD, gap = 4 })
         section({ kind = "rows", rows = disenchantRows(model.disenchant), style = styles.disenchant,
             color = { .88, .84, .76 }, gap = 2 })
         sectioned = true
     end
     if #model.extras > 0 then
-        section({ separator = sectioned and { rule = EXTRAS_RULE, before = 10 } or { space = 12 }, kind = "rows",
+        section({ separator = sectioned and { rule = EXTRAS_RULE, before = RULE_AFTER } or { space = 12 }, kind = "rows",
             rows = model.extras, style = styles.extras, color = EXTRA_COLOR, gap = 2, wrap = true })
     end
 

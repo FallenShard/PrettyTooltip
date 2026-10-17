@@ -14,7 +14,7 @@ name: "Power Word: Fortitude"
 remaining: "17 minutes remaining"
 text: "Increases Stamina by 26."
 == sample render
-panel 260 x 166
+panel 260 x 164
 texture at -16,-16 0x0 rgb=0.2,0.6,1,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -35,8 +35,8 @@ texture at 19,76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-76 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=222 size=12 rgb=0.92,0.87,0.76 "Increases Stamina by |cff70B8FF26|r."
-texture at 19,112 222x1 rgb=0.14,0.42,0.7,0.45 WHITE8X8
-text at 19,121 w=136.5 size=11 rgb=0.88,0.78,0.6 "17 minutes remaining"
-text at 167.5,121 w=73.5 size=11 rgb=0.6,0.57,0.52 "by Somniferie"
-texture at 19,137 222x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture at 19,110 222x1 rgb=0.14,0.42,0.7,0.45 WHITE8X8
+text at 19,119 w=136.5 size=11 rgb=0.88,0.78,0.6 "17 minutes remaining"
+text at 167.5,119 w=73.5 size=11 rgb=0.6,0.57,0.52 "by Somniferie"
+texture at 19,135 222x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 125.8x4 rgb=0.2,0.6,1,1 WHITE8X8

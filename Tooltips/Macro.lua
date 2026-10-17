@@ -123,7 +123,7 @@ local function macroView(model)
             style = styles.macroText, color = colors.detail, gap = 2, wrap = true }
     end
     if #model.extras > 0 then
-        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 4 },
             kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     return {

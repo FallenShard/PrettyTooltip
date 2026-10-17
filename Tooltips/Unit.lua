@@ -367,7 +367,7 @@ local function unitView(model, healthBar)
             rows[#rows + 1] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
                 rightColor = row.rare and colors.caption or nil }
         end
-        sections[#sections + 1] = { separator = { rule = EXTRAS_RULE, before = 4 }, kind = "rows",
+        sections[#sections + 1] = { separator = { rule = EXTRAS_RULE }, kind = "rows",
             rows = rows, style = styles.unitSkinning, color = DETAIL_COLOR, gap = 2 }
     end
     if #model.quests > 0 then
@@ -377,11 +377,11 @@ local function unitView(model, healthBar)
                 or { left = row.left, right = row.right, color = row.completed and colors.done or colors.objective,
                     indent = 8 }
         end
-        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE, before = #sections > 0 and 6 or 0 },
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE },
             kind = "rows", rows = quests, style = styles.unitQuests, gap = 2 }
     end
     if #model.extras > 0 then
-        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 4 },
             kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     -- Room at the bottom for the game's health bar, which the panel borrows

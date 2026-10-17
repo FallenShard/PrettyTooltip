@@ -18,7 +18,8 @@
 --     },
 --     tag = "EQUIPPED",                  the comparison's label above the panel
 --     sections = {                       in order, below the header
---         { separator = { divider = GOLD } | { rule = color, before = 8 } | { space = 4 }
+--         { separator = { divider = GOLD } | { rule = color } | { space = 4 }  before = 8 sets the space
+--               above a divider or rule; left out, it shows as much as below
 --               | { caption = "Reagents", style, before = 4 },
 --           kind = "prose", sentences = { ... }, style, color, numbers = "FFF6E4", gap = 5 },
 --         { kind = "rows", rows = { { left, right, color, rightColor, indent } }, style, color, gap = 2,
@@ -138,10 +139,20 @@ local function fitWidth(panel, view)
     return math.max(view.minWidth or ui.minWidth(), math.min(ui.MAX_WIDTH, math.ceil(need + 2 * pad())))
 end
 
-local function drawSeparator(panel, y, separator)
+-- The space a divider shows below its line, and a rule: one after a section
+-- shows as much above its line, counting in what the section's last row left
+-- under its letters. A separator's own before overrides it.
+local DIVIDER_SPACE, RULE_SPACE = 13, 9
+
+local function drawSeparator(panel, y, separator, after)
     if not separator then return y end
-    if separator.divider then return ui.divider(panel, y, separator.divider, separator.before) end
-    if separator.rule then return ui.rule(panel, y, separator.rule, separator.before) end
+    local before = separator.before
+    if before == nil and after and panel.rowTail then
+        -- A divider draws its line 5 below where it starts.
+        before = separator.divider and DIVIDER_SPACE - 5 - panel.rowTail or RULE_SPACE - panel.rowTail
+    end
+    if separator.divider then return ui.divider(panel, y, separator.divider, before) end
+    if separator.rule then return ui.rule(panel, y, separator.rule, before) end
     if separator.caption then
         return ui.caption(panel, y + (separator.before or 0), separator.caption, separator.style, separator.color)
     end
@@ -222,8 +233,10 @@ local function renderView(panel, tooltip, view)
     end
     panel.footer:SetHeight(0)
 
-    for _, section in ipairs(view.sections) do
-        y = drawSeparator(panel, y, section.separator)
+    -- The header's rows are not a section's: the first separator follows the band.
+    panel.rowTail = nil
+    for index, section in ipairs(view.sections) do
+        y = drawSeparator(panel, y, section.separator, index > 1)
         y = DRAW[section.kind](panel, y, section)
     end
     if hasFooter then
@@ -242,5 +255,6 @@ local function renderView(panel, tooltip, view)
 end
 
 ui.renderView = renderView
+ui.RULE_SPACE = RULE_SPACE
 ui.setLive, ui.drawTrack = setLive, drawTrack
 ui.drawBadges, ui.badgesWidth = drawBadges, badgesWidth

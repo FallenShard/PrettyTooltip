@@ -386,6 +386,8 @@ local function drawStrip(panel, model, y, color, styles)
             separator:SetVertexColor(color[1] * .6, color[2] * .6, color[3] * .6, .5)
         end
     end
+    -- What the strip leaves under its captions, for a rule after it.
+    panel.rowTail = height - captionOffset - captions.size
     return y + height
 end
 
@@ -394,19 +396,28 @@ local function hasBody(part, body)
         or body.powerRows ~= nil or (body.nextSentences and #body.nextSentences > 0)
 end
 
+-- A rule after the block above, as far below its letters as the next block
+-- starts below it.
+local function ruleAfter(panel, y, color)
+    return ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, ui.RULE_SPACE - (panel.rowTail or 0))
+end
+
 -- The strip, requirements, and description of the spell or the one nested in
 -- it; body holds its sentences and spell power rows.
 local function drawBody(panel, part, body, y, color, styles, numberCode)
     if #part.cells > 0 then
         y = drawStrip(panel, part, y, color, styles) + 2
+        panel.rowTail = panel.rowTail + 2
     end
     if #part.details > 0 or #part.requirements > 0 then
-        y = ui.drawGroup(panel, part.requirements, y + 2, styles.spellDetails, DETAIL_COLOR, 0, 2)
+        -- Under the strip, a little apart from it; first, where anything would start.
+        y = ui.drawGroup(panel, part.requirements, #part.cells > 0 and y + 2 or y, styles.spellDetails,
+            DETAIL_COLOR, 0, 2)
         y = ui.drawGroup(panel, part.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
     end
     if #body.sentences > 0 then
         if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 then
-            y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
+            y = ruleAfter(panel, y, color)
         end
         for _, sentence in ipairs(body.sentences) do
             y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
@@ -415,7 +426,7 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
     end
     if body.powerRows then
         if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #body.sentences > 0 then
-            y = ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, 6)
+            y = ruleAfter(panel, y, color)
         end
         y = ui.drawGroup(panel, body.powerRows, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
     end
@@ -472,7 +483,7 @@ local function spellView(model)
     if nested and nested.name then
         local nestedBody = bodyOf(nested)
         local titleStyle = nestedTitleStyle(styles.spellTitle)
-        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE, before = #sections > 0 and 8 or 0 },
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE },
             kind = "custom",
             measure = function(panel)
                 return math.max(measureStyled(panel, nested.name, titleStyle), bodyWidth(panel, nested, nestedBody, styles))
@@ -483,7 +494,7 @@ local function spellView(model)
             end }
     end
     if #model.extras > 0 then
-        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 12 },
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 12 },
             kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     local header = {

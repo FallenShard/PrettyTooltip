@@ -237,7 +237,7 @@ local function objectView(model)
             rows[index] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
                 rightColor = row.rare and colors.caption or nil }
         end
-        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 4 } or { divider = ui.GOLD_RULE },
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { divider = ui.GOLD_RULE },
             kind = "rows", rows = rows, style = styles.objectLoot, color = DETAIL_COLOR, gap = 2 }
     end
     if #model.quests > 0 then
@@ -247,11 +247,11 @@ local function objectView(model)
                 or { left = row.left, right = row.right, color = row.completed and colors.done or colors.objective,
                     indent = 8 }
         end
-        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE, before = #sections > 0 and 6 or 0 },
+        sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE },
             kind = "rows", rows = quests, style = styles.objectQuests, gap = 2 }
     end
     if #model.extras > 0 then
-        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE, before = 8 } or { space = 4 },
+        sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 4 },
             kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     local prices = {}

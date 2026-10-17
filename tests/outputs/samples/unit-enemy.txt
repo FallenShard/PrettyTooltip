@@ -22,7 +22,7 @@ reaction: 2
 target: "Somniferie"
 targetIsYou: true
 == sample render
-panel 260 x 208
+panel 260 x 206
 texture at -16,-16 0x0 rgb=1,0.27,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x86 rgb=1,1,1,1 WHITE8X8
@@ -48,9 +48,9 @@ texture TOPRIGHT panel TOPRIGHT -19,-95 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE
 texture TOP panel TOP 0,-90 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,108 w=191.5 size=11 rgb=0.82,0.78,0.71 "Target"
 text at 222.5,108 w=18.5 size=11 rgb=1,0.34,0.28 "You"
-texture at 19,134 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
-texture TOPRIGHT panel TOPRIGHT -19,-134 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
-texture TOP panel TOP 0,-129 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
-text at 19,147 w=222 size=12 rgb=1,0.82,0 "The Defias Brotherhood"
-text at 27,163 w=214 size=12 rgb=0.9,0.85,0.74 "- Defias Pillager slain: 4/10"
-texture at 50,17 206x187 rgb=1,1,1,0.35 8244544
+texture at 19,132 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-132 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-127 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,145 w=222 size=12 rgb=1,0.82,0 "The Defias Brotherhood"
+text at 27,161 w=214 size=12 rgb=0.9,0.85,0.74 "- Defias Pillager slain: 4/10"
+texture at 50,17 206x185 rgb=1,1,1,0.35 8244544

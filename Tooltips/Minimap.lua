@@ -85,7 +85,7 @@ local function minimapView(model)
     for index, blip in ipairs(model.blips) do rows[index] = blipRow(blip) end
     local sections = { { kind = "rows", rows = rows, style = ui.styleOf("objectDetails"), color = colors.title, gap = 3 } }
     if #model.extras > 0 then
-        sections[2] = { separator = { rule = EXTRAS_RULE, before = 8 }, kind = "rows", rows = model.extras,
+        sections[2] = { separator = { rule = EXTRAS_RULE }, kind = "rows", rows = model.extras,
             style = ui.styleOf("extras"), color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     return { tooltipType = "object", color = colors.neutral, header = {}, sections = sections, minWidth = 0 }

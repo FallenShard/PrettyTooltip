@@ -17,7 +17,7 @@ name: "Retribution Aura"
 stacks: 0
 text: "Does 8 Holy damage to anyone who strikes you."
 == tooltip render
-panel 308 x 154
+panel 308 x 152
 texture at -16,-16 0x0 rgb=0.45,0.75,0.95,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -38,6 +38,6 @@ texture at 19,76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=270 size=12 rgb=0.92,0.87,0.76 "Does |cff9DD2F68|r Holy damage to anyone who strikes you."
-texture at 19,112 270x1 rgb=0.315,0.525,0.665,0.45 WHITE8X8
-text at 19,121 w=206.5 size=11 rgb=0.88,0.78,0.6 "No time limit"
-text at 237.5,121 w=51.5 size=11 rgb=0.6,0.57,0.52 "by Player"
+texture at 19,110 270x1 rgb=0.315,0.525,0.665,0.45 WHITE8X8
+text at 19,119 w=206.5 size=11 rgb=0.88,0.78,0.6 "No time limit"
+text at 237.5,119 w=51.5 size=11 rgb=0.6,0.57,0.52 "by Player"

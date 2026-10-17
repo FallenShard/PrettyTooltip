@@ -522,6 +522,9 @@ local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     local right = row.right
     local leftColor = row.color or color
     indent, gap, rightIndent = indent or 0, gap or 3, rightIndent or 0
+    -- What the row leaves under its letters, its line's leading and the gap:
+    -- a divider or rule after it counts this in (Panel/Render.lua).
+    panel.rowTail = math.floor(style.size * 1.15 + .5) - style.size + gap
     local w = panel.width - 2 * pad() - indent - rightIndent
     if right and right ~= "" then
         local rightWidth = math.min(measureStyled(panel, right, style) + 2,

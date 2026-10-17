@@ -29,7 +29,7 @@ targetColor:
   2: 0.27
   3: 0.22
 == sample render
-panel 260 x 196
+panel 260 x 193
 texture at -16,-16 0x0 rgb=0.78,0.61,0.43,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x98 rgb=1,1,1,1 WHITE8X8
@@ -56,6 +56,6 @@ texture TOPRIGHT panel TOPRIGHT -19,-107 102x1 rgb=0.4056,0.3068,0.1664,0.8 WHIT
 texture TOP panel TOP 0,-102 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,120 w=164 size=11 rgb=0.82,0.78,0.71 "Target"
 text at 195,120 w=46 size=11 rgb=1,0.27,0.22 "Ragnaros"
-texture at 19,143 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,152 w=222 size=11 rgb=0.6,0.6,0.63 "Item Level 61"
+texture at 19,140 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,149 w=222 size=11 rgb=0.6,0.6,0.63 "Item Level 61"
 texture at 104,4 152x172 rgb=0.4,0.6,1,0.12 faction-alliance

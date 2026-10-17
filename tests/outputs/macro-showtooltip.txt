@@ -38,7 +38,7 @@ shows:
       1: "Macro"
 showsType: 1
 == tooltip render
-panel 300 x 235
+panel 300 x 224
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
@@ -67,12 +67,12 @@ texture at 150,90 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
 text at 215.5,88 w=65.5 size=13 rgb=0.96,0.92,0.84 "40 yd"
 text at 215.5,105 w=65.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
 texture at 216,90 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-texture at 19,130 262x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
-text at 19,139 w=262 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cffFBCF7467|r to |cffFBCF7476|r."
-texture at 19,164 262x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
-text at 19,173 w=138 size=11 rgb=0.82,0.78,0.71 "Healing Power Coefficient"
-text at 169,173 w=112 size=11 rgb=0.82,0.78,0.71 "|cffFBCF7442.9%|r |cff999185·|r 67 to 76 + |cffFBCF740|r"
-text at 19,188 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Second"
-text at 257,188 w=24 size=11 rgb=0.82,0.78,0.71 "47.7"
-text at 19,203 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Mana"
-text at 257,203 w=24 size=11 rgb=0.82,0.78,0.71 "1.43"
+texture at 19,123 262x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,132 w=262 size=12 rgb=0.92,0.87,0.76 "Heals a friendly target for |cffFBCF7467|r to |cffFBCF7476|r."
+texture at 19,153 262x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,162 w=138 size=11 rgb=0.82,0.78,0.71 "Healing Power Coefficient"
+text at 169,162 w=112 size=11 rgb=0.82,0.78,0.71 "|cffFBCF7442.9%|r |cff999185·|r 67 to 76 + |cffFBCF740|r"
+text at 19,177 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Second"
+text at 257,177 w=24 size=11 rgb=0.82,0.78,0.71 "47.7"
+text at 19,192 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Mana"
+text at 257,192 w=24 size=11 rgb=0.82,0.78,0.71 "1.43"

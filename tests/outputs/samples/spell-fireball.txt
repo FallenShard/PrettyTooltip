@@ -29,7 +29,7 @@ rank: "Rank 1"
 requirements: {}
 spellPower: 10
 == sample render
-panel 308 x 279
+panel 308 x 268
 texture at -16,-16 0x0 rgb=1,0.43,0.11,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
@@ -60,14 +60,14 @@ texture at 154,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
 text at 221.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "35 yd"
 text at 221.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
 texture at 222,91 1x26 rgb=0.6,0.258,0.066,0.5 WHITE8X8
-texture at 19,131 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8
-text at 19,140 w=270 size=12 rgb=0.92,0.87,0.76 "Hurls a fiery ball that causes |cffFF996016|r to |cffFF996025|r Fire damage and an additional |cffFF99602|r Fire damage over |cffFF99604|r sec."
-texture at 19,193 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8
-text at 19,202 w=146 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient"
-text at 177,202 w=112 size=11 rgb=0.82,0.78,0.71 "|cffFF996042.9%|r |cff999185·|r 12 to 21 + |cffFF99604|r"
-text at 19,217 w=190 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient over time"
-text at 221,217 w=68 size=11 rgb=0.82,0.78,0.71 "|cffFF99600.0%|r |cff999185·|r 2 + |cffFF99600|r"
-text at 19,232 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Second"
-text at 265,232 w=24 size=11 rgb=0.82,0.78,0.71 "14.2"
-text at 19,247 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Mana"
-text at 265,247 w=24 size=11 rgb=0.82,0.78,0.71 "0.75"
+texture at 19,124 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8
+text at 19,133 w=270 size=12 rgb=0.92,0.87,0.76 "Hurls a fiery ball that causes |cffFF996016|r to |cffFF996025|r Fire damage and an additional |cffFF99602|r Fire damage over |cffFF99604|r sec."
+texture at 19,182 270x1 rgb=0.7,0.301,0.077,0.45 WHITE8X8
+text at 19,191 w=146 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient"
+text at 177,191 w=112 size=11 rgb=0.82,0.78,0.71 "|cffFF996042.9%|r |cff999185·|r 12 to 21 + |cffFF99604|r"
+text at 19,206 w=190 size=11 rgb=0.82,0.78,0.71 "Spell Power Coefficient over time"
+text at 221,206 w=68 size=11 rgb=0.82,0.78,0.71 "|cffFF99600.0%|r |cff999185·|r 2 + |cffFF99600|r"
+text at 19,221 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Second"
+text at 265,221 w=24 size=11 rgb=0.82,0.78,0.71 "14.2"
+text at 19,236 w=234 size=11 rgb=0.82,0.78,0.71 "Damage per Mana"
+text at 265,236 w=24 size=11 rgb=0.82,0.78,0.71 "0.75"
