@@ -44,6 +44,7 @@ Integration\Cursor.lua
 #@debug@
 UI\Capture.lua
 #@end-debug@
+UI\Report.lua
 UI\Debug.lua
 UI\Commands.lua
 PrettyTooltip.lua

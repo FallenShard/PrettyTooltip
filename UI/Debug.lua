@@ -1,4 +1,5 @@
--- Debug commands: /ptip anchors, /ptip perf, and /ptip pixel.
+-- Debug commands: /ptip anchors, /ptip perf, and /ptip pixel. Each shows its
+-- findings in the report window, to copy into a bug report.
 local addonName, ns = ...
 local ui = ns.ui
 if not ui then return end
@@ -21,6 +22,11 @@ function ns.dumpAnchors()
         end
         return frame:GetName() or tostring(frame)
     end
+    if #shown == 0 then
+        print("PrettyTooltip: no panel is shown.")
+        return
+    end
+    local lines = {}
     for index, entry in ipairs(shown) do
         local tooltip, panel = entry.tooltip, entry.panel
         local line = ("%s: panel %.1f to %.1f (pinned %s), hidden %.1f to %.1f"):format(tooltip:GetName() or "?",
@@ -28,16 +34,16 @@ function ns.dumpAnchors()
         if index > 1 then
             line = line .. (", gap %.1f"):format(panel:GetLeft() - shown[index - 1].panel:GetRight())
         end
-        print(line)
+        lines[#lines + 1] = line
         for point = 1, tooltip:GetNumPoints() do
             local from, relativeTo, to, x, y = tooltip:GetPoint(point)
             if not isSecret(relativeTo) then
-                print(("    %s to %s %s, offset %s, %s"):format(tostring(from), nameOf(relativeTo), tostring(to),
-                    tostring(x), tostring(y)))
+                lines[#lines + 1] = ("    %s to %s %s, offset %s, %s"):format(tostring(from), nameOf(relativeTo),
+                    tostring(to), tostring(x), tostring(y))
             end
         end
     end
-    if #shown == 0 then print("PrettyTooltip: no panel is shown.") end
+    ns.showReport("anchors", lines)
 end
 
 -- /ptip pixel: whether lines are snapped by the game's PixelUtil or the
@@ -46,8 +52,8 @@ function ns.dumpPixel()
     local native = PixelUtil and PixelUtil.GetNearestPixelSize and PixelUtil.GetPixelToUIUnitFactor
     local width, height = GetPhysicalScreenSize()
     local scale = UIParent:GetEffectiveScale()
-    print(("PrettyTooltip: snapping with %s; screen %dx%d, UI scale %.3f, one pixel = %.4f units."):format(
-        native and "the game's PixelUtil" or "the addon's own math", width, height, scale, ui.pixel(UIParent)))
+    ns.showReport("pixel", { ("Snapping with %s; screen %dx%d, UI scale %.3f, one pixel = %.4f units."):format(
+        native and "the game's PixelUtil" or "the addon's own math", width, height, scale, ui.pixel(UIParent)) })
 end
 
 -- The addon's own memory in KB, as the game counts it; nil where it cannot.
@@ -78,16 +84,18 @@ function ns.perfCapture(seconds)
         end
         table.sort(names, function(a, b) return perf.time[a] > perf.time[b] end)
         table.sort(counts)
-        print(string.format("PrettyTooltip perf over %d s:", seconds))
+        local lines = { string.format("PrettyTooltip perf over %d s:", seconds) }
         local ownNow = addonMemory()
         if own and ownNow then
-            print(string.format("  memory: %.0f KB, %+.0f KB over the run", ownNow, ownNow - own))
+            lines[#lines + 1] = string.format("  memory: %.0f KB, %+.0f KB over the run", ownNow, ownNow - own)
         end
-        print(string.format("  all addons' Lua memory: %+.0f KB over the run", collectgarbage("count") - memory))
-        if #counts > 0 then print("  counts: " .. table.concat(counts, ", ")) end
+        lines[#lines + 1] = string.format("  all addons' Lua memory: %+.0f KB over the run",
+            collectgarbage("count") - memory)
+        if #counts > 0 then lines[#lines + 1] = "  counts: " .. table.concat(counts, ", ") end
         for _, name in ipairs(names) do
-            print(string.format("  %s: %d calls (%.0f/s), %.1f ms", name, perf.calls[name],
-                perf.calls[name] / seconds, perf.time[name] or 0))
+            lines[#lines + 1] = string.format("  %s: %d calls (%.0f/s), %.1f ms", name, perf.calls[name],
+                perf.calls[name] / seconds, perf.time[name] or 0)
         end
+        ns.showReport("perf", lines)
     end)
 end

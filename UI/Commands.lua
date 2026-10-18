@@ -11,17 +11,18 @@ local function dumpTooltip()
     end
     -- Who filled it, to tell which frame or addon a lines-only tooltip is from.
     local owner = tooltip:GetOwner()
-    print("PrettyTooltip dump: owned by " .. tostring(owner and owner.GetDebugName and owner:GetDebugName() or owner))
+    local lines = { "Owned by " .. tostring(owner and owner.GetDebugName and owner:GetDebugName() or owner) }
     local data = tooltip.GetTooltipData and tooltip:GetTooltipData()
     if type(data) ~= "table" then
         -- Filled by an addon with lines alone, as Questie's quest links.
-        print("PrettyTooltip dump: no tooltip data; the lines shown:")
+        lines[#lines + 1] = "No tooltip data; the lines shown:"
         for index = 1, tooltip:NumLines() do
             local left = _G[tooltip:GetName() .. "TextLeft" .. index]
             local right = _G[tooltip:GetName() .. "TextRight" .. index]
-            local text = (left and left:GetText() or "") .. (right and right:GetText() and "  ||  " .. right:GetText() or "")
-            print(index .. ". " .. text:gsub("|", "||"))
+            local text = (left and left:GetText() or "") .. (right and right:GetText() and "  |  " .. right:GetText() or "")
+            lines[#lines + 1] = index .. ". " .. text
         end
+        ns.showReport("dump", lines)
         return
     end
     local function names(enum)
@@ -39,15 +40,16 @@ local function dumpTooltip()
     for key, value in pairs(data) do
         if key ~= "lines" then fields[#fields + 1] = key .. "=" .. show(value) end
     end
-    print("PrettyTooltip dump: " .. tostring(types[data.type] or data.type) .. "  " .. table.concat(fields, "  "))
+    lines[#lines + 1] = tostring(types[data.type] or data.type) .. "  " .. table.concat(fields, "  ")
     for index, line in ipairs(data.lines or {}) do
         local parts = {}
         for key, value in pairs(line) do
             if key ~= "type" then parts[#parts + 1] = key .. "=" .. show(value) end
         end
         table.sort(parts)
-        print(index .. ". " .. tostring(lineTypes[line.type] or line.type) .. "  " .. table.concat(parts, "  "))
+        lines[#lines + 1] = index .. ". " .. tostring(lineTypes[line.type] or line.type) .. "  " .. table.concat(parts, "  ")
     end
+    ns.showReport("dump", lines)
 end
 
 local function handleCommand(message)

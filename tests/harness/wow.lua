@@ -46,7 +46,8 @@ return function(fixture, enums, report)
     -- children the frame does not have.
     local VERBS = { "Set", "Get", "Is", "Has", "Can", "Enable", "Disable", "Register", "Unregister", "Clear",
         "Hook", "Raise", "Lower", "Lock", "Unlock", "Start", "Stop", "Play", "Add", "Remove", "Update",
-        "Refresh", "Reset", "Toggle", "Release", "Apply", "Insert", "Scroll", "Click", "Fade", "Adjust" }
+        "Refresh", "Reset", "Toggle", "Release", "Apply", "Insert", "Scroll", "Click", "Fade", "Adjust",
+        "Highlight" }
     local function isMethodName(key)
         if type(key) ~= "string" then return false end
         for _, verb in ipairs(VERBS) do
