@@ -130,12 +130,14 @@ local function onTooltipData(dataType, tooltip, data)
             if visible and not panel.fitting then onNativeShown(shown, "SetShown") end
         end)
         tooltip:HookScript("OnShow", function(shown) onNativeShown(shown, "OnShow") end)
-        -- The comparison code can re-anchor a shown comparison; it belongs
-        -- beside the panels, not the hidden tooltips under them.
+        -- The comparison code anchors a comparison after showing it, a point at
+        -- a time; it belongs beside the panels, not the hidden tooltips under
+        -- them, and its panel pinned to the edge those points place.
         hooksecurefunc(tooltip, "SetPoint", function(moved)
             if not native.anchoring and panel:IsShown() and isComparison(moved) then
                 tally("re-anchor after SetPoint")
                 anchorToPanels(moved)
+                pcall(alignPanel, panel, moved)
             end
         end)
         hooksecurefunc(tooltip, "SetAlpha", function(faded, alpha)

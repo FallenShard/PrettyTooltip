@@ -856,15 +856,24 @@ local function gridOffset(panel, tooltip, side)
     return snap(panel, x) - x, snap(panel, y) - y
 end
 
--- The hidden tooltip is often wider than its panel, as long as its longest
--- unwrapped line. Pin the panel to the side the tooltip itself is anchored
--- by, so the spare width faces away from whatever it is attached to.
-local function alignPanel(panel, tooltip)
-    local point = tooltip:GetNumPoints() > 0 and tooltip:GetPoint(1)
-    local side = "LEFT"
-    if not isSecret(point) and type(point) == "string" and point:find("RIGHT") then
-        side = "RIGHT"
+-- The side of the first of a tooltip's points that places a left or right
+-- edge; comparisons are anchored by "TOP" first, then by "LEFT" or "RIGHT".
+local function anchoredSide(tooltip)
+    for index = 1, tooltip:GetNumPoints() do
+        local point = tooltip:GetPoint(index)
+        if isSecret(point) or type(point) ~= "string" then return "LEFT" end
+        if point:find("RIGHT") then return "RIGHT" end
+        if point:find("LEFT") then return "LEFT" end
     end
+    return "LEFT"
+end
+
+-- The hidden tooltip is often wider than its panel, as long as its longest
+-- unwrapped line, and narrower until it is fitted. Pin the panel to the side
+-- the tooltip itself is anchored by, so the difference faces away from
+-- whatever it is attached to.
+local function alignPanel(panel, tooltip)
+    local side = anchoredSide(tooltip)
     local dx, dy = gridOffset(panel, tooltip, side)
     if panel.side == side and panel:GetNumPoints() > 0
         and math.abs(dx - (panel.gridX or 0)) < .001 and math.abs(dy - (panel.gridY or 0)) < .001 then
