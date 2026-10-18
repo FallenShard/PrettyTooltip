@@ -34,6 +34,10 @@ HARNESS = TESTS / "harness"
 FIXTURES = TESTS / "fixtures"
 OUTPUTS = TESTS / "outputs"
 UNIT = TESTS / "unit"
+LOCALES = TESTS / "locales"
+# The game's strings by language (tools/make_strings.py), as Lua source the
+# harness loads in each fixture's language.
+GAME_STRINGS = {path.stem: path.read_text(encoding="utf-8") for path in sorted(LOCALES.glob("*.lua"))}
 
 # Lines run by any test, by file, while --coverage is given.
 COVERAGE: dict[str, set[int]] | None = None
@@ -44,6 +48,10 @@ def addon_files() -> list[str]:
     files = []
     for line in (ROOT / "PrettyTooltip.toc").read_text(encoding="utf-8").splitlines():
         line = line.strip()
+        # A load condition, as [AllowLoadTextLocale deDE], would need the harness to load the
+        # file only for fixtures of that language; until it does, say so rather than skip it.
+        if not line.startswith("#") and "[" in line:
+            sys.exit(f"The tests cannot load .toc lines with conditions or variables yet: {line}")
         if line and not line.startswith("#") and line.endswith(".lua"):
             files.append(line.replace("\\", "/"))
     return files
@@ -55,6 +63,10 @@ def new_runtime():
     load = lua.eval("function(source, name) return assert(loadstring(source, '@' .. name))() end")
     harness = {name: load((HARNESS / f"{name}.lua").read_text(encoding="utf-8"), f"harness/{name}.lua")
                for name in ("serialize", "wow", "main")}
+    # Every world gets the game's strings, without the entry points passing them on.
+    with_strings = lua.eval("function(makeWorld, strings) return function(fixture, enums, report)"
+                            " return makeWorld(fixture, enums, report, strings) end end")
+    harness["wow"] = with_strings(harness["wow"], lua_table(lua, GAME_STRINGS))
     if COVERAGE is not None:
         harness["hits"] = lua.table()
         harness["main"].track(harness["hits"])

@@ -91,6 +91,120 @@ function util.colorNumbers(text, code)
     return table.concat(out)
 end
 
+-- Reading text the game printed from its own strings ------------------------------
+
+-- Color codes carry no meaning, a no-break space (as French puts before a
+-- colon) reads as a space, and |n is a line break.
+local function normalized(text)
+    text = util.uncolored(text):gsub("\194\160", " "):gsub("\226\128\175", " ")
+    return (text:gsub("|n", "\n"))
+end
+
+local function escapePattern(text)
+    return (text:gsub("[%^%$%(%)%%%.%[%]%*%+%-%?]", "%%%0"))
+end
+
+-- What each conversion reads: "%s" any text, "%c" the sign the game passes
+-- it, and the rest a number, with either separator (see util.parseNumber).
+local NUMBER = "(%-?%d[%d%.,]*)"
+local SIGN = "([%+%-])"
+-- French "|2 " is "de " before a consonant and "d'" before a vowel.
+local DE = { "de ", "d'", "d\226\128\153" }
+
+-- A game string such as "Requires Level %d" as the patterns that read text
+-- printed from it: one per choice its grammar escapes make ("|4hour:hours;",
+-- Korean "|1으로부터;로부터;", French "|2 "), as patterns have no "or". order
+-- holds, for each capture, the argument it is: "%2$s %1$d emplacements"
+-- captures the second argument first.
+local function compileFormat(format)
+    local text = util.trim(normalized(format))
+    local bodies, order, count = { "" }, {}, 0
+    local function append(choices)
+        local grown = {}
+        for _, body in ipairs(bodies) do
+            for _, choice in ipairs(choices) do grown[#grown + 1] = body .. choice end
+        end
+        bodies = grown
+    end
+    local pos = 1
+    while pos <= #text do
+        if text:sub(pos, pos) == "%" then
+            local _, positional, index = text:find("^%%(%d+)%$", pos)
+            local _, stop, kind = text:find("^[%-%+ #0]*%d*%.?%d*([%%sdicfgFu])", (positional or pos) + 1)
+            if not stop or kind == "%" then
+                append({ "%%" })
+                pos = (stop or pos) + 1
+            else
+                local argument = tonumber(index) or #order + 1
+                order[#order + 1] = argument
+                count = math.max(count, argument)
+                append({ kind == "s" and "(.-)" or kind == "c" and SIGN or NUMBER })
+                pos = stop + 1
+            end
+        elseif text:find("^|4[^;]*;", pos) then
+            local _, stop, forms = text:find("^|4([^;]*);", pos)
+            local choices = {}
+            for form in (forms .. ":"):gmatch("(.-):") do choices[#choices + 1] = escapePattern(form) end
+            append(choices)
+            pos = stop + 1
+        elseif text:find("^|1[^;]*;[^;]*;", pos) then
+            local _, stop, first, second = text:find("^|1([^;]*);([^;]*);", pos)
+            append({ escapePattern(first), escapePattern(second) })
+            pos = stop + 1
+        elseif text:find("^|2", pos) then
+            local _, stop = text:find("^|2 ?", pos)
+            append(DE)
+            pos = stop + 1
+        else
+            local stop = (text:find("[%%|]", pos + 1) or #text + 1) - 1
+            append({ escapePattern(text:sub(pos, stop)) })
+            pos = stop + 1
+        end
+    end
+    local patterns = {}
+    for index, body in ipairs(bodies) do patterns[index] = "^" .. body .. "$" end
+    return { patterns = patterns, order = order, count = count }
+end
+
+local compiledFormats = {}
+
+-- What the game's string format filled in to print text, in the order of its
+-- arguments: util.unformat("Durability 34 / 100", DURABILITY_TEMPLATE) gives
+-- "34", "100". true when it matches and has nothing to fill in; nil when the
+-- text was not printed from it. Colors and the space around the text do not count.
+function util.unformat(text, format)
+    if type(text) ~= "string" or type(format) ~= "string" then return end
+    local compiled = compiledFormats[format]
+    if not compiled then
+        compiled = compileFormat(format)
+        compiledFormats[format] = compiled
+    end
+    text = util.trim(normalized(text))
+    for _, pattern in ipairs(compiled.patterns) do
+        local found = { text:match(pattern) }
+        if found[1] then
+            if compiled.count == 0 then return true end
+            local values = {}
+            for index, argument in ipairs(compiled.order) do values[argument] = found[index] end
+            return unpack(values, 1, compiled.count)
+        end
+    end
+end
+
+-- A number as the client printed it. group is the client's group separator
+-- (LARGE_NUMBER_SEPERATOR): "," on enUS, "." on deDE, none on frFR. Only a
+-- group separator before three digits is one; any other "." or "," is the
+-- decimal point, so "1.5" that Lua printed on a German client reads too.
+function util.parseNumber(text, group)
+    if type(text) ~= "string" then return end
+    local number = text:match("^%s*([%+%-]?[%d%.,]*%d)%s*$")
+    if not number then return end
+    if group == "." or group == "," then
+        number = number:gsub("%" .. group .. "(%d%d%d)%f[^%d]", "%1")
+    end
+    return tonumber((number:gsub(",", ".")))
+end
+
 -- Values the game may hide ------------------------------------------------------
 
 -- The value, or nil when the game hides it.

@@ -35,6 +35,10 @@ A capture holds the game's answers to what the readers ask (item, spell, and uni
 
 Every sample the style editor shows (a weapon, a herb, a hostile elite, a quest in progress, and the rest) is drawn and compared against `tests/outputs/samples/<kind>-<sample>.txt`, so every kind of panel is tested without a capture. The samples have no recorded game answers, so what needs one, as an icon or an item's price, is left out of them.
 
+### The game's strings, by language
+
+Every client defines the game's strings (`ITEM_MIN_LEVEL`, `DURABILITY_TEMPLATE`, …) as globals in its own language, and the addon reads tooltips through them. `tests/locales/<locale>.lua` holds them for enUS, deDE, frFR, koKR, zhCN, and zhTW, and each world defines the ones of its fixture's language (`client.locale`, enUS when a fixture has none). `python tools/make_strings.py` writes them from Forever's own string table on wago.tools: the globals `.luacheckrc` lists, the families a quoted name ending in `_` stands for (`"TOOLTIP_ITEM_STAT_"`), and the names the unit checks use. Run it again after adding a game string to the addon.
+
 ## Lint
 
 The run starts with [luacheck](https://github.com/lunarmodules/luacheck), by `.luacheckrc`, which reports names used but never defined: a rename or a move that leaves one behind fails it, whether or not a test runs that code. It runs when `luacheck` is on the PATH, or where the `LUACHECK` environment variable points (as at the `luacheck.exe` from its [releases](https://github.com/lunarmodules/luacheck/releases)); without it the run says lint was skipped. The game's globals the addon reads are listed in `.luacheckrc`; a new one goes there.

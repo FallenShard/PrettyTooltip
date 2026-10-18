@@ -7,7 +7,9 @@
 --
 -- Returns the world: the fixture's tooltips and the callbacks the addon gave
 -- TooltipDataProcessor.
-return function(fixture, enums, report)
+local stringsSet = {}
+
+return function(fixture, enums, report, strings)
     local world = { preCalls = {}, postCalls = {}, tooltips = {}, objects = {} }
 
     -- Values the game hid are marked { __secret = true } in a capture. They
@@ -487,6 +489,23 @@ return function(fixture, enums, report)
         WARLOCK = { .53, .53, .93 }, DRUID = { 1, .49, .04 },
     }) do
         RAID_CLASS_COLORS[class] = { r = color[1], g = color[2], b = color[3] }
+    end
+
+    -- The game's own strings in the fixture's language, from tests/locales
+    -- (strings holds each file's source by locale). The previous world's are
+    -- cleared first, so one language's never linger into the next.
+    for key in pairs(stringsSet) do _G[key] = nil end
+    stringsSet = {}
+    world.gameStrings = {}
+    local locale = GetLocale()
+    local source = strings and (strings[locale] or strings.enUS)
+    if source then
+        local chunkName = "@tests/locales/" .. (strings[locale] and locale or "enUS") .. ".lua"
+        world.gameStrings = assert(loadstring(source, chunkName))()
+        for key, value in pairs(world.gameStrings) do
+            _G[key] = value
+            stringsSet[key] = true
+        end
     end
 
     CreateFrame = function(kind, name, parent, template)
