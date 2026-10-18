@@ -1,3 +1,13 @@
+# PrettyTooltip 1.2.1
+
+## Tooltips
+
+- Fixed comparison tooltips sliding under the hovered item's tooltip when they open to its left, as when comparing items from bags or action bars.
+
+## Bug reports
+
+- `/ptip anchors`, `/ptip perf`, `/ptip pixel`, and `/ptip dump` now open a window with their results already selected: press Ctrl+C to copy them into a bug report. The first line names the addon version, game client, and language.
+
 # PrettyTooltip 1.2.0
 
 ## Tooltips
