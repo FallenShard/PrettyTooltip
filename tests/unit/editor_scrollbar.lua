@@ -1,7 +1,8 @@
 -- Native scrolling reports fractions; the editor stores pixel offsets. Keep
 -- arrows, wheel input, thumb dragging, and appearance changes in agreement.
 return function(test)
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "UI/EditorSkin.lua" })
     ns.Game.addonInstalled = function() return true end
     local skin = ns.EditorSkin.create()

@@ -15,7 +15,8 @@ return function(test)
         capture.lines[index] = { left = { text = text } }
     end
     capture.data.lines[6].usable = false
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Data/Stats.lua", "Panel/Layout.lua", "Tooltips/Item.lua" }, capture)
     local model = ns.TooltipTypes[0].read(world.main, capture.data, ns.Game)
     local function lefts(rows)

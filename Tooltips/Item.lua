@@ -10,7 +10,8 @@ end
 local util = ns.util
 local colors = ns.Palette.roles
 local isSecret, safeText, number = util.isSecret, util.safeText, util.number
-local plainText, rgb = util.plainText, util.rgb
+local plainText, rgb, unformat = util.plainText, util.rgb, util.unformat
+local formats = ns.Locale.formats
 local LINE = Enum.TooltipDataLineType
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
 local pad, PROSE_WIDTH, COLUMN_GAP = ui.pad, ui.PROSE_WIDTH, ui.COLUMN_GAP
@@ -42,9 +43,39 @@ local PRIMARY_STATS = {
     ["All Stats"] = true,
 }
 local QUEST_MARK = "|TInterface\\GossipFrame\\AvailableQuestIcon:0|t "
-local ITEM_KINDS = { "Crafting Reagent", "Scarce" }
+-- Kinds of item the game names on a line of their own, as "Crafting Reagent".
+local ITEM_KINDS = {}
+for _, kind in pairs({ PROFESSIONS_USED_IN_COOKING, formats.scarce }) do ITEM_KINDS[#ITEM_KINDS + 1] = kind end
 local ITEM_KIND_NAMES = {}
 for _, kind in ipairs(ITEM_KINDS) do ITEM_KIND_NAMES[kind:lower()] = kind end
+
+-- The lines naming how an item binds or how many one may have: "Binds when
+-- picked up", "Soulbound", "Unique (2)".
+local BINDINGS = { ITEM_BIND_ON_PICKUP, ITEM_BIND_ON_EQUIP, ITEM_BIND_ON_USE, ITEM_BIND_TO_ACCOUNT,
+    ITEM_BIND_TO_BNETACCOUNT, ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP, ITEM_SOULBOUND, ITEM_UNIQUE, ITEM_UNIQUE_EQUIPPABLE,
+    ITEM_UNIQUE_MULTIPLE, ITEM_LIMIT_CATEGORY, ITEM_LIMIT_CATEGORY_MULTIPLE }
+local function isBinding(text)
+    for _, binding in pairs(BINDINGS) do
+        if unformat(text, binding) then return true end
+    end
+    return false
+end
+
+-- An amount as a weapon or armor line holds it: digits and separators.
+local function amount(text)
+    return text and text:match("^[%d%.,]+$")
+end
+
+-- Whether the text is a weapon's damage printed from format: "41 - 77 Damage".
+local function weaponDamage(text, format)
+    local low, high = unformat(text, format)
+    return amount(low) ~= nil and amount(high) ~= nil
+end
+
+-- Whether the text starts with a label the game puts first, as "Use:".
+local function startsWith(text, label)
+    return label ~= nil and text:sub(1, #label) == label
+end
 local function getItemInfo(tooltip, data)
     if tooltip.GetItem then
         local ok, _, link = pcall(tooltip.GetItem, tooltip)
@@ -167,12 +198,12 @@ end
 local function readCopyLine(model, left, right)
     if right ~= "" then return false end
     local text = plainText(left):match("^%s*(.-)%s*$")
-    local maker = text:match("^<Made by (.+)>$")
+    local maker = unformat(text, ITEM_CREATED_BY)
     if maker then
         model.madeBy = maker
         return true
     end
-    local enchant = text:match("^Enchanted:%s*(.+)$")
+    local enchant = unformat(text, ENCHANTED_TOOLTIP_LINE)
     if enchant then
         for _, row in ipairs(enchantRows(enchant)) do add(model.enchants, row, "") end
         return true
@@ -187,23 +218,17 @@ end
 -- The game's "If you replace this item" lines are kept as rows from another
 -- source; their "+5 Stamina" lines must not be read as the item's own stats.
 local STOCK_CHANGES = ITEM_DELTA_DESCRIPTION
-    or "If you replace this item, the following stat changes will occur:"
-
-local PROFESSIONS = {
-    Alchemy = true, Blacksmithing = true, Enchanting = true, Engineering = true,
-    Leatherworking = true, Tailoring = true, Cooking = true, ["First Aid"] = true, Fishing = true,
-    Mining = true, Herbalism = true, Skinning = true, Jewelcrafting = true, Inscription = true,
-}
 
 -- "Requires Blacksmithing (80)": the profession and level a recipe needs.
 local function professionRequirement(text)
-    local name, level = text:match("^Requires (.-) %((%d+)%)$")
-    if name and PROFESSIONS[name] then return name, tonumber(level) end
+    local name, level = unformat(text, ITEM_MIN_SKILL)
+    if name and ns.Locale.professions[name] then return name, tonumber(level) end
 end
 
 -- "Requires Bronze Bar (10), Sulfuric Acid (2)": a recipe's reagents.
 local function reagentList(text)
-    text = plainText(text):gsub("^%s*Requires%s+", "")
+    text = plainText(text)
+    text = unformat(text, ITEM_REQ_SKILL) or text
     if not text:find("%(%d+%)") then return end
     local list = {}
     for piece in (text .. ","):gmatch("%s*(.-)%s*,") do
@@ -276,7 +301,7 @@ local function finishRecipe(tooltip, model, data, game)
         else
             model.levelRequirement = { text = text, met = model.skill.met }
         end
-        model.slot = (model.name:match("^(%a+):") or "Recipe") .. " \194\183 " .. model.skill.name
+        model.slot = (model.name:match("^([^:%s]+):") or "Recipe") .. " \194\183 " .. model.skill.name
     end
     local created = model.created
     if created then
@@ -326,7 +351,7 @@ local function readModel(tooltip, data, game)
     local inStockChanges = false
     local function isStockChange(text)
         local trimmed = plainText(text):match("^%s*(.-)%s*$")
-        if trimmed == STOCK_CHANGES or trimmed:find("^If you replace this item") then
+        if unformat(trimmed, STOCK_CHANGES) then
             inStockChanges = true
             return true
         end
@@ -353,7 +378,8 @@ local function readModel(tooltip, data, game)
         local lineType = line.type
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
         local trimmed = left:match("^%s*(.-)%s*$")
-        if trimmed == "Quest Item" or trimmed:match("^This Item Begins a Quest") then
+        local startsQuest = unformat(trimmed, ITEM_STARTS_QUEST)
+        if startsQuest or unformat(trimmed, ITEM_BIND_QUEST) then
             m.quest = true
         end
         if isSecret(line.prettyTooltipDisplay) or isSecret(line.prettyTooltipOriginal) then return end
@@ -361,9 +387,9 @@ local function readModel(tooltip, data, game)
 
         if isStockChange(left) then
             addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
-        elseif trimmed:match("^Use: Teaches you how to") then
+        elseif unformat(trimmed, formats.recipeTeaches) then
             model.teaches = { left = left, right = right }
-        elseif m == model and trimmed:match("^This Item Begins a Quest") then
+        elseif m == model and startsQuest then
             model.startsQuest = trimmed
         elseif m == model and professionRequirement(trimmed) then
             local name, level = professionRequirement(trimmed)
@@ -387,67 +413,69 @@ local function readModel(tooltip, data, game)
             local slot = unusable(left, line.leftColor)
             local kind = unusable(right, line.rightColor)
             m.slot = right ~= "" and (kind .. " \194\183 " .. slot) or slot
-        elseif lineType == LINE.ItemBinding or trimmed:match("^Binds ")
-            or trimmed == "Soulbound" or trimmed:match("^Unique") then
+        elseif lineType == LINE.ItemBinding or isBinding(trimmed) then
             add(m.header, left, right)
             if isRed(line.leftColor) then m.header[#m.header].color = UNUSABLE_COLOR end
-        elseif trimmed:match("^%d+ Slot %a") and right == "" then
-            local count, kind = trimmed:match("^(%d+) Slot (.+)$")
+        elseif right == "" and tonumber((unformat(trimmed, CONTAINER_SLOTS))) then
+            local count, kind = unformat(trimmed, CONTAINER_SLOTS)
             m.bag = { count = tonumber(count), kind = kind }
         elseif itemKind(left, right) then
             local kind, text = itemKind(left, right, line.leftColor)
             m.kinds[kind] = text
         elseif trimmed ~= "" then
-            local setName, count, total = trimmed:match("^(.-) %((%d+)/(%d+)%)$")
-            if setName and not m.setName then
+            local setName, count, total = unformat(trimmed, ITEM_SET_NAME)
+            if setName and tonumber(count) and tonumber(total) and not m.setName then
                 m.setName, m.setCount = setName, count .. "/" .. total
                 inSet, setTotal = true, tonumber(total)
             elseif LINE.SellPrice and lineType == LINE.SellPrice then
                 m.hasSellPrice = true
-            elseif trimmed:match("^Requires Level %d+$") and right == "" then
+            elseif unformat(trimmed, ITEM_MIN_LEVEL) and right == "" then
                 m.levelRequirement = {
                     text = trimmed, met = requirementOf(line, lineType, trimmed, game),
                 }
-            elseif isType(lineType, "UsageRequirement") or trimmed:match("^Requires ") then
+            elseif isType(lineType, "UsageRequirement") or unformat(trimmed, ITEM_REQ_SKILL) then
                 add(m.footerRight, left, right)
                 local entry = m.footerRight[#m.footerRight]
                 entry.requirement = true
                 entry.met = requirementOf(line, lineType, trimmed, game)
-            elseif trimmed:match("^Durability %d+ / %d+$") then
+            elseif tonumber((unformat(trimmed, DURABILITY_TEMPLATE))) then
                 add(m.footerLeft, trimmed, right)
-                local current, maximum = trimmed:match("(%d+) / (%d+)")
+                local current, maximum = unformat(trimmed, DURABILITY_TEMPLATE)
                 m.footerLeft[#m.footerLeft].durability =
                     { tonumber(current), tonumber(maximum) }
-            elseif trimmed:match("^Classes:") or trimmed:match("^Races:")
-                or trimmed:match("^You haven't collected") or trimmed:match("^Appearance ") then
+            elseif unformat(trimmed, ITEM_CLASSES_ALLOWED) or unformat(trimmed, ITEM_RACES_ALLOWED)
+                or unformat(trimmed, TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN)
+                or unformat(trimmed, TRANSMOGRIFY_STYLE_UNCOLLECTED) or unformat(trimmed, formats.appearance) then
                 add(m.footerLeft, left, right)
                 if isRed(line.leftColor) then
                     m.footerLeft[#m.footerLeft].color = UNUSABLE_COLOR
                 end
-            elseif inSet and trimmed:match("^%(%d+%) Set:") then
+            elseif inSet and unformat(trimmed, ITEM_SET_BONUS_GRAY) then
                 add(m.setBonuses, left, right)
                 m.setBonuses[#m.setBonuses].active = isActive(line.leftColor)
+            -- Set pieces are names alone: letters (of any alphabet), spaces,
+            -- apostrophes, and hyphens.
             elseif inSet and #m.setItems < setTotal
-                and right == "" and trimmed:match("^[%a'%- ]+$") then
+                and right == "" and trimmed:gsub("[%a'%- \128-\255]", "") == "" then
                 add(m.setItems, trimmed, right)
                 m.setItems[#m.setItems].active = isActive(line.leftColor)
             -- A wand names its school: "64 - 120 Shadow Damage".
-            elseif right:match("^Speed [%d%.]+$") and (trimmed:match("^[%d,]+%s*%-%s*[%d,]+ Damage$")
-                or trimmed:match("^[%d,]+%s*%-%s*[%d,]+ %a+ Damage$")) then
+            elseif amount(unformat(right, formats.weaponSpeed)) and (weaponDamage(trimmed, DAMAGE_TEMPLATE)
+                or weaponDamage(trimmed, DAMAGE_TEMPLATE_WITH_SCHOOL)) then
                 m.weaponDamage, m.weaponSpeed = left, right
-            elseif trimmed:match("^%+%s*[%d,]+%s*%-%s*[%d,]+ %a+ Damage$") then
+            elseif weaponDamage(trimmed, PLUS_DAMAGE_TEMPLATE_WITH_SCHOOL) then
                 -- A weapon's bonus damage of a school, drawn under its base damage.
                 m.weaponBonus[#m.weaponBonus + 1] = trimmed
-            elseif trimmed:match("^%([%d%.]+ damage per second%)$") then
-                m.weaponDps = trimmed:match("^%(([%d%.]+) damage per second%)$")
-            elseif trimmed:match("^[%d,]+ Armor$") then
+            elseif amount(unformat(trimmed, DPS_TEMPLATE)) then
+                m.weaponDps = unformat(trimmed, DPS_TEMPLATE)
+            elseif amount(unformat(trimmed, ARMOR_TEMPLATE)) then
                 add(m.armor, left, right)
-                m.armor[#m.armor].value = (trimmed:match("^([%d,]+)"):gsub(",", ""))
+                m.armor[#m.armor].value = (unformat(trimmed, ARMOR_TEMPLATE):gsub("%D", ""))
             elseif ((LINE.ItemSpellTriggerOnProc and lineType == LINE.ItemSpellTriggerOnProc)
-                or trimmed:match("^Chance on hit:")) and right == "" then
+                or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONPROC)) and right == "" then
                 -- Rewritten proc text stays an effect, rather than a stat.
                 local text = line.prettyTooltipOriginal or trimmed
-                add(m.equipEffects, (text:gsub("^Chance on hit:%s*", "")), "")
+                add(m.equipEffects, withoutLabel(text, ITEM_SPELL_TRIGGER_ONPROC), "")
                 m.equipEffects[#m.equipEffects].onHit = true
             elseif line.prettyTooltipOriginal or trimmed:match("^%+[%d%.]+") then
                 -- Combined bonuses arrive as one line; each stat needs its own row.
@@ -466,15 +494,17 @@ local function readModel(tooltip, data, game)
                 -- Crafter or enchant, taken into their own rows.
             elseif trimmed:match("^<.+>$") then
                 add(m.effects, left, right)
-            elseif (isType(lineType, "ItemSpellTriggerOnEquip") or trimmed:match("^Equip:")) and right == "" then
+            elseif (isType(lineType, "ItemSpellTriggerOnEquip") or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP))
+                and right == "" then
                 -- Unparsed equip effects join the stats; the list implies "Equip:".
-                add(m.equipEffects, withoutLabel(withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP), "Equip:"), "")
-            elseif (isType(lineType, "ItemSpellTriggerOnUse") or trimmed:match("^Use:")) and right == "" then
+                add(m.equipEffects, withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP), "")
+            elseif (isType(lineType, "ItemSpellTriggerOnUse") or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONUSE))
+                and right == "" then
                 -- Its gear marker stands for the words.
-                add(m.effects, withoutLabel(withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONUSE), "Use:"), "")
+                add(m.effects, withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONUSE), "")
                 m.effects[#m.effects].use = true
             elseif isType(lineType, "ItemSpellTriggerOnUse") or isType(lineType, "ItemSpellTriggerOnEquip")
-                or trimmed:match("^Equip:") or trimmed:match("^Use:") then
+                or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP) or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONUSE) then
                 add(m.effects, left, right)
             else
                 addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
@@ -492,7 +522,7 @@ local function readModel(tooltip, data, game)
             model.extras[#model.extras + 1] = row
         elseif model.created and not model.reagents and reagentList(trimmed) then
             model.reagents = reagentList(trimmed)
-        elseif trimmed:match("^Sell Price") then
+        elseif startsWith(trimmed, SELL_PRICE) then
             model.hasSellPrice = true
         elseif itemKind(row.left, row.right) then
             local kind, text = itemKind(row.left, row.right, row.textColor)

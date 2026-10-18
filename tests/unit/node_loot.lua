@@ -1,7 +1,8 @@
 -- A herb or ore node lists what it holds, and the option hides it.
 return function(test)
     local OBJECT = 4
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Data/Nodes.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua" },
         { enums = { TooltipDataType = { Item = 0, Object = OBJECT } } })
     local model = ns.ui.objectModel({ name = "Copper Vein", skill = "Mining", details = {}, quests = {}, extras = {} })

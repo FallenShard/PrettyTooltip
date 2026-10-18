@@ -9,7 +9,8 @@ return function(test)
             GetSkillLineInfo = { ["1"] = { "Skinning", false, false, 120, n = 4 } },
         },
     }
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Data/Skinning.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Unit.lua" },
         capture)
     -- Highland Raptor, level 20: Skinning 100.

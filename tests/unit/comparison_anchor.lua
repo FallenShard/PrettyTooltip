@@ -3,7 +3,8 @@
 -- one's panel is pinned to the edge those points place, so a hidden tooltip
 -- not yet fitted to its panel cannot push the panel over its neighbour.
 return function(test)
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Panel/Layout.lua", "Panel/Render.lua", "Integration/Native.lua" },
         { enums = { TooltipDataType = { Item = 0 } } })
     local ui, native = ns.ui, ns.Native

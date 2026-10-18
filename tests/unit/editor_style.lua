@@ -1,7 +1,8 @@
 -- Both editor treatments are available without other addons. The options
 -- page switches them live, and Defaults restores the Blizzard appearance.
 return function(test)
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "UI/Options.lua", "UI/EditorSkin.lua" })
     local installed = false
     C_AddOns.GetAddOnInfo = function(addon)

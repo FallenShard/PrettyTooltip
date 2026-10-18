@@ -1,7 +1,8 @@
 -- A dual-school spell's accent runs from its first school to its second.
 return function(test)
     local SPELL = 1
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Schools.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Schools.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Spell.lua" },
         { enums = { TooltipDataType = { Item = 0, Spell = SPELL } } })
     local frost, fire = ns.Palette.schools.Frost, ns.Palette.schools.Fire

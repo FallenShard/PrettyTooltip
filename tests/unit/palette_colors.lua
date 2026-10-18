@@ -5,7 +5,8 @@ return function(test)
     test.check("school defaults work before settings load", ns.Palette.school("Fire"), { 1, .43, .11 })
     test.check("an unknown school has no color", ns.Palette.school("Physical"), nil)
 
-    ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Data/Schools.lua", "Data/Stats.lua", "Panel/Layout.lua", "Panel/Render.lua",
         "Tooltips/Spell.lua", "Tooltips/Macro.lua" },
         { enums = { TooltipDataType = { Item = 0, Spell = 1, Macro = 8 } } })

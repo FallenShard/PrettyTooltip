@@ -18,7 +18,8 @@ return function(test)
                 ["2"] = { "Mining", false, false, 1, n = 4 } },
         },
     }
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua", "Tooltips/Minimap.lua" },
         capture)
     local model = ns.TooltipTypes[MINIMAP].read(world.main, capture.data, ns.Game)

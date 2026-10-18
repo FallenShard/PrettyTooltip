@@ -36,7 +36,7 @@ local function isRed(color)
 end
 
 local function requirementMet(text, color, game)
-    local level = text:match("^Requires Level (%d+)")
+    local level = tonumber((util.unformat(text, ITEM_MIN_LEVEL)))
     if level then
         local playerLevel = game.playerLevel()
         if playerLevel then return playerLevel >= tonumber(level) end

@@ -12,6 +12,8 @@
 Core\Util.lua
 Core\Palette.lua
 Core\Settings.lua
+Locale\Locale.lua
+Locale\English.lua
 Game\Game.lua
 Game\TooltipData.lua
 Data\Schools.lua

@@ -2,7 +2,8 @@
 -- as far from the panel's bottom as from its top.
 return function(test)
     local OBJECT = 4
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua" },
         { enums = { TooltipDataType = { Item = 0, Object = OBJECT } } })
     local model = ns.ui.objectModel({ name = "Mailbox", details = {}, quests = {}, extras = {} })

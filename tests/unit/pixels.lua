@@ -2,7 +2,8 @@
 -- 0.9 on a 1080p screen a unit is about 1.27 pixels, and a one-unit line
 -- would round to one or two.
 return function(test)
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua" },
         { enums = { TooltipDataType = { Item = 0, Object = 4 } } })
     local ui = ns.ui

@@ -2,7 +2,8 @@
 -- lent to another kind must restore its normal artwork and text colors.
 return function(test)
     local ITEM, QUEST = 0, 5
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua",
         "Game/TooltipData.lua", "Data/Stats.lua", "Panel/Layout.lua", "Panel/Render.lua",
         "Tooltips/Item.lua", "Tooltips/Quest.lua" }, { enums = { TooltipDataType = { Item = ITEM, Quest = QUEST },
         TooltipDataLineType = { None = 0, ItemName = 1, ItemBinding = 2 } } })

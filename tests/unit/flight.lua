@@ -1,7 +1,8 @@
 -- Flight map nodes, as /ptip capture saw them: the name and zone, then the
 -- cost in coins or "You are here". The flight map's hook draws the panel.
 return function(test)
-    local FILES = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
+    local FILES = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/FlightPath.lua", "Integration/Native.lua",
         "Integration/Hooks.lua" }
     local WHITE, GOLD = { 1, 1, 1 }, { 1, .82, 0 }

@@ -13,7 +13,8 @@ return function(test)
         } },
         lines = { { left = { text = "Test Mace" } }, { left = { text = "Two-Hand" }, right = { text = "Mace" } } },
     }
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Data/Stats.lua", "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Item.lua" }, capture)
     local model = ns.TooltipTypes[0].read(world.main, capture.data, ns.Game)
     test.check("the item has a level to show", model.level, 63)

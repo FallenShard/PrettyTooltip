@@ -2,7 +2,8 @@
 -- drains as its time runs out.
 return function(test)
     local AURA = 7
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Game/Game.lua", "Game/TooltipData.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Aura.lua" }, {
         enums = { TooltipDataType = { Item = 0, UnitAura = AURA } },
     })
