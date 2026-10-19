@@ -31,6 +31,9 @@ return function(test)
     test.check("a value kept as printed", fill(SPELL_DURATION_SEC, "3"), "3 sec")
     test.check("a decimal kept as printed", fill(SPELL_DURATION_SEC, "2.5"), "2.5 sec")
     test.check("the singular", fill(SPELL_DURATION_HOURS, "1"), "1 hour")
+    test.check("a plural after words, from the nearest number", {
+        util.resolvePlurals("1 to 5 Combo |4Point:Points;"), util.resolvePlurals("1 Combo |4Point:Points;"),
+        util.resolvePlurals("%.3g |4hour:hours;") }, { "1 to 5 Combo Points", "1 Combo Point", "%.3g |4hour:hours;" })
     test.check("the plural", fill(SPELL_DURATION_HOURS, "2"), "2 hrs")
     test.check("a percent sign", fill("%d%% of base mana", "15"), "15% of base mana")
     test.check("filled text reads back", all(unformat(fill(DURABILITY_TEMPLATE, "34", "100"), DURABILITY_TEMPLATE)),

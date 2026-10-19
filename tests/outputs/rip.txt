@@ -1,0 +1,96 @@
+== tooltip model
+cast:
+  1: "Instant"
+  2: "Cast"
+cells:
+  1:
+    1: "30"
+    2: "Energy"
+  2:
+    1: "Instant"
+    2: "Cast"
+  3:
+    1: "Melee"
+    2: "Range"
+cost:
+  1: "30"
+  2: "Energy"
+description:
+  1: "Finishing move that causes damage over time.  Damage increases per combo point and by your Attack Power:\n1 point  : 44 damage over 12 sec.\n2 points: 71 damage over 12 sec.\n3 points: 97 damage over 12 sec.\n4 points: 124 damage over 12 sec.\n5 points: 150 damage over 12 sec."
+details:
+  1:
+    left: "1 to 5 Combo Points"
+    right: ""
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Spell"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+icon: 132152
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+name: "Rip"
+power: "Energy"
+range:
+  1: "Melee"
+  2: "Range"
+rank: "Rank 1"
+requirements:
+  1:
+    left: "Requires Cat Form"
+    right: ""
+spellID: 1079
+== tooltip render
+panel 308 x 376
+texture at -16,-16 0x0 rgb=1,0.86,0.25,0.385 glow
+texture at 0,0 0x0 rgb=1,0.9559,0.7638,0.9 TooltipBackground-Temp.png
+texture at 0,0 0x0 rgb=1,0.86,0.25,0.2205 TooltipBackground-Temp.png
+texture at 6,6 0x65 rgb=1,1,1,1 band
+texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x0 rgb=0.1,0.075,0.08,0.6 band
+texture at 19,21 38x38 rgb=1,1,1,1 132152
+texture CENTER Texture CENTER 0,0 40x40 rgb=1,0.86,0.25,0.85 WHITE8X8
+text at 67,21 w=222 size=17 rgb=0.96,0.92,0.84 "RIP"
+text at 67,46 w=38 size=12 rgb=0.82,0.78,0.71 "|cffB8B0A6Rank 1|r"
+texture at 19,76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,89 w=67.5 size=13 rgb=1,0.937,0.6625 "30"
+text at 19,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "ENERGY"
+text at 86.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "Instant"
+text at 86.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "CAST"
+texture at 87,91 1x26 rgb=0.6,0.516,0.15,0.5 WHITE8X8
+text at 154,89 w=67.5 size=13 rgb=0.6,0.57,0.52 "None"
+text at 154,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
+texture at 154,91 1x26 rgb=0.6,0.516,0.15,0.5 WHITE8X8
+text at 221.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "Melee"
+text at 221.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
+texture at 222,91 1x26 rgb=0.6,0.516,0.15,0.5 WHITE8X8
+text at 19,127 w=270 size=11 rgb=0.82,0.78,0.71 "Requires Cat Form"
+text at 19,142 w=270 size=11 rgb=0.82,0.78,0.71 "1 to 5 Combo Points"
+texture at 19,162 270x1 rgb=0.7,0.602,0.175,0.45 WHITE8X8
+text at 19,171 w=270 size=12 rgb=0.92,0.87,0.76 "Finishing move that causes damage over time."
+text at 19,190 w=270 size=12 rgb=0.92,0.87,0.76 "Damage increases per combo point and by your Attack Power:"
+text at 19,223 w=270 size=12 rgb=0.92,0.87,0.76 "|cffFFF6E41|r point  : |cffFFF6E444|r damage over |cffFFF6E412|r sec."
+text at 19,242 w=270 size=12 rgb=0.92,0.87,0.76 "|cffFFF6E42|r points: |cffFFF6E471|r damage over |cffFFF6E412|r sec."
+text at 19,261 w=270 size=12 rgb=0.92,0.87,0.76 "|cffFFF6E43|r points: |cffFFF6E497|r damage over |cffFFF6E412|r sec."
+text at 19,280 w=270 size=12 rgb=0.92,0.87,0.76 "|cffFFF6E44|r points: |cffFFF6E4124|r damage over |cffFFF6E412|r sec."
+text at 19,299 w=270 size=12 rgb=0.92,0.87,0.76 "|cffFFF6E45|r points: |cffFFF6E4150|r damage over |cffFFF6E412|r sec."
+texture at 19,320 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,329 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+text at 19,344 w=270 size=11 rgb=0.6,0.6,0.63 "Spell ID: 1079"

@@ -123,24 +123,32 @@ end
 local ESCAPES = { "|c%x%x%x%x%x%x%x%x", "|r", "|T.-|t", "|A.-|a", "|H.-|h", "|K.-|k", "|4[^;]*;",
     "|3%-%d+%b()", "|n" }
 
--- "1 |4hour:hrs;" picks its word from the number before it. Coloring that
--- number would separate the two, so resolve the escape first: singular for 1.
--- Russian has three forms: 1/21, 2-4/22-24, and the rest (including 11-14).
-local function resolvePlurals(text)
-    return (text:gsub("(%d+)(%s*)|4([^;]*);", function(number, space, forms)
-        local one, few, many = forms:match("^([^:]*):([^:]*):(.*)$")
-        local value = tonumber(number)
-        if many then
-            local last, hundred = value % 10, value % 100
-            local form = (hundred < 11 or hundred > 14)
-                and (last == 1 and one or (last >= 2 and last <= 4) and few) or many
-            return number .. space .. (form or many)
-        end
-        one, many = forms:match("^([^:]*):(.*)$")
-        if not one then return number .. space .. "|4" .. forms .. ";" end
-        return number .. space .. (value == 1 and one or many)
-    end))
+-- "1 |4hour:hrs;" picks its word from the nearest number before it, words
+-- between allowed: "1 to 5 Combo |4Point:Points;". Coloring that number would
+-- separate the two, so resolve the escape first: singular for 1. Russian has
+-- three forms: 1/21, 2-4/22-24, and the rest (including 11-14).
+local function pluralOf(number, space, forms)
+    local one, few, many = forms:match("^([^:]*):([^:]*):(.*)$")
+    local value = tonumber(number)
+    if many then
+        local last, hundred = value % 10, value % 100
+        local form = (hundred < 11 or hundred > 14)
+            and (last == 1 and one or (last >= 2 and last <= 4) and few) or many
+        return number .. space .. (form or many)
+    end
+    one, many = forms:match("^([^:]*):(.*)$")
+    if not one then return number .. space .. "|4" .. forms .. ";" end
+    return number .. space .. (value == 1 and one or many)
 end
+
+-- Words between must start after a space, or a format's "%.3g |4..." would
+-- take its 3 for the number.
+local function resolvePlurals(text)
+    text = text:gsub("(%d+)(%s*)|4([^;]*);", pluralOf)
+    return (text:gsub("(%d+)(%s[^%d|]-)|4([^;]*);", pluralOf))
+end
+
+util.resolvePlurals = resolvePlurals
 
 local function colorPlainNumbers(text, code)
     -- A number must start a word, so "x2" is left alone; a sentence's final

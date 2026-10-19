@@ -198,6 +198,16 @@ local function readLine(model, line, left, right, game)
         return
     end
     if rightText ~= "" and readStat(model, rightText) then rightText = "" end
+    -- A cost in two resources is one line with a break: "30 Energy" over "1 to
+    -- 5 Combo Points". The first is the strip's cost, the rest are details.
+    local first, rest = (text:gsub("|n", "\n")):match("^([^\n]*)\n(.+)$")
+    if first and readStat(model, trim(first)) then
+        for part in rest:gmatch("[^\n]+") do
+            if trim(part) ~= "" then add(model.details, util.resolvePlurals(trim(part)), "") end
+        end
+        if rightText ~= "" then add(model.details, rightText, "") end
+        return
+    end
     if text ~= "" and readStat(model, text) then
         if rightText ~= "" then add(model.details, rightText, "") end
     elseif unformat(text, ITEM_COOLDOWN_TIME) then
@@ -213,7 +223,8 @@ local function readLine(model, line, left, right, game)
         or isDescription(line, text, rightText)) then
         readDescription(model, text)
     else
-        add(model.extras, left, right)
+        -- A right side already read, as the range, is not shown again.
+        add(model.extras, left, rightText == "" and "" or right)
         local row = model.extras[#model.extras]
         row.color, row.rightColor = tooltipData.colorOf(line.leftColor), tooltipData.colorOf(line.rightColor)
     end
