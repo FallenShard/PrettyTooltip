@@ -186,11 +186,12 @@ end
 -- ("Skinning"), which the client knows by its own (ns.Locale.skills). Older
 -- clients list skills; newer ones, like Forever's, only list professions.
 function game.skill(key)
-    local name = ns.Locale.skills[key] or key
+    local names = {}
+    for _, name in ipairs(ns.Locale.skillNames(key)) do names[name] = true end
     if GetNumSkillLines and GetSkillLineInfo then
         for index = 1, number((call(GetNumSkillLines))) or 0 do
             local skillName, isHeader, _, rank = call(GetSkillLineInfo, index)
-            if not isHeader and skillName == name and type(rank) == "number" then return rank end
+            if not isHeader and names[skillName] and type(rank) == "number" then return rank end
         end
     end
     if GetProfessions and GetProfessionInfo then
@@ -199,7 +200,7 @@ function game.skill(key)
             local index = found[position]
             if index ~= nil and not isSecret(index) then
                 local skillName, _, rank = call(GetProfessionInfo, index)
-                if skillName == name and type(rank) == "number" then return rank end
+                if names[skillName] and type(rank) == "number" then return rank end
             end
         end
     end

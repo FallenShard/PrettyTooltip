@@ -1,0 +1,87 @@
+== tooltip model
+cast:
+  1: "1,5 s"
+  2: "Lanzamiento"
+cells:
+  1:
+    1: "50"
+    2: "Maná"
+  2:
+    1: "1,5 s"
+    2: "Lanzamiento"
+  3:
+    1: "40 m"
+    2: "Alcance"
+cost:
+  1: "50"
+  2: "Maná"
+description:
+  1: "Cura un objetivo amigo en 67 a 76 p."
+details: {}
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Spell"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+icon: 135907
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+name: "Destello de Luz"
+power: "Mana"
+range:
+  1: "40 m"
+  2: "Alcance"
+rank: "Rango 2"
+requirements: {}
+spellID: 19939
+== tooltip render
+panel 336 x 195
+texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x70 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 19,21 38x38 rgb=1,1,1,1 135907
+texture CENTER Texture CENTER 0,0 40x40 rgb=0.98,0.73,0.22,0.85 WHITE8X8
+texture at 0,0 0x2 rgb=0.784,0.584,0.176,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
+text at 67,21 w=250 size=17 rgb=0.96,0.92,0.84 "DESTELLO DE LUZ"
+text at 67,46 w=104 size=12 rgb=0.82,0.78,0.71 "|cffFBCF74Sagrado|r |cff999185·|r |cffB8B0A6Rango 2|r"
+texture at 19,76 140x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-76 140x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,89 w=74.5 size=13 rgb=0.6625,0.7975,1 "50"
+text at 19,106 w=74.5 size=9 rgb=0.6,0.57,0.52 "MANÁ"
+text at 93.5,89 w=74.5 size=13 rgb=0.96,0.92,0.84 "1,5 s"
+text at 93.5,106 w=74.5 size=9 rgb=0.6,0.57,0.52 "LANZAMIENTO"
+texture at 94,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 168,89 w=74.5 size=13 rgb=0.6,0.57,0.52 "Ninguno"
+text at 168,106 w=74.5 size=9 rgb=0.6,0.57,0.52 "REUTILIZACIÓN"
+texture at 168,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 242.5,89 w=74.5 size=13 rgb=0.96,0.92,0.84 "40 m"
+text at 242.5,106 w=74.5 size=9 rgb=0.6,0.57,0.52 "ALCANCE"
+texture at 243,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+texture at 19,124 298x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,133 w=298 size=12 rgb=0.92,0.87,0.76 "Cura un objetivo amigo en |cffFBCF7467|r a |cffFBCF7476|r p."
+texture at 19,154 298x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,163 w=298 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"

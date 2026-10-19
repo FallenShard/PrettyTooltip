@@ -1,0 +1,217 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132879
+      id: 11138
+      name: "Small Glowing Shard"
+  skill: 75
+effects: {}
+enchants: {}
+equipEffects:
+  1:
+    left: "Prende al objetivo con las llamas de La Gran Fundición para infligir 39 a 59 p. de daño de Fuego Sagrado. Inflige 3 veces más daño a los elementales de fuego y a los elementales de tierra."
+    onHit: true
+    right: ""
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Vendedor"
+    right: "|cffffffff74 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 59 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  3:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Inventario"
+    right: "|cff66bbffTotal: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  4:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+    right: "|cff66bbffEquipado: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  5:
+    color:
+      1: 0.85
+      2: 0.6967
+      3: 0
+    left: "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t La prueba de rectitud  |cffaa9f85- Minas de la Muerte|r"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8196
+      3: 0
+      4: 1
+flavor: {}
+footerLeft:
+  1:
+    durability:
+      1: 99
+      2: 100
+    left: "Durabilidad 99 / 100"
+    right: ""
+footerRight:
+  1:
+    left: "Clases: Paladín"
+    met: true
+    requirement: true
+    right: ""
+  2:
+    left: "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "Ligado"
+    right: ""
+icon: 133042
+kinds: {}
+level: 31
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+  10: true
+  11: true
+link: "|cnIQ3:|Hitem:6953::::::::30:1486::11:::::::|h[Puño de Verigan]|h|r"
+name: "Puño de Verigan"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAintelecto|r"
+    right: ""
+  2:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAaguante|r"
+    right: ""
+  3:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DAespíritu|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 7443
+setBonuses: {}
+setItems: {}
+slot: "Maza · Dos manos"
+weaponBonus: {}
+weaponDamage: "65 - 99 Daño"
+weaponDps: "25,6"
+weaponSpeed: "Velocidad 3,20"
+== tooltip render
+panel 330 x 515
+texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
+texture at 0,0 0x0 rgb=0.694,0.8155,0.991,0.9 TooltipBackground-Temp.png
+texture at 0,0 0x0 rgb=0.32,0.59,0.98,0.315 TooltipBackground-Temp.png
+texture at 6,6 0x89 rgb=1,1,1,1 band
+texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x57 rgb=0.1,0.075,0.08,0.6 band
+texture at 19,21 43x43 rgb=1,1,1,1 133042
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "N.o. 31"
+text at 72,21 w=239 size=19 rgb=0.32,0.59,0.98 "PUÑO DE VERIGAN"
+text at 72,47 w=239 size=13 rgb=0.66,0.795,0.99 "Maza · Dos manos"
+text at 72,66 w=239 size=12 rgb=0.78,0.72,0.63 "Ligado"
+texture at 19,100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D525,6|r |cffA89F8EDaño por segundo|r"
+text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "65 - 99 Daño  ·  Velocidad 3,20"
+text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAintelecto|r"
+text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAaguante|r"
+text at 19,196 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DAespíritu|r"
+texture at 19,222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-217 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,235 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sword:11:11:-1:-2:32:32:0:32:0:32:200:210:225|t"
+text at 41,235 w=270 size=13 rgb=0.48,0.88,0.48 "Prende al objetivo con las llamas de La Gran Fundición para infligir |cffFDB46A39|r a |cffFDB46A59|r p. de daño de Fuego Sagrado. Inflige |cffFDB46A3|r veces más daño a los elementales de fuego y a los elementales de tierra."
+texture at 19,321 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-321 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-316 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,334 w=140.5 size=11 rgb=0.86,0.74,0.45 "Desencantar"
+text at 171.5,334 w=139.5 size=11 rgb=0.55,0.53,0.5 "Requiere Encantamiento 75"
+text at 19,351 w=256 size=11 rgb=0.88,0.84,0.76 "|T132879:0|t Small Glowing Shard"
+text at 287,351 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+texture at 19,371 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,380 w=292 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,395 w=217.5 size=11 rgb=0.85,0.7,0 "Vendedor"
+text at 248.5,395 w=62.5 size=11 rgb=0.85,0.7,0 "|cffffffff74 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 59 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,410 w=234 size=11 rgb=0.85,0.7,0 "Inventario"
+text at 265,410 w=46 size=11 rgb=0.85,0.7,0 "|cff66bbffTotal: |cffffffff1|r|r"
+text at 19,425 w=217.5 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+text at 248.5,425 w=62.5 size=11 rgb=0.85,0.7,0 "|cff66bbffEquipado: |cffffffff1|r|r"
+text at 19,440 w=292 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t La prueba de rectitud  |cffaa9f85- Minas de la Muerte|r"
+text at 226.5,464 w=84.5 size=11 rgb=1,1,1 "Clases: Paladín"
+texture at 19,469 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
+text at 80,464 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
+text at 259.5,481 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"

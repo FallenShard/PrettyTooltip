@@ -33,8 +33,8 @@ local QUEST = { label = L["Quest object"], color = QUEST_GOLD, icon = "Interface
 -- ("Bergbau"), and the other way round.
 local SKILL_NAMES, SKILL_KEYS = {}, {}
 for key in pairs(SKILLS) do
-    SKILL_NAMES[key] = ns.Locale.skills[key] or key
-    SKILL_KEYS[SKILL_NAMES[key]] = key
+    SKILL_NAMES[key] = ns.Locale.skillName(key)
+    for _, name in ipairs(ns.Locale.skillNames(key)) do SKILL_KEYS[name] = key end
 end
 -- An object's requirements: "Requires Mining", "Requires Lockpicking (25)".
 local REQUIREMENTS = { LOCKED_WITH_SPELL, LOCKED_WITH_ITEM, ITEM_MIN_SKILL, ITEM_REQ_SKILL }
@@ -186,7 +186,7 @@ local function readObject(tooltip, data, game)
                     tooltipData.add(model.details, left, right)
                     local row = model.details[#model.details]
                     row.requirement, row.met = true, tooltipData.requirementMet(text, line.leftColor, game)
-                    for key, name in pairs(SKILL_NAMES) do
+                    for name, key in pairs(SKILL_KEYS) do
                         if not model.skill and text:find(name, 1, true) then
                             model.skill, model.skillMet = key, row.met
                         end

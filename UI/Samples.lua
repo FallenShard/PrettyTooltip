@@ -13,7 +13,7 @@ if not ui then return end
 
 local QUESTION_MARK = "Interface\\Icons\\INV_Misc_QuestionMark"
 
-local L, fill, formats, skills = ns.L, ns.util.fill, ns.Locale.formats, ns.Locale.skills
+local L, fill, formats, skill = ns.L, ns.util.fill, ns.Locale.formats, ns.Locale.skillName
 local DOT = " \194\183 "
 local PALE = { .95, .93, .88 }
 
@@ -129,8 +129,8 @@ local TYPES = {
                 label = "Recipe",
                 fields = {
                     name = itemName(251360, "Plans: Veteran's Gloves"), quality = 2, icon = "Interface\\Icons\\INV_Scroll_03",
-                    slot = L["Plans"] .. DOT .. skills.Blacksmithing,
-                    header = { { left = ITEM_BIND_ON_PICKUP, right = fill(L["Requires %s %s"], skills.Blacksmithing, 80),
+                    slot = L["Plans"] .. DOT .. skill("Blacksmithing"),
+                    header = { { left = ITEM_BIND_ON_PICKUP, right = fill(L["Requires %s %s"], skill("Blacksmithing"), 80),
                         rightColor = PALE } },
                     created = {
                         name = itemName(250508, "Veteran's Gloves"), quality = 2, icon = "Interface\\Icons\\INV_Gauntlets_05",
@@ -213,7 +213,7 @@ local TYPES = {
                 label = "Ore",
                 fields = {
                     name = "Mithril Deposit", skill = "Mining", skillMet = false,
-                    details = { { left = fill(LOCKED_WITH_SPELL, skills.Mining), right = "", requirement = true, met = false } },
+                    details = { { left = fill(LOCKED_WITH_SPELL, skill("Mining")), right = "", requirement = true, met = false } },
                     extras = { { left = fill(L["Gathered here %s times"], 12), right = "", color = { .17, .51, .77 } } },
                 },
             },
@@ -223,7 +223,7 @@ local TYPES = {
                     name = L["Battered Chest"], skill = "Lockpicking",
                     details = {
                         { left = LOCKED, right = "" },
-                        { left = fill(ITEM_MIN_SKILL, skills.Lockpicking, 25), right = "", requirement = true, met = true },
+                        { left = fill(ITEM_MIN_SKILL, skill("Lockpicking"), 25), right = "", requirement = true, met = true },
                     },
                 },
             },

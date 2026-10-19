@@ -27,7 +27,8 @@ ns.Locale = {
     statWordings = {},
     statWords = {},
     -- Skills and professions by the client's names for them (its SkillLine
-    -- table), keyed by the addon's: skills.Mining is "Bergbau" on deDE.
+    -- table), keyed by the addon's: skills.Mining is "Bergbau" on deDE. A
+    -- skill the client names two ways has a list, the first the one to print.
     skills = {},
     -- Dispel types by the client's names for them (its SpellDispelType table),
     -- keyed by the aura API's: dispels.Poison is "Gift" on deDE.
@@ -36,6 +37,16 @@ ns.Locale = {
     -- names in the client's QuestInfo table: "Dungeon".
     questTags = {},
 }
+
+-- Every name the client gives a skill, the one to print first.
+function ns.Locale.skillNames(key)
+    local names = ns.Locale.skills[key] or key
+    return type(names) == "table" and names or { names }
+end
+
+function ns.Locale.skillName(key)
+    return ns.Locale.skillNames(key)[1]
+end
 
 -- The addon's own words, the ones the game has none for, by their English:
 -- L["Sell Price"]. A language file gives its own; any it leaves out reads in

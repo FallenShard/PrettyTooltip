@@ -386,7 +386,7 @@ local function unitView(model, healthBar)
     if skin and ns.option("gatheringLoot") then
         local rows = {}
         if skin.needed then
-            rows[1] = { left = util.fill(L["Requires %s %s"], ns.Locale.skills.Skinning, skin.needed),
+            rows[1] = { left = util.fill(L["Requires %s %s"], ns.Locale.skillName("Skinning"), skin.needed),
                 right = skin.player and util.fill(L["Your skill %s"], skin.player) or "",
                 color = ns.Palette.skillUpColor(skin.needed, skin.player) or DETAIL_COLOR, rightColor = colors.caption }
         end

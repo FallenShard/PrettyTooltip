@@ -219,7 +219,7 @@ local STOCK_CHANGES = ITEM_DELTA_DESCRIPTION
 local PROFESSIONS = {}
 for _, key in ipairs({ "Alchemy", "Blacksmithing", "Enchanting", "Engineering", "Leatherworking", "Tailoring",
     "Cooking", "First Aid", "Fishing", "Mining", "Herbalism", "Skinning", "Jewelcrafting", "Inscription" }) do
-    PROFESSIONS[ns.Locale.skills[key] or key] = true
+    for _, name in ipairs(ns.Locale.skillNames(key)) do PROFESSIONS[name] = true end
 end
 
 -- "Requires Blacksmithing (80)": the profession and level a recipe needs.
@@ -702,7 +702,7 @@ local DISENCHANT_GREY = { .55, .53, .50 }
 
 local function disenchantHeading(result)
     local row = { left = ROLL_DISENCHANT,
-        right = util.fill(L["Requires %s %s"], ns.Locale.skills.Enchanting, result.skill) }
+        right = util.fill(L["Requires %s %s"], ns.Locale.skillName("Enchanting"), result.skill) }
     if not result.player then
         row.rightColor = DISENCHANT_GREY
     elseif result.player < result.skill then
