@@ -69,9 +69,16 @@ local NODES = {
     ["Rich Thorium Vein"] = { 10620, 275 },
 }
 
--- An ooze covered node yields what the plain one does.
+-- A node's English name, as the node data knows it, from the client's:
+-- "Kupferader" is "Copper Vein". An ooze covered node yields what the plain
+-- one does.
+local function nodeKey(name)
+    name = ns.nodeNames and ns.nodeNames[name] or name
+    return (name:gsub("^Ooze Covered ", ""))
+end
+
 local function nodeFor(name)
-    return NODES[(name:gsub("^Ooze Covered ", ""))]
+    return NODES[nodeKey(name)]
 end
 
 -- The item an object yields, by its name; for /ptip capture to record.
@@ -85,7 +92,8 @@ end
 function ns.gatheringNode(name)
     local node = nodeFor(name)
     if not node then return end
-    local skill = (name:find(" Vein$") or name:find(" Deposit$")) and "Mining" or "Herbalism"
+    local key = nodeKey(name)
+    local skill = (key:find(" Vein$") or key:find(" Deposit$")) and "Mining" or "Herbalism"
     return { level = node[2], skill = skill }
 end
 
@@ -101,7 +109,7 @@ end
 local LOOT_ICON = 14
 local RARE = 5
 local function lootRows(name, game)
-    local loot = ns.nodeLoot and ns.nodeLoot[(name:gsub("^Ooze Covered ", ""))]
+    local loot = ns.nodeLoot and ns.nodeLoot[nodeKey(name)]
     if not loot then return end
     local rows = {}
     for _, drop in ipairs(loot) do
@@ -134,9 +142,10 @@ local function completeModel(model, game)
     end
     if node then
         local name = itemInfo(node[1], game)
-        -- A herb yields itself and a node yields an ore; anything else is a bad entry.
-        local herb = model.name:gsub("^Ooze Covered ", "")
-        if name and name ~= herb and not name:find(" Ore$") then node = nil end
+        -- A herb yields itself and a node yields an ore; anything else is a bad
+        -- entry. The names to tell by are English, as the node data's.
+        local english = not (ns.nodeNames and ns.nodeNames[model.name])
+        if english and name and name ~= nodeKey(model.name) and not name:find(" Ore$") then node = nil end
     end
     if node then
         local name, icon, price = itemInfo(node[1], game)
