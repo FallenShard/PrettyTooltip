@@ -1,7 +1,8 @@
 -- The style editor's sample tooltips, as data: each type's samples are the
 -- fields of its model, which its own tooltip file completes. What comes from
 -- the game or the settings is written as a marker and filled in on each draw:
--- { item = ID } or { spell = ID } an icon, { money = copper } coins (with
+-- { item = ID } or { spell = ID } an icon, { itemName = ID, english } or
+-- { spellName = ID, english } the name the client gives, { money = copper } coins (with
 -- each and count, a stack), a stat list's strings the stat rows the settings
 -- style, enchant an "Enchanted:" line's rows, disenchant the results for
 -- { quality, class, level, slot }, expiresIn an aura's end, and after fields
@@ -12,6 +13,22 @@ if not ui then return end
 
 local QUESTION_MARK = "Interface\\Icons\\INV_Misc_QuestionMark"
 
+local L, fill, formats, skills = ns.L, ns.util.fill, ns.Locale.formats, ns.Locale.skills
+local DOT = " \194\183 "
+local PALE = { .95, .93, .88 }
+
+-- A stat line as the game prints one: "+13 Stamina".
+local function statLine(key, amount, sign)
+    return ns.Stats.text({ key = key, sign = sign or "+", amount = tostring(amount), percent = key == "CRIT_CHANCE" })
+end
+
+-- An item's or spell's name on this client, asked on each draw; the English
+-- one where the client has none.
+local function itemName(id, english) return { itemName = id, english } end
+local function spellName(id, english) return { spellName = id, english } end
+
+local function quoted(text) return '"' .. text .. '"' end
+
 -- The types in the editor's order; dataType names the game's tooltip type and
 -- model the completer the tooltip file shares.
 local TYPES = {
@@ -21,24 +38,23 @@ local TYPES = {
             {
                 label = "Weapon",
                 fields = {
-                    name = "Arcanite Reaper", quality = 4, icon = { item = 12784 }, level = 63,
+                    name = itemName(12784, "Arcanite Reaper"), quality = 4, icon = { item = 12784 }, level = 63,
                     equippable = true,
-                    slot = "Axe \194\183 Two-Hand",
-                    header = { { left = "Binds when equipped", right = "Requires Level 58",
-                        rightColor = { .95, .93, .88 } } },
+                    slot = L["Axe"] .. DOT .. INVTYPE_2HWEAPON,
+                    header = { { left = ITEM_BIND_ON_EQUIP, right = fill(ITEM_MIN_LEVEL, 58), rightColor = PALE } },
                     weaponDps = "53.8",
-                    weaponDamage = "153 - 256 Damage", weaponSpeed = "Speed 3.80",
-                    primary = { "+13 Stamina" },
-                    secondary = { "+62 Attack Power" },
+                    weaponDamage = fill(DAMAGE_TEMPLATE, 153, 256), weaponSpeed = fill(formats.weaponSpeed, "3.80"),
+                    primary = { statLine("STAMINA", 13) },
+                    secondary = { statLine("ATTACK_POWER", 62) },
                     equipEffects = {
-                        { left = "Your attacks have a chance to cleave a nearby enemy.", right = "" },
-                        { left = "Wounds the target for 40 to 60 damage.", right = "", onHit = true },
+                        { left = L["Your attacks have a chance to cleave a nearby enemy."], right = "" },
+                        { left = L["Wounds the target for 40 to 60 damage."], right = "", onHit = true },
                     },
-                    enchant = "+25 Agility",
-                    flavor = { { left = "\"Sample flavor text sits here, in gold.\"", right = "" } },
+                    enchant = statLine("AGILITY", 25),
+                    flavor = { { left = quoted(L["Sample flavor text sits here, in gold."]), right = "" } },
                     footerLeft = {
-                        { left = "Durability 61 / 120", right = "", durability = { 61, 120 } },
-                        { left = "Made by Lorelei", right = "", color = ui.FLAVOR_GOLD },
+                        { left = fill(DURABILITY_TEMPLATE, 61, 120), right = "", durability = { 61, 120 } },
+                        { left = fill(L["Made by %s"], "Lorelei"), right = "", color = ui.FLAVOR_GOLD },
                     },
                     footerRight = { { left = { money = 64218 }, right = "", sellPrice = true } },
                     disenchant = { 2, 4, 63, "INVTYPE_2HWEAPON" },
@@ -47,33 +63,33 @@ local TYPES = {
             {
                 label = "Set piece",
                 fields = {
-                    name = "Redemption Tunic", quality = 4, icon = { item = 22416 }, level = 88,
+                    name = itemName(22425, "Redemption Tunic"), quality = 4, icon = { item = 22416 }, level = 88,
                     equippable = true,
-                    slot = "Plate \194\183 Chest",
-                    header = { { left = "Binds when picked up", right = "Requires Level 60",
-                        rightColor = { .95, .93, .88 } } },
-                    armor = { { left = "1027 Armor", right = "", value = "1027" } },
-                    primary = { "+31 Intellect", "+25 Stamina" },
-                    secondary = { "+1% Critical Strike Chance", "+59 Healing Power", "+10 Mana per 5 sec" },
-                    enchant = "+4 All Stats",
-                    setName = "Redemption Armor", setCount = "3/9",
+                    slot = L["Plate"] .. DOT .. INVTYPE_CHEST,
+                    header = { { left = ITEM_BIND_ON_PICKUP, right = fill(ITEM_MIN_LEVEL, 60), rightColor = PALE } },
+                    armor = { { left = fill(ARMOR_TEMPLATE, 1027), right = "", value = "1027" } },
+                    primary = { statLine("INTELLECT", 31), statLine("STAMINA", 25) },
+                    secondary = { statLine("CRIT_CHANCE", 1), statLine("HEALING_POWER", 59), statLine("MANA_REGEN", 10) },
+                    enchant = statLine("ALL_STATS", 4),
+                    setName = L["Redemption Armor"], setCount = "3/9",
                     setItems = {
-                        { left = "Redemption Tunic", right = "", active = true },
-                        { left = "Redemption Legguards", right = "", active = true },
-                        { left = "Redemption Handguards", right = "", active = true },
-                        { left = "Redemption Headpiece", right = "", active = false },
-                        { left = "Redemption Spaulders", right = "", active = false },
+                        { left = itemName(22425, "Redemption Tunic"), right = "", active = true },
+                        { left = itemName(22427, "Redemption Legguards"), right = "", active = true },
+                        { left = itemName(22426, "Redemption Handguards"), right = "", active = true },
+                        { left = itemName(22428, "Redemption Headpiece"), right = "", active = false },
+                        { left = itemName(22429, "Redemption Spaulders"), right = "", active = false },
                     },
                     setBonuses = {
-                        { left = "(2) Set: Increases the amount healed by your Judgement of Light by 20.",
+                        { left = fill(ITEM_SET_BONUS_GRAY, 2, L["Increases the amount healed by your Judgement of Light by 20."]),
                             right = "", active = true },
-                        { left = "(4) Set: Reduces cooldown on your Lay on Hands by 12 min.",
+                        { left = fill(ITEM_SET_BONUS_GRAY, 4, L["Reduces cooldown on your Lay on Hands by 12 min."]),
                             right = "", active = false },
                     },
-                    extras = { { left = "Dropped by: Kel'Thuzad", right = "", color = { .17, .51, .77 } } },
-                    footerLeft = { { left = "Durability 165 / 165", right = "", durability = { 165, 165 } } },
+                    extras = { { left = fill(L["Dropped by: %s"], L["Kel'Thuzad"]), right = "", color = { .17, .51, .77 } } },
+                    footerLeft = { { left = fill(DURABILITY_TEMPLATE, 165, 165), right = "", durability = { 165, 165 } } },
                     footerRight = {
-                        { left = "Requires Argent Dawn - Revered", right = "", requirement = true, met = false },
+                        { left = fill(ITEM_REQ_REPUTATION, L["Argent Dawn"], FACTION_STANDING_LABEL7), right = "",
+                            requirement = true, met = false },
                         { left = { money = 123767 }, right = "", sellPrice = true },
                     },
                 },
@@ -81,51 +97,52 @@ local TYPES = {
             {
                 label = "Equipped",
                 fields = {
-                    name = "Blackhand Doomsaw", quality = 3, icon = { item = 12583 }, level = 63,
+                    name = itemName(12583, "Blackhand Doomsaw"), quality = 3, icon = { item = 12583 }, level = 63,
                     equippable = true, comparison = true,
-                    slot = "Polearm \194\183 Two-Hand",
-                    header = { { left = "Soulbound", right = "Requires Level 55", rightColor = { .95, .93, .88 } } },
+                    slot = L["Polearm"] .. DOT .. INVTYPE_2HWEAPON,
+                    header = { { left = ITEM_SOULBOUND, right = fill(ITEM_MIN_LEVEL, 55), rightColor = PALE } },
                     weaponDps = "45.1",
-                    weaponDamage = "131 - 197 Damage", weaponSpeed = "Speed 3.60",
-                    primary = { "+15 Strength" },
+                    weaponDamage = fill(DAMAGE_TEMPLATE, 131, 197), weaponSpeed = fill(formats.weaponSpeed, "3.60"),
+                    primary = { statLine("STRENGTH", 15) },
                     extras = {
-                        { left = "If you replace this item, the following stat changes will occur:",
-                            right = "", color = { .85, .70, 0 } },
-                        { left = "-15 Strength", right = "", color = { .85, .13, .13 } },
-                        { left = "+13 Stamina", right = "", color = { .09, .85, .09 } },
-                        { left = "+62 Attack Power", right = "", color = { .09, .85, .09 } },
+                        { left = ITEM_DELTA_DESCRIPTION, right = "", color = { .85, .70, 0 } },
+                        { left = statLine("STRENGTH", 15, "-"), right = "", color = { .85, .13, .13 } },
+                        { left = statLine("STAMINA", 13), right = "", color = { .09, .85, .09 } },
+                        { left = statLine("ATTACK_POWER", 62), right = "", color = { .09, .85, .09 } },
                     },
-                    footerLeft = { { left = "Durability 100 / 100", right = "", durability = { 100, 100 } } },
+                    footerLeft = { { left = fill(DURABILITY_TEMPLATE, 100, 100), right = "", durability = { 100, 100 } } },
                     footerRight = { { left = { money = 41250 }, right = "", sellPrice = true } },
                 },
             },
             {
                 label = "Potion",
                 fields = {
-                    name = "Major Healing Potion", quality = 1, icon = { item = 13446 }, level = 55,
-                    slot = "Consumable \194\183 Potion",
-                    header = { { left = "", right = "Requires Level 45", rightColor = { .95, .93, .88 } } },
-                    effects = { { left = "Restores 1050 to 1750 health. (2 Min Cooldown)", right = "", use = true } },
+                    name = itemName(13446, "Major Healing Potion"), quality = 1, icon = { item = 13446 }, level = 55,
+                    slot = L["Consumable"] .. DOT .. L["Potion"],
+                    header = { { left = "", right = fill(ITEM_MIN_LEVEL, 45), rightColor = PALE } },
+                    effects = { { left = L["Restores 1050 to 1750 health."] .. " " .. fill(ITEM_COOLDOWN_TOTAL_MIN, 2),
+                        right = "", use = true } },
                     footerRight = { { left = { money = 5000, each = 1000, count = 5 }, right = "", sellPrice = true } },
                 },
             },
             {
                 label = "Recipe",
                 fields = {
-                    name = "Plans: Veteran's Gloves", quality = 2, icon = "Interface\\Icons\\INV_Scroll_03",
-                    slot = "Plans \194\183 Blacksmithing",
-                    header = { { left = "Binds when picked up", right = "Requires Blacksmithing 80",
-                        rightColor = { .95, .93, .88 } } },
+                    name = itemName(251360, "Plans: Veteran's Gloves"), quality = 2, icon = "Interface\\Icons\\INV_Scroll_03",
+                    slot = L["Plans"] .. DOT .. skills.Blacksmithing,
+                    header = { { left = ITEM_BIND_ON_PICKUP, right = fill(L["Requires %s %s"], skills.Blacksmithing, 80),
+                        rightColor = PALE } },
                     created = {
-                        name = "Veteran's Gloves", quality = 2, icon = "Interface\\Icons\\INV_Gauntlets_05",
-                        slot = "Mail \194\183 Hands", levelRequirement = { text = "Requires Level 15", met = true },
-                        armor = { { left = "115 Armor", right = "", value = "115" } },
-                        primary = { "+5 Strength", "+3 Agility", "+5 Stamina" },
+                        name = itemName(250508, "Veteran's Gloves"), quality = 2, icon = "Interface\\Icons\\INV_Gauntlets_05",
+                        slot = L["Mail"] .. DOT .. INVTYPE_HAND,
+                        levelRequirement = { text = fill(ITEM_MIN_LEVEL, 15), met = true },
+                        armor = { { left = fill(ARMOR_TEMPLATE, 115), right = "", value = "115" } },
+                        primary = { statLine("STRENGTH", 5), statLine("AGILITY", 3), statLine("STAMINA", 5) },
                     },
                     reagents = {
-                        { name = "Bronze Bar", count = 10, have = 4, icon = { item = 2841 } },
-                        { name = "Rough Grinding Stone", count = 4, have = 4, icon = { item = 3470 } },
-                        { name = "Small Lustrous Pearl", count = 3, have = 1, icon = { item = 5498 } },
+                        { name = itemName(2841, "Bronze Bar"), count = 10, have = 4, icon = { item = 2841 } },
+                        { name = itemName(3470, "Rough Grinding Stone"), count = 4, have = 4, icon = { item = 3470 } },
+                        { name = itemName(5498, "Small Lustrous Pearl"), count = 3, have = 1, icon = { item = 5498 } },
                     },
                     footerRight = { { left = { money = 400 }, right = "", sellPrice = true } },
                 },
@@ -133,10 +150,10 @@ local TYPES = {
             {
                 label = "Quest item",
                 fields = {
-                    name = "Gold Pickup Schedule", quality = 1, icon = { item = 1307 },
-                    quest = true, slot = "Quest Item", startsQuest = "This Item Begins a Quest",
-                    header = { { left = "Soulbound", right = "" } },
-                    flavor = { { left = '"A schedule of gold pickups."', right = "" } },
+                    name = itemName(1307, "Gold Pickup Schedule"), quality = 1, icon = { item = 1307 },
+                    quest = true, slot = ITEM_BIND_QUEST, startsQuest = ITEM_STARTS_QUEST,
+                    header = { { left = ITEM_SOULBOUND, right = "" } },
+                    flavor = { { left = quoted(L["A schedule of gold pickups."]), right = "" } },
                 },
             },
         },
@@ -147,36 +164,36 @@ local TYPES = {
             {
                 label = "Fireball",
                 fields = {
-                    name = "Fireball", rank = "Rank 1", icon = { spell = 133 },
-                    cost = { "30", "Mana" }, power = "Mana", cast = { "1.5 sec", "Cast" },
-                    range = { "35 yd", "Range" },
+                    name = spellName(133, "Fireball"), rank = fill(L["Rank %s"], 1), icon = { spell = 133 },
+                    cost = { "30", MANA }, power = "Mana", cast = { fill(SPELL_DURATION_SEC, "1.5"), L["Cast"] },
+                    range = { fill(L["%s yd"], 35), L["Range"] },
                     spellPower = 10,
-                    description = { "Hurls a fiery ball that causes 16 to 25 Fire damage and an "
-                        .. "additional 2 Fire damage over 4 sec." },
+                    description = { L["Hurls a fiery ball that causes 16 to 25 Fire damage and an "
+                        .. "additional 2 Fire damage over 4 sec."] },
                 },
             },
             {
                 label = "Ability",
                 fields = {
-                    name = "Shield Bash", rank = "Rank 1", icon = { spell = 72 },
-                    cost = { "10", "Rage" }, power = "Rage", cast = { "Instant", "Cast" },
-                    cooldown = { "12 sec", "Cooldown" }, range = { "Melee", "Range" },
-                    requirements = { { left = "Requires Shields", right = "", color = { 1, .34, .28 } } },
-                    details = { { left = "Cooldown remaining: 8 sec", right = "", color = { 1, .60, .25 } } },
-                    description = { "Bashes the target with your shield for 8 damage. It also "
+                    name = spellName(72, "Shield Bash"), rank = fill(L["Rank %s"], 1), icon = { spell = 72 },
+                    cost = { "10", RAGE }, power = "Rage", cast = { SPELL_CAST_TIME_INSTANT, L["Cast"] },
+                    cooldown = { fill(SPELL_DURATION_SEC, 12), L["Cooldown"] }, range = { MELEE, L["Range"] },
+                    requirements = { { left = fill(SPELL_EQUIPPED_ITEM, L["Shields"]), right = "", color = { 1, .34, .28 } } },
+                    details = { { left = fill(ITEM_COOLDOWN_TIME_SEC, 8), right = "", color = { 1, .60, .25 } } },
+                    description = { L["Bashes the target with your shield for 8 damage. It also "
                         .. "interrupts spellcasting and prevents any spell in that school from being "
-                        .. "cast for 6 sec." },
+                        .. "cast for 6 sec."] },
                 },
             },
             {
                 label = "Heal",
                 fields = {
-                    name = "Holy Light", rank = "Rank 1", icon = { spell = 635 },
-                    cost = { "35", "Mana" }, power = "Mana", cast = { "2.5 sec", "Cast" },
-                    range = { "40 yd", "Range" },
+                    name = spellName(635, "Holy Light"), rank = fill(L["Rank %s"], 1), icon = { spell = 635 },
+                    cost = { "35", MANA }, power = "Mana", cast = { fill(SPELL_DURATION_SEC, "2.5"), L["Cast"] },
+                    range = { fill(L["%s yd"], 40), L["Range"] },
                     spellPower = 10,
-                    description = { "Heals a friendly target for 42 to 51." },
-                    extras = { { left = "Spell ID: 635", right = "", color = { .60, .60, .63 } } },
+                    description = { L["Heals a friendly target for 42 to 51."] },
+                    extras = { { left = fill(L["Spell ID: %s"], 635), right = "", color = { .60, .60, .63 } } },
                 },
             },
         },
@@ -187,36 +204,37 @@ local TYPES = {
         samples = {
             {
                 label = "Herb",
+                -- Node names stay English: the node loot table knows them only so.
                 fields = { name = "Bruiseweed", skill = "Herbalism", skillColor = { 1, .5, .25 } },
                 -- Completing the model asks the game for them.
-                after = { prices = { { "Sell Price", { money = 40 } }, { "Auction", { money = 1250 } } } },
+                after = { prices = { { SELL_PRICE, { money = 40 } }, { L["Auction"], { money = 1250 } } } },
             },
             {
                 label = "Ore",
                 fields = {
                     name = "Mithril Deposit", skill = "Mining", skillMet = false,
-                    details = { { left = "Requires Mining", right = "", requirement = true, met = false } },
-                    extras = { { left = "Gathered here 12 times", right = "", color = { .17, .51, .77 } } },
+                    details = { { left = fill(LOCKED_WITH_SPELL, skills.Mining), right = "", requirement = true, met = false } },
+                    extras = { { left = fill(L["Gathered here %s times"], 12), right = "", color = { .17, .51, .77 } } },
                 },
             },
             {
                 label = "Chest",
                 fields = {
-                    name = "Battered Chest", skill = "Lockpicking",
+                    name = L["Battered Chest"], skill = "Lockpicking",
                     details = {
-                        { left = "Locked", right = "" },
-                        { left = "Requires Lockpicking (25)", right = "", requirement = true, met = true },
+                        { left = LOCKED, right = "" },
+                        { left = fill(ITEM_MIN_SKILL, skills.Lockpicking, 25), right = "", requirement = true, met = true },
                     },
                 },
             },
             {
                 label = "Quest",
                 fields = {
-                    name = "Sealed Supply Crate",
+                    name = L["Sealed Supply Crate"],
                     quests = {
-                        { left = "Heavy Supplies", right = "", title = true },
-                        { left = "- Supply Crate: 2/5", right = "" },
-                        { left = "- Report to the quartermaster", right = "", completed = true },
+                        { left = L["Heavy Supplies"], right = "", title = true },
+                        { left = "- " .. L["Supply Crate: 2/5"], right = "" },
+                        { left = "- " .. L["Report to the quartermaster"], right = "", completed = true },
                     },
                 },
             },
@@ -230,50 +248,51 @@ local TYPES = {
                 label = "Player",
                 fields = {
                     name = "Somniferie", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_02",
-                    isPlayer = true, level = 60, race = "Human", className = "Warrior",
+                    isPlayer = true, level = 60, race = L["Human"],
+                    className = LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE.WARRIOR or "Warrior",
                     classFile = "WARRIOR", guild = "Dawnbreakers", faction = "Alliance", pvp = true, healthShare = 1,
-                    target = "Ragnaros", targetColor = { 1, .27, .22 },
-                    extras = { { left = "Item Level 61", right = "", color = { .60, .60, .63 } } },
+                    target = L["Ragnaros"], targetColor = { 1, .27, .22 },
+                    extras = { { left = fill(ITEM_LEVEL, 61), right = "", color = { .60, .60, .63 } } },
                 },
             },
             {
                 label = "Enemy",
                 fields = {
-                    name = "Defias Pillager", iconPath = "Interface\\Icons\\INV_Misc_Head_Human_01",
-                    level = 15, creature = "Humanoid", classification = "elite", reaction = 2, healthShare = .64,
+                    name = L["Defias Pillager"], iconPath = "Interface\\Icons\\INV_Misc_Head_Human_01",
+                    level = 15, creature = L["Humanoid"], classification = "elite", reaction = 2, healthShare = .64,
                     target = "Somniferie", targetIsYou = true,
                     quests = {
-                        { left = "The Defias Brotherhood", right = "", title = true },
-                        { left = "- Defias Pillager slain: 4/10", right = "" },
+                        { left = L["The Defias Brotherhood"], right = "", title = true },
+                        { left = "- " .. L["Defias Pillager slain: 4/10"], right = "" },
                     },
                 },
             },
             {
                 label = "Vendor",
                 fields = {
-                    name = "Innkeeper Farley", iconPath = "Interface\\Icons\\INV_Misc_Head_Dwarf_01",
-                    tag = "<Innkeeper>", level = 30, creature = "Humanoid", reaction = 5, healthShare = 1,
+                    name = L["Innkeeper Farley"], iconPath = "Interface\\Icons\\INV_Misc_Head_Dwarf_01",
+                    tag = "<" .. L["Innkeeper"] .. ">", level = 30, creature = L["Humanoid"], reaction = 5, healthShare = 1,
                 },
             },
             {
                 label = "Rare",
                 fields = {
-                    name = "Mother Fang", iconPath = "Interface\\Icons\\Ability_Hunter_Pet_Spider",
-                    level = 10, creature = "Beast", classification = "rare", reaction = 2, healthShare = .38,
+                    name = L["Mother Fang"], iconPath = "Interface\\Icons\\Ability_Hunter_Pet_Spider",
+                    level = 10, creature = L["Beast"], classification = "rare", reaction = 2, healthShare = .38,
                 },
             },
             {
                 label = "Rare elite",
                 fields = {
-                    name = "Foe Reaper 4000", iconPath = "Interface\\Icons\\INV_Misc_Gear_01",
-                    level = 20, creature = "Mechanical", classification = "rareelite", reaction = 2, healthShare = .82,
+                    name = L["Foe Reaper 4000"], iconPath = "Interface\\Icons\\INV_Misc_Gear_01",
+                    level = 20, creature = L["Mechanical"], classification = "rareelite", reaction = 2, healthShare = .82,
                 },
             },
             {
                 label = "Boss",
                 fields = {
-                    name = "Azuregos", iconPath = "Interface\\Icons\\INV_Misc_Head_Dragon_01",
-                    level = -1, creature = "Dragonkin", classification = "worldboss", reaction = 2, healthShare = .91,
+                    name = L["Azuregos"], iconPath = "Interface\\Icons\\INV_Misc_Head_Dragon_01",
+                    level = -1, creature = L["Dragonkin"], classification = "worldboss", reaction = 2, healthShare = .91,
                 },
             },
         },
@@ -285,26 +304,26 @@ local TYPES = {
             {
                 label = "Buff",
                 fields = {
-                    name = "Power Word: Fortitude", icon = { spell = 1245 }, dispel = "Magic",
-                    harmful = false, text = "Increases Stamina by 26.", remaining = "17 minutes remaining",
+                    name = spellName(1245, "Power Word: Fortitude"), icon = { spell = 1245 }, dispel = "Magic",
+                    harmful = false, text = L["Increases Stamina by 26."], remaining = fill(SPELL_TIME_REMAINING_MIN, 17),
                     duration = 1800, expiresIn = 1020, caster = "Somniferie",
                 },
             },
             {
                 label = "Curse",
                 fields = {
-                    name = "Curse of Agony", icon = { spell = 980 }, dispel = "Curse", harmful = true,
-                    text = "Causes 84 Shadow damage over 24 sec. This damage is dealt slowly at first, "
-                        .. "and builds up as the Curse reaches its full duration.",
-                    remaining = "16 seconds remaining", duration = 24, expiresIn = 16,
+                    name = spellName(980, "Curse of Agony"), icon = { spell = 980 }, dispel = "Curse", harmful = true,
+                    text = L["Causes 84 Shadow damage over 24 sec. This damage is dealt slowly at first, "
+                        .. "and builds up as the Curse reaches its full duration."],
+                    remaining = fill(SPELL_TIME_REMAINING_SEC, 16), duration = 24, expiresIn = 16,
                 },
             },
             {
                 label = "Poison",
                 fields = {
-                    name = "Deadly Poison", icon = { spell = 2818 }, dispel = "Poison", harmful = true,
-                    stacks = 3, text = "Inflicts 9 Nature damage every 3 sec.",
-                    remaining = "9 seconds remaining", duration = 12, expiresIn = 9,
+                    name = spellName(2818, "Deadly Poison"), icon = { spell = 2818 }, dispel = "Poison", harmful = true,
+                    stacks = 3, text = L["Inflicts 9 Nature damage every 3 sec."],
+                    remaining = fill(SPELL_TIME_REMAINING_SEC, 9), duration = 12, expiresIn = 9,
                 },
             },
         },
@@ -316,29 +335,29 @@ local TYPES = {
             {
                 label = "Active",
                 fields = {
-                    name = "The Fury Runs Deep", level = 27, tags = { "Dungeon" }, zone = "The Stockade",
+                    name = L["The Fury Runs Deep"], level = 27, tags = { LFG_TYPE_DUNGEON }, zone = L["The Stockade"],
                     active = true,
-                    description = { "Motley Garmason wants Kam Deepfury's head brought to him at Dun Modr." },
-                    objectives = { { left = "Head of Deepfury", right = "0/1", completed = false } },
+                    description = { L["Motley Garmason wants Kam Deepfury's head brought to him at Dun Modr."] },
+                    objectives = { { left = itemName(3640, "Head of Deepfury"), right = "0/1", completed = false } },
                 },
             },
             {
                 label = "Ready",
                 fields = {
-                    name = "Wolves Across the Border", level = 6, active = true, ready = true,
-                    description = { "Eliminate the wolves to the east of Northshire and bring their paws to Eagan Peltskinner." },
-                    objectives = { { left = "Tough Wolf Meat", right = "8/8", completed = true } },
-                    extras = { { left = "Ended by", right = "Eagan Peltskinner" } },
+                    name = L["Wolves Across the Border"], level = 6, active = true, ready = true,
+                    description = { L["Eliminate the wolves to the east of Northshire and bring their paws to Eagan Peltskinner."] },
+                    objectives = { { left = itemName(750, "Tough Wolf Meat"), right = "8/8", completed = true } },
+                    extras = { { left = L["Ended by"], right = L["Eagan Peltskinner"] } },
                 },
             },
             {
                 label = "New",
                 fields = {
-                    name = "Arugal Must Die", level = 27, tags = { "Dungeon" }, zone = "Shadowfang Keep",
-                    description = { "Dalar Dawnweaver wants Arugal dead and his head brought to him." },
-                    objectives = { { left = "Head of Arugal" } },
-                    extras = { { left = "Started by", right = "Dalar Dawnweaver" },
-                        { left = "Found in", right = "Silverpine Forest" } },
+                    name = L["Arugal Must Die"], level = 27, tags = { LFG_TYPE_DUNGEON }, zone = L["Shadowfang Keep"],
+                    description = { L["Dalar Dawnweaver wants Arugal dead and his head brought to him."] },
+                    objectives = { { left = itemName(5442, "Head of Arugal") } },
+                    extras = { { left = L["Started by"], right = L["Dalar Dawnweaver"] },
+                        { left = L["Found in"], right = L["Silverpine Forest"] } },
                 },
             },
         },
@@ -350,14 +369,14 @@ local TYPES = {
             {
                 label = "Cast",
                 fields = {
-                    name = "Heal", icon = { spell = 19750 },
+                    name = L["Heal"], icon = { spell = 19750 },
                     body = { "#showtooltip", "/cast [@mouseover,help,nodead][] Flash of Light" },
                 },
             },
             {
                 label = "Targeting",
                 fields = {
-                    name = "Rares", icon = 132212,
+                    name = L["Rares"], icon = 132212,
                     body = { "/targetexact Mor'Ladim", "/targetexact Sewer Beast", "/run SetRaidTarget(\"target\", 8)" },
                 },
             },
@@ -390,6 +409,8 @@ local function resolve(value)
     if value.spell and next(value, next(value)) == nil then
         return icon(C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, value.spell)
     end
+    if value.itemName then return ns.Game.itemName(value.itemName) or value[1] end
+    if value.spellName then return ns.Game.spellName(value.spellName) or value[1] end
     if value.money then return money(value) end
     local copy = {}
     for key, item in pairs(value) do copy[key] = resolve(item) end

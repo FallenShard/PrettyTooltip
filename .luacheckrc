@@ -31,7 +31,7 @@ read_globals = {
     "GameTooltipHeaderText", "QuestScrollFrame", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",
     "SetPortraitTexture", "ChatEdit_InsertLink", "GetCursorPosition", "NUM_CHAT_WINDOWS",
     "Settings", "SettingsPanel", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory",
-    "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "NineSliceUtil",
+    "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "LOCALIZED_CLASS_NAMES_MALE", "NineSliceUtil",
     -- The game's strings, in the client's language; tools/make_strings.py gives
     -- the tests each one listed here.
     "ITEM_DELTA_DESCRIPTION", "ITEM_SPELL_TRIGGER_ONUSE", "ITEM_SPELL_TRIGGER_ONEQUIP", "ITEM_SPELL_TRIGGER_ONPROC",
@@ -61,6 +61,8 @@ read_globals = {
     "RESISTANCE4_NAME", "RESISTANCE5_NAME", "RESISTANCE6_NAME",
     "MELEE", "NONE", "ROLL_DISENCHANT", "DAMAGE_PER_SECOND", "ARMOR", "RAID", "LFG_TYPE_DUNGEON", "FAILED",
     "QUEST_CLASSIFICATION_RECURRING", "TARGET", "YOU", "CLOSE",
+    "INVTYPE_2HWEAPON", "INVTYPE_CHEST", "INVTYPE_HAND", "ITEM_REQ_REPUTATION", "FACTION_STANDING_LABEL7",
+    "ITEM_COOLDOWN_TOTAL_MIN", "ITEM_COOLDOWN_TIME_SEC", "ITEM_LEVEL",
     -- Tooltip data
     "TooltipDataProcessor", "Enum",
     -- Game state
