@@ -12,6 +12,7 @@ local colors = ns.Palette.roles
 local isSecret, safeText, number = util.isSecret, util.safeText, util.number
 local plainText, rgb, unformat, startsWith = util.plainText, util.rgb, util.unformat, util.startsWith
 local formats = ns.Locale.formats
+local L = ns.L
 local LINE = Enum.TooltipDataLineType
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
 local pad, PROSE_WIDTH, COLUMN_GAP = ui.pad, ui.PROSE_WIDTH, ui.COLUMN_GAP
@@ -91,7 +92,7 @@ local function withBagSlots(item)
     elseif slot ~= kind then
         slot = slot .. " \194\183 " .. kind
     end
-    item.slot = slot .. " \194\183 " .. bag.count .. (bag.count == 1 and " Slot" or " Slots")
+    item.slot = slot .. " \194\183 " .. util.fill(bag.count == 1 and L["%s Slot"] or L["%s Slots"], bag.count)
 end
 
 local function getQuality(itemInfo, data, game)
@@ -295,7 +296,7 @@ local function finishRecipe(tooltip, model, data, game)
     end
     model.levelLine = nil
     if model.skill then
-        local text = "Requires " .. model.skill.name .. " " .. model.skill.level
+        local text = util.fill(L["Requires %s %s"], model.skill.name, model.skill.level)
         if model.levelRequirement then
             add(model.footerRight, text, "")
             local entry = model.footerRight[#model.footerRight]
@@ -303,7 +304,7 @@ local function finishRecipe(tooltip, model, data, game)
         else
             model.levelRequirement = { text = text, met = model.skill.met }
         end
-        model.slot = (model.name:match("^([^:%s]+):") or "Recipe") .. " \194\183 " .. model.skill.name
+        model.slot = (model.name:match("^([^:%s]+):") or L["Recipe"]) .. " \194\183 " .. model.skill.name
     end
     local created = model.created
     if created then
@@ -577,7 +578,7 @@ local function readModel(tooltip, data, game)
             if entry.durability then at = index + 1 end
         end
         table.insert(model.footerLeft, at, {
-            left = "Made by " .. model.madeBy,
+            left = util.fill(L["Made by %s"], model.madeBy),
             right = "",
             color = FLAVOR_GOLD,
         })
@@ -700,7 +701,8 @@ end
 local DISENCHANT_GREY = { .55, .53, .50 }
 
 local function disenchantHeading(result)
-    local row = { left = "Disenchant", right = "Requires Enchanting " .. result.skill }
+    local row = { left = ROLL_DISENCHANT,
+        right = util.fill(L["Requires %s %s"], ns.Locale.skills.Enchanting, result.skill) }
     if not result.player then
         row.rightColor = DISENCHANT_GREY
     elseif result.player < result.skill then
@@ -721,7 +723,7 @@ local function disenchantRows(result)
         }
     end
     if result.value then
-        rows[#rows + 1] = { left = "Expected value", right = formatMoney(result.value), color = DISENCHANT_GREY }
+        rows[#rows + 1] = { left = L["Expected value"], right = formatMoney(result.value), color = DISENCHANT_GREY }
     end
     return rows
 end
@@ -755,7 +757,7 @@ end
 -- the plate, sized for a two-digit level so every item's icon is the same size.
 local function itemIconSize(panel, badge, style)
     if not badge then return ICON_SIZE end
-    return math.max(ICON_SIZE, math.ceil(measureStyled(panel, "iLvl 88", style)) + 8)
+    return math.max(ICON_SIZE, math.ceil(measureStyled(panel, util.fill(L["iLvl %s"], 88), style)) + 8)
 end
 
 -- The widest of a list's rows, each plus extra; prose rows wrap.
@@ -793,7 +795,7 @@ local function statsWidth(panel, model, styles)
             row.use and markerIndent(panel, styles.effects) or 0, true))
     end
     if model.weaponDps then
-        need = math.max(need, measureStyled(panel, valueLabel(model.weaponDps, "Damage per Second"), styles.dps))
+        need = math.max(need, measureStyled(panel, valueLabel(model.weaponDps, DAMAGE_PER_SECOND), styles.dps))
     end
     if model.weaponDamage then need = math.max(need, measureStyled(panel, weaponText(model), styles.damage) + 7) end
     for _, bonus in ipairs(model.weaponBonus) do
@@ -866,7 +868,7 @@ local function drawStats(panel, model, styles, y)
     local top = y
     if model.weaponDps then
         y = drawRow(panel, {
-            left = valueLabel(model.weaponDps, "Damage per Second"), right = "",
+            left = valueLabel(model.weaponDps, DAMAGE_PER_SECOND), right = "",
         }, y, styles.dps, { .93, .87, .75 }) + 2
     end
     if model.weaponDamage or #model.weaponBonus > 0 then
@@ -882,7 +884,7 @@ local function drawStats(panel, model, styles, y)
     end
     for _, row in ipairs(model.armor) do
         y = drawRow(panel, {
-            left = row.value and valueLabel(row.value, "Armor") or row.left,
+            left = row.value and valueLabel(row.value, ARMOR) or row.left,
             right = row.right, rightColor = row.rightColor,
         }, y, styles.armor, { .93, .87, .75 })
     end
@@ -1017,7 +1019,7 @@ local function itemView(panel, model)
     local styles = itemStyles()
     local icon = ns.option("iconItems") and model.icon or nil
     local badge = icon and ns.option("itemLevelBadge") and model.level
-        and (model.equippable or model.levelLine) and ("iLvl " .. model.level) or nil
+        and (model.equippable or model.levelLine) and util.fill(L["iLvl %s"], model.level) or nil
     local quality = QUALITY[model.quality] or QUALITY[1]
     local accent = model.quest and colors.quest or quality
     local header = { { text = model.name, style = styles.title, color = quality, gap = 4 } }
@@ -1049,14 +1051,14 @@ local function itemView(panel, model)
         sectioned = true
     end
     if model.created then
-        section({ separator = { caption = "Creates", style = styles.caption, before = sectioned and 6 or 0 },
+        section({ separator = { caption = L["Creates"], style = styles.caption, before = sectioned and 6 or 0 },
             kind = "custom",
             measure = function(p) return createdWidth(p, model.created, styles) end,
             draw = function(p, y) return drawCreated(p, model.created, styles, y) end })
         sectioned = true
     end
     if model.reagents then
-        section({ separator = { caption = "Reagents", style = styles.caption, before = 4 }, kind = "rows",
+        section({ separator = { caption = L["Reagents"], style = styles.caption, before = 4 }, kind = "rows",
             rows = reagentRows(model), style = styles.reagents, color = { .90, .85, .74 }, gap = 3 })
         sectioned = true
     end
@@ -1090,7 +1092,7 @@ local function itemView(panel, model)
         badge = badge,
         -- A shield or off-hand is also compared against the one-hander from the
         -- bags it would be worn with; Blizzard heads that one "Equipped With".
-        tag = model.comparison and (model.equippedWith and "EQUIPPED WITH" or "EQUIPPED") or nil,
+        tag = model.comparison and util.upper(model.equippedWith and L["Equipped With"] or L["Equipped"]) or nil,
         header = header,
         sections = sections,
         footer = footer,

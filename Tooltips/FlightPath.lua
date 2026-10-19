@@ -65,7 +65,7 @@ end
 local function taxiView(model)
     local badges = {}
     if model.zone then badges[1] = { model.zone, colors.caption } end
-    if model.current then badges[#badges + 1] = { "You are here", HERE_COLOR } end
+    if model.current then badges[#badges + 1] = { ns.L["You are here"], HERE_COLOR } end
     local header = { { text = model.name, style = ui.styleOf("objectTitle"), color = colors.title, gap = 4 } }
     if #badges > 0 then header[2] = { badges = badges, style = ui.styleOf("objectKind"), before = 1, gap = 4 } end
     local sections = {}
@@ -73,7 +73,7 @@ local function taxiView(model)
         sections[1] = { separator = { rule = EXTRAS_RULE, before = 8 }, kind = "rows", rows = model.extras,
             style = ui.styleOf("extras"), color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
-    local footer = model.cost and { rows = { { left = "Cost", right = ui.formatMoney(model.cost) } },
+    local footer = model.cost and { rows = { { left = ns.L["Cost"], right = ui.formatMoney(model.cost) } },
         style = ui.styleOf("objectPrices"), color = PRICE_LABEL, gap = 4 }
     return { tooltipType = "object", color = colors.neutral, header = header, sections = sections,
         footer = footer, minWidth = 0 }

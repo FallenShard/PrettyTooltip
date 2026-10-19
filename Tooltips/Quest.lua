@@ -11,6 +11,7 @@ local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
 local unformat, startsWith = util.unformat, util.startsWith
+local L = ns.L
 local LINE = Enum.TooltipDataLineType or {}
 local pad = ui.pad
 local ICON_SIZE = 38
@@ -27,8 +28,8 @@ local QUEST_ICON = "Interface\\Icons\\INV_Misc_Book_08"
 local TAGS = ns.Locale.questTags
 -- Questie writes the tag as a suffix on the level: "[27D] The Fury Runs Deep".
 local SUFFIX_TAGS = {
-    ["+"] = "Elite", ["++"] = "Legendary", D = "Dungeon", R = "Raid", H = "Heroic",
-    G = "Group", S = "Scenario", W = "World event",
+    ["+"] = ELITE, ["++"] = L["Legendary"], D = LFG_TYPE_DUNGEON, R = RAID, H = L["Heroic"],
+    G = L["Group"], S = L["Scenario"], W = L["World event"],
 }
 -- Questie's labeled rows, shown as label and value.
 local LABELS = { "Started by", "Ended by", "Found in", "Completed on" }
@@ -206,18 +207,18 @@ end
 
 local function badges(model)
     local list = {}
-    if model.level then list[#list + 1] = { "Level " .. model.level, model.color } end
+    if model.level then list[#list + 1] = { util.fill(TOOLTIP_UNIT_LEVEL, model.level), model.color } end
     for _, tag in ipairs(model.tags) do list[#list + 1] = { tag, PARCHMENT } end
     if model.completed then
-        list[#list + 1] = { "Completed", DONE_COLOR }
+        list[#list + 1] = { L["Completed"], DONE_COLOR }
     elseif model.failed then
-        list[#list + 1] = { "Failed", FAILED_COLOR }
+        list[#list + 1] = { FAILED, FAILED_COLOR }
     elseif model.ready then
-        list[#list + 1] = { "Ready to turn in", DONE_COLOR }
+        list[#list + 1] = { L["Ready to turn in"], DONE_COLOR }
     elseif model.active then
-        list[#list + 1] = { "In progress", QUEST_GOLD }
+        list[#list + 1] = { L["In progress"], QUEST_GOLD }
     end
-    if model.repeatable then list[#list + 1] = { "Repeatable", REPEAT_COLOR } end
+    if model.repeatable then list[#list + 1] = { QUEST_CLASSIFICATION_RECURRING, REPEAT_COLOR } end
     return list
 end
 
@@ -269,7 +270,7 @@ local function objectivesSection(model, styles, after)
             return need
         end,
         draw = function(panel, y)
-            y = ui.caption(panel, y + (after and 4 or 0), "Objectives", styles.questCaption, colors.caption)
+            y = ui.caption(panel, y + (after and 4 or 0), OBJECTIVES_LABEL, styles.questCaption, colors.caption)
             for _, row in ipairs(model.objectives) do
                 checkbox(panel, y, row.completed, style.size)
                 y = ui.drawRow(panel, row, y, style, row.completed and DONE_COLOR or colors.objective,

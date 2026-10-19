@@ -7,6 +7,7 @@ if not (ui and AURA and ui.renderView) then
 end
 
 local util = ns.util
+local L = ns.L
 local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
@@ -123,13 +124,13 @@ end
 local function badges(model)
     local list = {}
     if model.harmful ~= nil then
-        list[#list + 1] = model.harmful and { "Debuff", DEBUFF_COLOR } or { "Buff", BUFF_COLOR }
+        list[#list + 1] = model.harmful and { L["Debuff"], DEBUFF_COLOR } or { L["Buff"], BUFF_COLOR }
     end
     if model.dispel and DISPELS[model.dispel] then
         list[#list + 1] = { ns.Locale.dispels[model.dispel] or model.dispel, DISPELS[model.dispel] }
     end
     if type(model.stacks) == "number" and model.stacks > 1 then
-        list[#list + 1] = { model.stacks .. " stacks", MUTED }
+        list[#list + 1] = { util.fill(L["%s stacks"], model.stacks), MUTED }
     end
     return list
 end
@@ -144,9 +145,9 @@ end
 
 local function timeRow(model)
     local left = model.remaining
-    if not left and type(model.duration) == "number" and model.duration == 0 then left = "No time limit" end
+    if not left and type(model.duration) == "number" and model.duration == 0 then left = L["No time limit"] end
     if not left and not model.caster then return end
-    return { left = left or "", right = model.caster and ("by " .. model.caster) or "" }
+    return { left = left or "", right = model.caster and util.fill(L["by %s"], model.caster) or "" }
 end
 
 local function hasBar(model)

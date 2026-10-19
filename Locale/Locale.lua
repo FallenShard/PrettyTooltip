@@ -30,3 +30,9 @@ ns.Locale = {
     -- names in the client's QuestInfo table: "Dungeon".
     questTags = {},
 }
+
+-- The addon's own words, the ones the game has none for, by their English:
+-- L["Sell Price"]. A language file gives its own; any it leaves out reads in
+-- English. A word with a value in it is a format, filled by util.fill:
+-- L["Your skill %s"].
+ns.L = setmetatable({}, { __index = function(_, english) return english end })

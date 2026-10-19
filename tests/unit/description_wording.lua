@@ -30,7 +30,7 @@ return function(test)
     test.check("deDE: a name that opens with a school", ns.Palette.detectSchool({}, "Frost Nova"), "Frost")
     test.check("deDE: an amount from the language's range", rows(ns, "Spontan",
         "\195\156berzieht den Feind mit 39 bis 48 Punkt(en) Feuerschaden."),
-        "Spell Power Coefficient | 42.9% \194\183 27 to 36 + 12")
+        "Spell Power Coefficient | 42,9% \194\183 27 to 36 + 12")
 
     ns = load("enUS")
     test.check("enUS: the same spell in English", rows(ns, "Instant", "Blasts the enemy for 39 to 48 Fire damage."),

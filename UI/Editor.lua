@@ -1,6 +1,7 @@
 -- The /ptip style editor: a live sample panel and the controls for its parts.
 local _, ns = ...
 local ui = ns.ui
+local L, fillText = ns.L, ns.util.fill
 if not (ui and ui.renderPreview) then
     return
 end
@@ -87,7 +88,7 @@ end
 local function text(parent, template, value)
     local font = parent:CreateFontString(nil, "ARTWORK", template)
     font:SetJustifyH("LEFT")
-    if value then font:SetText(value) end
+    if value then font:SetText(L[value]) end
     return font
 end
 
@@ -120,7 +121,7 @@ local function editorTab(parent, label, width, onClick)
     local tab = CreateFrame("Button", nil, parent, "MinimalTabTemplate")
     tab:SetWidth(width)
     tab.label = tab.Text
-    tab.label:SetText(label)
+    tab.label:SetText(L[label])
     skin:tab(tab, background(tab, FIELD), outline(tab, LINE))
     tab:SetScript("OnClick", onClick)
     return tab
@@ -345,8 +346,8 @@ end
 
 local function showHint()
     local element = hovered and ns.ELEMENT_BY_KEY[hovered]
-    hint:SetText(element and (element.label .. ": click to edit")
-        or "Click any part of the sample to edit it.")
+    hint:SetText(element and fillText(L["%s: click to edit"], L[element.label])
+        or L["Click any part of the sample to edit it."])
 end
 
 overlay:SetScript("OnUpdate", function(self)
@@ -378,11 +379,11 @@ end
 local function lookupProblem(tooltipType, id)
     if tooltipType.dataType ~= Enum.TooltipDataType.Item or not C_Item then return end
     if C_Item.DoesItemExistByID and C_Item.DoesItemExistByID(id) == false then
-        return "There is no item with ID " .. id .. "."
+        return fillText(L["There is no item with ID %s."], id)
     end
     if C_Item.GetItemInfo and not C_Item.GetItemInfo(id) then
         if C_Item.RequestLoadItemDataByID then C_Item.RequestLoadItemDataByID(id) end
-        return "Loading item " .. id .. "..."
+        return fillText(L["Loading item %s..."], id)
     end
 end
 
@@ -395,9 +396,9 @@ local function drawSample()
             return ui.renderPreview(anchor, tooltipType.samples[state.sample].build(), tooltipType.dataType)
         end)
         if not ok then
-            problem = "The sample failed to draw: " .. tostring(panel)
+            problem = fillText(L["The sample failed to draw: %s"], tostring(panel))
         elseif not panel then
-            problem = "Nothing to show for " .. tooltipType.noun .. " ID " .. state.lookup .. "."
+            problem = fillText(L["Nothing to show for %s ID %s."], L[tooltipType.noun], state.lookup)
         end
     end
     failure:SetText(problem or "")
@@ -479,7 +480,7 @@ local function fillMenu()
             else
                 plainFont(row.label)
             end
-            row.label:SetText(item.text)
+            row.label:SetText(L[item.text])
             if item.value == current then
                 row.label:SetTextColor(GOLD[1], GOLD[2], GOLD[3])
             else
@@ -582,7 +583,7 @@ local function dropdown(width, items, current, pick)
         else
             plainFont(button.label)
         end
-        button.label:SetText(shown and shown.text or (tostring(value) .. " (not installed)"))
+        button.label:SetText(shown and L[shown.text] or fillText(L["%s (not installed)"], tostring(value)))
     end
     controls[#controls + 1] = button
     return button
@@ -707,7 +708,7 @@ local function colorControl()
         local custom = type(saved) == "table"
         local color = custom and saved or selectedElement().color
         chip:SetVertexColor(color[1], color[2], color[3], custom and 1 or .35)
-        status:SetText(custom and "Custom" or "Automatic")
+        status:SetText(custom and L["Custom"] or L["Automatic"])
         automatic:SetShown(custom)
     end
     controls[#controls + 1] = holder
@@ -723,8 +724,8 @@ local function checkbox(label, key, description, isAvailable)
     button:SetHitRectInsets(0, -(caption:GetStringWidth() + 6), 0, 0)
     button:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText(label, 1, 1, 1)
-        GameTooltip:AddLine(description, nil, nil, nil, true)
+        GameTooltip:SetText(L[label], 1, 1, 1)
+        GameTooltip:AddLine(L[description], nil, nil, nil, true)
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -804,7 +805,7 @@ refreshLookup = function()
     local hidden = TOOLTIP_TYPES[state.tooltipType].noLookup == true
     lookupLabel:SetShown(not hidden)
     lookupBox:SetShown(not hidden)
-    lookupLabel:SetText(TOOLTIP_TYPES[state.tooltipType].label:sub(1, -2) .. " ID")
+    lookupLabel:SetText(L[TOOLTIP_TYPES[state.tooltipType].label:sub(1, -2) .. " ID"])
     if not lookupBox:HasFocus() then
         lookupBox:SetText(state.lookup and tostring(state.lookup) or "")
         lookupPlaceholder:SetShown(state.lookup == nil)
@@ -844,7 +845,7 @@ local function section(title, shown, first)
     rule:SetPoint("TOPLEFT", 0, -top - 16)
     rule:SetSize(CONTROLS_WIDTH, 1)
     controls[#controls + 1] = {
-        refresh = function() label:SetText(type(title) == "function" and title() or title) end,
+        refresh = function() label:SetText(L[type(title) == "function" and title() or title]) end,
     }
 end
 
@@ -887,7 +888,7 @@ local function row(label, control, setting, shown, stacked)
     end)
     button:SetScript("OnEnter", function(self)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-        GameTooltip:SetText("Reset to default", 1, 1, 1)
+        GameTooltip:SetText(L["Reset to default"], 1, 1, 1)
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1039,8 +1040,8 @@ local function colorSwatches(list, prefix, colorOf)
         end)
         swatch:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText(choice.label, 1, 1, 1)
-            GameTooltip:AddLine("Click to choose its color; right-click for the default.", nil, nil, nil, true)
+            GameTooltip:SetText(L[choice.label], 1, 1, 1)
+            GameTooltip:AddLine(L["Click to choose its color; right-click for the default."], nil, nil, nil, true)
             GameTooltip:Show()
         end)
         swatch:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1135,7 +1136,7 @@ local function typeKey(name)
     return function() return name .. ns.TYPE_SUFFIX[state.tooltipType] end
 end
 
-section(function() return TOOLTIP_TYPES[state.tooltipType].label .. " Panel" end)
+section(function() return fillText(L["%s Panel"], L[TOOLTIP_TYPES[state.tooltipType].label]) end)
 toggles({
     { "Show icon", typeKey("icon"), "The icon or portrait in the header, for the kind of tooltip shown." },
 })
@@ -1264,12 +1265,12 @@ refresh = function()
         local sample = samples()[index]
         tab:SetShown(sample ~= nil)
         if sample then
-            tab.label:SetText(sample.label)
+            tab.label:SetText(L[sample.label])
             tab:SetSelected(not state.lookup and index == state.sample)
         end
     end
     refreshLookup()
-    partNote:SetText(selectedElement().note or "")
+    partNote:SetText(L[selectedElement().note or ""])
     layoutColumn()
     for _, control in ipairs(controls) do control.refresh() end
     paintHighlights()

@@ -5,6 +5,7 @@
 local _, ns = ...
 local util = ns.util
 local unformat, fill = util.unformat, util.fill
+local L = ns.L
 local stats = {}
 ns.Stats = stats
 
@@ -14,13 +15,13 @@ ns.Stats = stats
 -- editor can replace a category's color (setting statColor plus its name),
 -- and the shade then follows from it.
 local CATEGORIES = {
-    { key = "Primary", label = "Primary attributes", value = "E9DDC4", name = "EEE7DA" },
-    { key = "Attack", label = "Attack", value = "FAA365", name = "F7C5A5" },
-    { key = "Defense", label = "Defense", value = "A6C1DD", name = "C7D6E6" },
-    { key = "Magic", label = "Magic", value = "C6A9FC", name = "D7C8F7" },
-    { key = "Healing", label = "Healing", value = "89DA9B", name = "BDE8C4" },
-    { key = "Mana", label = "Mana", value = "9EB8FE", name = "C0D0FA" },
-    { key = "Negative", label = "Negative values", value = "F66D67" },
+    { key = "Primary", label = L["Primary attributes"], value = "E9DDC4", name = "EEE7DA" },
+    { key = "Attack", label = L["Attack"], value = "FAA365", name = "F7C5A5" },
+    { key = "Defense", label = L["Defense"], value = "A6C1DD", name = "C7D6E6" },
+    { key = "Magic", label = L["Magic"], value = "C6A9FC", name = "D7C8F7" },
+    { key = "Healing", label = L["Healing"], value = "89DA9B", name = "BDE8C4" },
+    { key = "Mana", label = L["Mana"], value = "9EB8FE", name = "C0D0FA" },
+    { key = "Negative", label = L["Negative values"], value = "F66D67" },
 }
 local CATEGORY = {}
 for _, category in ipairs(CATEGORIES) do CATEGORY[category.key] = category end
@@ -40,8 +41,8 @@ local SCHOOL_KEYS = {}
 for school, name in pairs(SCHOOL_NAMES) do SCHOOL_KEYS[name] = school end
 
 -- Creature types, by the game's key for them, and the panel's name for each.
-local CREATURES = { BEAST = "Beasts", DEMON = "Demons", DRAGONKIN = "Dragonkin", ELEMENTAL = "Elementals",
-    GIANT = "Giants", HUMANOID = "Humanoids", MECHANICAL = "Mechanical", UNDEAD = "Undead" }
+local CREATURES = { BEAST = L["Beasts"], DEMON = L["Demons"], DRAGONKIN = L["Dragonkin"], ELEMENTAL = L["Elementals"],
+    GIANT = L["Giants"], HUMANOID = L["Humanoids"], MECHANICAL = L["Mechanical"], UNDEAD = L["Undead"] }
 local CREATURE_KEYS = { "BEAST", "DEMON", "DRAGONKIN", "ELEMENTAL", "GIANT", "HUMANOID", "MECHANICAL", "UNDEAD" }
 
 -- Every stat the panel shows, by key: its category, which colors it, else
@@ -54,47 +55,47 @@ local STATS = {
     STAMINA = { category = "Primary", name = mod("STAMINA_SHORT"), line = mod("STAMINA") },
     INTELLECT = { category = "Primary", name = mod("INTELLECT_SHORT"), line = mod("INTELLECT") },
     SPIRIT = { category = "Primary", name = mod("SPIRIT_SHORT"), line = mod("SPIRIT") },
-    ALL_STATS = { category = "Primary", name = "All Stats" },
+    ALL_STATS = { category = "Primary", name = L["All Stats"] },
 
     ATTACK_POWER = { category = "Attack", name = mod("ATTACK_POWER_SHORT") },
     RANGED_ATTACK_POWER = { category = "Attack", name = mod("RANGED_ATTACK_POWER_SHORT") },
-    ATTACK_POWER_VS = { category = "Attack", name = "Attack Power vs %s", each = "creature" },
-    HIT_CHANCE = { category = "Attack", name = "Hit Chance", percent = true },
-    CRIT_CHANCE = { category = "Attack", name = "Critical Strike Chance", percent = true },
-    HIT_RATING = { category = "Attack", name = "Hit Rating" },
-    CRIT_RATING = { category = "Attack", name = "Critical Strike Rating" },
-    HASTE_RATING = { category = "Attack", name = "Haste Rating" },
-    EXPERTISE_RATING = { category = "Attack", name = "Expertise Rating" },
+    ATTACK_POWER_VS = { category = "Attack", name = L["Attack Power vs %s"], each = "creature" },
+    HIT_CHANCE = { category = "Attack", name = L["Hit Chance"], percent = true },
+    CRIT_CHANCE = { category = "Attack", name = L["Critical Strike Chance"], percent = true },
+    HIT_RATING = { category = "Attack", name = L["Hit Rating"] },
+    CRIT_RATING = { category = "Attack", name = L["Critical Strike Rating"] },
+    HASTE_RATING = { category = "Attack", name = L["Haste Rating"] },
+    EXPERTISE_RATING = { category = "Attack", name = L["Expertise Rating"] },
 
     ARMOR = { category = "Defense", name = RESISTANCE0_NAME },
-    DEFENSE_SKILL = { category = "Defense", name = "Defense Skill" },
-    DEFENSE_RATING = { category = "Defense", name = "Defense Rating" },
-    DODGE_CHANCE = { category = "Defense", name = "Dodge Chance", percent = true },
-    DODGE_RATING = { category = "Defense", name = "Dodge Rating" },
-    PARRY_CHANCE = { category = "Defense", name = "Parry Chance", percent = true },
-    PARRY_RATING = { category = "Defense", name = "Parry Rating" },
-    BLOCK_CHANCE = { category = "Defense", name = "Block Chance", percent = true },
-    BLOCK_RATING = { category = "Defense", name = "Block Rating" },
-    BLOCK_VALUE = { category = "Defense", name = "Shield Block Value" },
-    RESILIENCE_RATING = { category = "Defense", name = "Resilience Rating" },
-    ALL_RESISTANCES = { category = "Defense", name = "All Resistances" },
+    DEFENSE_SKILL = { category = "Defense", name = L["Defense Skill"] },
+    DEFENSE_RATING = { category = "Defense", name = L["Defense Rating"] },
+    DODGE_CHANCE = { category = "Defense", name = L["Dodge Chance"], percent = true },
+    DODGE_RATING = { category = "Defense", name = L["Dodge Rating"] },
+    PARRY_CHANCE = { category = "Defense", name = L["Parry Chance"], percent = true },
+    PARRY_RATING = { category = "Defense", name = L["Parry Rating"] },
+    BLOCK_CHANCE = { category = "Defense", name = L["Block Chance"], percent = true },
+    BLOCK_RATING = { category = "Defense", name = L["Block Rating"] },
+    BLOCK_VALUE = { category = "Defense", name = L["Shield Block Value"] },
+    RESILIENCE_RATING = { category = "Defense", name = L["Resilience Rating"] },
+    ALL_RESISTANCES = { category = "Defense", name = L["All Resistances"] },
     RESISTANCE = { each = "school" },
 
     SPELL_POWER = { category = "Magic", magic = true, name = mod("SPELL_POWER_SHORT") },
-    SPELL_DAMAGE = { category = "Magic", magic = true, name = "Spell Damage Power" },
-    SPELL_DAMAGE_VS = { category = "Magic", name = "Spell Damage Power vs %s", each = "creature" },
-    SPELL_PENETRATION = { category = "Magic", magic = true, name = "Spell Penetration" },
-    SPELL_HIT_CHANCE = { category = "Magic", magic = true, name = "Spell Hit Chance", percent = true },
-    SPELL_CRIT_CHANCE = { category = "Magic", magic = true, name = "Spell Critical Strike Chance", percent = true },
-    SPELL_HIT_RATING = { category = "Magic", magic = true, name = "Spell Hit Rating" },
-    SPELL_CRIT_RATING = { category = "Magic", magic = true, name = "Spell Critical Strike Rating" },
-    SPELL_HASTE_RATING = { category = "Magic", magic = true, name = "Spell Haste Rating" },
-    SCHOOL_SPELL_POWER = { magic = true, name = "%s Spell Power", each = "school" },
-    SCHOOL_SPELL_DAMAGE = { magic = true, name = "%s Spell Damage Power", each = "school" },
+    SPELL_DAMAGE = { category = "Magic", magic = true, name = L["Spell Damage Power"] },
+    SPELL_DAMAGE_VS = { category = "Magic", name = L["Spell Damage Power vs %s"], each = "creature" },
+    SPELL_PENETRATION = { category = "Magic", magic = true, name = L["Spell Penetration"] },
+    SPELL_HIT_CHANCE = { category = "Magic", magic = true, name = L["Spell Hit Chance"], percent = true },
+    SPELL_CRIT_CHANCE = { category = "Magic", magic = true, name = L["Spell Critical Strike Chance"], percent = true },
+    SPELL_HIT_RATING = { category = "Magic", magic = true, name = L["Spell Hit Rating"] },
+    SPELL_CRIT_RATING = { category = "Magic", magic = true, name = L["Spell Critical Strike Rating"] },
+    SPELL_HASTE_RATING = { category = "Magic", magic = true, name = L["Spell Haste Rating"] },
+    SCHOOL_SPELL_POWER = { magic = true, name = L["%s Spell Power"], each = "school" },
+    SCHOOL_SPELL_DAMAGE = { magic = true, name = L["%s Spell Damage Power"], each = "school" },
 
-    HEALING_POWER = { category = "Healing", magic = true, name = "Healing Power" },
-    HEALTH_REGEN = { category = "Healing", name = "Health per 5 sec" },
-    MANA_REGEN = { category = "Mana", name = "Mana per 5 sec" },
+    HEALING_POWER = { category = "Healing", magic = true, name = L["Healing Power"] },
+    HEALTH_REGEN = { category = "Healing", name = L["Health per 5 sec"] },
+    MANA_REGEN = { category = "Mana", name = L["Mana per 5 sec"] },
     MANA = { category = "Mana", name = mod("MANA_SHORT"), line = mod("MANA") },
 }
 

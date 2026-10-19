@@ -7,6 +7,7 @@ if not (ui and OBJECT and ui.renderView) then
 end
 
 local util = ns.util
+local L = ns.L
 local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, trim = util.isSecret, util.trim
@@ -22,12 +23,12 @@ local PARTS = { "objectTitle", "objectKind", "objectDetails", "objectLoot", "obj
     "extras" }
 
 local SKILLS = {
-    Herbalism = { label = "Herb", color = { .36, .78, .32 }, icon = "Interface\\Icons\\Trade_Herbalism" },
-    Mining = { label = "Mining node", color = { .85, .55, .30 }, icon = "Interface\\Icons\\Trade_Mining" },
-    Lockpicking = { label = "Locked", color = { .85, .72, .35 }, icon = "Interface\\Icons\\INV_Misc_Key_03" },
-    Fishing = { label = "Fishing pool", color = { .35, .65, .95 }, icon = "Interface\\Icons\\Trade_Fishing" },
+    Herbalism = { label = L["Herb"], color = { .36, .78, .32 }, icon = "Interface\\Icons\\Trade_Herbalism" },
+    Mining = { label = L["Mining node"], color = { .85, .55, .30 }, icon = "Interface\\Icons\\Trade_Mining" },
+    Lockpicking = { label = LOCKED, color = { .85, .72, .35 }, icon = "Interface\\Icons\\INV_Misc_Key_03" },
+    Fishing = { label = L["Fishing pool"], color = { .35, .65, .95 }, icon = "Interface\\Icons\\Trade_Fishing" },
 }
-local QUEST = { label = "Quest object", color = QUEST_GOLD, icon = "Interface\\Icons\\INV_Misc_Note_01" }
+local QUEST = { label = L["Quest object"], color = QUEST_GOLD, icon = "Interface\\Icons\\INV_Misc_Note_01" }
 -- Each skill's name as the client words it, which its lines print
 -- ("Bergbau"), and the other way round.
 local SKILL_NAMES, SKILL_KEYS = {}, {}
@@ -110,7 +111,7 @@ local function lootRows(name, game)
         local right
         if chance >= 100 then
             low, high = low * loot.taps[1], high * loot.taps[2]
-            right = low == high and tostring(low) or (low .. " to " .. high)
+            right = low == high and tostring(low) or util.fill(L["%s to %s"], low, high)
         else
             right = chance .. "%"
         end
@@ -142,10 +143,10 @@ local function completeModel(model, game)
         model.itemName, model.icon = name, icon
         model.prices = {}
         if type(price) == "number" and price > 0 then
-            model.prices[#model.prices + 1] = { "Sell Price", ui.formatMoney(price) }
+            model.prices[#model.prices + 1] = { SELL_PRICE, ui.formatMoney(price) }
         end
         local auction = game.auctionPrice(node[1])
-        if auction then model.prices[#model.prices + 1] = { "Auction", ui.formatMoney(auction) } end
+        if auction then model.prices[#model.prices + 1] = { L["Auction"], ui.formatMoney(auction) } end
     end
     model.prices = model.prices or {}
     return model
@@ -214,7 +215,8 @@ local function readObject(tooltip, data, game)
 end
 
 local function skillText(skill)
-    return "Requires " .. (skill.level and (skill.name .. " " .. skill.level) or skill.name)
+    if skill.level then return util.fill(L["Requires %s %s"], skill.name, skill.level) end
+    return util.fill(LOCKED_WITH_SPELL, skill.name)
 end
 
 -- What the panel shows, for Panel/Render.lua to draw.
@@ -230,7 +232,7 @@ local function objectView(model)
     if skill then
         details[1] = {
             left = skillText(skill),
-            right = skill.player and ("Your skill " .. skill.player) or "",
+            right = skill.player and util.fill(L["Your skill %s"], skill.player) or "",
             rightColor = colors.caption,
             color = model.skillMet == false and UNMET_COLOR or model.skillColor or DETAIL_COLOR,
         }

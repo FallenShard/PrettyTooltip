@@ -12,6 +12,7 @@ local colors = ns.Palette.roles
 local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
 local unformat = util.unformat
 local formats = ns.Locale.formats
+local L = ns.L
 local get = util.call
 local LINE = Enum.TooltipDataLineType or {}
 local WHITE = "Interface\\Buttons\\WHITE8X8"
@@ -27,10 +28,10 @@ local REACTION = {
     { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 },
 }
 local BADGES = {
-    elite = { "Elite", { .95, .78, .30 } },
-    rareelite = { "Rare Elite", { .70, .80, .95 } },
-    rare = { "Rare", { .70, .80, .95 } },
-    worldboss = { "Boss", { 1, .35, .25 } },
+    elite = { ELITE, { .95, .78, .30 } },
+    rareelite = { formats.rareElite, { .70, .80, .95 } },
+    rare = { formats.rare, { .70, .80, .95 } },
+    worldboss = { BOSS, { 1, .35, .25 } },
 }
 -- The rank the tooltip's level line names, as "Level ?? (Boss)". It outranks
 -- UnitClassification, which answers "elite" for bosses such as faction
@@ -140,7 +141,7 @@ local function skinning(model, game)
     local rows = {}
     for _, drop in ipairs(drops) do
         local icon = game.itemIcon(drop[1])
-        local count = drop[4] == drop[5] and "" or (" (" .. drop[4] .. " to " .. drop[5] .. ")")
+        local count = drop[4] == drop[5] and "" or (" (" .. util.fill(L["%s to %s"], drop[4], drop[5]) .. ")")
         local name = game.itemName(drop[1]) or drop[2]
         rows[#rows + 1] = { left = (icon and ("|T" .. icon .. ":" .. LOOT_ICON .. "|t ") or "") .. name .. count,
             right = drop[3] .. "%", rare = drop[3] < RARE }
@@ -279,18 +280,18 @@ local function infoText(model, plated)
     local levelText = level == -1 and "??" or tostring(level)
     local color = levelColor(level)
     if color then levelText = "|cff" .. hex(color) .. levelText .. "|r" end
-    return trim("Level " .. levelText .. " " .. what)
+    return trim(util.fill(TOOLTIP_UNIT_LEVEL_RACE, levelText, what))
 end
 
 local function badges(model)
     local list = {}
     local classification = model.classification and BADGES[model.classification]
     if classification then list[#list + 1] = classification end
-    if model.pvp then list[#list + 1] = { "PvP", { 1, .45, .35 } } end
-    if model.afk then list[#list + 1] = { "AFK", MUTED } end
-    if model.dnd then list[#list + 1] = { "DND", MUTED } end
-    if model.dead then list[#list + 1] = { "Dead", TAPPED } end
-    if model.skinning then list[#list + 1] = { "Skinnable", SKINNABLE_COLOR } end
+    if model.pvp then list[#list + 1] = { PVP_ENABLED, { 1, .45, .35 } } end
+    if model.afk then list[#list + 1] = { L["AFK"], MUTED } end
+    if model.dnd then list[#list + 1] = { L["DND"], MUTED } end
+    if model.dead then list[#list + 1] = { DEAD, TAPPED } end
+    if model.skinning then list[#list + 1] = { UNIT_SKINNABLE_LEATHER, SKINNABLE_COLOR } end
     return list
 end
 
@@ -304,8 +305,8 @@ local function detailRows(model)
     if model.owner then rows[#rows + 1] = { left = model.owner, right = "" } end
     if model.target then
         rows[#rows + 1] = model.targetIsYou
-            and { left = "Target", right = "You", rightColor = UNMET_COLOR }
-            or { left = "Target", right = model.target, rightColor = model.targetColor }
+            and { left = TARGET, right = YOU, rightColor = UNMET_COLOR }
+            or { left = TARGET, right = model.target, rightColor = model.targetColor }
     end
     return rows
 end
@@ -385,8 +386,8 @@ local function unitView(model, healthBar)
     if skin and ns.option("gatheringLoot") then
         local rows = {}
         if skin.needed then
-            rows[1] = { left = "Requires Skinning " .. skin.needed,
-                right = skin.player and ("Your skill " .. skin.player) or "",
+            rows[1] = { left = util.fill(L["Requires %s %s"], ns.Locale.skills.Skinning, skin.needed),
+                right = skin.player and util.fill(L["Your skill %s"], skin.player) or "",
                 color = ns.Palette.skillUpColor(skin.needed, skin.player) or DETAIL_COLOR, rightColor = colors.caption }
         end
         for _, row in ipairs(skin.rows) do

@@ -6,7 +6,7 @@ local function dumpTooltip()
     -- A clicked chat link opens in its own tooltip.
     local tooltip = GameTooltip:IsShown() and GameTooltip or ItemRefTooltip
     if not (tooltip and tooltip:IsShown()) then
-        print("PrettyTooltip: hover something first; there is no tooltip to dump.")
+        print(ns.L["PrettyTooltip: hover something first; there is no tooltip to dump."])
         return
     end
     -- Who filled it, to tell which frame or addon a lines-only tooltip is from.
@@ -81,7 +81,7 @@ local function handleCommand(message)
     if wanted == "dump" then
         -- Secret values cannot be printed in some situations.
         local ok, problem = pcall(dumpTooltip)
-        if not ok then print("PrettyTooltip: this tooltip cannot be read right now (" .. tostring(problem) .. ").") end
+        if not ok then print(ns.util.fill(ns.L["PrettyTooltip: this tooltip cannot be read right now (%s)."], tostring(problem))) end
         return
     end
     if wanted ~= "options" and ns.openEditor then

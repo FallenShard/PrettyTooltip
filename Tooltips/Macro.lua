@@ -63,7 +63,7 @@ local function readMacro(tooltip, data, game)
         local shown = tooltipType and tooltipType.read(tooltip, nested, game)
         if not shown then return end
         local name = game.macroShowing(nested.type, nested.id)
-        local label = name and ("Macro: " .. name) or "Macro"
+        local label = name and util.fill(ns.L["Macro: %s"], name) or ns.L["Macro"]
         if nested.type == SPELL then
             shown.tags = { { label } }
         else
@@ -140,7 +140,7 @@ local function macroView(model)
         iconSize = ICON_SIZE,
         header = {
             { text = model.name, style = styles.macroName, color = colors.title, gap = 4 },
-            { badges = { { "Macro", colors.caption } }, style = styles.macroBadges, before = 1, gap = 4 },
+            { badges = { { ns.L["Macro"], colors.caption } }, style = styles.macroBadges, before = 1, gap = 4 },
         },
         sections = sections,
     }

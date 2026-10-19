@@ -10,7 +10,7 @@ return function(test)
     local function rank(ns, name)
         local rows = ns.spellPowerRows({ name = name, rank = "Rang 3", cast = { "Instant", "Cast" },
             description = { "Verursacht 62 bis 68 Frost damage." } }, "FFFFFF", game)
-        return rows and rows[1].right:match("(%d+%.%d)%%")
+        return rows and rows[1].right:match("(%d+[%.,]%d)%%")
     end
 
     local ns = load("deDE", { ["C_Spell.GetSpellName"] = {
@@ -19,7 +19,7 @@ return function(test)
         { "Frost", "Holy" })
     test.check("deDE: not by the English one", ns.spellSchool("Frostbolt"), nil)
     test.check("deDE: a name the client does not give stays English", ns.spellSchool("Fireball"), "Fire")
-    test.check("deDE: a rank by the client's name", rank(ns, "Frostblitz"), "59.7")
+    test.check("deDE: a rank by the client's name", rank(ns, "Frostblitz"), "59,7")
     -- Unknown by name, it is no class spell, and has no rank to read.
     test.check("deDE: not a rank by the English name", rank(ns, "Frostbolt"), nil)
 

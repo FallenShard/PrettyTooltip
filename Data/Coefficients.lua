@@ -8,6 +8,7 @@
 local _, ns = ...
 
 local util = ns.util
+local L = ns.L
 
 -- Between a row's coefficient and its split, dim, as between badges.
 local SEPARATOR = " |cff" .. util.hex(ns.Palette.roles.caption) .. "\194\183|r "
@@ -121,7 +122,12 @@ end
 
 local function range(low, high)
     if low == high then return tostring(low) end
-    return low .. " to " .. high
+    return util.fill(L["%s to %s"], low, high)
+end
+
+-- A number with places decimals, as the client prints one: "1,5" in German.
+local function decimal(value, places)
+    return (string.format("%." .. places .. "f", value):gsub("%.", function() return DECIMAL_SEPERATOR or "." end))
 end
 
 -- The time a cast takes from the player: the cast shown, after talents and
@@ -146,16 +152,15 @@ local function rateRows(part, direct, periodic, healing)
     if periodic and periodic.duration > 0 and (perSecond or not direct) then
         perSecond = (perSecond or 0) + periodicTotal / periodic.duration
     end
-    local noun = healing and "Healing" or "Damage"
     local rows = {}
     if perSecond then
-        rows[#rows + 1] = { left = noun .. " per Second", right = string.format("%.1f", perSecond) }
+        rows[#rows + 1] = { left = healing and L["Healing per Second"] or DAMAGE_PER_SECOND, right = decimal(perSecond, 1) }
     end
     local total = directTotal + periodicTotal
     -- A cost in mana, not a share of base mana or another power.
     local cost = part.cost and part.cost[2] == MANA and util.parseNumber(part.cost[1], LARGE_NUMBER_SEPERATOR)
     if cost and cost > 0 then
-        rows[#rows + 1] = { left = noun .. " per Mana", right = string.format("%.2f", total / cost) }
+        rows[#rows + 1] = { left = healing and L["Healing per Mana"] or L["Damage per Mana"], right = decimal(total / cost, 2) }
     end
     if #rows > 0 then return rows end
 end
@@ -229,20 +234,20 @@ function ns.spellPowerRows(part, bonusCode, game)
 
     local power = part.spellPower or playerPower(game, school, healing) or 0
     local rows = {}
-    local label = (healing and "Healing Power" or "Spell Power") .. " Coefficient"
-    local function addRow(amount, share, suffix)
+    local function addRow(amount, share, label)
         if not (amount and share) then return end
         -- An amount per tick gains its share of the whole duration's bonus.
         local bonus = math.floor(power * share / (amount.ticks or 1) + 1e-6)
         -- The share in the school's color, as the bonus it brings, then the split.
         rows[#rows + 1] = {
-            left = label .. suffix,
-            right = "|cff" .. bonusCode .. (estimate and "~" or "") .. string.format("%.1f%%", share * 100) .. "|r"
+            left = label,
+            right = "|cff" .. bonusCode .. (estimate and "~" or "") .. decimal(share * 100, 1) .. "%" .. "|r"
                 .. SEPARATOR .. range(math.max(0, amount.low - bonus), math.max(0, amount.high - bonus))
-                .. " + |cff" .. bonusCode .. bonus .. "|r" .. (amount.ticks and " each" or ""),
+                .. " + |cff" .. bonusCode .. bonus .. "|r" .. (amount.ticks and " " .. L["each"] or ""),
         }
     end
-    addRow(direct, directShare, "")
-    addRow(periodic, periodicShare, " over time")
+    addRow(direct, directShare, healing and L["Healing Power Coefficient"] or L["Spell Power Coefficient"])
+    addRow(periodic, periodicShare,
+        healing and L["Healing Power Coefficient over time"] or L["Spell Power Coefficient over time"])
     if #rows > 0 then return rows, rateRows(part, direct, periodic, healing) end
 end

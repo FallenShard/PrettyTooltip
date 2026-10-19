@@ -1,6 +1,7 @@
 -- Settings-page presentation and registration. The shared API lives in Core/Settings.lua.
 local _, ns = ...
 local setOption = ns.setOption
+local L = ns.L
 
 local page, category
 ns.Options = {}
@@ -23,19 +24,19 @@ function ns.Options.register()
     pageTitle:SetText("PrettyTooltip")
     local subtitle = page:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     subtitle:SetPoint("TOPLEFT", pageTitle, "BOTTOMLEFT", 0, -6)
-    subtitle:SetText("A full reskin of tooltips. Changes apply the next time a tooltip opens.")
+    subtitle:SetText(L["A full reskin of tooltips. Changes apply the next time a tooltip opens."])
 
     local editorButton = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
     editorButton:SetSize(180, 24)
     editorButton:SetPoint("TOPLEFT", 16, -64)
-    editorButton:SetText("Open the style editor")
+    editorButton:SetText(L["Open the style editor"])
 
     -- Explanations show on hover, which keeps the page short.
     local function explain(widget, title, text)
         widget:SetScript("OnEnter", function(self)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-            GameTooltip:SetText(title, 1, 1, 1)
-            GameTooltip:AddLine(text, nil, nil, nil, true)
+            GameTooltip:SetText(L[title], 1, 1, 1)
+            GameTooltip:AddLine(L[text], nil, nil, nil, true)
             GameTooltip:Show()
         end)
         widget:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -57,7 +58,7 @@ function ns.Options.register()
     local function section(column, text)
         local header = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         header:SetPoint("TOPLEFT", column.x, column.y)
-        header:SetText(text)
+        header:SetText(L[text])
         column.y = column.y - 24
     end
 
@@ -65,7 +66,7 @@ function ns.Options.register()
     for index, heading in ipairs({ "Restyle", "Follow cursor" }) do
         local label = page:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
         label:SetPoint("TOPLEFT", leftColumn.x + 244 + (index - 1) * 90, leftColumn.y)
-        label:SetText(heading)
+        label:SetText(L[heading])
     end
     leftColumn.y = leftColumn.y - 16
 
@@ -89,8 +90,8 @@ function ns.Options.register()
         local label = page:CreateFontString(nil, "ARTWORK",
             tooltipType.restyle and "GameFontHighlight" or "GameFontDisable")
         label:SetPoint("TOPLEFT", leftColumn.x + 8, leftColumn.y - 1)
-        label:SetText(tooltipType.label)
-        typeBox(leftColumn.x + 254, tooltipType.restyle, "Restyle " .. tooltipType.label:lower(), tooltipType.restyle
+        label:SetText(L[tooltipType.label])
+        typeBox(leftColumn.x + 254, tooltipType.restyle, L["Restyle " .. tooltipType.label:lower()], tooltipType.restyle
             and "Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."
             or "Not restyled yet; this kind keeps the game's own tooltip.")
         typeBox(leftColumn.x + 354, tooltipType.cursor, "Follow cursor", "Shows this kind's tooltip at the cursor "
@@ -111,7 +112,7 @@ function ns.Options.register()
         button:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
         local text = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         text:SetPoint("LEFT", button, "RIGHT", 6, 0)
-        text:SetText(label)
+        text:SetText(L[label])
         button:SetHitRectInsets(0, -(text:GetStringWidth() + 8), 0, 0)
         button:SetScript("OnClick", function()
             setOption("originalKey", value)
@@ -134,7 +135,7 @@ function ns.Options.register()
         button:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
         local caption = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         caption:SetPoint("LEFT", button, "RIGHT", 6, 0)
-        caption:SetText(label)
+        caption:SetText(L[label])
         button:SetHitRectInsets(0, -(caption:GetStringWidth() + 8), 0, 0)
         button:SetScript("OnClick", function()
             setOption("editorStyle", value)

@@ -42,9 +42,9 @@ local function readPet(tooltip, data, game)
         model.icon = model.icon or slot.icon
         model.tags = {}
         if slot.autocast ~= nil then
-            model.tags[1] = slot.autocast and { "Autocast", ON_COLOR } or { "Autocast off", OFF_COLOR }
+            model.tags[1] = slot.autocast and { ns.L["Autocast"], ON_COLOR } or { ns.L["Autocast off"], OFF_COLOR }
         end
-        if slot.active then model.tags[#model.tags + 1] = { "Active", ON_COLOR } end
+        if slot.active then model.tags[#model.tags + 1] = { ns.L["Active"], ON_COLOR } end
     end
     return model
 end

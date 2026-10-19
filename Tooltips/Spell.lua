@@ -13,6 +13,7 @@ local colors = ns.Palette.roles
 local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
 local unformat, startsWith = util.unformat, util.startsWith
 local formats = ns.Locale.formats
+local L = ns.L
 local add = tooltipData.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
@@ -46,12 +47,12 @@ for _, power in ipairs(POWERS) do POWER_COLORS[power.key] = power.color end
 -- The strip's times, by the line that states one and the duration the strip
 -- shows it as: "2.5 sec cast" as "2.5 sec", "Wirken in 1,5 Sek." as "1,5 Sek.".
 local TIMES = {
-    { "cast", "Cast", SPELL_CAST_TIME_SEC, SPELL_DURATION_SEC },
-    { "cast", "Cast", SPELL_CAST_TIME_MIN, SPELL_DURATION_MIN },
-    { "cooldown", "Cooldown", SPELL_RECAST_TIME_SEC, SPELL_DURATION_SEC },
-    { "cooldown", "Cooldown", SPELL_RECAST_TIME_MIN, SPELL_DURATION_MIN },
-    { "cooldown", "Cooldown", SPELL_RECAST_TIME_HOURS, SPELL_DURATION_HOURS },
-    { "cooldown", "Cooldown", SPELL_RECAST_TIME_DAYS, SPELL_DURATION_DAYS },
+    { "cast", L["Cast"], SPELL_CAST_TIME_SEC, SPELL_DURATION_SEC },
+    { "cast", L["Cast"], SPELL_CAST_TIME_MIN, SPELL_DURATION_MIN },
+    { "cooldown", L["Cooldown"], SPELL_RECAST_TIME_SEC, SPELL_DURATION_SEC },
+    { "cooldown", L["Cooldown"], SPELL_RECAST_TIME_MIN, SPELL_DURATION_MIN },
+    { "cooldown", L["Cooldown"], SPELL_RECAST_TIME_HOURS, SPELL_DURATION_HOURS },
+    { "cooldown", L["Cooldown"], SPELL_RECAST_TIME_DAYS, SPELL_DURATION_DAYS },
 }
 -- Casts the strip shows as the game words them.
 local CASTS = { SPELL_CAST_TIME_INSTANT, SPELL_CAST_TIME_INSTANT_NO_MANA, SPELL_CAST_CHANNELED, SPELL_ON_NEXT_SWING }
@@ -88,7 +89,7 @@ local function readStat(model, text)
     end
     local percent = unformat(text, formats.baseManaCost)
     if percent then
-        model.cost, model.power = { percent .. "%", "Base Mana" }, "Mana"
+        model.cost, model.power = { percent .. "%", L["Base Mana"] }, "Mana"
         return true
     end
     for _, time in ipairs(TIMES) do
@@ -100,7 +101,7 @@ local function readStat(model, text)
     end
     for _, cast in pairs(CASTS) do
         if unformat(text, cast) then
-            model.cast = { text, "Cast" }
+            model.cast = { text, L["Cast"] }
             return true
         end
     end
@@ -110,11 +111,11 @@ local function readStat(model, text)
     end
     local range = unformat(text, SPELL_RANGE)
     if range then
-        model.range = { range .. " yd", "Range" }
+        model.range = { util.fill(L["%s yd"], range), L["Range"] }
         return true
     end
     if unformat(text, MELEE_RANGE) then
-        model.range = { "Melee", "Range" }
+        model.range = { MELEE, L["Range"] }
         return true
     end
 end
@@ -341,10 +342,10 @@ end
 -- out shows what its absence means, dimmed; a spell with none, as a passive,
 -- has no strip.
 local STRIP = {
-    { "cost", "Free", "Cost" },
-    { "cast", "Instant", "Cast" },
-    { "cooldown", "None", "Cooldown" },
-    { "range", "Self", "Range" },
+    { "cost", L["Free"], L["Cost"] },
+    { "cast", SPELL_CAST_TIME_INSTANT, L["Cast"] },
+    { "cooldown", NONE, L["Cooldown"] },
+    { "range", L["Self"], L["Range"] },
 }
 
 local function stripCells(part)
@@ -458,7 +459,7 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
     -- A talent's next rank, a step dimmer, under its caption.
     local talent = part.talent
     if talent and (#body.nextSentences > 0 or #talent.details > 0) then
-        y = ui.caption(panel, y + 4, "NEXT RANK", styles.spellCaptions, colors.caption)
+        y = ui.caption(panel, y + 4, util.upper(L["Next Rank"]), styles.spellCaptions, colors.caption)
         y = ui.drawGroup(panel, talent.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
         for _, sentence in ipairs(body.nextSentences) do
             y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
