@@ -139,21 +139,23 @@ end
 -- Fire in "40 Fire damage". Only those in only count, when given.
 -- French descriptions write "d’ombre" about as often as "d'ombre".
 local function straightQuotes(text)
-    return (text:lower():gsub("\226\128\153", "'"))
+    return (util.lower(text):gsub("\226\128\153", "'"))
 end
 
 function palette.schoolIn(text, phrases, only)
     local plain = straightQuotes(util.plainText(text))
     local found, at, length
-    for school, word in pairs(ns.Locale.schoolWords) do
+    for school, words in pairs(ns.Locale.schoolWords) do
         if not only or only[school] then
-            for _, phrase in ipairs(phrases) do
-                phrase = straightQuotes(util.fill(phrase, word))
-                local start = wordsAt(plain, phrase)
-                -- Where two start together, the longer names a blend: Holyfire's
-                -- French name begins with Fire's.
-                if start and (not at or start < at or (start == at and #phrase > length)) then
-                    found, at, length = school, start, #phrase
+            for _, word in ipairs(type(words) == "table" and words or { words }) do
+                for _, phrase in ipairs(phrases) do
+                    phrase = straightQuotes(util.fill(phrase, word))
+                    local start = wordsAt(plain, phrase)
+                    -- Where two start together, the longer names a blend: Holyfire's
+                    -- French name begins with Fire's.
+                    if start and (not at or start < at or (start == at and #phrase > length)) then
+                        found, at, length = school, start, #phrase
+                    end
                 end
             end
         end
@@ -172,14 +174,16 @@ function palette.detectSchool(description, name, spellID)
         local found = palette.schoolIn(text, ns.Locale.descriptions.school)
         if found then return found end
     end
-    local lower = name and name:lower() or ""
+    local lower = name and util.lower(name) or ""
     local leading, length
-    for school, word in pairs(ns.Locale.schoolWords) do
-        word = word:lower()
-        if lower:sub(1, #word) == word
-            and (ns.Locale.schoolBoundaries == false or not isLetter(lower:sub(#word + 1, #word + 1)))
-            and (not length or #word > length) then
-            leading, length = school, #word
+    for school, words in pairs(ns.Locale.schoolWords) do
+        for _, word in ipairs(type(words) == "table" and words or { words }) do
+            word = util.lower(word)
+            if lower:sub(1, #word) == word
+                and (ns.Locale.schoolBoundaries == false or not isLetter(lower:sub(#word + 1, #word + 1)))
+                and (not length or #word > length) then
+                leading, length = school, #word
+            end
         end
     end
     return leading

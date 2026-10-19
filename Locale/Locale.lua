@@ -15,10 +15,11 @@ ns.Locale = {
     -- Wordings, written as the game writes its own strings: "Speed %s".
     -- util.unformat reads text printed from them.
     formats = {},
-    -- What joins the parts of a list, as in an enchant's name.
+    -- What joins the parts of a list, as in an enchant's name. A pair gives
+    -- a separator and the text that must follow it, kept in the next part.
     listSeparators = {},
     -- Spell descriptions' wordings the spell power rows read, and the words
-    -- descriptions name schools with.
+    -- descriptions name schools with. A school may have several wordings.
     descriptions = {},
     schoolWords = {},
     -- Whether school phrases must stand apart as words. Chinese joins them

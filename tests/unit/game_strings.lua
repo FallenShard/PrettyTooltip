@@ -94,6 +94,9 @@ return function(test)
     util, world = read("esMX")
     compiles("esMX", world.gameStrings)
 
+    util, world = read("ruRU")
+    compiles("ruRU", world.gameStrings)
+
     util, world = read("koKR")
     unformat = util.unformat
     compiles("koKR", world.gameStrings)

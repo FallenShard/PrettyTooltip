@@ -26,7 +26,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "tests" / "locales"
-LOCALES = ["enUS", "deDE", "frFR", "esES", "esMX", "ptBR", "koKR", "zhCN", "zhTW"]
+LOCALES = ["enUS", "deDE", "frFR", "esES", "esMX", "ptBR", "koKR", "zhCN", "zhTW", "ruRU"]
 NAME = re.compile(r"(?<![A-Za-z0-9_])[A-Z][A-Z0-9_]{2,}(?![A-Za-z0-9_])")
 
 

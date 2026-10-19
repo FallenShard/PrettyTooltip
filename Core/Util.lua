@@ -26,8 +26,8 @@ local WIDE_ENDS = { "\227\128\130", "\239\188\129", "\239\188\159" }
 
 -- Where the first sentence from from on ends, and where the next one starts
 -- less one. A sentence ends at . ! or ? followed by a space and a capital, so
--- decimals such as "1.5 sec" stay whole; a letter outside ASCII counts as a
--- capital, as Lua's %u knows none of them.
+-- decimals such as "1.5 sec" stay whole. Russian lower-case words after
+-- abbreviations stay in the sentence; other non-ASCII letters count as capitals.
 local function sentenceEnd(text, from)
     local stop, resume
     local position = from
@@ -35,7 +35,10 @@ local function sentenceEnd(text, from)
         local mark, spaces = text:find("[%.!?]%s+", position)
         if not mark then break end
         local after = text:byte(spaces + 1)
-        if after and (after >= 195 or text:sub(spaces + 1, spaces + 1):match("%u")) then
+        local nextByte = text:byte(spaces + 2)
+        local russianLower = (after == 208 and nextByte and nextByte >= 176 and nextByte <= 191)
+            or (after == 209 and nextByte and (nextByte <= 143 or nextByte == 145))
+        if after and not russianLower and (after >= 195 or text:sub(spaces + 1, spaces + 1):match("%u")) then
             stop, resume = mark, spaces
             break
         end
@@ -67,14 +70,31 @@ function util.splitSentences(text)
 end
 
 -- In capitals, as string.upper, which knows only ASCII letters, also for the
--- accented Latin letters French and German write with: "é" as "É". Other
--- scripts, as Korean and Chinese, have no capitals.
+-- accented Latin letters and Russian Cyrillic. Korean and Chinese have no
+-- capitals.
 function util.upper(text)
     text = text:upper():gsub("\195([\160-\190])", function(byte)
         if byte == "\183" then return "\195\183" end
         return "\195" .. string.char(byte:byte() - 32)
     end)
-    return (text:gsub("\197\147", "\197\146"))
+    text = text:gsub("\197\147", "\197\146")
+    text = text:gsub("\208([\176-\191])", function(byte)
+        return "\208" .. string.char(byte:byte() - 32)
+    end):gsub("\209([\128-\143])", function(byte)
+        return "\208" .. string.char(byte:byte() + 32)
+    end)
+    return (text:gsub("\209\145", "\208\129"))
+end
+
+-- Case-insensitive school matching also needs Russian letters, which Lua's
+-- string.lower leaves unchanged. Keep other scripts as string.lower does.
+function util.lower(text)
+    text = text:lower():gsub("\208([\144-\175])", function(byte)
+        local value = byte:byte()
+        if value < 160 then return "\208" .. string.char(value + 32) end
+        return "\209" .. string.char(value - 32)
+    end)
+    return (text:gsub("\208\129", "\209\145"))
 end
 
 -- How long a line reads, in characters: a character of Chinese, Japanese, or
@@ -100,22 +120,34 @@ end
 
 -- The game's own escapes; digits inside them (color codes, icon sizes, the
 -- plural escape "|4hour:hrs;") must not be recolored.
-local ESCAPES = { "|c%x%x%x%x%x%x%x%x", "|r", "|T.-|t", "|A.-|a", "|H.-|h", "|K.-|k", "|4[^;]*;", "|n" }
+local ESCAPES = { "|c%x%x%x%x%x%x%x%x", "|r", "|T.-|t", "|A.-|a", "|H.-|h", "|K.-|k", "|4[^;]*;",
+    "|3%-%d+%b()", "|n" }
 
 -- "1 |4hour:hrs;" picks its word from the number before it. Coloring that
 -- number would separate the two, so resolve the escape first: singular for 1.
+-- Russian has three forms: 1/21, 2-4/22-24, and the rest (including 11-14).
 local function resolvePlurals(text)
-    return (text:gsub("(%d+)(%s*)|4([^:;]*):([^;]*);", function(number, space, one, many)
-        return number .. space .. (tonumber(number) == 1 and one or many)
+    return (text:gsub("(%d+)(%s*)|4([^;]*);", function(number, space, forms)
+        local one, few, many = forms:match("^([^:]*):([^:]*):(.*)$")
+        local value = tonumber(number)
+        if many then
+            local last, hundred = value % 10, value % 100
+            local form = (hundred < 11 or hundred > 14)
+                and (last == 1 and one or (last >= 2 and last <= 4) and few) or many
+            return number .. space .. (form or many)
+        end
+        one, many = forms:match("^([^:]*):(.*)$")
+        if not one then return number .. space .. "|4" .. forms .. ";" end
+        return number .. space .. (value == 1 and one or many)
     end))
 end
 
 local function colorPlainNumbers(text, code)
     -- A number must start a word, so "x2" is left alone; a sentence's final
     -- period stays outside the color.
-    return (text:gsub("%f[%w](%d+%.?%d*%%?)", function(number)
+    return (text:gsub("%f[%w](%d+[.,]?%d*%%?)", function(number)
         local trailing = ""
-        if number:sub(-1) == "." then number, trailing = number:sub(1, -2), "." end
+        if number:sub(-1):match("[.,]") then number, trailing = number:sub(1, -2), number:sub(-1) end
         return "|cff" .. code .. number .. "|r" .. trailing
     end))
 end
@@ -147,7 +179,9 @@ end
 -- colon) reads as a space, and |n is a line break.
 local function normalized(text)
     text = util.uncolored(text):gsub("\194\160", " "):gsub("\226\128\175", " ")
-    return (text:gsub("|n", "\n"))
+    -- Tooltip data can retain the grammar control even when its font string
+    -- shows the chosen word, as on Russian set bonuses.
+    return (resolvePlurals(text):gsub("|n", "\n"))
 end
 
 local function escapePattern(text)
@@ -167,7 +201,9 @@ local DE = { "de ", "d'", "d\226\128\153" }
 -- holds, for each capture, the argument it is: "%2$s %1$d emplacements"
 -- captures the second argument first.
 local function compileFormat(format)
-    local text = util.trim(normalized(format))
+    -- Russian's |3-1(%s) declines the argument, leaving only the resulting
+    -- word in the displayed tooltip. Capture that word without the control.
+    local text = util.trim(normalized(format)):gsub("|3%-%d+%((.-)%)", "%1")
     local bodies, order, count = { "" }, {}, 0
     local function append(choices)
         local grown = {}

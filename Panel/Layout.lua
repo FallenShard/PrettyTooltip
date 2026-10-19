@@ -140,7 +140,9 @@ local ENCHANT_VALUE, ENCHANT_LABEL = "4CE64C", "A6EBA6"
 local function enchantRows(text)
     local list = text
     for _, separator in ipairs(ns.Locale.listSeparators) do
-        list = list:gsub((separator:gsub("%p", "%%%0")), "\031")
+        local following = type(separator) == "table" and separator[2] or ""
+        separator = type(separator) == "table" and separator[1] or separator
+        list = list:gsub(((separator .. following):gsub("%p", "%%%0")), "\031" .. following)
     end
     local rows = {}
     for piece in (list .. "\031"):gmatch("(.-)\031") do

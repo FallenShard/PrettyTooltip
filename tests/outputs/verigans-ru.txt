@@ -1,0 +1,217 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132879
+      id: 11138
+      name: "Малый светящийся осколок"
+  skill: 75
+effects: {}
+enchants: {}
+equipEffects:
+  1:
+    left: "Окутывает цель пламенем Великой Кузни, нанося 39 - 59 ед. урона от священного огня. Наносит в 3 раза больше урона элементалям огня и земли."
+    onHit: true
+    right: ""
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Торговец"
+    right: "|cffffffff74 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 59 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  3:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Инвентарь"
+    right: "|cff66bbffВсего: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  4:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+    right: "|cff66bbffЭкипировано: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  5:
+    color:
+      1: 0.85
+      2: 0.6967
+      3: 0
+    left: "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t Испытание доблести  |cffaa9f85- Мертвые копи|r"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8196
+      3: 0
+      4: 1
+flavor: {}
+footerLeft:
+  1:
+    durability:
+      1: 99
+      2: 100
+    left: "Прочность: 99 / 100"
+    right: ""
+footerRight:
+  1:
+    left: "Классы: Паладин"
+    met: true
+    requirement: true
+    right: ""
+  2:
+    left: "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "Персональный предмет"
+    right: ""
+icon: 133042
+kinds: {}
+level: 31
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+  10: true
+  11: true
+link: "|cnIQ3:|Hitem:6953::::::::30:1486::11:::::::|h[Боевая перчатка Веригана]|h|r"
+name: "Боевая перчатка Веригана"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAк интеллекту|r"
+    right: ""
+  2:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAк выносливости|r"
+    right: ""
+  3:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DAк духу|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 7443
+setBonuses: {}
+setItems: {}
+slot: "Дробящее · Двуручное"
+weaponBonus: {}
+weaponDamage: "Урон: 65-99"
+weaponDps: "25,6"
+weaponSpeed: "Скорость 3,20"
+== tooltip render
+panel 330 x 500
+texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
+texture at 0,0 0x0 rgb=0.694,0.8155,0.991,0.9 TooltipBackground-Temp.png
+texture at 0,0 0x0 rgb=0.32,0.59,0.98,0.315 TooltipBackground-Temp.png
+texture at 6,6 0x89 rgb=1,1,1,1 band
+texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x57 rgb=0.1,0.075,0.08,0.6 band
+texture at 19,21 43x43 rgb=1,1,1,1 133042
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "УП 31"
+text at 72,21 w=239 size=19 rgb=0.32,0.59,0.98 "БОЕВАЯ ПЕРЧАТКА ВЕРИГАНА"
+text at 72,47 w=239 size=13 rgb=0.66,0.795,0.99 "Дробящее · Двуручное"
+text at 72,66 w=239 size=12 rgb=0.78,0.72,0.63 "Персональный предмет"
+texture at 19,100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D525,6|r |cffA89F8EУрон в секунду|r"
+text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "Урон: 65-99  ·  Скорость 3,20"
+text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAк интеллекту|r"
+text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAк выносливости|r"
+text at 19,196 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DAк духу|r"
+texture at 19,222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-222 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-217 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,235 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sword:11:11:-1:-2:32:32:0:32:0:32:200:210:225|t"
+text at 41,235 w=270 size=13 rgb=0.48,0.88,0.48 "Окутывает цель пламенем Великой Кузни, нанося |cffFDB46A39|r - |cffFDB46A59|r ед. урона от священного огня. Наносит в |cffFDB46A3|r раза больше урона элементалям огня и земли."
+texture at 19,306 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-306 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-301 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,319 w=129.5 size=11 rgb=0.86,0.74,0.45 "Распылить"
+text at 160.5,319 w=150.5 size=11 rgb=0.55,0.53,0.5 "Требуется: Наложение чар 75"
+text at 19,336 w=256 size=11 rgb=0.88,0.84,0.76 "|T132879:0|t Малый светящийся осколок"
+text at 287,336 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+texture at 19,356 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,365 w=292 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,380 w=217.5 size=11 rgb=0.85,0.7,0 "Торговец"
+text at 248.5,380 w=62.5 size=11 rgb=0.85,0.7,0 "|cffffffff74 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 59 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,395 w=234 size=11 rgb=0.85,0.7,0 "Инвентарь"
+text at 265,395 w=46 size=11 rgb=0.85,0.7,0 "|cff66bbffВсего: |cffffffff1|r|r"
+text at 19,410 w=201 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+text at 232,410 w=79 size=11 rgb=0.85,0.7,0 "|cff66bbffЭкипировано: |cffffffff1|r|r"
+text at 19,425 w=292 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t Испытание доблести  |cffaa9f85- Мертвые копи|r"
+text at 226.5,449 w=84.5 size=11 rgb=1,1,1 "Классы: Паладин"
+texture at 19,454 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
+text at 80,449 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
+text at 259.5,466 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
