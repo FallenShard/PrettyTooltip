@@ -51,7 +51,7 @@ local function overTime(after)
     local _, stop, every = findFormat(after, words.every, 1, CLAUSE)
     if every then
         -- After the rest of the word: "every 2 seconds".
-        local rest = after:sub(stop + 1):gsub("^%a*", "")
+        local rest = after:sub(stop + 1):gsub("^[%a\128-\255]*", "")
         seconds = select(3, findFormat(rest, words.everyFor, 1, "^%s*")) or select(3, findFormat(rest, words.lasts, 1, ""))
         if seconds and readNumber(every) then return readNumber(seconds), readNumber(seconds) / readNumber(every) end
     end

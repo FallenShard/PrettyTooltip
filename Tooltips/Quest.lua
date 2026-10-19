@@ -163,7 +163,7 @@ local function readRow(model, row, state)
         model.extras[#model.extras + 1] = { left = text, right = right, color = FAILED_COLOR }
     -- The description comes before the objectives; long lines after them are
     -- other addons'.
-    elseif right == "" and #text >= 30 and #model.objectives == 0 and #model.extras == 0 then
+    elseif right == "" and util.width(text) >= 30 and #model.objectives == 0 and #model.extras == 0 then
         model.description[#model.description + 1] = text
     else
         -- A color code on the line outranks the font's color, dimmed as other addons' rows are.

@@ -47,6 +47,10 @@ locale.descriptions = {
 locale.schoolWords = { Arcane = "Arcane", Fire = "Fire", Frost = "Frost", Holy = "Holy", Nature = "Nature",
     Shadow = "Shadow", Holyfire = "Holyfire", Frostfire = "Frostfire" }
 
+-- What joins the parts of a list, as an enchant's name lists its stats:
+-- "Stamina +2 and Armor +16". The longer first.
+locale.listSeparators = { ", and ", " and ", ", " }
+
 -- Older items' equip wordings. A wording with no stat takes it from its word.
 locale.statWordings = {
     { "Equip: +%d Attack Power when fighting %s.", "ATTACK_POWER_VS", "creature" },

@@ -9,6 +9,8 @@ ns.Locale = {
     -- Wordings, written as the game writes its own strings: "Speed %s".
     -- util.unformat reads text printed from them.
     formats = {},
+    -- What joins the parts of a list, as in an enchant's name.
+    listSeparators = {},
     -- Spell descriptions' wordings the spell power rows read, and the words
     -- descriptions name schools with.
     descriptions = {},

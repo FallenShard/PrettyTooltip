@@ -20,14 +20,42 @@ function util.trim(text)
     return text:match("^%s*(.-)%s*$")
 end
 
--- Sentences end at . ! or ? followed by a space and a capital, so decimals
--- such as "1.5 sec" stay whole.
+-- Chinese and Japanese full stops, exclamation and question marks, which end
+-- a sentence without a space after them.
+local WIDE_ENDS = { "\227\128\130", "\239\188\129", "\239\188\159" }
+
+-- Where the first sentence from from on ends, and where the next one starts
+-- less one. A sentence ends at . ! or ? followed by a space and a capital, so
+-- decimals such as "1.5 sec" stay whole; a letter outside ASCII counts as a
+-- capital, as Lua's %u knows none of them.
+local function sentenceEnd(text, from)
+    local stop, resume
+    local position = from
+    while true do
+        local mark, spaces = text:find("[%.!?]%s+", position)
+        if not mark then break end
+        local after = text:byte(spaces + 1)
+        if after and (after >= 195 or text:sub(spaces + 1, spaces + 1):match("%u")) then
+            stop, resume = mark, spaces
+            break
+        end
+        position = spaces + 1
+    end
+    for _, wide in ipairs(WIDE_ENDS) do
+        local start = text:find(wide, from, true)
+        if start and start + #wide < #text and (not stop or start < stop) then
+            stop, resume = start + #wide - 1, start + #wide - 1
+        end
+    end
+    return stop, resume
+end
+
 function util.splitSentences(text)
     local sentences = {}
     for paragraph in (text:gsub("\r?\n", "|n") .. "|n"):gmatch("(.-)|n") do
         local from = 1
         while true do
-            local stop, resume = paragraph:find("[%.!?]%s+%f[%u]", from)
+            local stop, resume = sentenceEnd(paragraph, from)
             if not stop then break end
             sentences[#sentences + 1] = util.trim(paragraph:sub(from, stop))
             from = resume + 1
@@ -36,6 +64,28 @@ function util.splitSentences(text)
         if rest ~= "" then sentences[#sentences + 1] = rest end
     end
     return sentences
+end
+
+-- In capitals, as string.upper, which knows only ASCII letters, also for the
+-- accented Latin letters French and German write with: "é" as "É". Other
+-- scripts, as Korean and Chinese, have no capitals.
+function util.upper(text)
+    text = text:upper():gsub("\195([\160-\190])", function(byte)
+        if byte == "\183" then return "\195\183" end
+        return "\195" .. string.char(byte:byte() - 32)
+    end)
+    return (text:gsub("\197\147", "\197\146"))
+end
+
+-- How long a line reads, in characters: a character of Chinese, Japanese, or
+-- Korean, three bytes long, counts as two Latin letters, as it says about as
+-- much, and every other character as one.
+function util.width(text)
+    local width = 0
+    for lead in text:gmatch("[%z\1-\127\194-\244]") do
+        width = width + (lead:byte() >= 224 and 2 or 1)
+    end
+    return width
 end
 
 -- Without color codes.

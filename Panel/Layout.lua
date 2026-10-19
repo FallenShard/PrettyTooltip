@@ -135,16 +135,22 @@ end
 
 local ENCHANT_VALUE, ENCHANT_LABEL = "4CE64C", "A6EBA6"
 -- One row per bonus; named enchants ("Crusader") stay whole.
+-- An enchant's stats, which its name lists ("Stamina +2 and Armor +16"),
+-- each printed as the game prints a stat.
 local function enchantRows(text)
+    local list = text
+    for _, separator in ipairs(ns.Locale.listSeparators) do
+        list = list:gsub((separator:gsub("%p", "%%%0")), "\031")
+    end
     local rows = {}
-    for piece in (text:gsub(", and ", ", "):gsub(" and ", ", ") .. ", "):gmatch("(.-), ") do
+    for piece in (list .. "\031"):gmatch("(.-)\031") do
         local name, amount = piece:match("^(.-) %+(%d+%%?)$")
         if not name then amount, name = piece:match("^%+(%d+%%?) (.+)$") end
         if not name then
             return { "|cff" .. ENCHANT_VALUE .. text .. "|r" }
         end
-        rows[#rows + 1] = "|cff" .. ENCHANT_VALUE .. "+" .. amount
-            .. "|r |cff" .. ENCHANT_LABEL .. name .. "|r"
+        rows[#rows + 1] = util.fill(TOOLTIP_ITEM_STAT_FORMAT, "|cff" .. ENCHANT_VALUE .. "+", amount .. "|r",
+            "|cff" .. ENCHANT_LABEL .. name .. "|r")
     end
     return rows
 end
@@ -198,7 +204,7 @@ local function capitalize(text)
     while true do
         local bar = text:find("|", pos, true)
         if not bar then break end
-        out[#out + 1] = text:sub(pos, bar - 1):upper()
+        out[#out + 1] = util.upper(text:sub(pos, bar - 1))
         local code, stop = text:sub(bar + 1, bar + 1), bar + 1
         if code == "c" then
             stop = bar + 9
@@ -209,7 +215,7 @@ local function capitalize(text)
         out[#out + 1] = text:sub(bar, stop)
         pos = stop + 1
     end
-    out[#out + 1] = text:sub(pos):upper()
+    out[#out + 1] = util.upper(text:sub(pos))
     return table.concat(out)
 end
 

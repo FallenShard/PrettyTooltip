@@ -157,7 +157,7 @@ local function isDescription(line, text, right)
             return r > .9 and g > .65 and g < .9 and b < .3
         end
     end
-    return right == "" and #text >= 40
+    return right == "" and util.width(text) >= 40
 end
 
 local function newModel(icon)
@@ -365,7 +365,7 @@ local function bodyWidth(panel, part, body, styles)
         local widest = 0
         for _, cell in ipairs(cells) do
             widest = math.max(widest, measureStyled(panel, cell[1], styles.spellValues),
-                measureStyled(panel, cell[2]:upper(), styles.spellCaptions))
+                measureStyled(panel, util.upper(cell[2]), styles.spellCaptions))
         end
         consider((widest + 16) * #cells)
     end
@@ -402,7 +402,7 @@ local function drawStrip(panel, model, y, color, styles)
             valueColor = { power[1] * .45 + .55, power[2] * .45 + .55, power[3] * .45 + .55 }
         end
         styledAt(panel, cell[1], x, y, cellWidth, values, valueColor, "CENTER")
-        styledAt(panel, cell[2]:upper(), x, y + captionOffset, cellWidth, captions,
+        styledAt(panel, util.upper(cell[2]), x, y + captionOffset, cellWidth, captions,
             colors.caption, "CENTER")
         if index > 1 then
             local separator = ui.acquireTexture(panel)

@@ -15,6 +15,7 @@ python tests/run.py --profile    also count the frame calls each fixture's read 
 """
 
 import difflib
+import locale
 import os
 import re
 import shutil
@@ -27,6 +28,12 @@ try:
     from lupa import lua51
 except ImportError:
     sys.exit("The tests need lupa, a Lua runtime for Python: pip install -r tests/requirements.txt")
+
+# The game's Lua knows only ASCII letters (upper, lower, %a, %u); Python sets the
+# system's own character locale, under which Lua would change UTF-8 bytes too.
+locale.setlocale(locale.LC_CTYPE, "C")
+# Failures can show text in any language, whatever the console's encoding.
+sys.stdout.reconfigure(errors="backslashreplace")
 
 TESTS = Path(__file__).resolve().parent
 ROOT = TESTS.parent
