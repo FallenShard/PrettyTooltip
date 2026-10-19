@@ -1,7 +1,8 @@
 -- A class spell's school comes from Data/Schools.lua by its name, ahead of
 -- its wording; names the table lacks fall back to the wording.
 return function(test)
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Game/Game.lua", "Data/Schools.lua" })
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Locale/Locale.lua", "Locale/English.lua",
+        "Game/Game.lua", "Data/Schools.lua" })
     local detect = ns.Palette.detectSchool
     test.check("a heal names no school, the table does", detect({ "Heals a friendly target for 45 over 15 sec." }, "Renew"),
         "Holy")

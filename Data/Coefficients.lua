@@ -15,38 +15,51 @@ local SEPARATOR = " |cff" .. util.hex(ns.Palette.roles.caption) .. "\194\183|r "
 -- As GetSpellBonusDamage numbers the schools.
 local SCHOOLS = { Holy = 2, Fire = 3, Nature = 4, Frost = 5, Shadow = 6, Arcane = 7 }
 
--- Numbers that are durations, distances, chances, or counts, not amounts.
-local NOT_AMOUNT = {
-    "^%%", "^%.%d", "^ ?sec", "^ ?min", "^ ?hour", "^ ?yd", "^ yards?", "^ ?ft",
-    "^ times?", "^ targets?", "^ charges?", "^ stacks?",
-}
+local words = ns.Locale.descriptions
+local findFormat = util.findFormat
 
+-- A number as a description prints it.
+local function readNumber(text)
+    return util.parseNumber(text, LARGE_NUMBER_SEPERATOR)
+end
+
+-- Whether the number from start to stop is an amount, not a part of a word
+-- or a decimal, a percent, or a duration, distance, or count ("15 sec").
 local function isAmount(text, start, stop)
-    if text:sub(start - 1, start - 1):match("[%a%.]") then return false end
+    local before = text:sub(start - 1, start - 1)
+    if before:match("%a") or before == "." or before == DECIMAL_SEPERATOR then return false end
     local after = text:sub(stop + 1)
-    for _, pattern in ipairs(NOT_AMOUNT) do
-        if after:match(pattern) then return false end
+    if after:sub(1, 1) == "%" or after:match("^[%.,]%d") then return false end
+    after = after:gsub("^ ", "")
+    for _, unit in ipairs(words.units) do
+        if after:sub(1, #unit) == unit then return false end
     end
     return true
 end
+
+-- Before the next number or the sentence's end.
+local CLAUSE = "^[^%d%.]-"
 
 -- How an amount spreads over time: "over 15 sec" is the whole duration's;
 -- "each second for 5 sec", or "every 2 sec for 10 sec" (or "... Lasts 10
 -- sec"), is one tick's of several. The duration, and the ticks where per tick.
 local function overTime(after)
-    local seconds = after:match("^[^%d%.]-over (%d+) sec")
-    if seconds then return tonumber(seconds) end
-    seconds = after:match("^[^%d%.]-each second for (%d+) sec")
-    if seconds then return tonumber(seconds), tonumber(seconds) end
-    local every, rest = after:match("^[^%d%.]-every (%d+) sec%a*(.*)$")
+    local seconds = select(3, findFormat(after, words.over, 1, CLAUSE))
+    if seconds then return readNumber(seconds) end
+    seconds = select(3, findFormat(after, words.eachSecond, 1, CLAUSE))
+    if seconds then return readNumber(seconds), readNumber(seconds) end
+    local _, stop, every = findFormat(after, words.every, 1, CLAUSE)
     if every then
-        seconds = rest:match("^ for (%d+) sec") or rest:match("[Ll]asts (%d+) sec")
-        if seconds then return tonumber(seconds), tonumber(seconds) / tonumber(every) end
+        -- After the rest of the word: "every 2 seconds".
+        local rest = after:sub(stop + 1):gsub("^%a*", "")
+        seconds = select(3, findFormat(rest, words.everyFor, 1, "^%s*")) or select(3, findFormat(rest, words.lasts, 1, ""))
+        if seconds and readNumber(every) then return readNumber(seconds), readNumber(seconds) / readNumber(every) end
     end
 end
 
 -- The first amount dealt or healed at once, and the first spread over time:
 -- each { low, high }, the second with its duration and, if per tick, ticks.
+-- The text is in lower case.
 local function readAmounts(text)
     local direct, periodic
     local pos = 1
@@ -54,8 +67,12 @@ local function readAmounts(text)
         local start, stop = text:find("%d+", pos)
         if not start then break end
         local low, high = tonumber(text:sub(start, stop)), nil
-        local _, rangeStop, highText = text:find("^ to (%d+)", stop + 1)
-        if rangeStop then high, stop = tonumber(highText), rangeStop end
+        local _, rangeStop, _, highText = findFormat(text, words.range, start, "^")
+        if rangeStop then
+            -- The sentence's period is not the number's.
+            local trimmed = highText:gsub("[%.,]+$", "")
+            high, stop = readNumber(trimmed), rangeStop - (#highText - #trimmed)
+        end
         pos = stop + 1
         if isAmount(text, start, stop) then
             local amount = { low = low, high = high or low }
@@ -143,6 +160,16 @@ local function rateRows(part, direct, periodic, healing)
     if #rows > 0 then return rows end
 end
 
+-- Whether a description says the spell heals: "Heals", or "healing", not
+-- "health".
+local function heals(text)
+    local lower = " " .. text:lower():gsub("[^%a\128-\255]", " ") .. " "
+    for _, word in ipairs(words.heals) do
+        if lower:find(" " .. word .. " ", 1, true) then return true end
+    end
+    return false
+end
+
 -- Each rank's spell ID in rank order, by the spell's name on this client;
 -- the names are asked for at the first use.
 local byName
@@ -162,10 +189,7 @@ end
 -- the player's, as on the editor's samples; else game answers it.
 function ns.spellPowerRows(part, bonusCode, game)
     local text = util.uncolored(table.concat(part.description, " "))
-    local school
-    for word in text:gmatch("(%a+) damage") do
-        if SCHOOLS[word] then school = word break end
-    end
+    local school = ns.Palette.schoolIn(text, { words.school[1] }, SCHOOLS)
     local rank = ns.spellRanks and ns.spellRanks[part.spellID]
     local named = not rank and ranksNamed(part.name)
     if named then
@@ -177,9 +201,9 @@ function ns.spellPowerRows(part, bonusCode, game)
     -- Dampen Magic, gains nothing, however its text reads.
     if not rank and ns.spellSchool and ns.spellSchool(part.name) then return end
     -- Heals, healing, or healed; not health, as a totem's.
-    local healing = not school and ((rank and rank.heals) or text:find("[Hh]eal[^t]") ~= nil)
+    local healing = not school and ((rank and rank.heals) or heals(text))
     if not (school or healing) then return end
-    local direct, periodic = readAmounts(text)
+    local direct, periodic = readAmounts(text:lower())
     if not (direct or periodic) then return end
 
     local directShare, periodicShare

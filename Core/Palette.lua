@@ -104,38 +104,59 @@ function palette.skillUpColor(level, player)
     return TRIVIAL
 end
 
-local schoolNames = {}
-for name in pairs(palette.schools) do schoolNames[name:lower()] = name end
+-- A letter, as Lua's %a knows only ASCII ones: any byte of a UTF-8 character
+-- counts.
+local function isLetter(char)
+    return char ~= "" and char:match("[%a\128-\255]") ~= nil
+end
+
+-- Where a phrase first stands in the text as words of their own: "fire
+-- damage" in "40 fire damage", not in "wildfire damage".
+local function wordsAt(text, phrase)
+    local position = 1
+    while true do
+        local start, stop = text:find(phrase, position, true)
+        if not start then return end
+        if not isLetter(text:sub(start - 1, start - 1)) and not isLetter(text:sub(stop + 1, stop + 1)) then
+            return start
+        end
+        position = start + 1
+    end
+end
+
+-- The school a text names first in one of the phrases, filled with the
+-- language's word for each school (ns.Locale.schoolWords): "%s damage" finds
+-- Fire in "40 Fire damage". Only those in only count, when given.
+function palette.schoolIn(text, phrases, only)
+    local plain = util.plainText(text):lower()
+    local found, at
+    for school, word in pairs(ns.Locale.schoolWords) do
+        if not only or only[school] then
+            for _, phrase in ipairs(phrases) do
+                local start = wordsAt(plain, util.fill(phrase, word):lower())
+                if start and (not at or start < at) then found, at = school, start end
+            end
+        end
+    end
+    return found
+end
 
 -- A class spell's school comes from Data/Schools.lua, by its name. Otherwise
 -- the text must name damage or spells, as "40 Fire damage" or "your Fire
 -- spells", so "Fire Elementals" and "Rapid Fire" cannot change the color.
 -- Spell names may supply a leading school instead.
-local SCHOOL_PATTERNS = { "%f[%a](%a+)%s+damage%f[%A]", "%f[%a](%a+)%s+spells?%f[%A]" }
-
 function palette.detectSchool(description, name)
     local known = ns.spellSchool and ns.spellSchool(name)
     if known then return known end
     for _, text in ipairs(description) do
-        local plain = util.plainText(text):lower()
-        -- The earliest mention wins, whichever wording it uses.
-        local found, at
-        for _, pattern in ipairs(SCHOOL_PATTERNS) do
-            local position = 1
-            while true do
-                local start, stop, word = plain:find(pattern, position)
-                if not start then break end
-                if schoolNames[word] then
-                    if not at or start < at then found, at = schoolNames[word], start end
-                    break
-                end
-                position = stop + 1
-            end
-        end
+        local found = palette.schoolIn(text, ns.Locale.descriptions.school)
         if found then return found end
     end
-    local first = name and name:match("^(%a+)")
-    return first and schoolNames[first:lower()] or nil
+    local lower = name and name:lower() or ""
+    for school, word in pairs(ns.Locale.schoolWords) do
+        word = word:lower()
+        if lower:sub(1, #word) == word and not isLetter(lower:sub(#word + 1, #word + 1)) then return school end
+    end
 end
 
 -- The lighter description tint shared by spells, auras, and weapon procs.

@@ -163,10 +163,18 @@ local function compileFormat(format)
     end
     local patterns = {}
     for index, body in ipairs(bodies) do patterns[index] = "^" .. body .. "$" end
-    return { patterns = patterns, order = order, count = count }
+    return { patterns = patterns, bodies = bodies, order = order, count = count }
 end
 
 local compiledFormats = {}
+local function compiled(format)
+    local found = compiledFormats[format]
+    if not found then
+        found = compileFormat(format)
+        compiledFormats[format] = found
+    end
+    return found
+end
 
 -- What the game's string format filled in to print text, in the order of its
 -- arguments: util.unformat("Durability 34 / 100", DURABILITY_TEMPLATE) gives
@@ -174,19 +182,33 @@ local compiledFormats = {}
 -- text was not printed from it. Colors and the space around the text do not count.
 function util.unformat(text, format)
     if type(text) ~= "string" or type(format) ~= "string" then return end
-    local compiled = compiledFormats[format]
-    if not compiled then
-        compiled = compileFormat(format)
-        compiledFormats[format] = compiled
-    end
+    local parsed = compiled(format)
     text = util.trim(normalized(text))
-    for _, pattern in ipairs(compiled.patterns) do
+    for _, pattern in ipairs(parsed.patterns) do
         local found = { text:match(pattern) }
         if found[1] then
-            if compiled.count == 0 then return true end
+            if parsed.count == 0 then return true end
             local values = {}
-            for index, argument in ipairs(compiled.order) do values[argument] = found[index] end
-            return unpack(values, 1, compiled.count)
+            for index, argument in ipairs(parsed.order) do values[argument] = found[index] end
+            return unpack(values, 1, parsed.count)
+        end
+    end
+end
+
+-- Where text printed from a format appears inside a longer text, from init
+-- on, as string.find answers: where it starts and stops, then what the
+-- format filled in, in the order of its arguments. lead is a Lua pattern
+-- for what may come before it ("^" for nothing, "" for anything). The text
+-- is read as it is, colors and all, so the positions are its own.
+function util.findFormat(text, format, init, lead)
+    if type(text) ~= "string" or type(format) ~= "string" then return end
+    local parsed = compiled(format)
+    for _, body in ipairs(parsed.bodies) do
+        local found = { text:find((lead or "") .. body, init or 1) }
+        if found[1] then
+            local values = {}
+            for index, argument in ipairs(parsed.order) do values[argument] = found[index + 2] end
+            return found[1], found[2], unpack(values, 1, parsed.count)
         end
     end
 end

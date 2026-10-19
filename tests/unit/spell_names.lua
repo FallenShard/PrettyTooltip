@@ -2,7 +2,8 @@
 -- another language is asked for its own names, and an English one is not.
 return function(test)
     local function load(locale, calls)
-        return test.load({ "Core/Util.lua", "Core/Palette.lua", "Game/Game.lua", "Data/Schools.lua",
+        return test.load({ "Core/Util.lua", "Core/Palette.lua", "Locale/Locale.lua", "Locale/English.lua",
+        "Game/Game.lua", "Data/Schools.lua",
             "Data/SpellRanks.lua", "Data/Coefficients.lua" }, { client = { locale = locale }, calls = calls })
     end
     local game = { spellDamage = function() return 0 end, spellHealing = function() return 0 end }

@@ -9,6 +9,10 @@ ns.Locale = {
     -- Wordings, written as the game writes its own strings: "Speed %s".
     -- util.unformat reads text printed from them.
     formats = {},
+    -- Spell descriptions' wordings the spell power rows read, and the words
+    -- descriptions name schools with.
+    descriptions = {},
+    schoolWords = {},
     -- Equip wordings of stats the game's own strings do not word, each with
     -- the stat it gives (Data/Stats.lua's keys) and, for one with a word in
     -- it, the statWords table that word comes from.
