@@ -252,6 +252,13 @@ elseif GetLocale() == "zhCN" then
         { "聊天", "Fonts\\ARHei.ttf" },
         { "伤害数字", "Fonts\\ARKai_C.ttf" },
     }
+elseif GetLocale() == "zhTW" then
+    GAME_FONTS = {
+        { "預設", "Fonts\\bLEI00D.ttf" },
+        { "提示訊息", "Fonts\\bHEI00M.ttf" },
+        { "聊天", "Fonts\\bHEI01B.ttf" },
+        { "傷害數字", "Fonts\\bKAI00M.ttf" },
+    }
 end
 
 local function sharedMedia()

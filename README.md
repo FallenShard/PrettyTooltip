@@ -130,7 +130,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 ## Compatibility
 
 - WoW Forever 1.60.1 (`## Interface: 16001`). Other clients may word their tooltips differently.
-- English, German, French, Spanish (Spain), Portuguese, Korean, and Simplified Chinese clients. Translations outside English are drafts; spell power coefficients and rate rows remain English-only pending validation of translated descriptions. On unsupported languages the panel and stat rewriting stay off, though the options page still appears.
+- English, German, French, Spanish (Spain), Portuguese, Korean, Simplified Chinese, and Traditional Chinese clients. Translations outside English are drafts; spell power coefficients and rate rows remain English-only pending validation of translated descriptions. On unsupported languages the panel and stat rewriting stay off, though the options page still appears.
 
 ## Known limitations
 

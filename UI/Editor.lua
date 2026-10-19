@@ -1079,7 +1079,8 @@ end, function() return ns.option("bodyFont") end, function(name)
     ns.setOption("bodyFont", name)
 end), optionSetting("bodyFont"))
 row("Name font", dropdown(FIELD_WIDTH, function()
-    return fontItems(GetLocale() ~= "koKR" and GetLocale() ~= "zhCN"
+    local locale = GetLocale()
+    return fontItems(locale ~= "koKR" and locale ~= "zhCN" and locale ~= "zhTW"
         and ns.Game.addonInstalled("EllesmereUI") and "Expressway Bold (EllesmereUI)"
         or "Game default")
 end, function() return ns.option("titleFont") end, function(name)

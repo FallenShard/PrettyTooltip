@@ -1,0 +1,227 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132877
+      id: 10978
+      name: "小塊微光碎片"
+  skill: 25
+effects: {}
+enchants: {}
+equipEffects: {}
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "商人"
+    right: "|cffffffff9 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 44 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  3:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "庫存"
+    right: "|cff66bbff總計：|cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  4:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+    right: "|cff66bbff裝備：|cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  5:
+    color:
+      1: 0.85
+      2: 0.6967
+      3: 0
+    left: "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t 重拳先生  |cffaa9f85- 死亡礦坑|r"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8196
+      3: 0
+      4: 1
+flavor: {}
+footerLeft: {}
+footerRight:
+  1:
+    left: "9|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 44|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "已綁定"
+    right: "需要等級 17"
+    rightColor:
+      1: 0.95
+      2: 0.93
+      3: 0.88
+  2:
+    left: "僅可裝備一件"
+    right: ""
+icon: 133343
+kinds: {}
+level: 22
+levelRequirement:
+  met: true
+  text: "需要等級 17"
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+  10: true
+  11: true
+  12: true
+  13: true
+  14: true
+  15: true
+link: "|cnIQ3:|Hitem:284715::::::::30:1486::1::1:28:5240:::::|h[大副的指環]|h|r"
+name: "大副的指環"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+4|r|cffEEE7DA力量|r"
+    right: ""
+  2:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r|cffEEE7DA耐力|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 944
+setBonuses:
+  1:
+    active: false
+    left: "（2） 套裝: 近戰揮擊時有一定機率陷入憤怒，使力量提高50點，持續10秒。"
+    right: ""
+  2:
+    active: false
+    left: "（2） 套裝: +22點力量。"
+    right: ""
+setCount: "1/2"
+setItems:
+  1:
+    active: true
+    left: "大副的指環"
+    right: ""
+  2:
+    active: false
+    left: "佳偶戒指"
+    right: ""
+setName: "共犯"
+slot: "手指"
+weaponBonus: {}
+== tooltip render
+panel 269 x 465
+texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
+texture at 0,0 0x0 rgb=0.694,0.8155,0.991,0.9 TooltipBackground-Temp.png
+texture at 0,0 0x0 rgb=0.32,0.59,0.98,0.315 TooltipBackground-Temp.png
+texture at 6,6 0x100 rgb=1,1,1,1 band
+texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x40 rgb=0.1,0.075,0.08,0.6 band
+texture at 19,21 43x43 rgb=1,1,1,1 133343
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "裝等 22"
+text at 72,21 w=178 size=19 rgb=0.32,0.59,0.98 "大副的指環"
+text at 72,47 w=178 size=13 rgb=0.66,0.795,0.99 "手指"
+text at 72,66 w=122 size=12 rgb=0.78,0.72,0.63 "已綁定"
+text at 206,66 w=44 size=12 rgb=0.95,0.93,0.88 "需要等級 17"
+text at 72,83 w=178 size=12 rgb=0.78,0.72,0.63 "僅可裝備一件"
+texture at 19,111 107x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-111 107x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-106 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,124 w=231 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+4|r|cffEEE7DA力量|r"
+text at 19,142 w=231 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r|cffEEE7DA耐力|r"
+texture at 19,168 107x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-168 107x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-163 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,181 w=186 size=15 rgb=1,0.76,0.18 "共犯"
+text at 208,181 w=42 size=12 rgb=1,0.76,0.18 "1/2"
+text at 24,205 w=226 size=12 rgb=0.94,0.89,0.77 "|cffD9B36A-  |r大副的指環"
+text at 24,222 w=226 size=12 rgb=0.44,0.42,0.4 "|cff4A4540-  |r佳偶戒指"
+text at 22,246 w=228 size=12 rgb=0.44,0.42,0.4 "（2） 套裝: 近戰揮擊時有一定機率陷入憤怒，使力量提高50點，持續10秒。"
+text at 22,263 w=228 size=12 rgb=0.44,0.42,0.4 "（2） 套裝: +22點力量。"
+texture at 19,288 107x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-288 107x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-283 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,301 w=178.5 size=11 rgb=0.86,0.74,0.45 "分解"
+text at 209.5,301 w=40.5 size=11 rgb=0.55,0.53,0.5 "需要附魔 25"
+text at 19,318 w=195 size=11 rgb=0.88,0.84,0.76 "|T132877:0|t 小塊微光碎片"
+text at 226,318 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+texture at 19,338 231x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,347 w=231 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,362 w=162 size=11 rgb=0.85,0.7,0 "商人"
+text at 193,362 w=57 size=11 rgb=0.85,0.7,0 "|cffffffff9 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 44 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,377 w=195 size=11 rgb=0.85,0.7,0 "庫存"
+text at 226,377 w=24 size=11 rgb=0.85,0.7,0 "|cff66bbff總計：|cffffffff1|r|r"
+text at 19,392 w=195 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+text at 226,392 w=24 size=11 rgb=0.85,0.7,0 "|cff66bbff裝備：|cffffffff1|r|r"
+text at 19,407 w=231 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t 重拳先生  |cffaa9f85- 死亡礦坑|r"
+text at 204,431 w=46 size=11 rgb=0.88,0.78,0.6 "9|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 44|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"

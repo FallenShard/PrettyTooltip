@@ -143,10 +143,26 @@ local function isNumber(text)
     return type(text) == "string" and text:match("^%d[%d%.,]*$") ~= nil
 end
 
+-- The second argument is numeric. Reading it as the game's %s would match
+-- an empty amount when the next %s (the label) touches it, as on zhTW.
+local function statAmountFormat(suffix)
+    local format, count = TOOLTIP_ITEM_STAT_FORMAT:gsub("%%2%$s", function() return "%2$d" .. suffix end)
+    if count == 0 then
+        format = TOOLTIP_ITEM_STAT_FORMAT:gsub("%%s", function() return "%d" .. suffix end, 1)
+    end
+    return format
+end
+local STAT_AMOUNT_FORMAT, STAT_PERCENT_FORMAT = statAmountFormat(""), statAmountFormat("%%")
+
 -- A value's sign, amount, and the rest when the text is printed as a stat
 -- line, whatever the stat: "+6", "Intellect" from "+6 Intellect".
 function stats.lineParts(text)
-    local sign, amount, rest = unformat(text, TOOLTIP_ITEM_STAT_FORMAT)
+    local sign, amount, rest = unformat(text, STAT_PERCENT_FORMAT)
+    if sign then
+        amount = amount .. "%"
+    else
+        sign, amount, rest = unformat(text, STAT_AMOUNT_FORMAT)
+    end
     if sign and isNumber((amount or ""):gsub("%%$", "")) and rest ~= "" then return sign, amount, rest end
 end
 

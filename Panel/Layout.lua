@@ -146,7 +146,13 @@ local function enchantRows(text)
     for piece in (list .. "\031"):gmatch("(.-)\031") do
         local name, amount = piece:match("^(.-) %+(%d+%%?)$")
         if not name then amount, name = piece:match("^%+(%d+%%?) (.+)$") end
+        -- Some clients join name and amount, with a suffix on the amount:
+        -- Traditional Chinese's "耐力+16點".
         if not name then
+            name, amount = util.unformat(piece, ns.Locale.formats.enchantBonus)
+            name = name and util.trim(name)
+        end
+        if not name or name == "" or not (amount and amount:match("^%d+%%?$")) then
             return { "|cff" .. ENCHANT_VALUE .. text .. "|r" }
         end
         rows[#rows + 1] = util.fill(TOOLTIP_ITEM_STAT_FORMAT, "|cff" .. ENCHANT_VALUE .. "+", amount .. "|r",
@@ -174,8 +180,9 @@ local function titleFont()
     local chosen = ns.fontPath(ns.option("titleFont"))
     if chosen then return chosen end
     -- Expressway has no Hangul or Chinese; use the client's header font there.
-    return GetLocale() ~= "koKR" and GetLocale() ~= "zhCN" and ellesmereInstalled() and ELLESMERE_BOLD
-        or fontOf(GameTooltipHeaderText)
+    local locale = GetLocale()
+    if locale == "koKR" or locale == "zhCN" or locale == "zhTW" then return fontOf(GameTooltipHeaderText) end
+    return ellesmereInstalled() and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
 end
 
 -- "dialogue", "flat", or "native". Unchosen, DialogueUI's art while it is
