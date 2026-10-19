@@ -403,6 +403,9 @@ L["The look of every kind of tooltip, with a live sample: fonts, sizes, and colo
 L["Restyled Tooltips"] = "Оформление подсказок"
 L["Restyle"] = "Оформлять"
 L["Follow cursor"] = "Следовать за курсором"
+L["Disable in combat"] = "Отключать в бою"
+L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
+    "В бою использовать стандартное положение подсказки, а после боя снова следовать за курсором."
 L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] = "Показывает панель PrettyTooltip. При отключении для этого типа используется игровая подсказка."
 L["Not restyled yet; this kind keeps the game's own tooltip."] = "Оформление пока не поддерживается; для этого типа используется игровая подсказка."
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] = "Показывает подсказку этого типа у курсора, когда игра поместила бы ее в стандартный угол; сумки и другие панели сохраняют свое положение. При отключении положение определяют игра и другие аддоны."

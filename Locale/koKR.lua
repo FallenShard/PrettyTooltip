@@ -421,6 +421,9 @@ L["The look of every kind of tooltip, with a live sample: fonts, sizes, and colo
 L["Restyled Tooltips"] = "툴팁 꾸미기"
 L["Restyle"] = "꾸미기"
 L["Follow cursor"] = "커서 따라가기"
+L["Disable in combat"] = "전투 중 비활성화"
+L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
+    "전투 중에는 툴팁을 기본 위치에 표시하고, 전투가 끝나면 다시 커서를 따라갑니다."
 L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] = "PrettyTooltip 패널을 표시합니다. 끄면 이 종류에는 게임의 기본 툴팁을 사용합니다."
 L["Not restyled yet; this kind keeps the game's own tooltip."] = "아직 꾸미기를 지원하지 않아 게임의 기본 툴팁을 사용합니다."
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =

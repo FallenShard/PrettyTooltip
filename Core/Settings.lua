@@ -24,6 +24,7 @@ local DEFAULTS = {
     iconQuests = false,
     iconMacros = true,
     cursorObjects = true,
+    cursorDisableInCombat = true,
     statColors = true,
     qualityTint = true,
     statMarkers = true,

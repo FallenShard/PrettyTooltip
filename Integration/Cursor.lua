@@ -49,21 +49,63 @@ function ns.Cursor.register()
     registered = true
     local follower = CreateFrame("Frame")
     follower:Hide()
-    follower:SetScript("OnUpdate", function(self)
-        if GameTooltip:IsShown() then place() else self:Hide() end
-    end)
 
     -- Only default-anchored tooltips follow, as with EllesmereUI; bags re-anchor
     -- theirs on every refresh.
     local defaultAnchored = false
-    hooksecurefunc(GameTooltip, "SetOwner", function() defaultAnchored = false end)
+    local cursorKey, originalPoints
+    local function stop()
+        follower:Hide()
+        reclamp()
+        cursorKey, originalPoints = nil, nil
+    end
+    local function restoreAnchor()
+        follower:Hide()
+        reclamp()
+        if not originalPoints then return end
+        -- Restore without SetOwner, which can clear the tooltip's content.
+        local points = originalPoints
+        originalPoints = nil
+        GameTooltip:ClearAllPoints()
+        for _, point in ipairs(points) do
+            GameTooltip:SetPoint(unpack(point))
+        end
+        local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
+        if panel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
+    end
+    local function refresh(allowHidden)
+        local follows = (allowHidden or GameTooltip:IsShown()) and defaultAnchored and cursorKey and ns.option(cursorKey)
+            and not (ns.option("cursorDisableInCombat") and InCombatLockdown())
+        if follows then
+            if not follower:IsShown() then
+                originalPoints = {}
+                for index = 1, GameTooltip:GetNumPoints() do
+                    originalPoints[index] = { GameTooltip:GetPoint(index) }
+                end
+            end
+            place()
+            follower:Show()
+        elseif follower:IsShown() then
+            -- Keep the cursor preference for combat ending.
+            restoreAnchor()
+        end
+    end
+    follower:SetScript("OnUpdate", function() refresh() end)
+    follower:RegisterEvent("PLAYER_REGEN_DISABLED")
+    follower:RegisterEvent("PLAYER_REGEN_ENABLED")
+    follower:SetScript("OnEvent", function() refresh() end)
+
+    hooksecurefunc(GameTooltip, "SetOwner", function()
+        defaultAnchored = false
+        stop()
+    end)
     hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip)
         if tooltip == GameTooltip then defaultAnchored = true end
     end)
 
     -- The game re-places a default tooltip when it refreshes; undone at once.
     hooksecurefunc(GameTooltip, "SetPoint", function()
-        if follower:IsShown() and not placing then place() end
+        if follower:IsShown() and not placing then refresh() end
     end)
 
     -- A world unit's tooltip fades out where it stands, which trails the cursor.
@@ -74,11 +116,12 @@ function ns.Cursor.register()
     end
 
     -- Cleared before every new content, so a tooltip type left off is not dragged along.
-    local function stop()
-        follower:Hide()
-        reclamp()
-    end
-    GameTooltip:HookScript("OnTooltipCleared", stop)
+    GameTooltip:HookScript("OnTooltipCleared", function()
+        -- A refresh can reuse the same owner and anchor. Restore before
+        -- forgetting it, so its next handover cannot save our cursor position.
+        restoreAnchor()
+        stop()
+    end)
     GameTooltip:HookScript("OnHide", stop)
 
     for _, tooltipType in ipairs(ns.TOOLTIP_TYPES) do
@@ -86,9 +129,9 @@ function ns.Cursor.register()
             local dataType = TYPES[typeName]
             if dataType then
                 TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip)
-                    if tooltip == GameTooltip and defaultAnchored and ns.option(tooltipType.cursor) then
-                        place()
-                        follower:Show()
+                    if tooltip == GameTooltip then
+                        cursorKey = tooltipType.cursor
+                        refresh(true)
                     end
                 end)
             end

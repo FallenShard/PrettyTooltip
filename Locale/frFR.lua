@@ -451,6 +451,9 @@ L["The look of every kind of tooltip, with a live sample: fonts, sizes, and colo
 L["Restyled Tooltips"] = "Infobulles restylées"
 L["Restyle"] = "Restyler"
 L["Follow cursor"] = "Suivre le curseur"
+L["Disable in combat"] = "Désactiver en combat"
+L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
+    "Utiliser la position par défaut de l’infobulle en combat, puis suivre à nouveau le curseur après le combat."
 L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] =
     "Dessine le cadre PrettyTooltip. Désactivé : ce type garde l'infobulle du jeu."
 L["Not restyled yet; this kind keeps the game's own tooltip."] =

@@ -418,6 +418,9 @@ L["The look of every kind of tooltip, with a live sample: fonts, sizes, and colo
 L["Restyled Tooltips"] = "重绘提示"
 L["Restyle"] = "重绘"
 L["Follow cursor"] = "跟随鼠标"
+L["Disable in combat"] = "战斗中禁用"
+L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
+    "战斗中使用鼠标提示的默认位置，战斗结束后恢复跟随鼠标。"
 L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] = "显示PrettyTooltip面板。关闭后此类提示保留游戏原有外观。"
 L["Not restyled yet; this kind keeps the game's own tooltip."] = "尚未支持重绘，此类提示保留游戏原有外观。"
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =

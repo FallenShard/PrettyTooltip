@@ -125,6 +125,23 @@ function ns.Options.register()
     end
     rightColumn.y = rightColumn.y - 12
 
+    section(rightColumn, "Follow cursor")
+    local combatBox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    combatBox:SetSize(24, 24)
+    combatBox:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y + 4)
+    local combatLabel = combatBox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    combatLabel:SetPoint("LEFT", combatBox, "RIGHT", 6, 0)
+    combatLabel:SetText(L["Disable in combat"])
+    combatBox:SetHitRectInsets(0, -(combatLabel:GetStringWidth() + 8), 0, 0)
+    combatBox:SetScript("OnClick", function(self)
+        setOption("cursorDisableInCombat", self:GetChecked() and true or false)
+    end)
+    combatBox.refresh = function() combatBox:SetChecked(ns.option("cursorDisableInCombat")) end
+    controls[#controls + 1] = combatBox
+    explain(combatBox, "Disable in combat",
+        "Use the default tooltip position during combat, then resume following the cursor afterward.")
+    rightColumn.y = rightColumn.y - 34
+
     section(rightColumn, "Style Editor Appearance")
     for _, appearance in ipairs({
         { "native", "Blizzard", "Use the game's settings frame borders and controls." },

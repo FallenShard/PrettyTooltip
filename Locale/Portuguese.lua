@@ -456,6 +456,9 @@ L["The look of every kind of tooltip, with a live sample: fonts, sizes, and colo
 L["Restyled Tooltips"] = "Dicas redesenhadas"
 L["Restyle"] = "Redesenhar"
 L["Follow cursor"] = "Seguir o cursor"
+L["Disable in combat"] = "Desativar em combate"
+L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
+    "Usar a posição padrão da dica durante o combate e voltar a seguir o cursor depois."
 L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] =
     "Desenha o painel do PrettyTooltip. Desligado, este tipo mantém a dica do jogo."
 L["Not restyled yet; this kind keeps the game's own tooltip."] =

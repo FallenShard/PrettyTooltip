@@ -67,7 +67,7 @@ read_globals = {
     "TooltipDataProcessor", "Enum",
     -- Game state
     "C_Item", "C_Spell", "C_Texture", "C_AddOns", "C_QuestLog", "C_UnitAuras", "C_Timer", "C_CurrencyInfo",
-    "GetLocale", "GetBuildInfo", "GetAddOnMetadata", "GetTime", "IsAltKeyDown", "IsControlKeyDown",
+    "GetLocale", "GetBuildInfo", "GetAddOnMetadata", "GetTime", "IsAltKeyDown", "IsControlKeyDown", "InCombatLockdown",
     "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
     "GetNumMacros", "GetMacroSpell", "GetMacroItem", "MAX_ACCOUNT_MACROS", "GetPetActionInfo",
     "NumTaxiNodes", "TaxiNodeName", "TaxiNodeCost", "TaxiNodeGetType", "TaxiNodeOnButtonEnter",
