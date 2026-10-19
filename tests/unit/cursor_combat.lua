@@ -21,6 +21,8 @@ return function(test)
         shownPanel = function() return panel end,
         alignPanel = function() alignments = alignments + 1 end,
     }
+    -- The game fades a world unit's tooltip with a method of its own.
+    GameTooltip.FadeOut = function() end
     ns.Cursor.register()
     local follower = world.objects[#world.objects]
     local function point()
@@ -183,4 +185,22 @@ return function(test)
     page.OnDefault()
     test.check("Defaults restores the combat override", ns.option("cursorDisableInCombat"), true)
     test.check("Defaults refreshes the checkbox", combatBox:GetChecked(), true)
+
+    -- A following tooltip that starts fading is hidden at once outside combat,
+    -- and in combat left to the game's fade: hiding it would run its OnHide
+    -- under the addon's taint.
+    local hide, hides = GameTooltip.Hide, 0
+    GameTooltip.Hide = function(self) hides = hides + 1 return hide(self) end
+    ns.setOption("cursorDisableInCombat", false)
+    GameTooltip:Show()
+    GameTooltip_SetDefaultAnchor(GameTooltip)
+    handover(1)
+    combat = true
+    GameTooltip:FadeOut()
+    test.check("in combat a fading tooltip is not hidden by the addon", { hides, follower:IsShown() }, { 0, false })
+    combat = false
+    handover(1)
+    GameTooltip:FadeOut()
+    test.check("outside combat a fading tooltip is hidden at once", hides, 1)
+    GameTooltip.Hide = hide
 end

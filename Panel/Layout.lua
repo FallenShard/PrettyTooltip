@@ -50,12 +50,12 @@ local function pixelFactor()
     if PixelUtil and PixelUtil.GetPixelToUIUnitFactor then return PixelUtil.GetPixelToUIUnitFactor() end
     if not GetPhysicalScreenSize then return end
     local _, height = GetPhysicalScreenSize()
-    if type(height) == "number" and height > 0 then return 768 / height end
+    if not isSecret(height) and type(height) == "number" and height > 0 then return 768 / height end
 end
 
 local function scaleOf(region)
     local scale = region and region:GetEffectiveScale()
-    if type(scale) == "number" and scale > 0 then return scale end
+    if not isSecret(scale) and type(scale) == "number" and scale > 0 then return scale end
 end
 
 local function pixel(region)

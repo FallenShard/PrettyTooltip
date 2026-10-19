@@ -1,25 +1,32 @@
 -- Slash-command parsing and dispatch, registered by the entry file.
 local _, ns = ...
+local util = ns.util
 
 -- Prints the shown tooltip's raw data, to see what a type of tooltip carries.
 local function dumpTooltip()
     -- A clicked chat link opens in its own tooltip.
-    local tooltip = GameTooltip:IsShown() and GameTooltip or ItemRefTooltip
-    if not (tooltip and tooltip:IsShown()) then
+    local tooltip = util.canModify(GameTooltip) and GameTooltip:IsShown() and GameTooltip or ItemRefTooltip
+    if not (util.canModify(tooltip) and tooltip:IsShown()) then
         print(ns.L["PrettyTooltip: hover something first; there is no tooltip to dump."])
         return
     end
     -- Who filled it, to tell which frame or addon a lines-only tooltip is from.
-    local owner = tooltip:GetOwner()
-    local lines = { "Owned by " .. tostring(owner and owner.GetDebugName and owner:GetDebugName() or owner) }
-    local data = tooltip.GetTooltipData and tooltip:GetTooltipData()
+    local owner = util.call(tooltip.GetOwner, tooltip)
+    local ownerName = util.canModify(owner) and util.call(owner.GetDebugName, owner)
+    local lines = { "Owned by " .. (util.safeText(ownerName) or "<restricted>") }
+    local data = util.call(tooltip.GetTooltipData, tooltip)
     if type(data) ~= "table" then
         -- Filled by an addon with lines alone, as Questie's quest links.
         lines[#lines + 1] = "No tooltip data; the lines shown:"
         for index = 1, tooltip:NumLines() do
-            local left = _G[tooltip:GetName() .. "TextLeft" .. index]
-            local right = _G[tooltip:GetName() .. "TextRight" .. index]
-            local text = (left and left:GetText() or "") .. (right and right:GetText() and "  |  " .. right:GetText() or "")
+            local left = tooltip:GetLeftLine(index)
+            local name = util.call(tooltip.GetName, tooltip)
+            local right = tooltip.GetRightLine and tooltip:GetRightLine(index)
+                or (name and _G[name .. "TextRight" .. index])
+            local leftText, rightText = "", ""
+            if left then leftText = util.safeText(left:GetText()) or "<restricted>" end
+            if right then rightText = util.safeText(right:GetText()) or "<restricted>" end
+            local text = leftText .. (rightText ~= "" and "  |  " .. rightText or "")
             lines[#lines + 1] = index .. ". " .. text
         end
         ns.showReport("dump", lines)
@@ -32,22 +39,38 @@ local function dumpTooltip()
     end
     local types, lineTypes = names(Enum.TooltipDataType), names(Enum.TooltipDataLineType)
     local function show(value)
-        if type(value) == "table" and value.GenerateHexColor then return "#" .. value:GenerateHexColor() end
+        if util.isSecret(value) then return "<restricted>" end
+        if type(value) == "table" and value.GenerateHexColor then
+            local hex = util.call(value.GenerateHexColor, value)
+            return type(hex) == "string" and ("#" .. hex) or "<restricted>"
+        end
         if type(value) == "table" then return "{...}" end
         return tostring(value)
     end
     local fields = {}
     for key, value in pairs(data) do
-        if key ~= "lines" then fields[#fields + 1] = key .. "=" .. show(value) end
-    end
-    lines[#lines + 1] = tostring(types[data.type] or data.type) .. "  " .. table.concat(fields, "  ")
-    for index, line in ipairs(data.lines or {}) do
-        local parts = {}
-        for key, value in pairs(line) do
-            if key ~= "type" then parts[#parts + 1] = key .. "=" .. show(value) end
+        if not util.isSecret(key) and type(key) == "string" and key ~= "lines" then
+            fields[#fields + 1] = key .. "=" .. show(value)
         end
-        table.sort(parts)
-        lines[#lines + 1] = index .. ". " .. tostring(lineTypes[line.type] or line.type) .. "  " .. table.concat(parts, "  ")
+    end
+    local dataType = util.readable(data.type)
+    lines[#lines + 1] = show(types[dataType] or dataType) .. "  " .. table.concat(fields, "  ")
+    local dataLines = util.readable(data.lines)
+    if type(dataLines) ~= "table" then dataLines = {} end
+    for index, line in ipairs(dataLines) do
+        local parts = {}
+        if not util.isSecret(line) and type(line) == "table" then
+            for key, value in pairs(line) do
+                if not util.isSecret(key) and type(key) == "string" and key ~= "type" then
+                    parts[#parts + 1] = key .. "=" .. show(value)
+                end
+            end
+            local lineType = util.readable(line.type)
+            table.sort(parts)
+            lines[#lines + 1] = index .. ". " .. show(lineTypes[lineType] or lineType) .. "  " .. table.concat(parts, "  ")
+        else
+            lines[#lines + 1] = index .. ". <restricted>"
+        end
     end
     ns.showReport("dump", lines)
 end
@@ -81,7 +104,8 @@ local function handleCommand(message)
     if wanted == "dump" then
         -- Secret values cannot be printed in some situations.
         local ok, problem = pcall(dumpTooltip)
-        if not ok then print(ns.util.fill(ns.L["PrettyTooltip: this tooltip cannot be read right now (%s)."], tostring(problem))) end
+        if not ok then print(ns.util.fill(ns.L["PrettyTooltip: this tooltip cannot be read right now (%s)."],
+            util.safeText(problem) or "<restricted>")) end
         return
     end
     if wanted ~= "options" and ns.openEditor then

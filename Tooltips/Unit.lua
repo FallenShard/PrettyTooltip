@@ -447,6 +447,7 @@ end
 -- at the bottom, and given back to the game's tooltip as it was when the
 -- panel hides or draws anything else.
 local lent
+local hookedHealthBars = setmetatable({}, { __mode = "k" })
 
 -- A bar into the room left for it, as wide as the rows.
 local function placeBar(bar, panel)
@@ -458,45 +459,61 @@ local function placeBar(bar, panel)
 end
 
 local function placeHealthBar()
-    if not lent.panel.healthTop then return end
+    if not (lent and lent.panel.healthTop and util.canModify(lent.bar)) then return end
     lent.placing = true
-    placeBar(lent.bar, lent.panel)
+    pcall(placeBar, lent.bar, lent.panel)
     lent.placing = false
 end
 
 local function returnHealthBar(panel)
     panel.release = nil
     if not (lent and lent.panel == panel) then return end
+    if not util.canModify(lent.bar) or not util.canModify(lent.parent) then
+        lent.returnPending = true
+        return
+    end
     local bar = lent.bar
     lent.placing = true
-    bar:SetParent(lent.parent)
-    bar:ClearAllPoints()
-    for _, point in ipairs(lent.points) do bar:SetPoint(unpack(point)) end
-    bar:SetHeight(lent.height)
+    local ok = pcall(function()
+        bar:SetParent(lent.parent)
+        bar:ClearAllPoints()
+        for _, point in ipairs(lent.points) do bar:SetPoint(unpack(point)) end
+        bar:SetHeight(lent.height)
+    end)
     lent.placing = false
-    lent = nil
+    if ok then lent = nil else lent.returnPending = true end
 end
 
+local healthBarRestore = CreateFrame("Frame")
+healthBarRestore:RegisterEvent("PLAYER_REGEN_ENABLED")
+healthBarRestore:SetScript("OnEvent", function()
+    if lent and lent.returnPending then returnHealthBar(lent.panel) end
+end)
+
 local function lendHealthBar(panel, bar)
+    if not util.canModify(bar) then return end
     if not (lent and lent.panel == panel) then
-        local points = {}
-        for index = 1, bar:GetNumPoints() do points[index] = { bar:GetPoint(index) } end
-        lent = { bar = bar, panel = panel, parent = bar:GetParent(), points = points, height = bar:GetHeight() }
-        if not bar.prettyTooltipHooked then
+        local points, height = util.framePoints(bar), util.number(bar:GetHeight())
+        local parent = bar:GetParent()
+        if not points or not height or not util.canModify(parent) then return end
+        lent = { bar = bar, panel = panel, parent = parent, points = points, height = height }
+        if not hookedHealthBars[bar] then
             -- The game may place its bar again while the panel has it.
             hooksecurefunc(bar, "SetPoint", function()
                 if lent and lent.bar == bar and not lent.placing then placeHealthBar() end
             end)
-            bar.prettyTooltipHooked = true
+            hookedHealthBars[bar] = true
         end
         if not panel.returnsHealthBar then
             panel:HookScript("OnHide", returnHealthBar)
             panel.returnsHealthBar = true
         end
     end
-    bar:SetParent(panel)
-    placeHealthBar()
+    lent.returnPending = nil
     panel.release = returnHealthBar
+    local ok = pcall(bar.SetParent, bar, panel)
+    if not ok then returnHealthBar(panel); return end
+    placeHealthBar()
 end
 
 -- The editor's samples have no unit for the game to fill its bar from, so
@@ -530,7 +547,7 @@ local function renderUnit(panel, tooltip, model)
     -- units without one to show.
     local shown = ns.option("unitHealthBar")
     local bar = shown and tooltip == GameTooltip and GameTooltipStatusBar
-    if not (bar and bar:IsShown()) then bar = nil end
+    if not (bar and util.canModify(bar) and bar:IsShown()) then bar = nil end
     local sample = shown and panel.isPreview and model.healthShare
     panel.healthTop = nil
     ui.renderView(panel, tooltip, unitView(panel, model, bar ~= nil or sample ~= nil))

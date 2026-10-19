@@ -187,10 +187,17 @@ function ns.Options.register()
     refreshControls()
 end
 
+-- The game's settings window does not open in combat; the player is told so
+-- instead of nothing happening. True when it opened.
 function ns.openSettings()
+    if InCombatLockdown() then
+        print(L["PrettyTooltip: the options cannot open during combat. Try again once it ends."])
+        return false
+    end
     if category and Settings.OpenToCategory then
         Settings.OpenToCategory(category:GetID())
     elseif InterfaceOptionsFrame_OpenToCategory then
         InterfaceOptionsFrame_OpenToCategory(page)
     end
+    return true
 end

@@ -1258,8 +1258,7 @@ local resetAll = editorButton(editor, "Reset all fonts and colors", 170, functio
 end)
 resetAll:SetPoint("BOTTOMLEFT", editor, "BOTTOMLEFT", CONTROLS_X, 16)
 local moreOptions = editorButton(editor, "More options", 100, function()
-    editor:Hide()
-    ns.openSettings()
+    if ns.openSettings() then editor:Hide() end
 end)
 moreOptions:SetPoint("BOTTOMRIGHT", editor, "BOTTOMRIGHT", -18, 16)
 
@@ -1295,6 +1294,7 @@ editor:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 editor:RegisterEvent("QUEST_DATA_LOAD_RESULT")
 editor:SetScript("OnEvent", function(_, event, id, success)
     if not editor:IsShown() then return end
+    if ns.util.isSecret(id) or ns.util.isSecret(success) then return end
     if event == "GET_ITEM_INFO_RECEIVED" then
         if state.tooltipType == "item" and id == state.lookup then refresh() end
     elseif event == "QUEST_DATA_LOAD_RESULT" and success and state.tooltipType == "quest" then

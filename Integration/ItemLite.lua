@@ -1,6 +1,7 @@
 -- Native item wording for lite mode and full panels, with modifier-key restoration.
 local _, ns = ...
 local isSecret = ns.util.isSecret
+local util = ns.util
 local stats = ns.Stats
 local LINE = Enum and Enum.TooltipDataLineType or {}
 ns.ItemLite = {}
@@ -9,16 +10,18 @@ local registered = false
 local activeLinesByTooltip = setmetatable({}, { __mode = "k" })
 local hookedTooltips = setmetatable({}, { __mode = "k" })
 
-local function onItemTooltip(_, data)
+local function onItemTooltip(tooltip, data)
+    if not util.canModify(tooltip) then return end
     if not ns.option("itemPanels") then return end
-    if isSecret(data) or not data then return end
+    if isSecret(data) or type(data) ~= "table" then return end
     local lines = data.lines
-    if isSecret(lines) or not lines then return end
+    if isSecret(lines) or type(lines) ~= "table" then return end
 
     -- Keep the line table and its length intact. Other addons may have added
     -- rows to the same cached tooltip data since our previous pass.
     for index, source in ipairs(lines) do
-        if not isSecret(source) and source and not source.prettyTooltipOriginal then
+        if not isSecret(source) and type(source) == "table"
+            and not isSecret(source.prettyTooltipOriginal) and not source.prettyTooltipOriginal then
             local text = source.leftText
             local rightText = source.rightText
             if not isSecret(text) and type(text) == "string"
@@ -54,7 +57,7 @@ local function onItemTooltip(_, data)
                     -- A line break gives combined bonuses two visual lines
                     -- while preserving every other addon's tooltip row.
                     copy.leftText = table.concat(displayLines, "|n")
-                    copy.wrapText = copy.wrapText or #displayLines > 1
+                    copy.wrapText = util.readable(copy.wrapText) or #displayLines > 1
                     copy.prettyTooltipOriginal = text
                     copy.prettyTooltipDisplay = copy.leftText
                     copy.prettyTooltipLite = table.concat(liteLines, "|n")
@@ -76,18 +79,22 @@ local function wordingShown()
 end
 
 local function showWording(tooltip, wording, relayout)
+    if not util.canModify(tooltip) then return end
     local rows = activeLinesByTooltip[tooltip]
     if not rows then return end
     for _, row in ipairs(rows) do
-        row.fontString:SetText(row[wording] or row.original)
+        if not util.canModify(row.fontString) then return end
+        local ok = pcall(row.fontString.SetText, row.fontString, row[wording] or row.original)
+        if not ok then return end
     end
     if relayout then tooltip:Show() end
 end
 
 local function onItemShown(tooltip, data)
-    if isSecret(data) or not data then return end
+    if not util.canModify(tooltip) then return end
+    if isSecret(data) or type(data) ~= "table" then return end
     local lines = data.lines
-    if isSecret(lines) or not lines then return end
+    if isSecret(lines) or type(lines) ~= "table" then return end
 
     if not hookedTooltips[tooltip] then
         local function forget(cleared) activeLinesByTooltip[cleared] = nil end
@@ -96,10 +103,18 @@ local function onItemShown(tooltip, data)
         hookedTooltips[tooltip] = true
     end
 
-    local info = tooltip:GetProcessingTooltipInfo()
-    local rows = (info and info.append and activeLinesByTooltip[tooltip]) or {}
+    local info = util.call(tooltip.GetProcessingTooltipInfo, tooltip)
+    local append = type(info) == "table" and util.readable(info.append)
+    local rows = (append and activeLinesByTooltip[tooltip]) or {}
     for _, line in ipairs(lines) do
-        if not isSecret(line) and line and line.lineIndex and line.prettyTooltipOriginal then
+        if isSecret(line) or type(line) ~= "table" or isSecret(line.lineIndex)
+            or isSecret(line.prettyTooltipOriginal) or isSecret(line.prettyTooltipDisplay)
+            or isSecret(line.prettyTooltipLite) then return end
+        if line.lineIndex ~= nil and type(line.lineIndex) ~= "number" then return end
+        for _, key in ipairs({ "prettyTooltipOriginal", "prettyTooltipDisplay", "prettyTooltipLite" }) do
+            if line[key] ~= nil and type(line[key]) ~= "string" then return end
+        end
+        if line.lineIndex and line.prettyTooltipOriginal then
             local fontString = tooltip:GetLeftLine(line.lineIndex)
             if fontString then
                 rows[#rows + 1] = {
@@ -132,7 +147,8 @@ function ns.ItemLite.register()
         if not ns.isOriginalKey(key) then return end
         local wording = wordingShown()
         for tooltip in pairs(activeLinesByTooltip) do
-            if tooltip:IsShown() and tooltip:IsTooltipType(Enum.TooltipDataType.Item) then
+            if util.canModify(tooltip) and tooltip:IsShown()
+                and util.call(tooltip.IsTooltipType, tooltip, Enum.TooltipDataType.Item) then
                 showWording(tooltip, wording, true)
             end
         end

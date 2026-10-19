@@ -97,7 +97,7 @@ local function hookTaxi()
     if hooked or not TaxiNodeOnButtonEnter then return end
     hooked = true
     hooksecurefunc("TaxiNodeOnButtonEnter", function()
-        if ns.Hooks and GameTooltip:IsShown() and GameTooltip:NumLines() > 0 then
+        if ns.Hooks and util.canModify(GameTooltip) and GameTooltip:IsShown() and GameTooltip:NumLines() > 0 then
             ns.Hooks.renderLines(GameTooltip, TAXI)
         end
     end)

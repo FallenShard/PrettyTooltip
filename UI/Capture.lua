@@ -7,6 +7,7 @@
 local _, ns = ...
 
 local isSecret, pack = ns.util.isSecret, ns.util.pack
+local util = ns.util
 local TYPES = Enum and Enum.TooltipDataType or {}
 -- Addons the readers check for.
 local ADDONS = { "DialogueUI", "EllesmereUI", "Questie", "Auctionator" }
@@ -52,12 +53,14 @@ local function recorder()
     local calls = {}
     local function record(name, fn, ...)
         if type(fn) ~= "function" then return end
+        for index = 1, select("#", ...) do if isSecret(select(index, ...)) then return end end
         local ok, results = pcall(function(...) return pack(fn(...)) end, ...)
         if not ok then return end
         local args = pack(...)
         local keys = {}
         for index = 1, args.n do
-            keys[index] = type(args[index]) == "table" and "self" or tostring(args[index])
+            keys[index] = isSecret(args[index]) and "<restricted>"
+                or (type(args[index]) == "table" and "self" or tostring(args[index]))
         end
         calls[name] = calls[name] or {}
         calls[name][table.concat(keys, ",")] = copyOf(results)
@@ -169,7 +172,7 @@ end
 
 local function recordAura(record, tooltip, data)
     -- The aura's own data, kept by the reader while the game filled the tooltip.
-    local kept = tooltip.prettyTooltipAura
+    local kept = ns.keptAuras and ns.keptAuras[tooltip]
     if kept and kept.aura and type(kept.aura.sourceUnit) == "string" then
         record("UnitName", UnitName, kept.aura.sourceUnit)
     end
@@ -251,7 +254,7 @@ end
 -- The frame a tooltip is for: its name and ID, and a flight map pin's node.
 local function ownerOf(tooltip)
     local owner = tooltip:GetOwner()
-    if not owner then return end
+    if not util.canModify(owner) then return end
     return {
         name = owner.GetName and copyOf(owner:GetName()),
         id = owner.GetID and copyOf(owner:GetID()),
@@ -301,7 +304,7 @@ local function typeName(dataType)
 end
 
 local function captureTooltip(tooltip)
-    local data = tooltip.GetTooltipData and tooltip:GetTooltipData()
+    local data = util.call(tooltip.GetTooltipData, tooltip)
     local calls, record = recorder()
     local entry = { tooltip = tooltip:GetName(), calls = calls }
     -- A part that trips on a hidden value is noted and the rest still kept.
@@ -309,7 +312,7 @@ local function captureTooltip(tooltip)
         local ok, problem = pcall(...)
         if not ok then
             entry.problems = entry.problems or {}
-            entry.problems[#entry.problems + 1] = part .. ": " .. tostring(problem)
+            entry.problems[#entry.problems + 1] = part .. ": " .. (util.safeText(problem) or "<restricted>")
         end
         return ok and problem or nil
     end
@@ -378,21 +381,21 @@ function ns.capture(name)
         print("PrettyTooltip: name the capture with letters, digits, - or _, as /ptip capture frostbolt-r3.")
         return
     end
-    local tooltip = GameTooltip:IsShown() and GameTooltip or ItemRefTooltip
-    if not (tooltip and tooltip:IsShown()) then
+    local tooltip = util.canModify(GameTooltip) and GameTooltip:IsShown() and GameTooltip or ItemRefTooltip
+    if not (util.canModify(tooltip) and tooltip:IsShown()) then
         print("PrettyTooltip: hover something first; there is no tooltip to capture.")
         return
     end
     hidden = 0
     local ok, entry = pcall(captureTooltip, tooltip)
     if not ok then
-        print("PrettyTooltip: the capture failed (" .. tostring(entry) .. ").")
+        print("PrettyTooltip: the capture failed (" .. (util.safeText(entry) or "<restricted>") .. ").")
         return
     end
     entry.comparisons = {}
     for _, comparisonName in ipairs(COMPARISONS) do
         local comparison = _G[comparisonName]
-        if comparison and comparison:IsShown() then
+        if util.canModify(comparison) and comparison:IsShown() then
             local captured, result = pcall(captureTooltip, comparison)
             if captured then entry.comparisons[#entry.comparisons + 1] = result end
         end

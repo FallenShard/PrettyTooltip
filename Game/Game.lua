@@ -13,6 +13,7 @@ ns.Game = game
 -- An item's name, link, quality, icon, and unit sell price, by ID, link, or
 -- name; fields the client has not loaded are nil.
 function game.itemInfo(item)
+    if isSecret(item) then return end
     if not (item and C_Item and C_Item.GetItemInfo) then return end
     local ok, name, link, quality, _, _, _, _, _, _, icon, price = pcall(C_Item.GetItemInfo, item)
     if not ok then return end
@@ -23,6 +24,7 @@ end
 -- The item's id, type and subtype names, equip slot, and class ID, from data
 -- the client always has; nil when any is hidden.
 function game.itemType(item)
+    if isSecret(item) then return end
     if not (item and C_Item and C_Item.GetItemInfoInstant) then return end
     local ok, id, className, subClassName, equipLoc, _, classID = pcall(C_Item.GetItemInfoInstant, item)
     if not ok or isSecret(id) or isSecret(className) or isSecret(subClassName) or isSecret(equipLoc)
@@ -32,6 +34,7 @@ end
 
 -- Asks the client to load an item it has not seen, for a later hover.
 function game.loadItem(itemID)
+    if isSecret(itemID) then return end
     if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, itemID) end
 end
 
@@ -69,6 +72,7 @@ end
 
 -- true or false; nil when the game cannot tell.
 function game.isEquipped(link)
+    if isSecret(link) then return end
     if not (link and C_Item and C_Item.IsEquippedItem) then return end
     local ok, equipped = pcall(C_Item.IsEquippedItem, link)
     if ok and not isSecret(equipped) then return equipped == true end
@@ -76,6 +80,7 @@ end
 
 -- Auctionator's last seen price, in copper.
 function game.auctionPrice(itemID)
+    if isSecret(itemID) then return end
     local api = Auctionator and Auctionator.API and Auctionator.API.v1
     if not (api and api.GetAuctionPriceByItemID) then return end
     local ok, price = pcall(api.GetAuctionPriceByItemID, "PrettyTooltip", itemID)
@@ -111,7 +116,7 @@ end
 -- Macros ----------------------------------------------------------------------
 
 function game.macro(name)
-    if not GetMacroInfo or type(name) ~= "string" then return end
+    if isSecret(name) or not GetMacroInfo or type(name) ~= "string" then return end
     local _, icon, body = call(GetMacroInfo, name)
     if type(body) ~= "string" then return end
     return { icon = icon, body = body }
@@ -120,6 +125,7 @@ end
 -- The name of the macro whose #showtooltip shows this spell or item now; the
 -- first, if several do. Character macros are numbered after the account's slots.
 function game.macroShowing(dataType, id)
+    if isSecret(dataType) or isSecret(id) then return end
     local isItem = dataType == Enum.TooltipDataType.Item
     local shows = isItem and GetMacroItem or GetMacroSpell
     if not (GetNumMacros and shows and GetMacroInfo) or type(id) ~= "number" then return end
@@ -149,7 +155,7 @@ end
 -- command or stance, and autocast (nil when the action has none). Commands
 -- and stances are named by global strings, as PET_ACTION_ATTACK.
 function game.petAction(name)
-    if not GetPetActionInfo or type(name) ~= "string" then return end
+    if isSecret(name) or not GetPetActionInfo or type(name) ~= "string" then return end
     for slot = 1, NUM_PET_ACTION_SLOTS or 10 do
         local ok, slotName, icon, isToken, isActive, autocastAllowed, autocastEnabled = pcall(GetPetActionInfo, slot)
         slotName, icon, isToken = readable(slotName), readable(icon), readable(isToken)
@@ -186,6 +192,7 @@ end
 -- ("Skinning"), which the client knows by its own (ns.Locale.skills). Older
 -- clients list skills; newer ones, like Forever's, only list professions.
 function game.skill(key)
+    if isSecret(key) then return end
     local names = {}
     for _, name in ipairs(ns.Locale.skillNames(key)) do names[name] = true end
     if GetNumSkillLines and GetSkillLineInfo then
@@ -198,7 +205,7 @@ function game.skill(key)
         local found = util.pack(pcall(GetProfessions))
         for position = 2, found[1] and found.n or 1 do
             local index = found[position]
-            if index ~= nil and not isSecret(index) then
+            if not isSecret(index) and index ~= nil then
                 local skillName, _, rank = call(GetProfessionInfo, index)
                 if names[skillName] and type(rank) == "number" then return rank end
             end
@@ -241,7 +248,7 @@ game.NEARBY_UNITS = NEARBY
 
 -- A player's class name and file, by the player's name, from those units.
 function game.playerClass(name)
-    if type(name) ~= "string" then return end
+    if isSecret(name) or type(name) ~= "string" then return end
     for _, unit in ipairs(NEARBY) do
         if game.unitName(unit) == name and game.unitIsPlayer(unit) then
             local className, classFile = game.unitClass(unit)
@@ -251,12 +258,12 @@ function game.playerClass(name)
 end
 
 function game.classColor(classFile)
-    if classFile and RAID_CLASS_COLORS then return rgb(RAID_CLASS_COLORS[classFile]) end
+    if not isSecret(classFile) and classFile and RAID_CLASS_COLORS then return rgb(RAID_CLASS_COLORS[classFile]) end
 end
 
 -- The color the game gives a level, relative to the player's, as { r, g, b }.
 function game.difficultyColor(level)
-    if type(level) ~= "number" or not GetQuestDifficultyColor then return end
+    if isSecret(level) or type(level) ~= "number" or not GetQuestDifficultyColor then return end
     return rgb((call(GetQuestDifficultyColor, level)))
 end
 
@@ -264,6 +271,7 @@ end
 
 -- An aura on a unit, by its instance ID or by its index under a filter.
 function game.aura(unit, which, filter, byInstance)
+    if isSecret(unit) or isSecret(which) or isSecret(filter) or isSecret(byInstance) then return end
     if not C_UnitAuras then return end
     local ok, aura
     if byInstance and C_UnitAuras.GetAuraDataByAuraInstanceID then
@@ -278,6 +286,7 @@ end
 
 -- A quest's localized title. Request uncached data for the editor's next draw.
 function game.questName(questID)
+    if isSecret(questID) then return end
     if not (C_QuestLog and (C_QuestLog.GetTitleForQuestID or C_QuestLog.GetQuestInfo)) then return end
     local name = call(C_QuestLog.GetTitleForQuestID or C_QuestLog.GetQuestInfo, questID)
     if type(name) == "string" and name ~= "" then return name end
@@ -299,7 +308,10 @@ function game.questLevel(questID)
     local index = call(C_QuestLog.GetLogIndexForQuestID, questID)
     if type(index) ~= "number" then return end
     local info = call(C_QuestLog.GetInfo, index)
-    if type(info) == "table" and type(info.level) == "number" and info.level > 0 then return info.level end
+    if type(info) == "table" then
+        local level = number(info.level)
+        if level and level > 0 then return level end
+    end
 end
 
 -- Art -------------------------------------------------------------------------
@@ -308,19 +320,26 @@ end
 function game.atlasInfo(name)
     if not (C_Texture and C_Texture.GetAtlasInfo) then return end
     local info = call(C_Texture.GetAtlasInfo, name)
-    if type(info) == "table" and info.file and type(info.width) == "number" and type(info.height) == "number"
-        and info.height > 0 then
-        return info
+    if type(info) ~= "table" then return end
+    local safe = {}
+    for _, key in ipairs({ "file", "width", "height", "leftTexCoord", "rightTexCoord", "topTexCoord", "bottomTexCoord" }) do
+        local value = readable(info[key])
+        if value == nil then return end
+        if key ~= "file" and type(value) ~= "number" then return end
+        if key == "file" and type(value) ~= "number" and type(value) ~= "string" then return end
+        safe[key] = value
     end
+    if safe.width > 0 and safe.height > 0 then return safe end
 end
 
 -- Other addons ----------------------------------------------------------------
 
 -- Installed, whether enabled or not.
 function game.addonInstalled(addon)
+    if isSecret(addon) then return false end
     if not (C_AddOns and C_AddOns.GetAddOnInfo) then return false end
     local ok, name, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, addon)
-    return ok and name ~= nil and reason ~= "MISSING"
+    return ok and not isSecret(name) and not isSecret(reason) and name ~= nil and reason ~= "MISSING"
 end
 
 -- One of Questie's phrases as its tooltips print it, in the language Questie
@@ -331,7 +350,7 @@ function game.questieText(phrase)
     local l10n = type(modules) == "table" and modules.l10n
     if l10n then
         local ok, text = pcall(l10n, phrase)
-        if ok and type(text) == "string" then return text end
+        if ok and not isSecret(text) and type(text) == "string" then return text end
     end
     return phrase
 end

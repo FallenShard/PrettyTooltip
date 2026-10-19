@@ -5,6 +5,7 @@ local ui = ns.ui
 if not ui then return end
 
 local isSecret = ns.util.isSecret
+local util = ns.util
 local panels, perf = ui.panels, ui.perf
 
 -- /ptip anchors: where each shown panel sits, left to right, and how its
@@ -12,11 +13,19 @@ local panels, perf = ui.panels, ui.perf
 function ns.dumpAnchors()
     local shown = {}
     for tooltip, panel in pairs(panels) do
-        if panel:IsShown() and panel:GetLeft() then shown[#shown + 1] = { tooltip = tooltip, panel = panel } end
+        if util.canModify(tooltip) and panel:IsShown() then
+            local left, right = util.number(panel:GetLeft()), util.number(panel:GetRight())
+            local nativeLeft, nativeRight = util.number(tooltip:GetLeft()), util.number(tooltip:GetRight())
+            if left and right and nativeLeft and nativeRight then
+                shown[#shown + 1] = { tooltip = tooltip, panel = panel,
+                    left = left, right = right, nativeLeft = nativeLeft, nativeRight = nativeRight }
+            end
+        end
     end
-    table.sort(shown, function(a, b) return a.panel:GetLeft() < b.panel:GetLeft() end)
+    table.sort(shown, function(a, b) return a.left < b.left end)
     local function nameOf(frame)
         if not frame then return "nil" end
+        if not util.canModify(frame) then return "<restricted>" end
         for tooltip, panel in pairs(panels) do
             if frame == panel then return (tooltip:GetName() or "?") .. "'s panel" end
         end
@@ -30,17 +39,14 @@ function ns.dumpAnchors()
     for index, entry in ipairs(shown) do
         local tooltip, panel = entry.tooltip, entry.panel
         local line = ("%s: panel %.1f to %.1f (pinned %s), hidden %.1f to %.1f"):format(tooltip:GetName() or "?",
-            panel:GetLeft(), panel:GetRight(), tostring(panel.side), tooltip:GetLeft() or 0, tooltip:GetRight() or 0)
+            entry.left, entry.right, tostring(panel.side), entry.nativeLeft, entry.nativeRight)
         if index > 1 then
-            line = line .. (", gap %.1f"):format(panel:GetLeft() - shown[index - 1].panel:GetRight())
+            line = line .. (", gap %.1f"):format(entry.left - shown[index - 1].right)
         end
         lines[#lines + 1] = line
-        for point = 1, tooltip:GetNumPoints() do
-            local from, relativeTo, to, x, y = tooltip:GetPoint(point)
-            if not isSecret(relativeTo) then
-                lines[#lines + 1] = ("    %s to %s %s, offset %s, %s"):format(tostring(from), nameOf(relativeTo),
-                    tostring(to), tostring(x), tostring(y))
-            end
+        for _, point in ipairs(util.framePoints(tooltip) or {}) do
+            lines[#lines + 1] = ("    %s to %s %s, offset %s, %s"):format(point[1], nameOf(point[2]),
+                point[3], tostring(point[4]), tostring(point[5]))
         end
     end
     ns.showReport("anchors", lines)
@@ -52,6 +58,8 @@ function ns.dumpPixel()
     local native = PixelUtil and PixelUtil.GetNearestPixelSize and PixelUtil.GetPixelToUIUnitFactor
     local width, height = GetPhysicalScreenSize()
     local scale = UIParent:GetEffectiveScale()
+    width, height, scale = util.number(width), util.number(height), util.number(scale)
+    if not (width and height and scale) then ns.showReport("pixel", { "Screen geometry is restricted." }); return end
     ns.showReport("pixel", { ("Snapping with %s; screen %dx%d, UI scale %.3f, one pixel = %.4f units."):format(
         native and "the game's PixelUtil" or "the addon's own math", width, height, scale, ui.pixel(UIParent)) })
 end
@@ -64,7 +72,7 @@ local function addonMemory()
         UpdateAddOnMemoryUsage()
         return getter(addonName)
     end)
-    if ok and type(usage) == "number" then return usage end
+    if ok and not isSecret(usage) and type(usage) == "number" then return usage end
 end
 
 function ns.perfCapture(seconds)

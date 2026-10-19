@@ -5,8 +5,13 @@ local _, ns = ...
 local util = {}
 ns.util = util
 
--- True for a value the game hides, which cannot be compared, counted, or shown.
-util.isSecret = issecretvalue or function() return false end
+-- Secret values and tables whose contents this addon cannot access must be
+-- rejected before indexing, comparing, formatting, or doing arithmetic.
+local secretValue = issecretvalue or function() return false end
+local canAccessTable = canaccesstable
+function util.isSecret(value)
+    return secretValue(value) or (type(value) == "table" and canAccessTable and not canAccessTable(value)) or false
+end
 local isSecret = util.isSecret
 
 -- A function's results as a table, with their count in n, nils included.
@@ -379,10 +384,55 @@ end
 -- Calls fn and gives back up to four of its results; nothing when fn is
 -- missing, fails, or any of them is hidden.
 function util.call(fn, ...)
-    if not fn then return end
+    if isSecret(fn) or type(fn) ~= "function" then return end
+    for index = 1, select("#", ...) do
+        if isSecret(select(index, ...)) then return end
+    end
     local ok, a, b, c, d = pcall(fn, ...)
     if not ok or isSecret(a) or isSecret(b) or isSecret(c) or isSecret(d) then return end
     return a, b, c, d
+end
+
+-- Cosmetic integrations leave forbidden and protected native frames alone,
+-- including outside combat: adopting one can make later cleanup restricted.
+-- pcall contains API errors; it does not make a protected operation secure.
+local function restrictedFrame(frame, method)
+    local getter = frame[method]
+    if isSecret(getter) then return true end
+    if getter ~= nil then
+        if type(getter) ~= "function" then return true end
+        local ok, restricted = pcall(getter, frame)
+        return not ok or isSecret(restricted) or type(restricted) ~= "boolean" or restricted
+    end
+    return false
+end
+function util.canModify(frame)
+    if isSecret(frame) or (type(frame) ~= "table" and type(frame) ~= "userdata") then return false end
+    if restrictedFrame(frame, "IsForbidden") or restrictedFrame(frame, "IsProtected") then return false end
+    -- A frame can inherit a forbidden layout from the frame it is anchored to
+    -- without IsForbidden saying so, and then every call on it fails; reading
+    -- its width is a call allowed to fail. A width that is only hidden is not a
+    -- restriction: in combat the game hides a tooltip's size along with its text.
+    local getWidth = frame.GetWidth
+    if isSecret(getWidth) then return false end
+    if type(getWidth) == "function" and not pcall(getWidth, frame) then return false end
+    return true
+end
+
+-- Anchor snapshots are replayed later, so every component must be readable.
+function util.framePoints(frame)
+    if not util.canModify(frame) then return end
+    local count = util.number((util.call(frame.GetNumPoints, frame)))
+    if not count then return end
+    local points = {}
+    for index = 1, count do
+        local ok, point, relative, relativePoint, x, y = pcall(frame.GetPoint, frame, index)
+        if not ok or isSecret(point) or isSecret(relative) or isSecret(relativePoint)
+            or isSecret(x) or isSecret(y) or type(point) ~= "string" or type(relativePoint) ~= "string"
+            or type(x) ~= "number" or type(y) ~= "number" then return end
+        points[index] = { point, relative, relativePoint, x, y }
+    end
+    return points
 end
 
 -- Colors ------------------------------------------------------------------------
@@ -392,7 +442,8 @@ end
 function util.rgb(color)
     if isSecret(color) or type(color) ~= "table" then return end
     local r, g, b = color.r, color.g, color.b
-    if isSecret(r) or isSecret(g) or isSecret(b) or type(r) ~= "number" then return end
+    if isSecret(r) or isSecret(g) or isSecret(b)
+        or type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then return end
     return { r, g, b }
 end
 

@@ -52,8 +52,10 @@ local function appendedRows(tooltip, lineIndices)
             local leftFont = tooltip:GetLeftLine(index)
             local rightFont = tooltip.GetRightLine and tooltip:GetRightLine(index)
                 or (name and _G[name .. "TextRight" .. index])
-            local left = leftFont and safeText(leftFont:GetText()) or ""
-            local right = rightFont and safeText(rightFont:GetText()) or ""
+            if (leftFont and not util.canModify(leftFont)) or (rightFont and not util.canModify(rightFont)) then return end
+            local left, right = "", ""
+            if leftFont then left = safeText(leftFont:GetText()) end
+            if rightFont then right = safeText(rightFont:GetText()) end
             if not left or not right then return end
             rows[#rows + 1] = {
                 left = left,

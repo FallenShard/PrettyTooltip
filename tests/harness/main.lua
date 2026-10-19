@@ -105,6 +105,9 @@ end
 local function startAddon(fixture, enums, files, sources, makeWorld, report, settings)
     local world = makeWorld(fixture, enums, report)
     local ns = loadAddon(files, sources)
+    if ns.keptAuras then
+        for _, entry in ipairs(world.tooltips) do ns.keptAuras[entry.tooltip] = entry.capture.aura end
+    end
     local saved = {}
     for key, value in pairs(settings or {}) do saved[key] = value end
     PrettyTooltipDB = saved
@@ -250,7 +253,11 @@ function main.unit(testSource, testName, sources, serialize, makeWorld)
     -- Loads the named addon files with a world answering from fixture's calls.
     function test.load(files, fixture)
         local world = makeWorld(fixture or {}, fixture and fixture.enums or {}, report)
-        return loadAddon(files, sources), world
+        local ns = loadAddon(files, sources)
+        if ns.keptAuras then
+            for _, entry in ipairs(world.tooltips) do ns.keptAuras[entry.tooltip] = entry.capture.aura end
+        end
+        return ns, world
     end
     function test.check(name, got, expected)
         local gotText = type(got) == "table" and serialize.dump(got) or tostring(got)

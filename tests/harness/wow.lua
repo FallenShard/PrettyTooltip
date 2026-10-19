@@ -18,16 +18,20 @@ return function(fixture, enums, report, strings)
     local function refuse() error("attempt to use a secret value", 2) end
     local SECRET = setmetatable({}, { __index = refuse, __newindex = refuse, __concat = refuse,
         __add = refuse, __sub = refuse, __mul = refuse, __div = refuse, __lt = refuse, __le = refuse,
-        __len = refuse, __unm = refuse, __call = refuse, __tostring = function() return "<secret>" end })
+        __len = refuse, __unm = refuse, __call = refuse, __tostring = refuse })
+    local SECRET_TABLE = setmetatable({}, { __index = refuse, __newindex = refuse })
     local function unmark(value, seen)
         if type(value) ~= "table" or seen[value] then return value end
         if rawget(value, "__secret") == true then return SECRET end
+        if rawget(value, "__secretTable") == true then return SECRET_TABLE end
         seen[value] = true
         for key, item in pairs(value) do value[key] = unmark(item, seen) end
         return value
     end
     unmark(fixture, {})
     issecretvalue = function(value) return value == SECRET end
+    canaccesstable = function(value) return value ~= SECRET and value ~= SECRET_TABLE end
+    world.secret, world.secretTable = SECRET, SECRET_TABLE
     -- The comparisons' answers join the tooltip's: the game is the same game.
     local calls = {}
     for _, capture in ipairs({ fixture, unpack(fixture.comparisons or {}) }) do
@@ -168,6 +172,8 @@ return function(fixture, enums, report, strings)
     function Object:Hide() self._shown = false end
     function Object:SetShown(shown) self._shown = not not shown end
     function Object:IsShown() return self._shown end
+    function Object:IsForbidden() return self._forbidden == true end
+    function Object:IsProtected() return self._protected == true end
     function Object:IsVisible()
         local object = self
         while object do
@@ -369,8 +375,6 @@ return function(fixture, enums, report, strings)
             tooltip._right[index] = fontLine(tooltip, "Right", index, line.right)
         end
         tooltip._data = capture.data
-        -- What the aura reader kept while the game filled the tooltip.
-        tooltip.prettyTooltipAura = capture.aura
         local captured = capture.calls or {}
         tooltip.GetItem = function(...) return answer("tooltip:GetItem", captured, ...) end
         tooltip.GetSpell = function(...) return answer("tooltip:GetSpell", captured, ...) end

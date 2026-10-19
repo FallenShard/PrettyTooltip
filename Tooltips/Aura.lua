@@ -30,6 +30,9 @@ local PARTS = { "auraName", "auraBadges", "auraText", "auraTime", "extras" }
 -- Each dispel type by the client's name for it, which the name line prints
 -- on its right: "Gift" on deDE is Poison.
 local DISPEL_KEYS = {}
+local keptAuras = setmetatable({}, { __mode = "k" })
+local auraHooks = setmetatable({}, { __mode = "k" })
+ns.keptAuras = keptAuras
 for key in pairs(DISPELS) do DISPEL_KEYS[ns.Locale.dispels[key] or key] = key end
 -- The line saying how long the aura lasts: "5 seconds remaining".
 local REMAINING = { SPELL_TIME_REMAINING_SEC, SPELL_TIME_REMAINING_MIN, SPELL_TIME_REMAINING_HOURS,
@@ -45,9 +48,9 @@ end
 -- The getter is known only while the game fills the tooltip, so the aura is
 -- kept for the redraws after.
 local function auraOf(tooltip, spellID, game)
-    local info = tooltip.GetProcessingTooltipInfo and tooltip:GetProcessingTooltipInfo()
+    local info = util.call(tooltip.GetProcessingTooltipInfo, tooltip)
     if not info or isSecret(info) then
-        local kept = tooltip.prettyTooltipAura
+        local kept = keptAuras[tooltip]
         return kept and kept.spellID == spellID and kept.aura or nil
     end
     local getter, args = readable(info.getterName), readable(info.getterArgs)
@@ -57,7 +60,13 @@ local function auraOf(tooltip, spellID, game)
     if getter:find("Buff") then filter = "HELPFUL" elseif getter:find("Debuff") then filter = "HARMFUL" end
     local aura = game.aura(unit, which, filter, getter:find("AuraInstanceID") ~= nil)
     if not aura then return end
-    tooltip.prettyTooltipAura = { spellID = spellID, aura = aura }
+    if not auraHooks[tooltip] then
+        local function forget() keptAuras[tooltip] = nil end
+        tooltip:HookScript("OnHide", forget)
+        tooltip:HookScript("OnTooltipCleared", forget)
+        auraHooks[tooltip] = true
+    end
+    keptAuras[tooltip] = { spellID = spellID, aura = aura }
     return aura
 end
 
@@ -70,9 +79,9 @@ local function completeModel(model, aura, game)
     if aura then
         model.harmful = readable(aura.isHarmful)
         if model.harmful == nil and readable(aura.isHelpful) ~= nil then model.harmful = not aura.isHelpful end
-        model.stacks = readable(aura.applications)
-        model.duration = readable(aura.duration)
-        model.expires = readable(aura.expirationTime)
+        model.stacks = util.number(aura.applications)
+        model.duration = util.number(aura.duration)
+        model.expires = util.number(aura.expirationTime)
         local source = readable(aura.sourceUnit)
         if type(source) == "string" then
             local name = game.unitName(source)
@@ -86,6 +95,7 @@ local function completeModel(model, aura, game)
 end
 
 local function readAura(tooltip, data, game)
+    if not util.canModify(tooltip) then return end
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local spellID = readable(data.id)
     local model = { description = {}, extras = {}, lineIndices = {}, icon = game.spellIcon(spellID) }

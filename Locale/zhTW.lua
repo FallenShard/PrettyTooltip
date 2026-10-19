@@ -480,6 +480,8 @@ L["Use the game's settings frame borders and controls."] = "使用遊戲設定�
 L["Use the flat editor appearance."] = "使用簡約編輯器外觀。"
 L["PrettyTooltip: hover something first; there is no tooltip to dump."] = "PrettyTooltip：請先將游標移到目標上，目前沒有可匯出的提示。"
 L["PrettyTooltip: this tooltip cannot be read right now (%s)."] = "PrettyTooltip：目前無法讀取此提示（%s）。"
+L["PrettyTooltip: the options cannot open during combat. Try again once it ends."] =
+    "PrettyTooltip：戰鬥中無法開啟設定。請在戰鬥結束後再試一次。"
 L["Press Ctrl+C to copy the selected text, and paste it into your bug report."] = "按Ctrl+C複製選取的文字，然後貼到錯誤回報中。"
 L["Select all"] = "全選"
 

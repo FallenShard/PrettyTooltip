@@ -6,22 +6,20 @@ local ui = ns.ui
 if not ui then return end
 
 local isSecret = ns.util.isSecret
+local util = ns.util
 local panels, isComparison, probe = ui.panels, ui.isComparison, ui.probe
 local perf, tally, timed = ui.perf, ui.tally, ui.timed
 local native = {}
 ns.Native = native
 
 local function retarget(tooltip, choose)
-    local points, changed = {}, false
-    for index = 1, tooltip:GetNumPoints() do
-        local point, relativeTo, relativePoint, x, y = tooltip:GetPoint(index)
-        if isSecret(point) or isSecret(relativeTo) or isSecret(relativePoint)
-            or isSecret(x) or isSecret(y) then
-            return
-        end
-        local target = choose(relativeTo)
-        if target ~= relativeTo then changed = true end
-        points[index] = { point, target, relativePoint, x, y }
+    if not util.canModify(tooltip) then return end
+    local points, changed = util.framePoints(tooltip), false
+    if not points then return end
+    for _, point in ipairs(points) do
+        local target = choose(point[2])
+        if target ~= point[2] then changed = true end
+        point[2] = target
     end
     if not changed then return end
     tooltip:ClearAllPoints()
@@ -57,7 +55,7 @@ local function recheckNextFrame(tooltip, panel)
     panel.recheckPending = true
     C_Timer.After(0, function()
         panel.recheckPending = false
-        if panel:IsShown() and tooltip:IsShown() then
+        if panel:IsShown() and util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip) then
             panel.forceFit = true
             refitNative(tooltip, panel)
             panel.forceFit = false
@@ -66,20 +64,24 @@ local function recheckNextFrame(tooltip, panel)
 end
 
 local function fitNative(tooltip, panel)
+    if not util.canModify(tooltip) then return end
     if not tooltip.SetPadding then return end
     local base = panel.nativeSize
     if not base then
         local right, bottom, left, top
         if tooltip.GetPadding then right, bottom, left, top = tooltip:GetPadding() end
+        if isSecret(right) or isSecret(bottom) or isSecret(left) or isSecret(top) then return end
         base = { right = right or 0, bottom = bottom or 0, left = left or 0, top = top or 0 }
         panel.nativeSize = base
     end
     -- A hidden tooltip is fitted by the Show hook once Blizzard shows it.
-    if not tooltip:IsShown() then return end
+    if not util.call(tooltip.IsShown, tooltip) then return end
+    local width, height = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
+    if not (width and height) then return end
     -- A refresh asks for several refits; only a changed size needs one.
     local start = perf.on and debugprofilestop()
-    if panel.fittedWidth and math.abs(tooltip:GetWidth() - panel.fittedWidth) <= .5
-        and math.abs(tooltip:GetHeight() - panel.fittedHeight) <= .5
+    if panel.fittedWidth and math.abs(width - panel.fittedWidth) <= .5
+        and math.abs(height - panel.fittedHeight) <= .5
         and math.abs(panel:GetWidth() - panel.fittedPanelWidth) <= .5
         and math.abs(panel:GetHeight() - panel.fittedPanelHeight) <= .5 then
         timed("refit part: size check (unchanged)", start)
@@ -92,10 +94,11 @@ local function fitNative(tooltip, panel)
     -- the natural size needs no layout pass to measure.
     if tooltip.GetPadding then
         local currentRight, currentBottom = tooltip:GetPadding()
+        if isSecret(currentRight) or isSecret(currentBottom) then return end
         if type(currentRight) == "number" and type(currentBottom) == "number" then
             local panelWidth, panelHeight = panel:GetWidth(), panel:GetHeight()
-            local naturalWidth = tooltip:GetWidth() - (currentRight - base.right)
-            local naturalHeight = tooltip:GetHeight() - (currentBottom - base.bottom)
+            local naturalWidth = width - (currentRight - base.right)
+            local naturalHeight = height - (currentBottom - base.bottom)
             -- Right after Show the game can report the size before it has laid
             -- out everything; a size below the largest seen for this item waits.
             local largestWidth, largestHeight = panel.naturalWidth or 0, panel.naturalHeight or 0
@@ -125,18 +128,21 @@ local function fitNative(tooltip, panel)
     start = perf.on and debugprofilestop()
     tooltip:SetPadding(base.right, base.bottom, base.left, base.top)
     tooltip:Show()
-    local right = base.right + math.max(0, panel:GetWidth() - tooltip:GetWidth())
-    local bottom = base.bottom + math.max(0, panel:GetHeight() - tooltip:GetHeight())
+    width, height = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
+    if not (width and height) then return end
+    local right = base.right + math.max(0, panel:GetWidth() - width)
+    local bottom = base.bottom + math.max(0, panel:GetHeight() - height)
     if right ~= base.right or bottom ~= base.bottom then
         tooltip:SetPadding(right, bottom, base.left, base.top)
         tooltip:Show()
     end
-    panel.fittedWidth, panel.fittedHeight = tooltip:GetWidth(), tooltip:GetHeight()
+    panel.fittedWidth, panel.fittedHeight = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
     panel.fittedPanelWidth, panel.fittedPanelHeight = panel:GetWidth(), panel:GetHeight()
     timed("refit part: fallback", start)
 end
 
 function refitNative(tooltip, panel)
+    if not util.canModify(tooltip) then return end
     if panel.fitting then return end
     panel.fitting = true
     pcall(fitNative, tooltip, panel)
@@ -151,7 +157,9 @@ refitNative = probe("refit hidden tooltip", refitNative)
 -- full layout each. A tooltip shorter than the most lines it has shown for this
 -- item keeps its padding, and is checked next frame in case the lines never come.
 local function refitUnlessPartial(tooltip, panel)
-    local lines = tooltip:NumLines()
+    if not util.canModify(tooltip) then return end
+    local lines = util.number((util.call(tooltip.NumLines, tooltip)))
+    if not lines then return end
     panel.fullLines = math.max(panel.fullLines or 0, lines)
     if lines < panel.fullLines then
         tally("refit skipped (partial)")
@@ -164,17 +172,19 @@ end
 -- Panels drawn from another addon's lines have no data type; their lines
 -- last until the tooltip is cleared.
 local function showsDataType(tooltip, panel)
+    if not util.canModify(tooltip) then return false end
     if not panel.dataType then return false end
     if panel.data and panel.data.fromLines then return true end
-    return tooltip:IsTooltipType(panel.dataType)
+    return util.call(tooltip.IsTooltipType, tooltip, panel.dataType) == true
 end
 
 local function releaseNative(tooltip, panel)
+    if not util.canModify(tooltip) then return end
     local base = panel.nativeSize
     panel.nativeSize, panel.fittedWidth = nil, nil
     -- After a hide or a switch to other content the game has already reset
     -- the size, and the tooltip's new owner may have set its own padding.
-    if base and tooltip:IsShown() and showsDataType(tooltip, panel) then
+    if base and util.call(tooltip.IsShown, tooltip) and showsDataType(tooltip, panel) then
         tooltip:SetPadding(base.right, base.bottom, base.left, base.top)
         tooltip:Show()
     end
@@ -194,9 +204,13 @@ local function stopFade(panel)
 end
 
 local function fadeOut(tooltip)
+    if not util.canModify(tooltip) then return end
+    -- Hiding the game's tooltip from here runs its OnHide under the addon's
+    -- taint. In combat the panel stays until the game hides the tooltip itself.
+    if InCombatLockdown() then return end
     local panel = panels[tooltip]
     -- Following the cursor hides the tooltip at once, before this hook runs.
-    if not (panel and panel:IsShown() and panel.nativeAlpha and tooltip:IsShown()) then return end
+    if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
     if not panel.fade then
         local fade = panel:CreateAnimationGroup()
         local alpha = fade:CreateAnimation("Alpha")
@@ -222,6 +236,7 @@ local function isFading(panel)
 end
 
 local function restoreNative(tooltip)
+    if isSecret(tooltip) or not tooltip then return end
     local panel = panels[tooltip]
     if not panel then return end
     panel.restorePending = false
@@ -233,7 +248,7 @@ local function restoreNative(tooltip)
         panel:Hide()
     end
     panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil
-    if panel.nativeAlpha then
+    if panel.nativeAlpha and util.canModify(tooltip) then
         tooltip:SetAlpha(panel.nativeAlpha)
         panel.nativeAlpha = nil
     end

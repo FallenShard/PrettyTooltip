@@ -136,6 +136,7 @@ return function(test)
     end
     ns.setOption("cursorItems", true)
     GameTooltip_SetDefaultAnchor(world.main, UIParent)
+    world.main:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 30)
     world.preCalls[0][1](world.main, item.data)
     item.data.lines[2].lineIndex = 2
     for _, callback in ipairs(world.postCalls[0]) do callback(world.main, item.data) end

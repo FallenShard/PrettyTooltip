@@ -327,19 +327,19 @@ end
 ui.defineTooltipType(QUEST, { read = readQuest, render = renderQuest, key = questKey, option = "questPanels" })
 
 local function linkedQuest(link)
-    if type(link) ~= "string" then return end
+    if isSecret(link) or type(link) ~= "string" then return end
     local id = link:match("^questie:(%d+)") or link:match("^quest:(%d+)")
     return id and tonumber(id)
 end
 
 local function hasQuestData(tooltip)
-    local ok, data = pcall(tooltip.GetTooltipData, tooltip)
-    return ok and type(data) == "table" and not isSecret(data.type) and data.type == QUEST
+    local data = util.call(tooltip.GetTooltipData, tooltip)
+    return type(data) == "table" and not isSecret(data.type) and data.type == QUEST
 end
 
 -- Questie fills the tooltip with lines itself, for its own links and the game's.
 local function drawQuestie(tooltip, id)
-    if tooltip:IsShown() and tooltip:NumLines() > 0 and not hasQuestData(tooltip) then
+    if util.canModify(tooltip) and tooltip:IsShown() and tooltip:NumLines() > 0 and not hasQuestData(tooltip) then
         if ns.Hooks then ns.Hooks.renderLines(tooltip, QUEST, id) end
     end
 end
@@ -353,7 +353,7 @@ end)
 -- buttons; their quest is the button's.
 local function questLogButton(owner)
     local contents = QuestScrollFrame and QuestScrollFrame.Contents
-    return contents and owner and owner.GetParent and owner:GetParent() == contents
+    return contents and util.canModify(owner) and util.call(owner.GetParent, owner) == contents
 end
 
 -- Questie may hook the chat frames before or after this file, so its Show is
@@ -361,8 +361,8 @@ end
 local hovered
 local drawing = false
 hooksecurefunc(GameTooltip, "Show", function(tooltip)
-    if drawing then return end
-    local owner = tooltip:GetOwner()
+    if drawing or not util.canModify(tooltip) then return end
+    local owner = util.call(tooltip.GetOwner, tooltip)
     local id
     if hovered and owner == hovered.frame then
         id = hovered.id
@@ -372,16 +372,17 @@ hooksecurefunc(GameTooltip, "Show", function(tooltip)
         return
     end
     drawing = true
-    drawQuestie(tooltip, id)
+    pcall(drawQuestie, tooltip, id)
     drawing = false
 end)
 for index = 1, NUM_CHAT_WINDOWS or 10 do
     local frame = _G["ChatFrame" .. index]
-    if frame then
+    if util.canModify(frame) then
         frame:HookScript("OnHyperlinkEnter", function(self, link)
-            local id = type(link) == "string" and link:match("^questie:(%d+)")
+            local id = not isSecret(link) and type(link) == "string" and link:match("^questie:(%d+)")
             hovered = id and { frame = self, id = tonumber(id) } or nil
-            if hovered and GameTooltip:GetOwner() == self then drawQuestie(GameTooltip, hovered.id) end
+            if hovered and util.canModify(GameTooltip)
+                and util.call(GameTooltip.GetOwner, GameTooltip) == self then drawQuestie(GameTooltip, hovered.id) end
         end)
         frame:HookScript("OnHyperlinkLeave", function() hovered = nil end)
     end
