@@ -68,7 +68,8 @@ local function drawn(panel)
                 local rgb = number(color[1]) .. "," .. number(color[2]) .. "," .. number(color[3])
                 if child._kind == "FontString" and child._text and child._text ~= "" then
                     out[#out + 1] = "text " .. place(child) .. " w=" .. number(child._width)
-                        .. " size=" .. number(child._font.size) .. " rgb=" .. rgb .. " " .. quote(child._text)
+                        .. " size=" .. number(child._font.size) .. " rgb=" .. rgb .. " "
+                        .. (issecretvalue and issecretvalue(child._text) and "<secret>" or quote(child._text))
                 elseif child._kind == "Texture" and child._texture ~= nil then
                     local texture = tostring(child._texture):gsub("^.*\\", "")
                     out[#out + 1] = "texture " .. place(child) .. " " .. number(child._width) .. "x"

@@ -300,14 +300,24 @@ local function readSpell(tooltip, data, game)
             current = model.nested
         elseif line.lineIndex then
             local left, right = safeText(line.leftText), safeText(line.rightText)
-            if not left or not right then return end
-            if right == "" and not repeated then right = nativeRight(tooltip, line.lineIndex) end
             local isName = (LINE.SpellName and line.type == LINE.SpellName)
                 or (current == model and line.lineIndex == 1)
-            if isName and not current.name then
-                current.name, current.rank = trim(left), trim(right)
+            if not left or not right then
+                -- In combat the game hides some lines, as the cooldown left. The
+                -- panel shows such a text without reading it, but cannot go
+                -- without the spell's name.
+                if isName and not current.name then return end
+                if isSecret(line.leftText) then
+                    current.hidden = current.hidden or {}
+                    current.hidden[#current.hidden + 1] = line.leftText
+                end
             else
-                readLine(current, line, left, right, game)
+                if right == "" and not repeated then right = nativeRight(tooltip, line.lineIndex) end
+                if isName and not current.name then
+                    current.name, current.rank = trim(left), trim(right)
+                else
+                    readLine(current, line, left, right, game)
+                end
             end
         end
     end
@@ -320,8 +330,9 @@ local function readSpell(tooltip, data, game)
     end
     if model.name == "" then return end
 
-    local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
-    if not appended then return end
+    -- The game hides every line it draws once any is hidden, and other addons'
+    -- rows with them; the panel goes without those.
+    local appended = tooltipData.appendedRows(tooltip, model.lineIndices) or {}
     local rows = {}
     for _, row in ipairs(appended) do
         if trim(row.left) ~= "" or row.right ~= "" then rows[#rows + 1] = row end
@@ -432,6 +443,7 @@ end
 
 local function hasBody(part, body)
     return #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #body.sentences > 0
+        or (part.hidden and #part.hidden > 0)
         or body.powerRows ~= nil or (body.nextSentences and #body.nextSentences > 0)
 end
 
@@ -448,14 +460,22 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
         y = drawStrip(panel, part, y, color, styles) + 2
         panel.rowTail = panel.rowTail + 2
     end
-    if #part.details > 0 or #part.requirements > 0 then
+    local hidden = part.hidden or {}
+    local detailed = #part.details > 0 or #part.requirements > 0 or #hidden > 0
+    if detailed then
         -- Under the strip, a little apart from it; first, where anything would start.
         y = ui.drawGroup(panel, part.requirements, #part.cells > 0 and y + 2 or y, styles.spellDetails,
             DETAIL_COLOR, 0, 2)
         y = ui.drawGroup(panel, part.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
+        -- Hidden lines are the cooldown left, in combat: in its color, as out of it.
+        for _, text in ipairs(hidden) do
+            local style = styles.spellDetails
+            y = y + ui.hiddenTextAt(panel, text, pad(), y, panel.width - 2 * pad(), style, REMAINING_COLOR) + 2
+            panel.rowTail = math.floor(style.size * 1.15 + .5) - style.size + 2
+        end
     end
     if #body.sentences > 0 then
-        if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 then
+        if #part.cells > 0 or detailed then
             y = ruleAfter(panel, y, color)
         end
         for _, sentence in ipairs(body.sentences) do
@@ -464,7 +484,7 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
         end
     end
     if body.powerRows then
-        if #part.cells > 0 or #part.details > 0 or #part.requirements > 0 or #body.sentences > 0 then
+        if #part.cells > 0 or detailed or #body.sentences > 0 then
             y = ruleAfter(panel, y, color)
         end
         y = ui.drawGroup(panel, body.powerRows, y, styles.spellDetails, DETAIL_COLOR, 0, 2)

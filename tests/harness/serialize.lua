@@ -74,7 +74,9 @@ local function dump(value, indent, out, seen)
         local item = value[key]
         local kind = type(item)
         local label = indent .. tostring(key) .. ":"
-        if kind == "table" then
+        if issecretvalue and issecretvalue(item) then
+            out[#out + 1] = label .. " <secret>"
+        elseif kind == "table" then
             if seen[item] then
                 out[#out + 1] = label .. " (cycle)"
             elseif next(item) == nil then

@@ -455,7 +455,8 @@ end
 local function clearPool(panel)
     for _, font in ipairs(panel.pool) do font:Hide() end
     for _, tex in ipairs(panel.texturePool) do tex:Hide() end
-    panel.used, panel.texturesUsed = 0, 0
+    for _, font in ipairs(panel.hiddenPool or {}) do font:Hide() end
+    panel.used, panel.texturesUsed, panel.hiddenUsed = 0, 0, 0
     if panel.hits then panel.hits = {} end
 end
 
@@ -521,6 +522,38 @@ local function styledAt(panel, content, x, y, width, style, color, align)
         panel.hits[#panel.hits + 1] = { key = style.key, region = panel.pool[panel.used] }
     end
     return height
+end
+
+-- Text the game hides (a secret value), shown but never read or measured: one
+-- line at the width given, its height left by the caller. It gets font strings
+-- of its own, as one that showed a secret can keep reporting its size hidden.
+local function hiddenTextAt(panel, content, x, y, width, style, color)
+    style = asStyle(style)
+    panel.hiddenPool = panel.hiddenPool or {}
+    panel.hiddenUsed = (panel.hiddenUsed or 0) + 1
+    local font = panel.hiddenPool[panel.hiddenUsed]
+    if not font then
+        font = panel:CreateFontString(nil, "OVERLAY")
+        font:SetJustifyV("TOP")
+        font:SetJustifyH("LEFT")
+        font:SetShadowColor(0, 0, 0, 0)
+        font:SetShadowOffset(0, 0)
+        if font.SetWordWrap then font:SetWordWrap(false) end
+        if font.SetMaxLines then font:SetMaxLines(1) end
+        panel.hiddenPool[panel.hiddenUsed] = font
+    end
+    color = style.color or (panel.parchment and inkColor(color)) or color
+    font:ClearAllPoints()
+    font:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -y)
+    font:SetWidth(width)
+    setFont(font, style.font or bodyFont(), style.size, style.flags)
+    font:SetTextColor(color[1], color[2], color[3])
+    if not pcall(font.SetText, font, content) then
+        font:Hide()
+        return 0
+    end
+    font:Show()
+    return style.size + 2
 end
 
 local function textWidth(font, text)
@@ -967,6 +1000,7 @@ ns.ui = {
         if panel and panel:IsShown() then return panel end
     end,
     styledAt = styledAt,
+    hiddenTextAt = hiddenTextAt,
     measureStyled = measureStyled,
     enchantRows = enchantRows,
     formatMoney = formatMoney,
