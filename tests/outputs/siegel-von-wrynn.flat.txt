@@ -1,0 +1,188 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132879
+      id: 11138
+      name: "Kleiner leuchtender Splitter"
+  skill: 75
+effects: {}
+enchants: {}
+equipEffects: {}
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Händler"
+    right: "|cffffffff23 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 71 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  3:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Inventar"
+    right: "|cff66bbffInsgesamt: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  4:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+    right: "|cff66bbffAusgerüstet: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+flavor: {}
+footerLeft: {}
+footerRight:
+  1:
+    left: "23|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 71|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "Seelengebunden"
+    right: ""
+  2:
+    left: "Einzigartig anlegbar"
+    right: ""
+icon: 133347
+kinds: {}
+level: 31
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+link: "|cnIQ3:|Hitem:2933::::::::30:1486::11:::::::|h[Siegel von Wrynn]|h|r"
+name: "Siegel von Wrynn"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DAStärke|r"
+    right: ""
+  2:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DABeweglichkeit|r"
+    right: ""
+  3:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+4|r |cffEEE7DAAusdauer|r"
+    right: ""
+  4:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+4|r |cffEEE7DAIntelligenz|r"
+    right: ""
+  5:
+    left: "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DAWillenskraft|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 2371
+setBonuses: {}
+setItems: {}
+slot: "Finger"
+weaponBonus: {}
+== tooltip render
+panel 278 x 384
+texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
+texture at 0,0 0x0 rgb=1,1,1,1 color
+texture at 0,0 0x10 rgb=1,1,1,1 color
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
+texture at 0,0 8x0 rgb=1,1,1,1 color
+texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
+texture at 1,1 0x105 rgb=1,1,1,1 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x40 rgb=0.1,0.075,0.08,0.95 WHITE8X8
+texture at 19,21 43x43 rgb=1,1,1,1 133347
+texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "iLvl 31"
+texture at 0,0 0x2 rgb=0.256,0.472,0.784,0.95 WHITE8X8
+texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture at 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.1152,0.2124,0.3528,0.95 WHITE8X8
+text at 72,21 w=187 size=19 rgb=0.32,0.59,0.98 "SIEGEL VON WRYNN"
+text at 72,47 w=187 size=13 rgb=0.66,0.795,0.99 "Finger"
+text at 72,66 w=187 size=12 rgb=0.78,0.72,0.63 "Seelengebunden"
+text at 72,83 w=187 size=12 rgb=0.78,0.72,0.63 "Einzigartig anlegbar"
+texture at 19,111 111x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-111 111x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-106 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,124 w=240 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DAStärke|r"
+text at 19,142 w=240 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DABeweglichkeit|r"
+text at 19,160 w=240 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+4|r |cffEEE7DAAusdauer|r"
+text at 19,178 w=240 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+4|r |cffEEE7DAIntelligenz|r"
+text at 19,196 w=240 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DAWillenskraft|r"
+texture at 19,222 111x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-222 111x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-217 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,235 w=83 size=11 rgb=0.86,0.74,0.45 "Entzaubern"
+text at 114,235 w=145 size=11 rgb=0.55,0.53,0.5 "Requires Verzauberkunst 75"
+text at 19,252 w=204 size=11 rgb=0.88,0.84,0.76 "|T132879:0|t Kleiner leuchtender Splitter"
+text at 235,252 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
+texture at 19,272 240x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,281 w=240 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,296 w=165.5 size=11 rgb=0.85,0.7,0 "Händler"
+text at 196.5,296 w=62.5 size=11 rgb=0.85,0.7,0 "|cffffffff23 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 71 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,311 w=160 size=11 rgb=0.85,0.7,0 "Inventar"
+text at 191,311 w=68 size=11 rgb=0.85,0.7,0 "|cff66bbffInsgesamt: |cffffffff1|r|r"
+text at 19,326 w=149 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+text at 180,326 w=79 size=11 rgb=0.85,0.7,0 "|cff66bbffAusgerüstet: |cffffffff1|r|r"
+text at 207.5,350 w=51.5 size=11 rgb=0.88,0.78,0.6 "23|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 71|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"

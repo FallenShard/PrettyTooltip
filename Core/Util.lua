@@ -231,6 +231,14 @@ end
 -- "34", "100". true when it matches and has nothing to fill in; nil when the
 -- text was not printed from it. Colors and the space around the text do not count.
 function util.unformat(text, format)
+    -- A language can word one line in more than one way: { "...", "..." }.
+    if type(format) == "table" then
+        for _, each in ipairs(format) do
+            local found = util.pack(util.unformat(text, each))
+            if found[1] ~= nil then return unpack(found, 1, found.n) end
+        end
+        return
+    end
     if type(text) ~= "string" or type(format) ~= "string" then return end
     local parsed = compiled(format)
     text = util.trim(normalized(text))

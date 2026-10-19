@@ -11,8 +11,8 @@ return function(test)
         return test.load(files, { client = { locale = locale }, enums = { TooltipDataType = { Item = 0, Spell = SPELL } } })
     end
 
-    local ns = load("deDE")
-    test.check("deDE: not supported yet, so no panels", { ns.Locale.supported, ns.ui == nil }, { false, true })
+    local ns = load("ruRU")
+    test.check("a language without its file: no panels", { ns.Locale.supported, ns.ui == nil }, { false, true })
 
     -- A Fireball sample's drawn text holds its spell power rows where the
     -- language has them.

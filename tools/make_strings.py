@@ -31,12 +31,17 @@ NAME = re.compile(r"(?<![A-Za-z0-9_])[A-Z][A-Z0-9_]{2,}(?![A-Za-z0-9_])")
 
 
 def addon_files():
-    """The addon's Lua files, as its .toc lists them, without any load condition after the name."""
+    """The addon's Lua files, as its .toc lists them, without any load condition after the name, and each
+    language's file where a path names the client's language ([TextLocale])."""
     files = []
     for line in (ROOT / "PrettyTooltip.toc").read_text(encoding="utf-8").splitlines():
-        line = re.sub(r"\s*\[.*$", "", line.strip())
+        line = line.strip().replace("\\", "/")
+        if "[TextLocale]" in line:
+            files += sorted(ROOT.glob(line.replace("[TextLocale]", "*")))
+            continue
+        line = re.sub(r"\s*\[.*$", "", line)
         if line and not line.startswith("#") and line.endswith(".lua"):
-            files.append(ROOT / line.replace("\\", "/"))
+            files.append(ROOT / line)
     return files
 
 

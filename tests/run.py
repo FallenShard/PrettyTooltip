@@ -50,17 +50,33 @@ GAME_STRINGS = {path.stem: path.read_text(encoding="utf-8") for path in sorted(L
 COVERAGE: dict[str, set[int]] | None = None
 
 
-def addon_files() -> list[str]:
-    """The addon's Lua files, in the order its .toc loads them."""
+def addon_files(locale: str = "enUS") -> list[str]:
+    """The addon's Lua files, in the order its .toc loads them on a client in that language. [TextLocale]
+    in a path names the client's language, and a file it names that is missing is skipped, as the client
+    skips it."""
     files = []
     for line in (ROOT / "PrettyTooltip.toc").read_text(encoding="utf-8").splitlines():
         line = line.strip()
+        if line.startswith("#"):
+            continue
+        if "[TextLocale]" in line:
+            line = line.replace("[TextLocale]", locale)
+            if not (ROOT / line.replace("\\", "/")).exists():
+                continue
         # A load condition, as [AllowLoadTextLocale deDE], would need the harness to load the
         # file only for fixtures of that language; until it does, say so rather than skip it.
-        if not line.startswith("#") and "[" in line:
-            sys.exit(f"The tests cannot load .toc lines with conditions or variables yet: {line}")
-        if line and not line.startswith("#") and line.endswith(".lua"):
+        if "[" in line:
+            sys.exit(f"The tests cannot load .toc lines with conditions yet: {line}")
+        if line.endswith(".lua"):
             files.append(line.replace("\\", "/"))
+    return files
+
+
+def every_source() -> list[str]:
+    """Every Lua file a test may load: the .toc's, and each language's own file."""
+    files = addon_files()
+    files += [path.relative_to(ROOT).as_posix() for path in sorted((ROOT / "Locale").glob("*.lua"))
+              if path.relative_to(ROOT).as_posix() not in files]
     return files
 
 
@@ -155,6 +171,9 @@ def run_fixture(path: Path, files, args) -> list[bool]:
         lua, load, harness = new_runtime()
         fixture = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}")
         enums = fixture.enums or default_enums(load)
+        # The files the fixture's client loads, by its language.
+        client = fixture.client
+        files = addon_files(client.locale if client and client.locale else "enUS")
         if enums is None:
             print(f"FAIL {name}: no enums; capture it again with the current /ptip capture, then import it")
             results.append(False)
@@ -223,7 +242,8 @@ def run_unit(path: Path, files, show_notes: bool) -> bool:
     lua, load, harness = new_runtime()
     try:
         results, notes = harness["main"].unit(path.read_text(encoding="utf-8"), f"unit/{path.name}",
-                                                sources_table(lua, files), harness["serialize"], harness["wow"])
+                                                sources_table(lua, every_source()), harness["serialize"],
+                                                harness["wow"])
     except Exception as error:
         print(f"FAIL unit/{path.stem}: {error}")
         return False

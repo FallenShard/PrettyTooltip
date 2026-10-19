@@ -12,12 +12,19 @@ TOC = "PrettyTooltip.toc"
 
 
 def game_files(source: Path) -> list[str]:
-    """The .toc, the Lua files it loads, in its order, and every texture."""
+    """The .toc, the Lua files it loads, in its order, and every texture. A path with [TextLocale] in it
+    names the client's language, so every language's file is copied."""
     files = [TOC]
     for line in (source / TOC).read_text(encoding="utf-8").splitlines():
         line = line.strip()
-        if line and not line.startswith("#") and line.endswith(".lua"):
-            files.append(line.replace("\\", "/"))
+        if not line or line.startswith("#") or not line.endswith(".lua"):
+            continue
+        line = line.replace("\\", "/")
+        if "[TextLocale]" in line:
+            matches = sorted(path.relative_to(source).as_posix() for path in source.glob(line.replace("[TextLocale]", "*")))
+            files += [name for name in matches if name not in files]
+        else:
+            files.append(line)
     files += sorted(path.relative_to(source).as_posix() for path in (source / "art").glob("*.tga"))
     return files
 

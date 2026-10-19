@@ -161,7 +161,7 @@ return function(test)
     local rewriteFiles = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
         "Locale/English.lua", "Data/Stats.lua",
         "Integration/ItemLite.lua" }
-    ns, world = test.load(rewriteFiles, { client = { locale = "deDE" }, enums = fixture.enums })
+    ns, world = test.load(rewriteFiles, { client = { locale = "ruRU" }, enums = fixture.enums })
     ns.ItemLite.register()
     test.check("unsupported locale installs no rewrite", next(world.preCalls), nil)
     ns, world = test.load(rewriteFiles, fixture)
