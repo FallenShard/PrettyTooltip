@@ -144,8 +144,12 @@ The tests exercise secret values, inaccessible tables, secret nested API fields,
 1. Enable `/console scriptErrors 1` and `/console taintLog 2`, then `/reload` for a fresh session.
 2. Exercise unit and aura tooltips, action buttons, bags and equipment comparisons, quest links, and cursor-follow transitions into and out of combat. Include the native-tooltip modifier, the tooltip details modifier, and the health-bar option.
 3. Repeat with the normal addon set, especially tooltip, unit-frame, and skin addons. A clean run with PrettyTooltip alone does not establish compatibility with every other addon.
-4. Log out to flush diagnostics and inspect `Logs/taint.log` for blocked or forbidden actions and the originating stack. No client taint trace was available for this audit.
+4. Log out to flush diagnostics and inspect `Logs/taint.log` for blocked or forbidden actions and the originating stack.
 5. Restore the previous diagnostic settings afterward; `/console taintLog 0` stops taint logging.
+
+## Client results
+
+On 2026-10-19 two sessions with `/console taintLog 2`, each with several fights alongside EllesmereUI, AtlasLoot, Baganator, Questie, and other addons, logged no blocked action and no taint from PrettyTooltip in tooltip or combat code. Its only entries were two kinds every addon produces: Blizzard's `CloseWindows` reading the `PrettyTooltipEditor` name the addon registers in `UISpecialFrames` (inside `securecall`, on login, logout, and Escape), and the chat frame reading `SLASH_PRETTYTOOLTIP1` and `SLASH_PRETTYTOOLTIP2` to register `/ptip`. The log does not report reads of fields inside the tooltip processor's data tables, so it neither confirms nor rules out the item rewrite path above.
 
 ## Sources
 

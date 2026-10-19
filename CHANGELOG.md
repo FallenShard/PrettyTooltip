@@ -1,3 +1,29 @@
+# PrettyTooltip 1.3.0
+
+## Languages
+
+- PrettyTooltip now works on German, French, Spanish (Spain and Mexico), Portuguese, Russian, Korean, and Simplified and Traditional Chinese clients, in addition to English. It relies heavily on built-in localization where possible. For custom addon text, we built separate per-language string tables and parsing logic. The translations are a first draft: please report anything that feels wrong.
+
+## Tooltips
+
+- Added the **Tooltip Details Modifier** option: disenchant results, the spell power breakdown and rates, gathering contents, and IDs show only while **Shift** is held, or always with **Always Show**. Shift is the default, which means the details stay hidden by default.
+- Item, spell, and NPC panels can show the item, spell, or NPC ID at the bottom. You can turn it off with **IDs** under each panel's details in the style editor.
+- Improved in-combat behavior of spell, item and unit tooltips.
+- Fixed a few parsing bugs related to combo point finishers spells such as Rip.
+- Improved tooltip cursor anchoring logic.
+- Cursor anchoring now pauses in combat by default; change it with **Disable in combat** under **Follow cursor** in the options.
+- Removed the darker band behind the footer and its opacity setting. I believe this option wasn't adding much value.
+
+## Options
+
+- The default tooltip modifier choices read **Ctrl** and **Alt**.
+- `/ptip options` and the editor's **More options** now indicate when the game's settings window cannot open in combat.
+
+## Reliability
+
+- Hardened tooltip handling against values the game hides in combat and against restricted frames: a tooltip that cannot be read falls back to the game's own instead of raising an error, and the addon no longer hides the game's tooltip itself in combat.
+- Fixed the "Error loading Locale/enUS.lua" Lua error at login on English clients.
+
 # PrettyTooltip 1.2.1
 
 ## Tooltips
