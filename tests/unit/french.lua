@@ -65,7 +65,7 @@ return function(test)
         ns.Palette.detectSchool({ "Inflige 30 points de dégâts d’ombre." }, "Sort inconnu"),
         ns.Palette.detectSchool({ "Inflige 30 points de dégâts de feu-sacré." }, "Sort inconnu"),
     }, { "Shadow", "Holyfire" })
-    test.check("frFR: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("frFR: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "Doulourante", "Herboristerie" })
     test.check("frFR: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },

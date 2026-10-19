@@ -5,7 +5,7 @@ local _, ns = ...
 local locale = ns.Locale
 
 locale.supported = true
-locale.features = { coefficients = false }
+locale.features = { coefficients = true }
 
 local formats = locale.formats
 -- Confirmed by verigans-ru: "Скорость 3,20".
@@ -27,6 +27,23 @@ locale.descriptions.school = { "урона от %s", "урона %s", "закл�
 locale.schoolWords = { Arcane = "тайной магии", Fire = "огня", Frost = { "магии льда", "льда" }, Holy = "светлой магии",
     Nature = { "сил природы", "природной магии" }, Shadow = { "темной магии", "тьмы" },
     Holyfire = "священного огня", Frostfire = "ледяного огня" }
+
+-- Amounts and durations from the native Spell table (Forever 1.60.1.70450).
+local descriptions = locale.descriptions
+descriptions.clause = "^[^%d]-"
+descriptions.range = { "%d - %d", "%d до %d", "%d-%d" }
+descriptions.over = { "в течение %d сек", "за %d сек" }
+descriptions.overBefore = false
+descriptions.eachSecond = false
+descriptions.every = "раз в %d сек"
+descriptions.everyFor = "в течение %d сек"
+descriptions.lasts = { "время действия – %d сек", "время действия - %d сек", "длится %d сек" }
+descriptions.perSecondAfter = { "раз в секунду", "раз в сек." }
+descriptions.units = { "сек", "секунда", "секунды", "секунд", "мин", "минут", "минута", "минуты", "час", "часа", "часов", "м", "раз", "раза", "цели", "целей", "зарядов", "эффектов" }
+descriptions.unitBoundaries = true
+descriptions.heals = { "исцеляет", "исцеление", "исцеления", "излечение", "восполняет", "поглощает" }
+descriptions.damageSchool = { "урона от %s", "урона %s" }
+
 locale.statWordings = {}
 
 local skills = locale.skills

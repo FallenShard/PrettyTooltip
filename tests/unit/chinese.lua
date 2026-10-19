@@ -66,7 +66,7 @@ return function(test)
     test.check("zhCN: a compound school takes precedence over its prefix",
         ns.Palette.detectSchool({}, "神圣火焰冲击"), "Holyfire")
     test.check("zhCN: a school is not inferred from elemental creature names", school("对火元素和土元素造成3倍伤害。"), nil)
-    test.check("zhCN: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("zhCN: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "跌打草", "草药学" })
     test.check("zhCN: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },
@@ -114,5 +114,5 @@ return function(test)
     end
     test.check("zhCN: rendered Chinese uses native fonts with EllesmereUI installed", fonts,
         { title = "Fonts\\ARHei.ttf", body = "Fonts\\ARKai_T.ttf" })
-    test.check("zhCN: rendered spells omit unvalidated coefficient rows", coefficients, false)
+    test.check("zhCN: rendered spells show localized coefficient rows", coefficients, true)
 end

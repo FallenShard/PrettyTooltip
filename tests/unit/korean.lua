@@ -65,7 +65,7 @@ return function(test)
         school("30의 신성 피해를 입힙니다."), school("39의 신성화염 피해를 입힙니다."),
         school("30의 냉기화염 피해를 입힙니다."), school("비전 주문의 위력이 증가합니다."),
     }, { "Fire", "Shadow", "Nature", "Frost", "Holy", "Holyfire", "Frostfire", "Arcane" })
-    test.check("koKR: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("koKR: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "생채기풀", "약초채집" })
     test.check("koKR: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },
@@ -106,5 +106,5 @@ return function(test)
     end
     test.check("koKR: rendered Hangul uses native fonts with EllesmereUI installed", fonts,
         { title = "Fonts\\2002B.TTF", body = "Fonts\\2002.TTF" })
-    test.check("koKR: rendered spells omit unvalidated coefficient rows", coefficients, false)
+    test.check("koKR: rendered spells show localized coefficient rows", coefficients, true)
 end

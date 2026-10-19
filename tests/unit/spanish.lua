@@ -75,7 +75,7 @@ return function(test)
         school("Inflige 39 p. de daño de Fuego Sagrado."),
         school("Inflige 30 p. de daño de Pirofrío."),
     }, { "Fire", "Shadow", "Holy", "Holy", "Holyfire", "Frostfire" })
-    test.check("esES: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("esES: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "Hierba cardenal", "Botánica" })
     test.check("esES: a herb, by the name herb nodes give Herbalism",

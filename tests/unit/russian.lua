@@ -109,7 +109,7 @@ return function(test)
     test.check("ruRU: an elementals clause does not name a damage school",
         school("Наносит в 3 раза больше урона элементалям огня и земли."), nil)
     test.check("ruRU: partial Cyrillic words do not match", school("Наносит урона от огняного существа."), nil)
-    test.check("ruRU: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("ruRU: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "Магороза", "Травничество" })
     test.check("ruRU: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },
@@ -160,5 +160,5 @@ return function(test)
     for _, font in ipairs(panel.pool) do
         if font:IsShown() and ns.util.plainText(font:GetText() or ""):find("Коэффициент", 1, true) then coefficients = true end
     end
-    test.check("ruRU: rendered spells omit unvalidated coefficient rows", coefficients, false)
+    test.check("ruRU: rendered spells show localized coefficient rows", coefficients, true)
 end

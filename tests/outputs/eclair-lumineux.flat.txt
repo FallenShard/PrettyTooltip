@@ -50,7 +50,7 @@ rank: "Rang 2"
 requirements: {}
 spellID: 19939
 == tooltip render
-panel 308 x 209
+panel 344 x 254
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
@@ -65,23 +65,30 @@ texture at 0,0 0x2 rgb=0.784,0.584,0.176,0.95 WHITE8X8
 texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x1 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
 texture at 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT 0,0 1x0 rgb=0.3528,0.2628,0.0792,0.95 WHITE8X8
-text at 67,21 w=222 size=17 rgb=0.96,0.92,0.84 "ECLAIR LUMINEUX"
+text at 67,21 w=258 size=17 rgb=0.96,0.92,0.84 "ECLAIR LUMINEUX"
 text at 67,46 w=86 size=12 rgb=0.82,0.78,0.71 "|cffFBCF74Sacré|r |cff999185·|r |cffB8B0A6Rang 2|r"
-texture at 19,76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
-texture TOPRIGHT panel TOPRIGHT -19,-76 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture at 19,76 144x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-76 144x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
-text at 19,89 w=67.5 size=13 rgb=0.6625,0.7975,1 "50"
-text at 19,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "MANA"
-text at 86.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "1,5 s"
-text at 86.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "INCANTATION"
-texture at 87,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-text at 154,89 w=67.5 size=13 rgb=0.6,0.57,0.52 "Aucune"
-text at 154,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "RECHARGE"
-texture at 154,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-text at 221.5,89 w=67.5 size=13 rgb=0.96,0.92,0.84 "40 m"
-text at 221.5,106 w=67.5 size=9 rgb=0.6,0.57,0.52 "PORTÉE"
-texture at 222,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
-texture at 19,124 270x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
-text at 19,133 w=270 size=12 rgb=0.92,0.87,0.76 "Rend |cffFBCF7467|r à |cffFBCF7476|r points de vie à une cible alliée."
-texture at 19,168 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,177 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+text at 19,89 w=76.5 size=13 rgb=0.6625,0.7975,1 "50"
+text at 19,106 w=76.5 size=9 rgb=0.6,0.57,0.52 "MANA"
+text at 95.5,89 w=76.5 size=13 rgb=0.96,0.92,0.84 "1,5 s"
+text at 95.5,106 w=76.5 size=9 rgb=0.6,0.57,0.52 "INCANTATION"
+texture at 96,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 172,89 w=76.5 size=13 rgb=0.6,0.57,0.52 "Aucune"
+text at 172,106 w=76.5 size=9 rgb=0.6,0.57,0.52 "RECHARGE"
+texture at 172,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+text at 248.5,89 w=76.5 size=13 rgb=0.96,0.92,0.84 "40 m"
+text at 248.5,106 w=76.5 size=9 rgb=0.6,0.57,0.52 "PORTÉE"
+texture at 249,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
+texture at 19,124 306x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,133 w=306 size=12 rgb=0.92,0.87,0.76 "Rend |cffFBCF7467|r à |cffFBCF7476|r points de vie à une cible alliée."
+texture at 19,154 306x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,163 w=187.5 size=11 rgb=0.82,0.78,0.71 "Coefficient de puissance des soins"
+text at 218.5,163 w=106.5 size=11 rgb=0.82,0.78,0.71 "|cffFBCF7442,9%|r |cff999185·|r 67 à 76 + |cffFBCF740|r"
+text at 19,178 w=270 size=11 rgb=0.82,0.78,0.71 "Soins par seconde"
+text at 301,178 w=24 size=11 rgb=0.82,0.78,0.71 "47,7"
+text at 19,193 w=270 size=11 rgb=0.82,0.78,0.71 "Soins par point de mana"
+text at 301,193 w=24 size=11 rgb=0.82,0.78,0.71 "1,43"
+texture at 19,213 306x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,222 w=306 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"

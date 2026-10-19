@@ -86,7 +86,7 @@ return function(test)
         school("Lanza una descarga que inflige 30 p. de daño de Pirofrío."), school("Mejora tus hechizos Arcanos."),
     }, { "Fire", "Shadow", "Nature", "Frost", "Holy", "Holyfire", "Frostfire", "Arcane" })
     test.check("esMX: a creature type does not name a damage school", school("Inflige 3 veces el daño a elementales de fuego."), nil)
-    test.check("esMX: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("esMX: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "Hierba cardenal", "Herboristería" })
     test.check("esMX: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },
@@ -118,5 +118,5 @@ return function(test)
     for _, font in ipairs(panel.pool) do
         if font:IsShown() and ns.util.plainText(font:GetText() or ""):find("Coeficiente", 1, true) then coefficients = true end
     end
-    test.check("esMX: rendered spells omit unvalidated coefficient rows", coefficients, false)
+    test.check("esMX: rendered spells show localized coefficient rows", coefficients, true)
 end

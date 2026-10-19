@@ -8,8 +8,7 @@ local _, ns = ...
 local locale = ns.Locale
 
 locale.supported = true
--- The spell power rows wait on Portuguese captures of spell descriptions.
-locale.features = { coefficients = false }
+locale.features = { coefficients = true }
 
 local formats = locale.formats
 formats.weaponSpeed = "Velocidade %s"
@@ -29,6 +28,22 @@ locale.listSeparators = { ", e ", " e ", ", " }
 locale.descriptions.school = { "dano de %s", "dano %s", "feitiços de %s", "feitiços %s", "feitiços %ss" }
 locale.schoolWords = { Arcane = "Arcano", Fire = "Fogo", Frost = "Gelo", Holy = "Sagrado", Nature = "Natureza",
     Shadow = "Sombra", Holyfire = "Fogo Sagrado", Frostfire = "Fogofrio" }
+
+-- Amounts and durations from the native Spell table (Forever 1.60.1.70450).
+local descriptions = locale.descriptions
+descriptions.clause = "^[^%d]-"
+descriptions.range = { "%d a %d", "%d - %d", "%d-%d" }
+descriptions.over = { "ao longo de %d s", "por %d s", "durante %d s" }
+descriptions.overBefore = false
+descriptions.eachSecond = "a cada segundo por %d s"
+descriptions.every = { "a cada %d s", "a cada %d segundos" }
+descriptions.everyFor = { "por %d s", "durante %d s" }
+descriptions.lasts = "dura %d s"
+descriptions.perSecondAfter = { "a cada segundo" }
+descriptions.units = { "s", "seg", "segundo", "segundos", "min", "minuto", "minutos", "hora", "horas", "m", "metro", "metros", "alvo", "alvos", "vezes", "cargas", "aplicações" }
+descriptions.unitBoundaries = true
+descriptions.heals = { "cura", "curar", "curando", "regenera", "absorve" }
+descriptions.damageSchool = { "dano de %s", "dano %s" }
 
 -- Older English equip wordings; the Portuguese client prints the game's own.
 locale.statWordings = {}

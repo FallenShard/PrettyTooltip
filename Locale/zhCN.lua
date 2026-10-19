@@ -7,7 +7,7 @@ local locale = ns.Locale
 
 locale.supported = true
 -- Description amounts and durations need captured spell coverage first.
-locale.features = { coefficients = false }
+locale.features = { coefficients = true }
 
 local formats = locale.formats
 -- Confirmed by the verigans-cn capture: "速度 3.20".
@@ -27,6 +27,23 @@ locale.schoolBoundaries = false
 locale.descriptions.school = { "%s伤害", "%s法术" }
 locale.schoolWords = { Arcane = "奥术", Fire = "火焰", Frost = "冰霜", Holy = "神圣", Nature = "自然",
     Shadow = "暗影", Holyfire = "神圣火焰", Frostfire = "霜火" }
+
+-- Amounts and durations from the native Spell table (Forever 1.60.1.70450).
+local descriptions = locale.descriptions
+descriptions.clause = "^[^%d]-"
+descriptions.range = { "%d到%d", "%d至%d", "%d - %d" }
+descriptions.over = "持续%d秒"
+descriptions.overBefore = "%d秒内"
+descriptions.eachSecond = false
+descriptions.every = false
+descriptions.everyBefore = "每%d秒"
+descriptions.everyFor = false
+descriptions.lasts = "持续%d秒"
+descriptions.perSecondBefore = { "每秒" }
+descriptions.units = { "秒", "分钟", "小时", "码", "米", "个", "次", "层", "倍" }
+descriptions.heals = { "治疗", "恢复", "回复", "吸收" }
+descriptions.healBoundaries = false
+
 locale.statWordings = {}
 
 local skills = locale.skills

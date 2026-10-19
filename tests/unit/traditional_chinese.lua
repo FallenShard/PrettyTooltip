@@ -73,7 +73,7 @@ return function(test)
     test.check("zhTW: an unspaced school at the start of a name", ns.Palette.detectSchool({}, "秘法衝擊"), "Arcane")
     test.check("zhTW: the longer compound school takes precedence", ns.Palette.detectSchool({}, "神聖之火衝擊"), "Holyfire")
     test.check("zhTW: elemental creatures do not name a damage school", school("對火元素與土元素造成3倍傷害。"), nil)
-    test.check("zhTW: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("zhTW: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "跌打草", "草藥學" })
     test.check("zhTW: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },
@@ -125,5 +125,5 @@ return function(test)
     end
     test.check("zhTW: native fonts with EllesmereUI installed", fonts,
         { title = "Fonts\\bHEI00M.ttf", body = "Fonts\\bLEI00D.ttf" })
-    test.check("zhTW: rendered spells omit unvalidated coefficient rows", coefficients, false)
+    test.check("zhTW: rendered spells show localized coefficient rows", coefficients, true)
 end

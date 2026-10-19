@@ -62,7 +62,7 @@ return function(test)
         { { "30", "Mana" }, { "1,5 Sek.", "Wirken" }, { "8 Sek.", "Abklingzeit" }, { "35 m", "Reichweite" } })
     test.check("deDE: its school from the description", ns.Palette.detectSchool(model.description, "Feuerball"),
         "Fire")
-    test.check("deDE: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("deDE: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "Beulengras", "Kräuterkunde" })
     test.check("deDE: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },

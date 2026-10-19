@@ -6,9 +6,7 @@ local _, ns = ...
 local locale = ns.Locale
 
 locale.supported = true
--- Descriptions name the duration before the amount ("18 Sek. lang 30 Punkt(e)
--- Schattenschaden"), which the spell power rows do not read yet.
-locale.features = { coefficients = false }
+locale.features = { coefficients = true }
 
 local formats = locale.formats
 -- Unconfirmed: the game names a weapon's speed SPEED, "Tempo".
@@ -29,6 +27,22 @@ locale.listSeparators = { ", und ", " und ", ", " }
 locale.descriptions.school = { "%sschaden", "%szauber" }
 locale.schoolWords = { Arcane = "Arkan", Fire = "Feuer", Frost = "Frost", Holy = "Heilig", Nature = "Natur",
     Shadow = "Schatten", Holyfire = "Heiligfeuer", Frostfire = "Frostfeuer" }
+
+-- Amounts and durations from the native Spell table (Forever 1.60.1.70450).
+local descriptions = locale.descriptions
+descriptions.clause = "^[^%d]-"
+descriptions.range = { "%d bis %d", "%d - %d", "%d-%d" }
+descriptions.over = false
+descriptions.overBefore = { "%d sek. lang", "%d sekunden lang", "über %d sek.", "über %d sekunden", "im verlauf von %d sek." }
+descriptions.eachSecond = false
+descriptions.every = false
+descriptions.everyBefore = { "alle %d sek.", "alle %d sekunden" }
+descriptions.everyFor = false
+descriptions.lasts = { "hält %d sek.", "hält %d sekunden" }
+descriptions.perSecondBefore = { "pro sekunde" }
+descriptions.units = { "sek", "sekunde", "sekunden", "min", "minute", "minuten", "stunde", "stunden", "meter", "metern", "m", "mal", "ziele", "zielen", "aufladungen", "stapel" }
+descriptions.unitBoundaries = true
+descriptions.heals = { "heilt", "heilen", "heilung", "regeneriert", "absorbiert" }
 
 -- Older English equip wordings; the German client prints the game's own.
 locale.statWordings = {}

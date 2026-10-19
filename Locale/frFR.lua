@@ -6,8 +6,7 @@ local _, ns = ...
 local locale = ns.Locale
 
 locale.supported = true
--- The spell power rows wait on French captures of spell descriptions.
-locale.features = { coefficients = false }
+locale.features = { coefficients = true }
 
 local formats = locale.formats
 formats.weaponSpeed = "Vitesse %s"
@@ -27,6 +26,21 @@ locale.listSeparators = { ", et ", " et ", ", " }
 locale.descriptions.school = { "dégâts %s", "sorts %s" }
 locale.schoolWords = { Arcane = "des Arcanes", Fire = "de Feu", Frost = "de Givre", Holy = "du Sacré",
     Nature = "de Nature", Shadow = "d'Ombre", Holyfire = "de feu-sacré", Frostfire = "de givrefeu" }
+
+-- Amounts and durations from the native Spell table (Forever 1.60.1.70450).
+local descriptions = locale.descriptions
+descriptions.clause = "^[^%d]-"
+descriptions.range = { "%d à %d", "%d - %d", "%d-%d" }
+descriptions.over = { "en %d s", "pendant %d s", "sur %d s" }
+descriptions.overBefore = false
+descriptions.eachSecond = "toutes les secondes pendant %d s"
+descriptions.every = { "toutes les %d s", "toutes les %d sec", "toutes les %d secondes" }
+descriptions.everyFor = "pendant %d s"
+descriptions.lasts = "dure %d s"
+descriptions.perSecondAfter = { "toutes les secondes" }
+descriptions.units = { "s", "sec", "seconde", "secondes", "min", "minute", "minutes", "heure", "heures", "m", "mètre", "mètres", "cible", "cibles", "fois", "charges", "cumuls" }
+descriptions.unitBoundaries = true
+descriptions.heals = { "rend", "soigne", "soigner", "soins", "régénère", "absorbe" }
 
 -- Older English equip wordings; the French client prints the game's own.
 locale.statWordings = {}

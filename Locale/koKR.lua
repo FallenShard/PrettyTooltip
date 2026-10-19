@@ -6,8 +6,7 @@ local _, ns = ...
 local locale = ns.Locale
 
 locale.supported = true
--- Duration and amount order in descriptions needs captured spell coverage.
-locale.features = { coefficients = false }
+locale.features = { coefficients = true }
 
 local formats = locale.formats
 -- Confirmed by the verigan-kr capture: "속도 3.20".
@@ -29,6 +28,23 @@ locale.descriptions.school = { "%s 피해를", "%s 피해가", "%s 피해", "%s 
     "%s 주문을", "%s 주문" }
 locale.schoolWords = { Arcane = "비전", Fire = "화염", Frost = "냉기", Holy = "신성", Nature = "자연",
     Shadow = "암흑", Holyfire = "신성화염", Frostfire = "냉기화염" }
+
+-- Amounts and durations from the native Spell table (Forever 1.60.1.70450).
+local descriptions = locale.descriptions
+descriptions.clause = "^[^%d]-"
+descriptions.range = { "%d~%d", "%d에서 %d", "%d - %d" }
+descriptions.over = "%d초 동안 지속"
+descriptions.overBefore = { "%d초에 걸쳐", "%d초 동안" }
+descriptions.eachSecond = false
+descriptions.every = false
+descriptions.everyBefore = "%d초마다"
+descriptions.everyFor = false
+descriptions.lasts = "%d초 동안 지속"
+descriptions.perSecondBefore = { "매초", "초마다 각각" }
+descriptions.units = { "초", "분", "시간", "미터", "명", "회", "번", "개", "중첩", "배" }
+descriptions.heals = { "회복", "치유", "흡수" }
+descriptions.healBoundaries = false
+
 locale.statWordings = {}
 
 local skills = locale.skills

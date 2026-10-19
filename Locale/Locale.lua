@@ -18,8 +18,10 @@ ns.Locale = {
     -- What joins the parts of a list, as in an enchant's name. A pair gives
     -- a separator and the text that must follow it, kept in the next part.
     listSeparators = {},
-    -- Spell descriptions' wordings the spell power rows read, and the words
-    -- descriptions name schools with. A school may have several wordings.
+    -- Spell descriptions' amount ranges, durations, tick intervals, units,
+    -- healing verbs, and school phrases. Durations and intervals can precede
+    -- amounts (overBefore/everyBefore), and per-second phrases need no number.
+    -- A wording or school can have several grammatical alternatives.
     descriptions = {},
     schoolWords = {},
     -- Whether school phrases must stand apart as words. Chinese joins them

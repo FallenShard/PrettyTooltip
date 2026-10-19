@@ -71,7 +71,7 @@ return function(test)
         school("Lança uma seta de fogofrio contra o inimigo, causando 30 de dano de Fogofrio."),
         school("Reduz em 10% a ameaça gerada pelos seus feitiços Arcanos."),
     }, { "Fire", "Shadow", "Holy", "Holy", "Holyfire", "Frostfire", "Arcane" })
-    test.check("ptBR: no spell power rows yet", ns.Locale.features.coefficients, false)
+    test.check("ptBR: localized spell power rows enabled", ns.Locale.features.coefficients, true)
 
     model = read(OBJECT, { "Ervamossa", "Herborismo" })
     test.check("ptBR: a herb", { model.skill, model.skillRow and model.skillRow.level, #(model.loot or {}) },

@@ -50,7 +50,7 @@ rank: "2 레벨"
 requirements: {}
 spellID: 19939
 == tooltip render
-panel 269 x 195
+panel 269 x 254
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture at 0,0 0x0 rgb=0.9937,0.915,0.7543,0.9 TooltipBackground-Temp.png
 texture at 0,0 0x0 rgb=0.98,0.73,0.22,0.2205 TooltipBackground-Temp.png
@@ -76,5 +76,12 @@ text at 192.2,106 w=57.75 size=9 rgb=0.6,0.57,0.52 "사거리"
 texture at 192,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
 texture at 19,124 231x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
 text at 19,133 w=231 size=12 rgb=0.92,0.87,0.76 "대상의 생명력을 |cffFBCF7467|r~|cffFBCF7476|r만큼 회복시킵니다."
-texture at 19,154 231x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,163 w=231 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+texture at 19,154 231x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
+text at 19,163 w=123.5 size=11 rgb=0.82,0.78,0.71 "치유량 계수"
+text at 154.5,163 w=95.5 size=11 rgb=0.82,0.78,0.71 "|cffFBCF7442.9%|r |cff999185·|r 67~76 + |cffFBCF740|r"
+text at 19,178 w=195 size=11 rgb=0.82,0.78,0.71 "초당 치유량"
+text at 226,178 w=24 size=11 rgb=0.82,0.78,0.71 "47.7"
+text at 19,193 w=195 size=11 rgb=0.82,0.78,0.71 "마나당 치유량"
+text at 226,193 w=24 size=11 rgb=0.82,0.78,0.71 "1.43"
+texture at 19,213 231x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,222 w=231 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"

@@ -6,8 +6,7 @@ local _, ns = ...
 local locale = ns.Locale
 
 locale.supported = true
--- The spell power rows wait on Spanish captures of spell descriptions.
-locale.features = { coefficients = false }
+locale.features = { coefficients = true }
 
 local formats = locale.formats
 formats.weaponSpeed = "Velocidad %s"
@@ -29,6 +28,22 @@ locale.descriptions.school = { "daño de %s", "daño de las %s", "daño %s", "he
     "hechizos %s", "hechizos %ss" }
 locale.schoolWords = { Arcane = "Arcano", Fire = "Fuego", Frost = "Escarcha", Holy = "Sagrado",
     Nature = "Naturaleza", Shadow = "Sombras", Holyfire = "Fuego Sagrado", Frostfire = "Pirofrío" }
+
+-- Amounts and durations from the native Spell table (Forever 1.60.1.70450).
+local descriptions = locale.descriptions
+descriptions.clause = "^[^%d]-"
+descriptions.range = { "%d a %d", "%d - %d", "%d-%d" }
+descriptions.over = "durante %d s"
+descriptions.overBefore = false
+descriptions.eachSecond = "cada segundo durante %d s"
+descriptions.every = { "cada %d s", "cada %d segundos" }
+descriptions.everyFor = "durante %d s"
+descriptions.lasts = "dura %d s"
+descriptions.perSecondAfter = { "cada segundo", "por segundo" }
+descriptions.units = { "s", "seg", "segundo", "segundos", "min", "minuto", "minutos", "hora", "horas", "m", "metro", "metros", "objetivo", "objetivos", "veces", "cargas", "acumulaciones" }
+descriptions.unitBoundaries = true
+descriptions.heals = { "cura", "curar", "sana", "sanación", "regenera", "absorbe" }
+descriptions.damageSchool = { "daño de %s", "daño de las %s", "daño %s" }
 
 -- Older English equip wordings; the Spanish client prints the game's own.
 locale.statWordings = {}
