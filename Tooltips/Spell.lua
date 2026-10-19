@@ -277,6 +277,8 @@ local function readSpell(tooltip, data, game)
     local current = model
     for _, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.lineIndex) or isSecret(line.type) then return end
+        -- The game can send a line's index twice, the second time empty.
+        local repeated = line.lineIndex and model.lineIndices[line.lineIndex]
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
         if LINE.NestedBlock and line.type == LINE.NestedBlock then
             -- Another spell inside this one: another form's version, or a recipe's result.
@@ -288,7 +290,7 @@ local function readSpell(tooltip, data, game)
         elseif line.lineIndex then
             local left, right = safeText(line.leftText), safeText(line.rightText)
             if not left or not right then return end
-            if right == "" then right = nativeRight(tooltip, line.lineIndex) end
+            if right == "" and not repeated then right = nativeRight(tooltip, line.lineIndex) end
             local isName = (LINE.SpellName and line.type == LINE.SpellName)
                 or (current == model and line.lineIndex == 1)
             if isName and not current.name then
