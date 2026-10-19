@@ -7,6 +7,11 @@ local registered = false
 local OFFSET = 16
 local placing = false
 local wasClamped
+-- A frame of the addon's that sits at the cursor; GameTooltip hangs from it
+-- while following, so the game moves both in the same frame. Anchored to,
+-- never parented: GameTooltip keeps its own parent, strata, and visibility.
+local tracker
+local trackedX, trackedY, anchoredHeight
 
 -- Kept on screen, every resize of the larger hidden tooltip near an edge would
 -- shift the panel; the panel keeps itself on screen instead.
@@ -22,19 +27,36 @@ local function reclamp()
     wasClamped = nil
 end
 
--- The panel hangs from the hidden tooltip's top, and refreshes briefly resize
--- that tooltip; placing its top from the panel's height keeps the panel still.
-local function place()
+local function snap(region, value)
+    return ns.ui and ns.ui.snap and ns.ui.snap(region, value) or value
+end
+
+-- Moves the tracker to the cursor, on whole pixels, so the tooltip and the
+-- panel hanging from it stay sharp; only when the cursor has moved.
+local function moveTracker()
     local x, y = GetCursorPosition()
+    if x == trackedX and y == trackedY then return end
+    trackedX, trackedY = x, y
+    local scale = UIParent:GetEffectiveScale()
+    tracker:ClearAllPoints()
+    tracker:SetPoint("BOTTOMLEFT", UIParent, "BOTTOMLEFT", snap(UIParent, x / scale), snap(UIParent, y / scale))
+end
+
+-- The panel hangs from the hidden tooltip's top, and refreshes briefly resize
+-- that tooltip; anchoring its top the panel's height above the cursor keeps the
+-- panel still. Anchored again only when that height changes.
+local function place()
     local scale = GameTooltip:GetEffectiveScale()
     local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
     local height = panel and panel:GetHeight() * panel:GetEffectiveScale() / scale
         or GameTooltip:GetHeight()
     if panel then unclamp() else reclamp() end
+    if anchoredHeight and math.abs(height - anchoredHeight) < .01 then return end
+    anchoredHeight = height
     placing = true
     GameTooltip:ClearAllPoints()
-    GameTooltip:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x / scale + OFFSET,
-        y / scale + OFFSET + height)
+    GameTooltip:SetPoint("TOPLEFT", tracker, "BOTTOMLEFT", snap(GameTooltip, OFFSET),
+        snap(GameTooltip, OFFSET + height))
     placing = false
     -- The panel took its side from the anchor the game set before this one.
     if panel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
@@ -47,8 +69,13 @@ function ns.Cursor.register()
     if not (TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
         and TYPES and ns.TOOLTIP_TYPES) then return end
     registered = true
-    local follower = CreateFrame("Frame")
-    follower:Hide()
+    tracker = CreateFrame("Frame", nil, UIParent)
+    tracker:SetSize(1, 1)
+    tracker:Hide()
+    local follower = tracker
+    local function forgetPlacement()
+        trackedX, trackedY, anchoredHeight = nil, nil, nil
+    end
 
     -- Only default-anchored tooltips follow, as with EllesmereUI; bags re-anchor
     -- theirs on every refresh.
@@ -56,11 +83,13 @@ function ns.Cursor.register()
     local cursorKey, originalPoints
     local function stop()
         follower:Hide()
+        forgetPlacement()
         reclamp()
         cursorKey, originalPoints = nil, nil
     end
     local function restoreAnchor()
         follower:Hide()
+        forgetPlacement()
         reclamp()
         if not originalPoints then return end
         -- Restore without SetOwner, which can clear the tooltip's content.
@@ -83,8 +112,10 @@ function ns.Cursor.register()
                     originalPoints[index] = { GameTooltip:GetPoint(index) }
                 end
             end
-            place()
+            -- Shown and placed at the cursor before the tooltip hangs from it.
             follower:Show()
+            moveTracker()
+            place()
         elseif follower:IsShown() then
             -- Keep the cursor preference for combat ending.
             restoreAnchor()
@@ -105,7 +136,10 @@ function ns.Cursor.register()
 
     -- The game re-places a default tooltip when it refreshes; undone at once.
     hooksecurefunc(GameTooltip, "SetPoint", function()
-        if follower:IsShown() and not placing then refresh() end
+        if follower:IsShown() and not placing then
+            anchoredHeight = nil
+            refresh()
+        end
     end)
 
     -- A world unit's tooltip fades out where it stands, which trails the cursor.

@@ -5,7 +5,8 @@ return function(test)
         { enums = { TooltipDataType = { Object = 1, Spell = 2, Unit = 3 } } })
     local combat, clamped = false, true
     InCombatLockdown = function() return combat end
-    GetCursorPosition = function() return 100, 200 end
+    local cursorX, cursorY = 100, 200
+    GetCursorPosition = function() return cursorX, cursorY end
     GameTooltip.IsClampedToScreen = function() return clamped end
     GameTooltip.SetClampedToScreen = function(_, value) clamped = value end
     GameTooltip_SetDefaultAnchor = function(tooltip)
@@ -38,10 +39,29 @@ return function(test)
         world.fireEvent("PLAYER_REGEN_ENABLED")
     end
     local default = { "BOTTOMRIGHT", "BOTTOMRIGHT", -20, 30 }
-    local cursor = { "TOPLEFT", "BOTTOMLEFT", 116, 296 }
+    -- Following, the tooltip hangs from the tracker, the panel's height (80) and
+    -- 16 more above it, and the tracker sits at the cursor.
+    local cursor = { "TOPLEFT", "BOTTOMLEFT", 16, 96 }
     GameTooltip_SetDefaultAnchor(GameTooltip)
     handover(1)
     test.check("objects follow the cursor outside combat", point(), cursor)
+    test.check("the tooltip hangs from the tracker, which sits at the cursor", {
+        select(2, GameTooltip:GetPoint()) == follower, { follower:GetPoint() } },
+        { true, { "BOTTOMLEFT", UIParent, "BOTTOMLEFT", 100, 200 } })
+    local setPoint, anchorings = GameTooltip.SetPoint, 0
+    GameTooltip.SetPoint = function(...) anchorings = anchorings + 1 return setPoint(...) end
+    cursorX, cursorY = 140, 260
+    follower:GetScript("OnUpdate")(follower)
+    test.check("moving the cursor moves the tracker, not the tooltip",
+        { anchorings, ({ follower:GetPoint() })[4], ({ follower:GetPoint() })[5] }, { 0, 140, 260 })
+    panel:SetHeight(120)
+    follower:GetScript("OnUpdate")(follower)
+    test.check("a taller panel anchors the tooltip again", { anchorings, point() },
+        { 1, { "TOPLEFT", "BOTTOMLEFT", 16, 136 } })
+    GameTooltip.SetPoint = setPoint
+    panel:SetHeight(80)
+    cursorX, cursorY = 100, 200
+    follower:GetScript("OnUpdate")(follower)
     test.check("following a panel temporarily disables native clamping", clamped, false)
     beginCombat()
     test.check("the default setting disables following during combat", follower:IsShown(), false)
