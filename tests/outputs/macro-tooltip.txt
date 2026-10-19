@@ -42,7 +42,7 @@ shows:
   weaponBonus: {}
 showsType: 0
 == tooltip render
-panel 330 x 189
+panel 330 x 218
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x102 rgb=1,1,1,1 WHITE8X8
@@ -64,3 +64,5 @@ texture TOPRIGHT panel TOPRIGHT -19,-111 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHIT
 texture TOP panel TOP 0,-106 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,124 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-gear:11:11:-1:-2:32:32:0:32:0:32:240:200:90|t"
 text at 41,124 w=270 size=13 rgb=0.48,0.88,0.48 "Returns you to Stormwind City.  Speak to an Innkeeper in a different place to change your home location. (|cffFFF6E41|r Hr Cooldown)"
+texture at 19,177 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,186 w=292 size=11 rgb=0.6,0.6,0.63 "Item ID: 6948"

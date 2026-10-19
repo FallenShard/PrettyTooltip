@@ -105,7 +105,7 @@ weaponDamage: "94 - 141 Damage"
 weaponDps: "35.6"
 weaponSpeed: "Speed 3.30"
 == tooltip render
-panel 308 x 296
+panel 308 x 311
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x85 rgb=1,1,1,1 WHITE8X8
@@ -129,7 +129,8 @@ text at 19,172 w=270 size=13 rgb=0.48,0.88,0.48 "Increases the damage dealt by y
 text at 19,205 w=270 size=13 rgb=0.9,0.85,0.74 "|cff4CE64C+5|r |cffA6EBA6Weapon Damage|r"
 text at 19,223 w=270 size=11 rgb=0,0.85,0 "Windfury 1"
 text at 19,238 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
-text at 19,262 w=258 size=11 rgb=0.82,0.78,0.71 "You haven't collected this appearance"
+text at 19,253 w=270 size=11 rgb=0.6,0.6,0.63 "Item ID: 280604"
+text at 19,277 w=258 size=11 rgb=0.82,0.78,0.71 "You haven't collected this appearance"
 
 == comparison 1 model
 armor: {}
@@ -294,7 +295,7 @@ weaponDamage: "65 - 99 Damage"
 weaponDps: "25.6"
 weaponSpeed: "Speed 3.20"
 == comparison 1 render
-panel 308 x 399
+panel 308 x 414
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x85 rgb=1,1,1,1 WHITE8X8
@@ -324,6 +325,7 @@ text at 19,296 w=270 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+10.0|r damage per seco
 text at 19,311 w=270 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+6|r Intellect"
 text at 19,326 w=270 size=11 rgb=0.6,0.6,0.63 "|cffff2020-10|r Spirit"
 text at 19,341 w=270 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+10|r Stamina"
-texture at 19,370 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,356 w=270 size=11 rgb=0.6,0.6,0.63 "Item ID: 6953"
+texture at 19,385 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,365 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
+text at 80,380 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"

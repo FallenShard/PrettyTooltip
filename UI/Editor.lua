@@ -1211,6 +1211,8 @@ toggles({
         .. "gathered, then the stone, gems, and other herbs it may give and the chance each time. On a dead "
         .. "creature that can be skinned, the Skinning it needs and the leather, hides, and scales it may give. "
         .. "From Classic's loot tables.", forTypes("object", "unit") },
+    { "IDs", "showIDs", "The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows.",
+        forTypes("item", "spell", "unit") },
 })
 
 row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)

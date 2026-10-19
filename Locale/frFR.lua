@@ -314,6 +314,11 @@ L["What a herb or ore node holds: its yield over all the times it can be gathere
 L["Class colors"] = "Couleurs des classes"
 L["Reset all fonts and colors"] = "Rétablir toutes les polices et couleurs"
 L["More options"] = "Plus d'options"
+L["IDs"] = "ID"
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "L'ID de l'objet, du sort ou du PNJ en bas de son cadre, sous les lignes des autres addons."
+L["Item ID: %s"] = "ID d'objet : %s"
+L["NPC ID: %s"] = "ID de PNJ : %s"
 
 -- The kinds of tooltip, their samples' tabs, and the lookup by ID.
 L["Items"] = "Objets"
@@ -489,14 +494,21 @@ L["Achievements"] = "Hauts faits"
 L["Totems"] = "Totems"
 L["Flyout buttons"] = "Boutons déroulants"
 L["Default Tooltip Modifier"] = "Touche pour l'infobulle du jeu"
-L["CTRL"] = "CTRL"
-L["ALT"] = "ALT"
+L["Ctrl"] = "Ctrl"
+L["Alt"] = "Alt"
 L["Never"] = "Jamais"
-L["Hold CTRL to see the game's own tooltip instead of the panel."] =
-    "Maintenez CTRL pour voir l'infobulle du jeu au lieu du cadre."
-L["Hold ALT to see the game's own tooltip instead of the panel."] =
-    "Maintenez ALT pour voir l'infobulle du jeu au lieu du cadre."
+L["Hold Ctrl to see the game's own tooltip instead of the panel."] =
+    "Maintenez Ctrl pour voir l'infobulle du jeu au lieu du cadre."
+L["Hold Alt to see the game's own tooltip instead of the panel."] =
+    "Maintenez Alt pour voir l'infobulle du jeu au lieu du cadre."
 L["Never show the game's own tooltip in place of the panel."] = "Ne jamais afficher l'infobulle du jeu à la place du cadre."
+L["Tooltip Details Modifier"] = "Touche des détails d'infobulle"
+L["Shift"] = "Maj"
+L["Always Show"] = "Toujours afficher"
+L["Hold Shift to see disenchant results, the spell power breakdown and rates, gathering contents, and IDs. Each can still be turned off in the style editor."] =
+    "Maintenez Maj pour voir les résultats de désenchantement, la répartition de puissance des sorts et les débits, le contenu des récoltes et les ID. Chacun peut toujours être désactivé dans l'éditeur de style."
+L["Always show disenchant results, the spell power breakdown and rates, gathering contents, and IDs, as each one's setting in the style editor allows."] =
+    "Affiche toujours les résultats de désenchantement, la répartition de puissance des sorts et les débits, le contenu des récoltes et les ID, selon le réglage de chacun dans l'éditeur de style."
 L["Style Editor Appearance"] = "Apparence de l'éditeur de style"
 L["Blizzard"] = "Blizzard"
 L["Use the game's settings frame borders and controls."] = "Utiliser les bordures et contrôles des options du jeu."

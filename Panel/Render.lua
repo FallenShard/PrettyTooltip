@@ -255,6 +255,15 @@ local function renderView(panel, tooltip, view)
     ui.finishPanel(panel, tooltip, y)
 end
 
+-- Other addons' rows, then the ID of what the panel shows while IDs show.
+function ui.withID(panel, extras, format, id)
+    if not (id and ns.showsDetail("showIDs", panel)) then return extras end
+    local rows = {}
+    for index, row in ipairs(extras) do rows[index] = row end
+    rows[#rows + 1] = { left = util.fill(format, id), right = "" }
+    return rows
+end
+
 ui.renderView = renderView
 ui.RULE_SPACE = RULE_SPACE
 ui.setLive, ui.drawTrack = setLive, drawTrack

@@ -50,7 +50,7 @@ rank: "等級 2"
 requirements: {}
 spellID: 19939
 == tooltip render
-panel 269 x 254
+panel 269 x 269
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
@@ -92,3 +92,4 @@ text at 19,193 w=195 size=11 rgb=0.82,0.78,0.71 "每點法力治療量"
 text at 226,193 w=24 size=11 rgb=0.82,0.78,0.71 "1.43"
 texture at 19,213 231x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
 text at 19,222 w=231 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+text at 19,237 w=231 size=11 rgb=0.6,0.6,0.63 "法術ID：19939"

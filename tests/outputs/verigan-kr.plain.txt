@@ -167,7 +167,7 @@ weaponDamage: "공격력 65 - 99"
 weaponDps: "25.6"
 weaponSpeed: "속도 3.20"
 == tooltip render
-panel 308 x 341
+panel 308 x 356
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x83 rgb=1,1,1,1 band
@@ -189,7 +189,8 @@ text at 259.5,253 w=29.5 size=11 rgb=0.85,0.7,0 "|cff66bbff합계: |cffffffff1|r
 text at 19,268 w=228.5 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
 text at 259.5,268 w=29.5 size=11 rgb=0.85,0.7,0 "|cff66bbff착용: |cffffffff1|r|r"
 text at 19,283 w=270 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t 정의의 시험  |cffaa9f85- 죽음의 폐광|r"
-text at 248.5,307 w=40.5 size=11 rgb=1,1,1 "직업: 성기사"
-texture at 19,312 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,298 w=270 size=11 rgb=0.6,0.6,0.63 "아이템 ID: 6953"
+text at 248.5,322 w=40.5 size=11 rgb=1,1,1 "직업: 성기사"
+texture at 19,327 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,307 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
+text at 80,322 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"

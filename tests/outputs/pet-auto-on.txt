@@ -33,7 +33,7 @@ rank: "Rank 3"
 requirements: {}
 spellID: 16829
 == tooltip render
-panel 284 x 168
+panel 284 x 194
 texture at -16,-16 0x0 rgb=1,0.55,0.25,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
@@ -64,3 +64,5 @@ text at 203.5,105 w=61.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
 texture at 204,90 1x26 rgb=0.6,0.33,0.15,0.5 WHITE8X8
 texture at 19,123 246x1 rgb=0.7,0.385,0.175,0.45 WHITE8X8
 text at 19,132 w=246 size=12 rgb=0.92,0.87,0.76 "Claw the enemy, causing |cffFFF6E412|r to |cffFFF6E417|r damage."
+texture at 19,153 246x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,162 w=246 size=11 rgb=0.6,0.6,0.63 "Spell ID: 16829"

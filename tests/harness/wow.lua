@@ -463,7 +463,10 @@ return function(fixture, enums, report, strings)
     GetTime = function() return 1000 end
     debugprofilestop = function() return 0 end
     GetCursorPosition = function() return 0, 0 end
-    IsAltKeyDown, IsControlKeyDown, IsShiftKeyDown = noop, noop, noop
+    IsAltKeyDown, IsControlKeyDown = noop, noop
+    -- Fixtures draw as with Shift held, so their outputs show every detail;
+    -- a test sets fixture.shiftUp to see them hidden.
+    IsShiftKeyDown = function() return fixture.shiftUp ~= true end
     InCombatLockdown = noop
     SetPortraitTexture = noop
     PlaySound = noop

@@ -105,7 +105,7 @@ weaponDamage: "94 - 141 Damage"
 weaponDps: "35.6"
 weaponSpeed: "Speed 3.30"
 == tooltip render
-panel 330 x 408
+panel 330 x 423
 texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x91 rgb=1,1,1,1 WHITE8X8
@@ -150,8 +150,9 @@ text at 287,306 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
 texture at 19,326 292x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
 text at 19,335 w=292 size=11 rgb=0,0.85,0 "Windfury 1"
 text at 19,350 w=292 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
-text at 237.5,374 w=73.5 size=11 rgb=0.88,0.78,0.6 "1|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 62|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 35|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
-text at 19,374 w=206.5 size=11 rgb=0.82,0.78,0.71 "You haven't collected this appearance"
+text at 19,365 w=292 size=11 rgb=0.6,0.6,0.63 "Item ID: 280604"
+text at 237.5,389 w=73.5 size=11 rgb=0.88,0.78,0.6 "1|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 62|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 35|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 19,389 w=206.5 size=11 rgb=0.82,0.78,0.71 "You haven't collected this appearance"
 
 == comparison 1 model
 armor: {}
@@ -316,7 +317,7 @@ weaponDamage: "65 - 99 Damage"
 weaponDps: "25.6"
 weaponSpeed: "Speed 3.20"
 == comparison 1 render
-panel 330 x 496
+panel 330 x 511
 texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x91 rgb=1,1,1,1 WHITE8X8
@@ -366,7 +367,8 @@ text at 19,393 w=292 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+10.0|r damage per seco
 text at 19,408 w=292 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+6|r Intellect"
 text at 19,423 w=292 size=11 rgb=0.6,0.6,0.63 "|cffff2020-10|r Spirit"
 text at 19,438 w=292 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+10|r Stamina"
-text at 259.5,462 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
-texture at 19,467 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,453 w=292 size=11 rgb=0.6,0.6,0.63 "Item ID: 6953"
+text at 259.5,477 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+texture at 19,482 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,462 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
+text at 80,477 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"

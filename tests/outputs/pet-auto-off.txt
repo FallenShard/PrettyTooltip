@@ -39,7 +39,7 @@ rank: "Rank 2"
 requirements: {}
 spellID: 14916
 == tooltip render
-panel 308 x 182
+panel 308 x 208
 texture at -16,-16 0x0 rgb=1,0.55,0.25,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
@@ -70,3 +70,5 @@ text at 221.5,105 w=67.5 size=9 rgb=0.6,0.57,0.52 "RANGE"
 texture at 222,90 1x26 rgb=0.6,0.33,0.15,0.5 WHITE8X8
 texture at 19,123 270x1 rgb=0.7,0.385,0.175,0.45 WHITE8X8
 text at 19,132 w=270 size=12 rgb=0.92,0.87,0.76 "Taunt the target, increasing the likelihood the creature will focus attacks on you."
+texture at 19,167 270x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,176 w=270 size=11 rgb=0.6,0.6,0.63 "Spell ID: 14916"

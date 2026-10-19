@@ -38,7 +38,7 @@ shows:
       1: "Macro"
 showsType: 1
 == tooltip render
-panel 300 x 224
+panel 300 x 253
 texture at -16,-16 0x0 rgb=0.98,0.73,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
@@ -76,3 +76,5 @@ text at 19,177 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Second"
 text at 257,177 w=24 size=11 rgb=0.82,0.78,0.71 "47.7"
 text at 19,192 w=226 size=11 rgb=0.82,0.78,0.71 "Healing per Mana"
 text at 257,192 w=24 size=11 rgb=0.82,0.78,0.71 "1.43"
+texture at 19,212 262x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,221 w=262 size=11 rgb=0.6,0.6,0.63 "Spell ID: 19939"

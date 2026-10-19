@@ -132,9 +132,16 @@ local function skinningNeeded(level)
     return level * 5
 end
 
+-- An NPC's ID from its GUID; nil for players.
+local function npcID(guid)
+    if type(guid) ~= "string" then return end
+    return tonumber(guid:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-")
+        or guid:match("^Vehicle%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
+end
+
 local function skinning(model, game)
-    if not (model.dead and ns.skinningLoot and type(model.guid) == "string") then return end
-    local creatureID = tonumber(model.guid:match("^Creature%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
+    if not (model.dead and ns.skinningLoot) then return end
+    local creatureID = npcID(model.guid)
     local drops = creatureID and ns.skinningLoot(creatureID)
     if not drops then return end
     local needed = type(model.level) == "number" and model.level > 0 and skinningNeeded(model.level) or nil
@@ -359,7 +366,7 @@ local function dragonArt(classification, game)
 end
 
 -- What the panel shows, for Panel/Render.lua to draw.
-local function unitView(model, healthBar)
+local function unitView(panel, model, healthBar)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local color = model.color or colors.neutral
@@ -383,7 +390,7 @@ local function unitView(model, healthBar)
             style = styles.unitDetails, color = DETAIL_COLOR, gap = 2 }
     end
     local skin = model.skinning
-    if skin and ns.option("gatheringLoot") then
+    if skin and ns.showsDetail("gatheringLoot", panel) then
         local rows = {}
         if skin.needed then
             rows[1] = { left = util.fill(L["Requires %s %s"], ns.Locale.skillName("Skinning"), skin.needed),
@@ -407,15 +414,16 @@ local function unitView(model, healthBar)
         sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE },
             kind = "rows", rows = quests, style = styles.unitQuests, gap = 2 }
     end
-    if #model.extras > 0 then
+    local extras = ui.withID(panel, model.extras, L["NPC ID: %s"], npcID(model.guid))
+    if #extras > 0 then
         sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 4 },
-            kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+            kind = "rows", rows = extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     -- Room at the bottom for the game's health bar, which the panel borrows
     -- once it is drawn.
     if healthBar then
-        sections[#sections + 1] = { separator = { space = HEALTH_BEFORE }, kind = "custom", draw = function(panel, y)
-            panel.healthTop = y
+        sections[#sections + 1] = { separator = { space = HEALTH_BEFORE }, kind = "custom", draw = function(p, y)
+            p.healthTop = y
             return y + HEALTH_HEIGHT
         end }
     end
@@ -525,7 +533,7 @@ local function renderUnit(panel, tooltip, model)
     if not (bar and bar:IsShown()) then bar = nil end
     local sample = shown and panel.isPreview and model.healthShare
     panel.healthTop = nil
-    ui.renderView(panel, tooltip, unitView(model, bar ~= nil or sample ~= nil))
+    ui.renderView(panel, tooltip, unitView(panel, model, bar ~= nil or sample ~= nil))
     local art
     if model.isPlayer then
         art = FACTION_ART[model.faction]

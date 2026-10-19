@@ -167,7 +167,7 @@ weaponDamage: "65 - 99 Schaden"
 weaponDps: "25,6"
 weaponSpeed: "Tempo 3,20"
 == tooltip render
-panel 330 x 515
+panel 330 x 530
 texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
@@ -217,8 +217,9 @@ text at 243,410 w=68 size=11 rgb=0.85,0.7,0 "|cff66bbffInsgesamt: |cffffffff1|r|
 text at 19,425 w=201 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
 text at 232,425 w=79 size=11 rgb=0.85,0.7,0 "|cff66bbffAusgerüstet: |cffffffff1|r|r"
 text at 19,440 w=292 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t Die Prüfung der Rechtschaffenheit  |cffaa9f85- Die Todesminen|r"
-text at 221,464 w=90 size=11 rgb=1,1,1 "Klassen: Paladin"
-texture at 19,469 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,455 w=292 size=11 rgb=0.6,0.6,0.63 "Gegenstands-ID: 6953"
+text at 221,479 w=90 size=11 rgb=1,1,1 "Klassen: Paladin"
+texture at 19,484 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,464 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
-text at 259.5,481 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+text at 80,479 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
+text at 259.5,496 w=51.5 size=11 rgb=0.88,0.78,0.6 "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"

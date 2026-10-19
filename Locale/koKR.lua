@@ -296,6 +296,11 @@ L["What a herb or ore node holds: its yield over all the times it can be gathere
 L["Class colors"] = "직업 색상"
 L["Reset all fonts and colors"] = "모든 글꼴과 색상 초기화"
 L["More options"] = "추가 설정"
+L["IDs"] = "ID"
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "아이템, 주문, NPC의 ID를 다른 애드온 줄 아래, 툴팁 맨 아래에 표시합니다."
+L["Item ID: %s"] = "아이템 ID: %s"
+L["NPC ID: %s"] = "NPC ID: %s"
 
 -- Tooltip kinds and samples ----------------------------------------------------
 
@@ -457,12 +462,19 @@ L["Achievements"] = "업적"
 L["Totems"] = "토템"
 L["Flyout buttons"] = "펼침 버튼"
 L["Default Tooltip Modifier"] = "기본 툴팁 보조키"
-L["CTRL"] = "CTRL"
-L["ALT"] = "ALT"
+L["Ctrl"] = "Ctrl"
+L["Alt"] = "Alt"
 L["Never"] = "사용 안 함"
-L["Hold CTRL to see the game's own tooltip instead of the panel."] = "CTRL을 누르면 패널 대신 게임의 기본 툴팁을 표시합니다."
-L["Hold ALT to see the game's own tooltip instead of the panel."] = "ALT를 누르면 패널 대신 게임의 기본 툴팁을 표시합니다."
+L["Hold Ctrl to see the game's own tooltip instead of the panel."] = "Ctrl을 누르면 패널 대신 게임의 기본 툴팁을 표시합니다."
+L["Hold Alt to see the game's own tooltip instead of the panel."] = "Alt를 누르면 패널 대신 게임의 기본 툴팁을 표시합니다."
 L["Never show the game's own tooltip in place of the panel."] = "패널 대신 게임의 기본 툴팁을 표시하지 않습니다."
+L["Tooltip Details Modifier"] = "툴팁 세부 정보 보조키"
+L["Shift"] = "Shift"
+L["Always Show"] = "항상 표시"
+L["Hold Shift to see disenchant results, the spell power breakdown and rates, gathering contents, and IDs. Each can still be turned off in the style editor."] =
+    "Shift를 누르면 마력 추출 결과, 주문력 분석과 효율, 채집 내용, ID를 표시합니다. 각 항목은 스타일 편집기에서 따로 끌 수 있습니다."
+L["Always show disenchant results, the spell power breakdown and rates, gathering contents, and IDs, as each one's setting in the style editor allows."] =
+    "마력 추출 결과, 주문력 분석과 효율, 채집 내용, ID를 항상 표시합니다. 각 항목의 스타일 편집기 설정은 그대로 적용됩니다."
 L["Style Editor Appearance"] = "스타일 편집기 모양"
 L["Blizzard"] = "블리자드"
 L["Use the game's settings frame borders and controls."] = "게임 설정 창의 테두리와 조작 요소를 사용합니다."

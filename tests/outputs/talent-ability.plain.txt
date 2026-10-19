@@ -62,7 +62,7 @@ talent:
   max: 1
   rank: 0
 == tooltip render
-panel 308 x 216
+panel 308 x 231
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x66 rgb=1,1,1,1 WHITE8X8
@@ -91,3 +91,4 @@ texture at 222,72 1x26 rgb=0.18,0.468,0.582,0.5 WHITE8X8
 text at 19,108 w=270 size=11 rgb=1,0.34,0.28 "Spend 8 more points in Frost Talents"
 text at 19,123 w=270 size=12 rgb=0.92,0.87,0.76 "You become encased in a block of ice, protecting you from all physical attacks and spells for |cff82D8FA10|r sec, but during that time you cannot attack, move, or cast spells."
 text at 19,184 w=270 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+text at 19,199 w=270 size=11 rgb=0.6,0.6,0.63 "Spell ID: 11958"

@@ -100,30 +100,47 @@ function ns.Options.register()
         leftColumn.y = leftColumn.y - 22
     end
 
-    local MODIFIERS = {
-        { "CTRL", "CTRL", "Hold CTRL to see the game's own tooltip instead of the panel." },
-        { "ALT", "ALT", "Hold ALT to see the game's own tooltip instead of the panel." },
-        { "NONE", "Never", "Never show the game's own tooltip in place of the panel." },
-    }
-    section(rightColumn, "Default Tooltip Modifier")
-    for _, modifier in ipairs(MODIFIERS) do
-        local value, label, note = modifier[1], modifier[2], modifier[3]
-        local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
-        button:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
-        local text = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-        text:SetPoint("LEFT", button, "RIGHT", 6, 0)
-        text:SetText(L[label])
-        button:SetHitRectInsets(0, -(text:GetStringWidth() + 8), 0, 0)
-        button:SetScript("OnClick", function()
-            setOption("originalKey", value)
-            refreshControls()
-        end)
-        button.refresh = function() button:SetChecked(ns.option("originalKey") == value) end
-        controls[#controls + 1] = button
-        explain(button, label, note)
-        rightColumn.y = rightColumn.y - 22
+    -- A choice of values for one setting, each { value, label, note }, as radio
+    -- buttons down the column.
+    local function radios(column, choices, current, pick)
+        for _, choice in ipairs(choices) do
+            local value, label, note = choice[1], choice[2], choice[3]
+            local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
+            button:SetPoint("TOPLEFT", column.x + 8, column.y)
+            local caption = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+            caption:SetPoint("LEFT", button, "RIGHT", 6, 0)
+            caption:SetText(L[label])
+            button:SetHitRectInsets(0, -(caption:GetStringWidth() + 8), 0, 0)
+            button:SetScript("OnClick", function()
+                pick(value)
+                refreshControls()
+            end)
+            button.refresh = function() button:SetChecked(current() == value) end
+            controls[#controls + 1] = button
+            explain(button, label, note)
+            column.y = column.y - 22
+        end
+        column.y = column.y - 12
     end
-    rightColumn.y = rightColumn.y - 12
+
+    local function optionRadios(column, key, choices)
+        radios(column, choices, function() return ns.option(key) end, function(value) setOption(key, value) end)
+    end
+
+    section(rightColumn, "Default Tooltip Modifier")
+    optionRadios(rightColumn, "originalKey", {
+        { "CTRL", "Ctrl", "Hold Ctrl to see the game's own tooltip instead of the panel." },
+        { "ALT", "Alt", "Hold Alt to see the game's own tooltip instead of the panel." },
+        { "NONE", "Never", "Never show the game's own tooltip in place of the panel." },
+    })
+
+    section(rightColumn, "Tooltip Details Modifier")
+    optionRadios(rightColumn, "detailsKey", {
+        { "SHIFT", "Shift", "Hold Shift to see disenchant results, the spell power breakdown and rates, gathering "
+            .. "contents, and IDs. Each can still be turned off in the style editor." },
+        { "ALWAYS", "Always Show", "Always show disenchant results, the spell power breakdown and rates, gathering "
+            .. "contents, and IDs, as each one's setting in the style editor allows." },
+    })
 
     section(rightColumn, "Follow cursor")
     local combatBox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
@@ -143,27 +160,13 @@ function ns.Options.register()
     rightColumn.y = rightColumn.y - 34
 
     section(rightColumn, "Style Editor Appearance")
-    for _, appearance in ipairs({
+    radios(rightColumn, {
         { "native", "Blizzard", "Use the game's settings frame borders and controls." },
         { "flat", "Flat", "Use the flat editor appearance." },
-    }) do
-        local value, label, note = appearance[1], appearance[2], appearance[3]
-        local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
-        button:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y)
-        local caption = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
-        caption:SetPoint("LEFT", button, "RIGHT", 6, 0)
-        caption:SetText(L[label])
-        button:SetHitRectInsets(0, -(caption:GetStringWidth() + 8), 0, 0)
-        button:SetScript("OnClick", function()
-            setOption("editorStyle", value)
-            if ns.refreshEditorStyle then ns.refreshEditorStyle() end
-            refreshControls()
-        end)
-        button.refresh = function() button:SetChecked(ns.editorStyle() == value) end
-        controls[#controls + 1] = button
-        explain(button, label, note)
-        rightColumn.y = rightColumn.y - 22
-    end
+    }, ns.editorStyle, function(value)
+        setOption("editorStyle", value)
+        if ns.refreshEditorStyle then ns.refreshEditorStyle() end
+    end)
 
     page:SetScript("OnShow", refreshControls)
     -- Hooks the settings window calls on canvas pages: when it shows them, and

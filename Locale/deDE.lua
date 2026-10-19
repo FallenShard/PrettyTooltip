@@ -316,6 +316,11 @@ L["What a herb or ore node holds: its yield over all the times it can be gathere
 L["Class colors"] = "Klassenfarben"
 L["Reset all fonts and colors"] = "Alle Schriften und Farben zurücksetzen"
 L["More options"] = "Weitere Optionen"
+L["IDs"] = "IDs"
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "Die ID des Gegenstands, Zaubers oder NPCs unten im Rahmen, unter den Zeilen anderer Addons."
+L["Item ID: %s"] = "Gegenstands-ID: %s"
+L["NPC ID: %s"] = "NPC-ID: %s"
 
 -- The kinds of tooltip, their samples' tabs, and the lookup by ID.
 L["Items"] = "Gegenstände"
@@ -491,14 +496,21 @@ L["Achievements"] = "Erfolge"
 L["Totems"] = "Totems"
 L["Flyout buttons"] = "Ausklappleisten"
 L["Default Tooltip Modifier"] = "Zusatztaste für den Standard-Tooltip"
-L["CTRL"] = "STRG"
-L["ALT"] = "ALT"
+L["Ctrl"] = "Strg"
+L["Alt"] = "Alt"
 L["Never"] = "Nie"
-L["Hold CTRL to see the game's own tooltip instead of the panel."] =
-    "Haltet STRG, um statt des Rahmens den Tooltip des Spiels zu sehen."
-L["Hold ALT to see the game's own tooltip instead of the panel."] =
-    "Haltet ALT, um statt des Rahmens den Tooltip des Spiels zu sehen."
+L["Hold Ctrl to see the game's own tooltip instead of the panel."] =
+    "Haltet Strg, um statt des Rahmens den Tooltip des Spiels zu sehen."
+L["Hold Alt to see the game's own tooltip instead of the panel."] =
+    "Haltet Alt, um statt des Rahmens den Tooltip des Spiels zu sehen."
 L["Never show the game's own tooltip in place of the panel."] = "Nie den Tooltip des Spiels statt des Rahmens zeigen."
+L["Tooltip Details Modifier"] = "Zusatztaste für Tooltip-Details"
+L["Shift"] = "Umschalt"
+L["Always Show"] = "Immer zeigen"
+L["Hold Shift to see disenchant results, the spell power breakdown and rates, gathering contents, and IDs. Each can still be turned off in the style editor."] =
+    "Haltet Umschalt, um Entzauberungsergebnisse, die Aufschlüsselung der Zaubermacht und Raten, Sammelinhalte und IDs zu sehen. Jedes lässt sich im Stileditor weiterhin ausschalten."
+L["Always show disenchant results, the spell power breakdown and rates, gathering contents, and IDs, as each one's setting in the style editor allows."] =
+    "Zeigt Entzauberungsergebnisse, die Aufschlüsselung der Zaubermacht und Raten, Sammelinhalte und IDs immer, soweit ihre Einstellung im Stileditor es erlaubt."
 L["Style Editor Appearance"] = "Aussehen des Stileditors"
 L["Blizzard"] = "Blizzard"
 L["Use the game's settings frame borders and controls."] = "Die Rahmen und Steuerelemente der Spieleinstellungen nutzen."

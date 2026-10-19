@@ -24,7 +24,8 @@ end
 
 -- What the tooltip shows, as one string; nil when a line cannot be read.
 local function fingerprint(tooltip, data)
-    local parts = { ns.settingsVersion or 0, isComparison(tooltip) and 1 or 0 }
+    local parts = { ns.settingsVersion or 0, isComparison(tooltip) and 1 or 0,
+        ns.detailsKeyDown() and 1 or 0 }
     local name = tooltip:GetName()
     for index = 1, tooltip:NumLines() do
         local left = tooltip:GetLeftLine(index)
@@ -221,8 +222,10 @@ function hooks.install()
 
     local modifier = CreateFrame("Frame")
     modifier:RegisterEvent("MODIFIER_STATE_CHANGED")
+    -- The original-tooltip key swaps the panel for the game's tooltip; Shift
+    -- shows or hides the details.
     modifier:SetScript("OnEvent", function(_, _, key)
-        if not ns.isOriginalKey(key) then return end
+        if not (ns.isOriginalKey(key) or ns.isDetailsKey(key)) then return end
         for tooltip, panel in pairs(panels) do
             if tooltip:IsShown() and showsDataType(tooltip, panel) then
                 if showsOriginal(panel) then

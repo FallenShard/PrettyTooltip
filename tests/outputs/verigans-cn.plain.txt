@@ -167,7 +167,7 @@ weaponDamage: "65 - 99伤害"
 weaponDps: "25.6"
 weaponSpeed: "速度 3.20"
 == tooltip render
-panel 305 x 341
+panel 305 x 356
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x83 rgb=1,1,1,1 band
@@ -189,7 +189,8 @@ text at 262,253 w=24 size=11 rgb=0.85,0.7,0 "|cff66bbff总计：|cffffffff1|r|r"
 text at 19,268 w=225.5 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
 text at 256.5,268 w=29.5 size=11 rgb=0.85,0.7,0 "|cff66bbff已装备：|cffffffff1|r|r"
 text at 19,283 w=267 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t 正义试炼  |cffaa9f85- 死亡矿井|r"
-text at 251,307 w=35 size=11 rgb=1,1,1 "职业：圣骑士"
-texture at 19,312 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,298 w=267 size=11 rgb=0.6,0.6,0.63 "物品ID：6953"
+text at 251,322 w=35 size=11 rgb=1,1,1 "职业：圣骑士"
+texture at 19,327 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,307 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"
+text at 80,322 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"

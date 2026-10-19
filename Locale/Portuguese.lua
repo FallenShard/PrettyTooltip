@@ -317,6 +317,11 @@ L["What a herb or ore node holds: its yield over all the times it can be gathere
 L["Class colors"] = "Cores das classes"
 L["Reset all fonts and colors"] = "Restaurar todas as fontes e cores"
 L["More options"] = "Mais opções"
+L["IDs"] = "IDs"
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "O ID do item, feitiço ou PNJ na parte de baixo do painel, abaixo das linhas de outros addons."
+L["Item ID: %s"] = "ID do item: %s"
+L["NPC ID: %s"] = "ID do PNJ: %s"
 
 -- The kinds of tooltip, their samples' tabs, and the lookup by ID.
 L["Items"] = "Itens"
@@ -494,14 +499,21 @@ L["Achievements"] = "Conquistas"
 L["Totems"] = "Totens"
 L["Flyout buttons"] = "Botões expansíveis"
 L["Default Tooltip Modifier"] = "Tecla para a dica do jogo"
-L["CTRL"] = "CTRL"
-L["ALT"] = "ALT"
+L["Ctrl"] = "Ctrl"
+L["Alt"] = "Alt"
 L["Never"] = "Nunca"
-L["Hold CTRL to see the game's own tooltip instead of the panel."] =
-    "Segure CTRL para ver a dica do jogo em vez do painel."
-L["Hold ALT to see the game's own tooltip instead of the panel."] =
-    "Segure ALT para ver a dica do jogo em vez do painel."
+L["Hold Ctrl to see the game's own tooltip instead of the panel."] =
+    "Segure Ctrl para ver a dica do jogo em vez do painel."
+L["Hold Alt to see the game's own tooltip instead of the panel."] =
+    "Segure Alt para ver a dica do jogo em vez do painel."
 L["Never show the game's own tooltip in place of the panel."] = "Nunca mostrar a dica do jogo no lugar do painel."
+L["Tooltip Details Modifier"] = "Tecla para os detalhes"
+L["Shift"] = "Shift"
+L["Always Show"] = "Mostrar sempre"
+L["Hold Shift to see disenchant results, the spell power breakdown and rates, gathering contents, and IDs. Each can still be turned off in the style editor."] =
+    "Segure Shift para ver os resultados de desencantar, a divisão de poder mágico e as taxas, o conteúdo de coleta e os IDs. Cada um ainda pode ser desligado no editor de estilo."
+L["Always show disenchant results, the spell power breakdown and rates, gathering contents, and IDs, as each one's setting in the style editor allows."] =
+    "Mostra sempre os resultados de desencantar, a divisão de poder mágico e as taxas, o conteúdo de coleta e os IDs, conforme a configuração de cada um no editor de estilo."
 L["Style Editor Appearance"] = "Visual do editor de estilo"
 L["Blizzard"] = "Blizzard"
 L["Use the game's settings frame borders and controls."] = "Usar as bordas e os controles da janela de opções do jogo."

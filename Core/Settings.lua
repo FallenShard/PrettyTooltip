@@ -41,6 +41,11 @@ local DEFAULTS = {
     spellRates = true,
     -- The game's health bar at the bottom of unit panels.
     unitHealthBar = true,
+    -- The item's, spell's, or NPC's ID under the other addons' rows.
+    showIDs = true,
+    -- "SHIFT" shows disenchant results, the spell power rows, gathering
+    -- contents, and IDs only while it is held; "ALWAYS" shows them always.
+    detailsKey = "SHIFT",
     -- Only takes effect while DialogueUI is installed.
     dialogueBackdrop = true,
     -- DialogueUI's brown paper for quests and quest items, when installed.
@@ -382,16 +387,35 @@ function ns.style(key)
     }
 end
 
-function ns.originalKeyDown()
-    local key = ns.option("originalKey")
-    if key == "ALT" then return IsAltKeyDown() end
-    if key == "CTRL" then return IsControlKeyDown() end
-    return false
+-- The keys a modifier setting can name: how to tell one is held, and the keys
+-- MODIFIER_STATE_CHANGED reports for it. A value not here, as "NONE" or
+-- "ALWAYS", names no key.
+local MODIFIERS = {
+    SHIFT = { down = function() return IsShiftKeyDown() end, keys = { LSHIFT = true, RSHIFT = true } },
+    CTRL = { down = function() return IsControlKeyDown() end, keys = { LCTRL = true, RCTRL = true } },
+    ALT = { down = function() return IsAltKeyDown() end, keys = { LALT = true, RALT = true } },
+}
+
+local function keyDown(name)
+    local modifier = MODIFIERS[name]
+    return modifier ~= nil and modifier.down() and true or false
 end
 
-function ns.isOriginalKey(key)
-    local option = ns.option("originalKey")
-    if option == "ALT" then return key == "LALT" or key == "RALT" end
-    if option == "CTRL" then return key == "LCTRL" or key == "RCTRL" end
-    return false
+local function isKey(name, key)
+    local modifier = MODIFIERS[name]
+    return modifier ~= nil and modifier.keys[key] == true
+end
+
+function ns.originalKeyDown() return keyDown(ns.option("originalKey")) end
+function ns.isOriginalKey(key) return isKey(ns.option("originalKey"), key) end
+
+function ns.detailsKeyDown() return keyDown(ns.option("detailsKey")) end
+function ns.isDetailsKey(key) return isKey(ns.option("detailsKey"), key) end
+
+-- Whether a panel shows a detail its option turns on. The editor's previews
+-- show every detail that is on, so it can be styled without holding the key.
+function ns.showsDetail(key, panel)
+    if not ns.option(key) then return false end
+    if panel and panel.isPreview then return true end
+    return not MODIFIERS[ns.option("detailsKey")] or ns.detailsKeyDown()
 end

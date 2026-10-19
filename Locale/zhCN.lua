@@ -293,6 +293,11 @@ L["What a herb or ore node holds: its yield over all the times it can be gathere
 L["Class colors"] = "职业颜色"
 L["Reset all fonts and colors"] = "重置所有字体和颜色"
 L["More options"] = "更多选项"
+L["IDs"] = "ID"
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "在面板底部、其他插件的行下方显示物品、法术或NPC的ID。"
+L["Item ID: %s"] = "物品ID：%s"
+L["NPC ID: %s"] = "NPC ID：%s"
 
 -- Tooltip kinds and samples ----------------------------------------------------
 
@@ -454,12 +459,19 @@ L["Achievements"] = "成就"
 L["Totems"] = "图腾"
 L["Flyout buttons"] = "弹出按钮"
 L["Default Tooltip Modifier"] = "原版提示修饰键"
-L["CTRL"] = "CTRL"
-L["ALT"] = "ALT"
+L["Ctrl"] = "Ctrl"
+L["Alt"] = "Alt"
 L["Never"] = "从不"
-L["Hold CTRL to see the game's own tooltip instead of the panel."] = "按住CTRL可显示游戏原版提示，代替重绘面板。"
-L["Hold ALT to see the game's own tooltip instead of the panel."] = "按住ALT可显示游戏原版提示，代替重绘面板。"
+L["Hold Ctrl to see the game's own tooltip instead of the panel."] = "按住Ctrl可显示游戏原版提示，代替重绘面板。"
+L["Hold Alt to see the game's own tooltip instead of the panel."] = "按住Alt可显示游戏原版提示，代替重绘面板。"
 L["Never show the game's own tooltip in place of the panel."] = "始终使用面板，不切换到游戏原版提示。"
+L["Tooltip Details Modifier"] = "提示详情修饰键"
+L["Shift"] = "Shift"
+L["Always Show"] = "始终显示"
+L["Hold Shift to see disenchant results, the spell power breakdown and rates, gathering contents, and IDs. Each can still be turned off in the style editor."] =
+    "按住Shift可显示分解结果、法术强度分析和效率、采集内容以及ID。每项仍可在样式编辑器中关闭。"
+L["Always show disenchant results, the spell power breakdown and rates, gathering contents, and IDs, as each one's setting in the style editor allows."] =
+    "始终显示分解结果、法术强度分析和效率、采集内容以及ID，具体以样式编辑器中各项的设置为准。"
 L["Style Editor Appearance"] = "样式编辑器外观"
 L["Blizzard"] = "暴雪"
 L["Use the game's settings frame borders and controls."] = "使用游戏设置界面的边框和控件。"

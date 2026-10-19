@@ -471,7 +471,7 @@ end
 
 -- What the panel shows, for Panel/Render.lua to draw. Each spell's body,
 -- its own and a nested one's, is drawn here as one custom section.
-local function spellView(model)
+local function spellView(panel, model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local school = ns.Palette.detectSchool(model.description, model.name, model.spellID)
@@ -481,7 +481,7 @@ local function spellView(model)
     local color = accent or colors.neutral
     -- The spell power breakdown and the rates under it, each by its option.
     local function powerRows(part)
-        local showPower, showRates = ns.option("spellPower"), ns.option("spellRates")
+        local showPower, showRates = ns.showsDetail("spellPower", panel), ns.showsDetail("spellRates", panel)
         if not (showPower or showRates) or not ns.spellPowerRows or not ns.Locale.features.coefficients then
             return
         end
@@ -504,8 +504,8 @@ local function spellView(model)
     local body = bodyOf(model)
     if hasBody(model, body) then
         sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "custom",
-            measure = function(panel) return bodyWidth(panel, model, body, styles) end,
-            draw = function(panel, y) return drawBody(panel, model, body, y, color, styles, numberCode) end }
+            measure = function(p) return bodyWidth(p, model, body, styles) end,
+            draw = function(p, y) return drawBody(p, model, body, y, color, styles, numberCode) end }
     end
     local nested = model.nested
     if nested and nested.name then
@@ -513,17 +513,18 @@ local function spellView(model)
         local titleStyle = nestedTitleStyle(styles.spellTitle)
         sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE },
             kind = "custom",
-            measure = function(panel)
-                return math.max(measureStyled(panel, nested.name, titleStyle), bodyWidth(panel, nested, nestedBody, styles))
+            measure = function(p)
+                return math.max(measureStyled(p, nested.name, titleStyle), bodyWidth(p, nested, nestedBody, styles))
             end,
-            draw = function(panel, y)
-                y = y + styledAt(panel, nested.name, pad(), y, panel.width - 2 * pad(), titleStyle, TITLE_COLOR) + 6
-                return drawBody(panel, nested, nestedBody, y, color, styles, numberCode)
+            draw = function(p, y)
+                y = y + styledAt(p, nested.name, pad(), y, p.width - 2 * pad(), titleStyle, TITLE_COLOR) + 6
+                return drawBody(p, nested, nestedBody, y, color, styles, numberCode)
             end }
     end
-    if #model.extras > 0 then
+    local extras = ui.withID(panel, model.extras, L["Spell ID: %s"], model.spellID)
+    if #extras > 0 then
         sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 12 },
-            kind = "rows", rows = model.extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+            kind = "rows", rows = extras, style = styles.extras, color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     local header = {
         { text = model.name, style = styles.spellTitle, color = TITLE_COLOR, gap = 4 },
@@ -543,7 +544,7 @@ local function spellView(model)
 end
 
 local function renderSpell(panel, tooltip, model)
-    ui.renderView(panel, tooltip, spellView(model))
+    ui.renderView(panel, tooltip, spellView(panel, model))
 end
 
 -- A spell model from given fields: the editor's samples.

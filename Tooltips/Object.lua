@@ -229,7 +229,7 @@ local function skillText(skill)
 end
 
 -- What the panel shows, for Panel/Render.lua to draw.
-local function objectView(model)
+local function objectView(panel, model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local look = model.look
@@ -258,7 +258,7 @@ local function objectView(model)
         sections[#sections + 1] = { separator = { divider = ui.GOLD_RULE }, kind = "rows", rows = details,
             style = styles.objectDetails, color = DETAIL_COLOR, gap = 2 }
     end
-    if model.loot and ns.option("gatheringLoot") then
+    if model.loot and ns.showsDetail("gatheringLoot", panel) then
         local rows = {}
         for index, row in ipairs(model.loot) do
             rows[index] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
@@ -306,7 +306,7 @@ local function objectView(model)
 end
 
 local function renderObject(panel, tooltip, model)
-    ui.renderView(panel, tooltip, objectView(model))
+    ui.renderView(panel, tooltip, objectView(panel, model))
 end
 
 ui.objectModel = function(fields)

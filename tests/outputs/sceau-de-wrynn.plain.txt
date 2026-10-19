@@ -140,7 +140,7 @@ setItems: {}
 slot: "Doigt"
 weaponBonus: {}
 == tooltip render
-panel 264 x 273
+panel 264 x 288
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x100 rgb=1,1,1,1 band
@@ -161,3 +161,4 @@ text at 19,226 w=168 size=11 rgb=0.85,0.7,0 "Inventaire"
 text at 199,226 w=46 size=11 rgb=0.85,0.7,0 "|cff66bbffTotal: |cffffffff1|r|r"
 text at 19,241 w=157 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
 text at 188,241 w=57 size=11 rgb=0.85,0.7,0 "|cff66bbffEquipé: |cffffffff1|r |r"
+text at 19,256 w=226 size=11 rgb=0.6,0.6,0.63 "ID d'objet : 2933"

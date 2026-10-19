@@ -31,7 +31,8 @@ return function(test)
     local order = {}
     for index, row in ipairs(rows) do order[index] = row.text end
     test.check("first under the header", order,
-        { "GOLD PICKUP SCHEDULE", "Soulbound", "This Item Begins a Quest", '"A schedule of gold pickups."' })
+        { "GOLD PICKUP SCHEDULE", "Soulbound", "This Item Begins a Quest", '"A schedule of gold pickups."',
+            "Item ID: 1307" })
     test.check("in quest gold", { rows[3].color[1], rows[3].color[2], rows[3].color[3] }, { 1, .82, 0 })
     local marked = false
     for _, font in ipairs(panel.pool) do

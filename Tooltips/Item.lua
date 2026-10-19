@@ -1015,6 +1015,12 @@ local function itemStyles()
     return styles
 end
 
+-- A recipe's model keeps its ID; others keep the item's link.
+local function itemID(model)
+    if type(model.link) == "number" then return model.link end
+    if type(model.link) == "string" then return tonumber(model.link:match("item:(%d+)")) end
+end
+
 local function itemView(panel, model)
     local styles = itemStyles()
     local icon = ns.option("iconItems") and model.icon or nil
@@ -1062,16 +1068,17 @@ local function itemView(panel, model)
             rows = reagentRows(model), style = styles.reagents, color = { .90, .85, .74 }, gap = 3 })
         sectioned = true
     end
-    if model.disenchant and ns.option("disenchant") then
+    if model.disenchant and ns.showsDetail("disenchant", panel) then
         section({ separator = { divider = GOLD_RULE, before = sectioned and DIVIDER_AFTER or 0 }, kind = "rows",
             rows = { disenchantHeading(model.disenchant) }, style = styles.disenchant, color = FLAVOR_GOLD, gap = 4 })
         section({ kind = "rows", rows = disenchantRows(model.disenchant), style = styles.disenchant,
             color = { .88, .84, .76 }, gap = 2 })
         sectioned = true
     end
-    if #model.extras > 0 then
+    local extras = ui.withID(panel, model.extras, L["Item ID: %s"], itemID(model))
+    if #extras > 0 then
         section({ separator = sectioned and { rule = EXTRAS_RULE, before = RULE_AFTER } or { space = 12 }, kind = "rows",
-            rows = model.extras, style = styles.extras, color = EXTRA_COLOR, gap = 2, wrap = true })
+            rows = extras, style = styles.extras, color = EXTRA_COLOR, gap = 2, wrap = true })
     end
 
     local footerRight = shownFooterRight(model)
