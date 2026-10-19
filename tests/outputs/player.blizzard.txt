@@ -1,0 +1,5 @@
+== tooltip as the game shows it
+ 1 "Somebody Lollo"
+ 2 "Level 12 Night Elf (Player)"
+ 3 "Warrior"
+ 4 "Alliance"

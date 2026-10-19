@@ -1,4 +1,5 @@
--- Native item wording for lite mode and full panels, with modifier-key restoration.
+-- Item wording for the panel and, shortened, for the game's own tooltip, with
+-- modifier-key restoration.
 local _, ns = ...
 local isSecret = ns.util.isSecret
 local util = ns.util
@@ -12,7 +13,7 @@ local hookedTooltips = setmetatable({}, { __mode = "k" })
 
 local function onItemTooltip(tooltip, data)
     if not util.canModify(tooltip) then return end
-    if not ns.option("itemPanels") then return end
+    if not (ns.restyles("itemPanels") or ns.option("liteWording")) then return end
     if isSecret(data) or type(data) ~= "table" then return end
     local lines = data.lines
     if isSecret(lines) or type(lines) ~= "table" then return end
@@ -71,11 +72,12 @@ end
 
 -- The rewrite above changes the game's own tooltip text too, so its font
 -- strings get the wording that suits: the original while the original-tooltip
--- key is held, lite mode's shortened wording in native colors but for magic,
--- else the panel's.
+-- key is held, the panel's under a panel, else the shortened wording in native
+-- colors but for magic.
 local function wordingShown()
-    if ns.originalKeyDown() or not ns.option("itemPanels") then return "original" end
-    return ns.option("itemLite") and "lite" or "display"
+    if ns.originalKeyDown() then return "original" end
+    if ns.restyles("itemPanels") then return "display" end
+    return ns.option("liteWording") and "lite" or "original"
 end
 
 local function showWording(tooltip, wording, relayout)

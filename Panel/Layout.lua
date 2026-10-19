@@ -935,8 +935,9 @@ end
 
 -- Each tooltip data type the panel draws: read(tooltip, data, game) -> model,
 -- render(panel, tooltip, model), key(tooltip, data) naming what is shown,
--- option, the setting that turns the tooltip type on, and lite, a setting that keeps
--- the game's tooltip with its stats shortened and colored.
+-- option, the setting that turns the tooltip type on, and optionally
+-- details(model), the detail rows the game's own tooltip gets in its place,
+-- with detailKeys, the settings that turn them on.
 local TooltipTypes = {}
 
 -- Records a tooltip type, its reader and renderer profiled; the entry file

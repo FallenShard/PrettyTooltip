@@ -73,7 +73,7 @@ return function(test)
     test.check("lite colors the proc's numbers, as magic", data.lines[2].prettyTooltipLite, styled)
     test.check("native display keeps chance-on-hit wording", data.lines[2].prettyTooltipDisplay, styled)
     data.lines[2].lineIndex = 2
-    ns.setOption("itemLite", true)
+    ns.setOption("layout", "blizzard")
     world.postCalls[0][1](world.main, data)
     test.check("lite tooltip shows the proc's colored numbers", world.main:GetLeftLine(2):GetText(), styled)
     IsAltKeyDown = function() return true end
@@ -85,7 +85,7 @@ return function(test)
     world.preCalls[0][1](world.main, data)
     test.check("cached proc is not rewritten twice", data.lines[2].prettyTooltipDisplay, styled)
 
-    ns.setOption("itemLite", false)
+    ns.setOption("layout", "pretty")
     local model = ns.TooltipTypes[0].read(world.main, data, ns.Game)
     local effect = original:gsub("^Chance on hit:%s*", "")
     test.check("rewritten proc stays an on-hit effect", model.equipEffects[1], { left = effect, right = "", onHit = true })

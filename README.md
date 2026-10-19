@@ -34,9 +34,11 @@ Common Equip wordings become short stat rows:
 
 **Spell Power** is a bonus to both damage and healing; **Spell Damage Power** is damage only. Hit, crit, dodge, parry, block, ratings, attack power, health regeneration, and spell penetration are shortened the same way. Wording PrettyTooltip does not recognize is shown as the game writes it.
 
-### Lite item tooltips
+### The Blizzard layout
 
-With **Lite tooltips** turned on under **Item Details** in the style editor, items keep the game's own tooltip, with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat colors** is on. Combined bonuses split into separate lines. Everything else, including the stat markers and the disenchant section, is left out.
+With **Layout Style** set to **Blizzard** on the options page, every tooltip keeps the game's own look, and so does each kind whose **Restyle** box is off. Items keep the game's tooltip with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat colors** is on. Combined bonuses split into separate lines. **Short wording** under **Item Details** in the style editor turns this off.
+
+While the **Tooltip Details Modifier** is held (Shift by default), the details a panel would show are added at the bottom of the game's tooltip: disenchant results, the spell power breakdown and rates, gathering contents, and IDs, each as its switch in the style editor allows. Pressing or releasing the key refills a tooltip that is showing; in combat the change waits for the next tooltip. Holding the **Default Tooltip Modifier** shows the game's tooltip as it is, with neither.
 
 ### Colors
 
@@ -106,7 +108,7 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 - **School colors**, below the shared switches: a swatch for each of the six spell schools, followed by Holyfire and Frostfire. These colors apply across tooltip types, including item stats.
 - **Items Panel**, **Spells Panel**, and so on, for the kind shown: **Show icon**, and the opacity of the header band at its top and bottom edges, of the panel's body (**Backdrop**), and of the soft rarity **Glow** around it.
 - The kind's own details:
-  - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Lite tooltips** (see *Lite item tooltips* above), the disenchant section, and the sell price.
+  - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Short wording** (see *The Blizzard layout* above), the disenchant section, and the sell price.
   - **Spell Details**: the spell power breakdown and the damage and healing rates under it.
   - **Unit Details**: the level badge (off, the level stays in the info line), the health bar, what a skinnable creature gives, and the nine **Class colors** swatches. Hover a swatch for its class name.
   - **Object Details**: what herbs and ore give: a node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap.
@@ -117,8 +119,9 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 
 Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor, which has every setting about the look and each kind's details, and holds the rest; hover a setting for what it does.
 
+- **Layout Style**: **PrettyTooltip** (the default) draws the panel for each kind turned on under **Restyled Tooltips**; **Blizzard** keeps the game's own tooltips everywhere, as described in *The Blizzard layout* above, and greys out the **Restyle** column.
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
-  - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, wording included. The other kinds are greyed out until PrettyTooltip restyles them.
+  - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, with the details added while their modifier is held. The other kinds are greyed out until PrettyTooltip restyles them.
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
   - **Disable in combat**, under **Follow cursor** (on by default): use the default tooltip position during combat, then resume following the cursor afterward. Each kind's Follow cursor preference is kept.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never**.

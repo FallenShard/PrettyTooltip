@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "圣光闪现  ||  等级 2"
+ 2 "50法力值  ||  40码距离"
+ 3 "1.5秒施法时间"
+ 4 "治疗友方目标，恢复67到76点生命值。"
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 7 " "
+ 8 "治疗强度系数  ||  |cffFBCF7442.9%|r |cff999185·|r 67至76 + |cffFBCF740|r"
+ 9 "每秒治疗量  ||  47.7"
+10 "每点法力治疗量  ||  1.43"
+11 "法术ID：19939"

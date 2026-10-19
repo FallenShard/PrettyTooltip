@@ -1,0 +1,10 @@
+== tooltip as the game shows it
+ 1 "Improved Frostbolt"
+ 2 "Rank |cffffffff5|r/5"
+ 3 " "
+ 4 "Passive"
+ 5 "Reduces the casting time of your Frostbolt spell by 0.5 sec."
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 8 " "
+ 9 "Spell ID: 11070"

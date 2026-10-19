@@ -290,9 +290,9 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Couleurs des caractéristiques"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Chaque type de caractéristique dans sa couleur ci-dessous, et les couleurs des écoles. Désactivé : toutes les caractéristiques sont couleur parchemin."
-L["Lite tooltips"] = "Infobulles légères"
-L["Keep the game's own item tooltip, with its Equip effects shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the modifier for the full wording. The panel's item settings, such as disenchant results, do not apply."] =
-    "Garde l'infobulle d'objet du jeu, avec ses effets Équipé raccourcis, comme +1% Chances de coup critique, et les couleurs du jeu, sauf la puissance des sorts et les effets Chances quand vous touchez, dans leurs couleurs. Maintenez la touche de modification pour le texte complet. Les réglages d'objet du cadre, comme les résultats de désenchantement, ne s'appliquent pas."
+L["Short wording"] = "Libellés courts"
+L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
+    "Là où l'infobulle d'objet du jeu s'affiche, dans la mise en page Blizzard ou pour les objets non restylés, ses effets Équipé sont raccourcis, comme +1% Chances de coup critique, et les couleurs du jeu gardées, sauf la puissance des sorts et les effets Chances quand vous touchez, dans leurs couleurs de caractéristique. Maintenez la touche pour l'infobulle du jeu pour le libellé complet."
 L["Disenchant"] = "Désenchanter"
 L["Green, blue, and purple armor and weapons list what they disenchant into, with each result's chance and the Enchanting it needs; with Auctionator, the expected value."] =
     "Les armures et armes vertes, bleues et violettes indiquent ce qu'elles donnent une fois désenchantées, avec la chance de chaque résultat et l'Enchantement requis ; avec Auctionator, la valeur estimée."
@@ -459,8 +459,8 @@ L["Follow cursor"] = "Suivre le curseur"
 L["Disable in combat"] = "Désactiver en combat"
 L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
     "Utiliser la position par défaut de l’infobulle en combat, puis suivre à nouveau le curseur après le combat."
-L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] =
-    "Dessine le cadre PrettyTooltip. Désactivé : ce type garde l'infobulle du jeu."
+L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip, with the details modifier's rows added to it."] =
+    "Dessine le cadre PrettyTooltip. Désactivé : ce type garde l'infobulle du jeu, complétée des lignes de la touche des détails."
 L["Not restyled yet; this kind keeps the game's own tooltip."] =
     "Pas encore restylé ; ce type garde l'infobulle du jeu."
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =
@@ -493,6 +493,12 @@ L["Mounts, toys, and pets"] = "Montures, jouets et mascottes"
 L["Achievements"] = "Hauts faits"
 L["Totems"] = "Totems"
 L["Flyout buttons"] = "Boutons déroulants"
+L["Layout Style"] = "Style de mise en page"
+L["PrettyTooltip"] = "PrettyTooltip"
+L["Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips."] =
+    "Dessine le cadre PrettyTooltip pour chaque type activé sous Infobulles restylées."
+L["Keep the game's own tooltips. Item Equip effects are shortened, and the details modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs."] =
+    "Garde les infobulles du jeu. Les effets Équipé des objets sont raccourcis, et la touche des détails ajoute les résultats de désenchantement, la répartition de puissance des sorts et les débits, le contenu des récoltes et les ID."
 L["Default Tooltip Modifier"] = "Touche pour l'infobulle du jeu"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"

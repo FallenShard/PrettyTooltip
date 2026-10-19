@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "Clarão de Luz  ||  Grau 2"
+ 2 "50 de Mana  ||  Alcance de 40 m"
+ 3 "Lançamento de 1,5 s"
+ 4 "Cura 67 a 76 pontos de vida de um alvo aliado."
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 7 " "
+ 8 "Coeficiente de poder de cura  ||  |cffFBCF7442,9%|r |cff999185·|r 67 a 76 + |cffFBCF740|r"
+ 9 "Cura por segundo  ||  47,7"
+10 "Cura por ponto de mana  ||  1,43"
+11 "ID do feitiço: 19939"

@@ -1,0 +1,10 @@
+== tooltip as the game shows it
+ 1 "Bengus Baixaforja"
+ 2 "Ferreiro Artífice"
+ 3 "Nível 45"
+ 4 "Altaforja"
+ 5 "JxJ"
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Creature"
+ 8 " "
+ 9 "ID do PNJ: 4258"

@@ -1,0 +1,9 @@
+== tooltip as the game shows it
+ 1 "(hidden)  ||  (hidden)"
+ 2 "(hidden)  ||  (hidden)"
+ 3 "(hidden)"
+ 4 "(hidden)"
+ 5 "(hidden)"
+ 6 "(hidden)"
+ 7 " "
+ 8 "Spell ID: 1259799"

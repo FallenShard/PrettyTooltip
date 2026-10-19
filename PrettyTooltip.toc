@@ -51,6 +51,7 @@ UI\EditorSkin.lua
 UI\Editor.lua
 Integration\Native.lua
 Integration\Hooks.lua
+Integration\Details.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
 #@debug@

@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "빛의 섬광  ||  2 레벨"
+ 2 "마나 50  ||  유효 거리 40미터"
+ 3 "시전 시간 1.5초"
+ 4 "대상의 생명력을 67~76만큼 회복시킵니다."
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 7 " "
+ 8 "치유량 계수  ||  |cffFBCF7442.9%|r |cff999185·|r 67~76 + |cffFBCF740|r"
+ 9 "초당 치유량  ||  47.7"
+10 "마나당 치유량  ||  1.43"
+11 "주문 ID: 19939"

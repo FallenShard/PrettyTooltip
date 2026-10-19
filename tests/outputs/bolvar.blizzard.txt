@@ -1,0 +1,9 @@
+== tooltip as the game shows it
+ 1 "Highlord Bolvar Fordragon"
+ 2 "Level ?? (Boss)"
+ 3 "Stormwind"
+ 4 "PvP"
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Creature"
+ 7 " "
+ 8 "NPC ID: 1748"

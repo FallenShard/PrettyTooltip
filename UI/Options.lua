@@ -70,13 +70,18 @@ function ns.Options.register()
     end
     leftColumn.y = leftColumn.y - 16
 
-    local function typeBox(x, key, title, text)
+    -- The Blizzard layout restyles no kind, so a kind's own box has no say then.
+    local function typeBox(x, key, title, text, followsLayout)
         local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
         button:SetSize(24, 24)
         button:SetPoint("TOPLEFT", x, leftColumn.y + 4)
         if key then
             button:SetScript("OnClick", function(self) setOption(key, self:GetChecked() and true or false) end)
-            button.refresh = function() button:SetChecked(ns.option(key)) end
+            if button.SetMotionScriptsWhileDisabled then button:SetMotionScriptsWhileDisabled(true) end
+            button.refresh = function()
+                button:SetChecked(ns.option(key))
+                if followsLayout then button:SetEnabled(ns.option("layout") ~= "blizzard") end
+            end
             controls[#controls + 1] = button
         else
             button:Disable()
@@ -92,8 +97,9 @@ function ns.Options.register()
         label:SetPoint("TOPLEFT", leftColumn.x + 8, leftColumn.y - 1)
         label:SetText(L[tooltipType.label])
         typeBox(leftColumn.x + 254, tooltipType.restyle, L["Restyle " .. tooltipType.label:lower()], tooltipType.restyle
-            and "Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."
-            or "Not restyled yet; this kind keeps the game's own tooltip.")
+            and "Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip, with the details "
+                .. "modifier's rows added to it."
+            or "Not restyled yet; this kind keeps the game's own tooltip.", true)
         typeBox(leftColumn.x + 354, tooltipType.cursor, "Follow cursor", "Shows this kind's tooltip at the cursor "
             .. "when the game would put it in its default corner; bags and other panels keep theirs. Off, "
             .. "its position is left to the game and other addons.")
@@ -126,6 +132,13 @@ function ns.Options.register()
     local function optionRadios(column, key, choices)
         radios(column, choices, function() return ns.option(key) end, function(value) setOption(key, value) end)
     end
+
+    section(rightColumn, "Layout Style")
+    optionRadios(rightColumn, "layout", {
+        { "pretty", "PrettyTooltip", "Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips." },
+        { "blizzard", "Blizzard", "Keep the game's own tooltips. Item Equip effects are shortened, and the details "
+            .. "modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs." },
+    })
 
     section(rightColumn, "Default Tooltip Modifier")
     optionRadios(rightColumn, "originalKey", {

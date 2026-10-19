@@ -1,0 +1,9 @@
+== tooltip as the game shows it
+ 1 "Gwennyth Bly'Leggonde"
+ 2 "Level 21"
+ 3 "Darnassus"
+ 4 "PvP"
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Creature"
+ 7 " "
+ 8 "NPC ID: 10219"

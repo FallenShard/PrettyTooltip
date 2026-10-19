@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "Winter's Chill"
+ 2 "Rank |cffffffff0|r/5"
+ 3 " "
+ 4 "Passive"
+ 5 "Gives your Frost damage spells a 20% chance to apply the Winter's Chill effect, which increases the chance your Ice Lance and Frostbolt spells will critically hit the target by 2% for 15 sec. Stacks up to 1 times."
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 8 " "
+ 9 "|cffff2020Spend 18 more points in Frost Talents|r"
+10 " "
+11 "Spell ID: 11180"

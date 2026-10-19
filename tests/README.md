@@ -5,7 +5,7 @@ The tests run the addon outside the game, in Lua 5.1 (the game's) through [lupa]
 ```
 pip install -r tests/requirements.txt
 python tests/run.py              # everything
-python tests/run.py -k frost     # tests whose name holds "frost" ("samples", "lint", ".lite" work too)
+python tests/run.py -k frost     # tests whose name holds "frost" ("samples", "lint", ".blizzard" work too)
 python tests/run.py --update     # accept the current output as the expected
 python tests/run.py --notes      # list what each fixture lacked an answer for
 python tests/run.py --coverage   # which lines and functions the tests ran
@@ -59,7 +59,7 @@ A capture holds the game's answers to what the readers ask (item, spell, and uni
 
 ### Settings variants
 
-`tests/variants.lua` lists, by type of tooltip, other settings each fixture of that type also runs with: items in lite mode, and items and spells with their optional parts turned off. A variant's expected output is `tests/outputs/<fixture>.<variant>.txt`. Lite mode leaves the game's tooltip showing, so its output is the game's tooltip, line by line, after every post-call.
+`tests/variants.lua` lists, by type of tooltip, other settings each fixture of that type also runs with: items, spells, objects, and units in the Blizzard layout, and items and spells with their optional parts turned off. A variant's expected output is `tests/outputs/<fixture>.<variant>.txt`. The Blizzard layout leaves the game's tooltip showing, so its output is the game's tooltip, line by line, after every post-call, with the details appended (the harness holds Shift).
 
 ### The style editor's samples
 

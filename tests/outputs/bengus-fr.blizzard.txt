@@ -1,0 +1,10 @@
+== tooltip as the game shows it
+ 1 "Bengus Deepforge"
+ 2 "Artisan forgeron"
+ 3 "Niveau 45"
+ 4 "Forgefer"
+ 5 "JcJ"
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Creature"
+ 8 " "
+ 9 "ID de PNJ : 4258"

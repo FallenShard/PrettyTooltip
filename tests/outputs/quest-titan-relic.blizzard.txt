@@ -1,0 +1,10 @@
+== tooltip as the game shows it
+ 1 "Titan Relic"
+ 2 "Soulbound"
+ 3 "Unique"
+ 4 "This Item Begins a Quest"
+ 5 "\"Fragmented remnants of the construct, refracting light like a kaleidoscope.\""
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Item"
+ 8 " "
+ 9 "Item ID: 270865"

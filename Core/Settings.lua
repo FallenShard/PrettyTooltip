@@ -5,9 +5,12 @@ local colors = ns.Palette.roles
 
 local DEFAULTS = {
     iconRight = false,
+    -- "pretty" draws panels for the types turned on below; "blizzard" keeps
+    -- the game's own tooltips everywhere.
+    layout = "pretty",
     itemPanels = true,
-    -- The game's item tooltip with shortened wording, in its colors but for magic.
-    itemLite = false,
+    -- The game's own item tooltip shortens Equip effects, in its colors but for magic.
+    liteWording = true,
     objectPanels = true,
     unitPanels = true,
     auraPanels = true,
@@ -76,6 +79,11 @@ function ns.option(key)
     return DEFAULTS[key]
 end
 
+-- Whether a type whose panel the setting `option` turns on draws it.
+function ns.restyles(option)
+    return ns.option("layout") ~= "blizzard" and ns.option(option) and true or false
+end
+
 function ns.editorStyle()
     if ns.option("editorStyle") == "flat" then
         return "flat"
@@ -99,6 +107,14 @@ local function setOption(key, value)
     changed()
 end
 ns.setOption = setOption
+
+-- 1.3's item lite mode was the game's item tooltip; it is now items not restyled.
+function ns.migrateOptions()
+    local db = PrettyTooltipDB
+    if type(db) ~= "table" or db.itemLite == nil then return end
+    if db.itemLite == true then db.itemPanels = false end
+    db.itemLite = nil
+end
 
 function ns.resetOptions()
     PrettyTooltipDB = {}

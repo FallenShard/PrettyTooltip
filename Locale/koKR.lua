@@ -272,9 +272,9 @@ L["The small diamond before each stat; enchants use a green one."] = "각 능력
 L["Stat colors"] = "능력치 색상"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "아래의 능력치 분류 색상과 주문 계열 색상을 사용합니다. 끄면 모든 능력치를 양피지 색으로 표시합니다."
-L["Lite tooltips"] = "간소화 툴팁"
-L["Keep the game's own item tooltip, with its Equip effects shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the modifier for the full wording. The panel's item settings, such as disenchant results, do not apply."] =
-    "게임의 아이템 툴팁을 유지하면서 착용 효과를 치명타 확률 +1%처럼 줄여 표시합니다. 게임 색상을 유지하되 주문력과 적중 시 발동 효과에는 능력치 색상을 사용합니다. 보조키를 누르면 원문이 표시됩니다. 마력 추출 결과 등 패널의 아이템 설정은 적용되지 않습니다."
+L["Short wording"] = "짧은 문구"
+L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
+    "블리자드 레이아웃이나 꾸미지 않는 아이템처럼 게임의 아이템 툴팁이 보일 때, 착용 효과를 치명타 확률 +1%처럼 줄여 표시합니다. 게임 색상을 유지하되 주문력과 적중 시 발동 효과에는 능력치 색상을 씁니다. 기본 툴팁 보조키를 누르면 전체 문구를 표시합니다."
 L["Disenchant"] = "마력 추출"
 L["Green, blue, and purple armor and weapons list what they disenchant into, with each result's chance and the Enchanting it needs; with Auctionator, the expected value."] =
     "녹색, 파란색, 보라색 방어구와 무기의 마력 추출 결과, 각 결과의 확률, 필요한 마법부여 숙련도를 표시합니다. Auctionator가 있으면 기대 가격도 표시합니다."
@@ -429,7 +429,8 @@ L["Follow cursor"] = "커서 따라가기"
 L["Disable in combat"] = "전투 중 비활성화"
 L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
     "전투 중에는 툴팁을 기본 위치에 표시하고, 전투가 끝나면 다시 커서를 따라갑니다."
-L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] = "PrettyTooltip 패널을 표시합니다. 끄면 이 종류에는 게임의 기본 툴팁을 사용합니다."
+L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip, with the details modifier's rows added to it."] =
+    "PrettyTooltip 패널을 표시합니다. 끄면 이 종류에는 게임의 기본 툴팁을 사용하고, 세부 정보 보조키의 줄을 덧붙입니다."
 L["Not restyled yet; this kind keeps the game's own tooltip."] = "아직 꾸미기를 지원하지 않아 게임의 기본 툴팁을 사용합니다."
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =
     "기본 모서리에 나타나는 툴팁을 커서 위치에 표시합니다. 가방과 다른 창에 붙는 툴팁은 위치를 유지합니다. 끄면 게임과 다른 애드온이 위치를 정합니다."
@@ -461,6 +462,12 @@ L["Mounts, toys, and pets"] = "탈것, 장난감 및 애완동물"
 L["Achievements"] = "업적"
 L["Totems"] = "토템"
 L["Flyout buttons"] = "펼침 버튼"
+L["Layout Style"] = "레이아웃 스타일"
+L["PrettyTooltip"] = "PrettyTooltip"
+L["Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips."] =
+    "툴팁 꾸미기에서 켠 각 종류에 PrettyTooltip 패널을 표시합니다."
+L["Keep the game's own tooltips. Item Equip effects are shortened, and the details modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs."] =
+    "게임의 기본 툴팁을 유지합니다. 아이템의 착용 효과를 줄여 표시하고, 툴팁 세부 정보 보조키로 마력 추출 결과, 주문력 분석과 효율, 채집 내용, ID를 추가합니다."
 L["Default Tooltip Modifier"] = "기본 툴팁 보조키"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"

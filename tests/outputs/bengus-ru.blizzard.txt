@@ -1,0 +1,10 @@
+== tooltip as the game shows it
+ 1 "Бенгус Подземная Кузня"
+ 2 "Кузнец-искусник"
+ 3 "Уровень 45"
+ 4 "Стальгорн"
+ 5 "PvP"
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Creature"
+ 8 " "
+ 9 "ID НИП: 4258"

@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "Holy Light  ||  Rank 5"
+ 2 "275 Mana  ||  40 yd range"
+ 3 "2.5 sec cast"
+ 4 "Heals a friendly target for 425 to 479."
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 7 " "
+ 8 "Healing Power Coefficient  ||  |cffFBCF7471.4%|r |cff999185·|r 425 to 479 + |cffFBCF740|r"
+ 9 "Healing per Second  ||  180.8"
+10 "Healing per Mana  ||  1.64"
+11 "Spell ID: 1042"

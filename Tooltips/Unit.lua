@@ -365,6 +365,21 @@ local function dragonArt(classification, game)
     }
 end
 
+-- The Skinning a dead creature needs, then what it may give.
+local function skinningRows(skin)
+    local rows = {}
+    if skin.needed then
+        rows[1] = { left = util.fill(L["Requires %s %s"], ns.Locale.skillName("Skinning"), skin.needed),
+            right = skin.player and util.fill(L["Your skill %s"], skin.player) or "",
+            color = ns.Palette.skillUpColor(skin.needed, skin.player) or DETAIL_COLOR, rightColor = colors.caption }
+    end
+    for _, row in ipairs(skin.rows) do
+        rows[#rows + 1] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
+            rightColor = row.rare and colors.caption or nil }
+    end
+    return rows
+end
+
 -- What the panel shows, for Panel/Render.lua to draw.
 local function unitView(panel, model, healthBar)
     local styles = {}
@@ -391,18 +406,8 @@ local function unitView(panel, model, healthBar)
     end
     local skin = model.skinning
     if skin and ns.showsDetail("gatheringLoot", panel) then
-        local rows = {}
-        if skin.needed then
-            rows[1] = { left = util.fill(L["Requires %s %s"], ns.Locale.skillName("Skinning"), skin.needed),
-                right = skin.player and util.fill(L["Your skill %s"], skin.player) or "",
-                color = ns.Palette.skillUpColor(skin.needed, skin.player) or DETAIL_COLOR, rightColor = colors.caption }
-        end
-        for _, row in ipairs(skin.rows) do
-            rows[#rows + 1] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
-                rightColor = row.rare and colors.caption or nil }
-        end
         sections[#sections + 1] = { separator = { rule = EXTRAS_RULE }, kind = "rows",
-            rows = rows, style = styles.unitSkinning, color = DETAIL_COLOR, gap = 2 }
+            rows = skinningRows(skin), style = styles.unitSkinning, color = DETAIL_COLOR, gap = 2 }
     end
     if #model.quests > 0 then
         local quests = {}
@@ -572,4 +577,17 @@ ui.unitModel = function(fields)
     return completeModel(fields, nil, ns.Game)
 end
 -- Its target, tapped, and dead rows come from the game, not the tooltip's text.
-ui.defineTooltipType(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true })
+local function details(model)
+    local rows = {}
+    if model.skinning and ns.showsDetail("gatheringLoot") then
+        for _, row in ipairs(skinningRows(model.skinning)) do
+            row.color = row.color or DETAIL_COLOR
+            rows[#rows + 1] = row
+        end
+    end
+    rows[#rows + 1] = ui.idRow(nil, L["NPC ID: %s"], npcID(model.guid))
+    return rows
+end
+
+ui.defineTooltipType(UNIT, { read = readUnit, render = renderUnit, key = unitKey, option = "unitPanels", alwaysRedraw = true,
+    details = details, detailKeys = { "gatheringLoot", "showIDs" } })

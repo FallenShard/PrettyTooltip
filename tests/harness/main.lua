@@ -144,8 +144,14 @@ local function nativeLines(label, tooltip)
     local out = { "== " .. label .. " as the game shows it" }
     for index = 1, tooltip:NumLines() do
         local left, right = tooltip._left[index], tooltip._right[index]
-        local text = left and left._shown and left._text or ""
-        if right and right._shown and right._text and right._text ~= "" then text = text .. "  ||  " .. right._text end
+        local function shown(font)
+            if not (font and font._shown) then return nil end
+            if issecretvalue(font._text) then return "(hidden)" end
+            return font._text
+        end
+        local text = shown(left) or ""
+        local rightText = shown(right)
+        if rightText and rightText ~= "" then text = text .. "  ||  " .. rightText end
         out[#out + 1] = string.format("%2d %q", index, text)
     end
     return table.concat(out, "\n")

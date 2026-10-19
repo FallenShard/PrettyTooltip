@@ -293,9 +293,9 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Cores dos atributos"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Cada tipo de atributo na sua cor abaixo, e as cores das escolas. Desligado, todo atributo fica cor de pergaminho."
-L["Lite tooltips"] = "Dicas leves"
-L["Keep the game's own item tooltip, with its Equip effects shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the modifier for the full wording. The panel's item settings, such as disenchant results, do not apply."] =
-    "Mantém a dica de item do jogo, com os efeitos de Equipado encurtados, como +1% Chance de acerto crítico, e as cores do jogo, exceto o poder mágico e os efeitos de chance ao acertar, nas cores dos atributos. Segure o modificador para o texto completo. As configurações de item do painel, como os resultados de desencantar, não se aplicam."
+L["Short wording"] = "Texto curto"
+L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
+    "Onde a dica de item do jogo aparece, no layout Blizzard ou com itens não redesenhados, os efeitos de Equipado são encurtados, como +1% Chance de acerto crítico, e as cores do jogo mantidas, exceto o poder mágico e os efeitos de chance ao acertar, nas cores de atributo. Segure a tecla para a dica do jogo para ver o texto completo."
 L["Disenchant"] = "Desencantar"
 L["Green, blue, and purple armor and weapons list what they disenchant into, with each result's chance and the Enchanting it needs; with Auctionator, the expected value."] =
     "Armaduras e armas verdes, azuis e roxas mostram no que se desencantam, com a chance de cada resultado e o Encantamento necessário; com o Auctionator, o valor estimado."
@@ -464,8 +464,8 @@ L["Follow cursor"] = "Seguir o cursor"
 L["Disable in combat"] = "Desativar em combate"
 L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
     "Usar a posição padrão da dica durante o combate e voltar a seguir o cursor depois."
-L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] =
-    "Desenha o painel do PrettyTooltip. Desligado, este tipo mantém a dica do jogo."
+L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip, with the details modifier's rows added to it."] =
+    "Desenha o painel do PrettyTooltip. Desligado, este tipo mantém a dica do jogo, com as linhas da tecla para os detalhes adicionadas."
 L["Not restyled yet; this kind keeps the game's own tooltip."] =
     "Ainda não redesenhado; este tipo mantém a dica do jogo."
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =
@@ -498,6 +498,12 @@ L["Mounts, toys, and pets"] = "Montarias, brinquedos e mascotes"
 L["Achievements"] = "Conquistas"
 L["Totems"] = "Totens"
 L["Flyout buttons"] = "Botões expansíveis"
+L["Layout Style"] = "Estilo de layout"
+L["PrettyTooltip"] = "PrettyTooltip"
+L["Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips."] =
+    "Desenha o painel do PrettyTooltip para cada tipo ligado em Dicas redesenhadas."
+L["Keep the game's own tooltips. Item Equip effects are shortened, and the details modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs."] =
+    "Mantém as dicas do jogo. Os efeitos de Equipado dos itens são encurtados, e a tecla para os detalhes adiciona os resultados de desencantar, a divisão de poder mágico e as taxas, o conteúdo de coleta e os IDs."
 L["Default Tooltip Modifier"] = "Tecla para a dica do jogo"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"

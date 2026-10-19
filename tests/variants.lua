@@ -6,14 +6,22 @@ return {
     Item = {
         -- The panel's own flat look, which the game's border replaces by default.
         flat = { settings = { backdropStyle = "flat" } },
-        -- The game's tooltip, its Equip effects shortened and original colors kept.
-        lite = { settings = { itemLite = true }, native = true },
+        -- The game's tooltip, its Equip effects shortened and original colors kept,
+        -- with the details appended while Shift is held.
+        blizzard = { settings = { layout = "blizzard" }, native = true },
         -- The panel with its optional parts and colors turned off.
         plain = { settings = { statMarkers = false, statColors = false, qualityTint = false, separators = false,
             iconItems = false, itemLevelBadge = false, disenchant = false, sellPrice = false } },
     },
     Spell = {
         flat = { settings = { backdropStyle = "flat" } },
+        blizzard = { settings = { layout = "blizzard" }, native = true },
         plain = { settings = { iconSpells = false, spellPower = false, spellRates = false, qualityTint = false, separators = false } },
+    },
+    Object = {
+        blizzard = { settings = { layout = "blizzard" }, native = true },
+    },
+    Unit = {
+        blizzard = { settings = { layout = "blizzard" }, native = true },
     },
 }

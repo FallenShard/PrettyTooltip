@@ -1,0 +1,16 @@
+== tooltip as the game shows it
+ 1 "Rip  ||  Rank 1"
+ 2 "30 Energy\
+1 to 5 Combo Points  ||  Melee Range"
+ 3 "Instant"
+ 4 "Requires Cat Form"
+ 5 "Finishing move that causes damage over time.  Damage increases per combo point and by your Attack Power:\r\
+   1 point  : 44 damage over 12 sec.\r\
+   2 points: 71 damage over 12 sec.\r\
+   3 points: 97 damage over 12 sec.\r\
+   4 points: 124 damage over 12 sec.\r\
+   5 points: 150 damage over 12 sec."
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 8 " "
+ 9 "Spell ID: 1079"

@@ -699,6 +699,7 @@ local function setCountStyle(setName)
 end
 
 local DISENCHANT_GREY = { .55, .53, .50 }
+local DISENCHANT_TEXT = { .88, .84, .76 }
 
 local function disenchantHeading(result)
     local row = { left = ROLL_DISENCHANT,
@@ -1072,7 +1073,7 @@ local function itemView(panel, model)
         section({ separator = { divider = GOLD_RULE, before = sectioned and DIVIDER_AFTER or 0 }, kind = "rows",
             rows = { disenchantHeading(model.disenchant) }, style = styles.disenchant, color = FLAVOR_GOLD, gap = 4 })
         section({ kind = "rows", rows = disenchantRows(model.disenchant), style = styles.disenchant,
-            color = { .88, .84, .76 }, gap = 2 })
+            color = DISENCHANT_TEXT, gap = 2 })
         sectioned = true
     end
     local extras = ui.withID(panel, model.extras, L["Item ID: %s"], itemID(model))
@@ -1111,4 +1112,20 @@ local function render(panel, tooltip, model)
 end
 render = probe("render item", render)
 
-ns.TooltipTypes[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels", lite = "itemLite" }
+local function details(model)
+    local rows = {}
+    if model.disenchant and ns.showsDetail("disenchant") then
+        local heading = disenchantHeading(model.disenchant)
+        heading.color = FLAVOR_GOLD
+        rows[1] = heading
+        for _, row in ipairs(disenchantRows(model.disenchant)) do
+            row.color = row.color or DISENCHANT_TEXT
+            rows[#rows + 1] = row
+        end
+    end
+    rows[#rows + 1] = ui.idRow(nil, L["Item ID: %s"], itemID(model))
+    return rows
+end
+
+ns.TooltipTypes[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels",
+    details = details, detailKeys = { "disenchant", "showIDs" } }

@@ -1,0 +1,10 @@
+== tooltip as the game shows it
+ 1 "本古斯·深炉"
+ 2 "高级铁匠"
+ 3 "等级 45"
+ 4 "铁炉堡"
+ 5 "PvP"
+ 6 " "
+ 7 "|c0042b1fePress F6 to submit an issue for this Creature"
+ 8 " "
+ 9 "NPC ID：4258"

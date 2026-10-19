@@ -289,9 +289,9 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Colores de estadísticas"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Cada tipo de estadística en su color de abajo, y los colores de escuela. Desactivado, todas las estadísticas son color pergamino."
-L["Lite tooltips"] = "Descripciones ligeras"
-L["Keep the game's own item tooltip, with its Equip effects shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the modifier for the full wording. The panel's item settings, such as disenchant results, do not apply."] =
-    "Conserva la descripción de objeto del juego, con sus efectos de Equipar abreviados, como +1% Probabilidad de golpe crítico, y los colores del juego, salvo el poder con hechizos y los efectos de probabilidad al acertar, en sus colores de estadística. Mantén presionado el modificador para el texto completo. Los ajustes de objeto del panel, como los resultados de desencantar, no se aplican."
+L["Short wording"] = "Texto abreviado"
+L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
+    "Donde se muestra la descripción de objeto del juego, en el diseño Blizzard o con los objetos sin rediseñar, sus efectos de Equipar se abrevian, como +1% Probabilidad de golpe crítico, y se conservan los colores del juego, salvo el poder con hechizos y los efectos de probabilidad al golpear, en sus colores de atributo. Mantén presionada la tecla para la descripción del juego para ver el texto completo."
 L["Disenchant"] = "Desencantar"
 L["Green, blue, and purple armor and weapons list what they disenchant into, with each result's chance and the Enchanting it needs; with Auctionator, the expected value."] =
     "Las armaduras y armas verdes, azules y moradas indican en qué se desencantan, con la probabilidad de cada resultado y el Encantamiento que requieren; con Auctionator, el valor estimado."
@@ -460,8 +460,8 @@ L["Follow cursor"] = "Seguir el cursor"
 L["Disable in combat"] = "Desactivar en combate"
 L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
     "Usar la posición predeterminada de la descripción durante el combate y volver a seguir el cursor al terminar."
-L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] =
-    "Dibuja el panel de PrettyTooltip. Desactivado, este tipo conserva la descripción del juego."
+L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip, with the details modifier's rows added to it."] =
+    "Dibuja el panel de PrettyTooltip. Desactivado, este tipo conserva la descripción del juego, con las filas de la tecla para los detalles agregadas."
 L["Not restyled yet; this kind keeps the game's own tooltip."] =
     "Aún sin rediseñar; este tipo conserva la descripción del juego."
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =
@@ -494,6 +494,12 @@ L["Mounts, toys, and pets"] = "Monturas, juguetes y mascotas"
 L["Achievements"] = "Logros"
 L["Totems"] = "Tótems"
 L["Flyout buttons"] = "Botones desplegables"
+L["Layout Style"] = "Estilo de diseño"
+L["PrettyTooltip"] = "PrettyTooltip"
+L["Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips."] =
+    "Dibuja el panel de PrettyTooltip para cada tipo activado en Descripciones rediseñadas."
+L["Keep the game's own tooltips. Item Equip effects are shortened, and the details modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs."] =
+    "Conserva las descripciones del juego. Los efectos de Equipar de los objetos se abrevian, y la tecla para los detalles agrega los resultados de desencantar, el reparto de poder con hechizos y las tasas, el contenido de la recolección y los ID."
 L["Default Tooltip Modifier"] = "Tecla para la descripción del juego"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"

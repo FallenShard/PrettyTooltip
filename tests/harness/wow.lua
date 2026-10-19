@@ -366,6 +366,20 @@ return function(fixture, enums, report, strings)
         return font
     end
 
+    -- Lines addon code adds, after the ones the game drew.
+    local function addLine(tooltip, left, right, leftColor, rightColor)
+        tooltip._lines, tooltip._left, tooltip._right = tooltip._lines or {}, tooltip._left or {}, tooltip._right or {}
+        local index = #tooltip._lines + 1
+        local line = { left = { text = left, color = leftColor }, right = right and { text = right, color = rightColor } }
+        tooltip._lines[index] = line
+        tooltip._left[index] = fontLine(tooltip, "Left", index, line.left)
+        tooltip._right[index] = fontLine(tooltip, "Right", index, line.right)
+    end
+    function Object:AddLine(text, r, g, b) addLine(self, text, nil, { r, g, b }) end
+    function Object:AddDoubleLine(left, right, r, g, b, r2, g2, b2)
+        addLine(self, left, right, { r, g, b }, { r2, g2, b2 })
+    end
+
     local function tooltipFrom(name, capture)
         local tooltip = _G[name] or new("GameTooltip", name, nil)
         tooltip._lines, tooltip._left, tooltip._right = {}, {}, {}

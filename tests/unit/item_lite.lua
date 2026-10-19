@@ -1,4 +1,4 @@
--- Lite shortens selected lines and keeps native colors and other rows; with
+-- The game's own item tooltip shortens selected lines and keeps native colors and other rows; with
 -- stat colors on, magical stats and chance on hit effects keep theirs.
 return function(test)
     local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua", "Locale/English.lua", "Data/Stats.lua", "Integration/ItemLite.lua" }
@@ -31,7 +31,7 @@ return function(test)
             expected[3] = colored("+20 Healing Power") .. "|n" .. colored("+10 Spell Damage Power")
             expected[6] = ns.Stats.styleEffect(original[6], true)
         end
-        ns.setOption("itemLite", true)
+        ns.setOption("layout", "blizzard")
         ns.setOption("statColors", enabled)
         ns.setOption("statMarkers", enabled)
         ns.ItemLite.register()
@@ -58,8 +58,13 @@ return function(test)
         world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
         test.check("ALT release restores shortened wording", world.main:GetLeftLine(3):GetText(), expected[3])
         test.check("native color after modifier changes", { world.main:GetLeftLine(3):GetTextColor() }, { 0, 1, 0, 1 })
+        ns.setOption("layout", "pretty")
         ns.setOption("itemPanels", false)
         world.postCalls[0][1](world.main, data)
-        test.check("disabled item restyling restores original", world.main:GetLeftLine(3):GetText(), combined)
+        test.check("items not restyled keep the short wording", world.main:GetLeftLine(3):GetText(), expected[3])
+        ns.setOption("liteWording", false)
+        world.postCalls[0][1](world.main, data)
+        test.check("short wording off restores original", world.main:GetLeftLine(3):GetText(), combined)
+        ns.setOption("liteWording", nil)
     end
 end

@@ -19,8 +19,7 @@ ns.Hooks = hooks
 
 local function showsOriginal(panel)
     local tooltipType = TooltipTypes[panel.dataType]
-    return ns.originalKeyDown() or not (tooltipType and ns.option(tooltipType.option))
-        or (tooltipType.lite and ns.option(tooltipType.lite))
+    return ns.originalKeyDown() or not (tooltipType and ns.restyles(tooltipType.option))
 end
 
 -- What the tooltip shows, as one string; nil when a line cannot be read.

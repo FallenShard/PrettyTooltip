@@ -2,7 +2,7 @@
 
 Reviewed on 2026-10-19 for WoW Forever (interface 16001), against the addon's code and Blizzard's `classic_beta` UI source.
 
-The addon contains guards and regression checks for the cases below. This is not a certification that no combination of client state, Blizzard changes, or other addons can cause taint. The offline Lua harness does not implement Blizzard's secure execution engine, protected-frame ancestry, or every behavior of secret primitives. Two paths still taint Blizzard code; they are listed under [Known taint paths](#known-taint-paths).
+The addon contains guards and regression checks for the cases below. This is not a certification that no combination of client state, Blizzard changes, or other addons can cause taint. The offline Lua harness does not implement Blizzard's secure execution engine, protected-frame ancestry, or every behavior of secret primitives. Three paths still taint Blizzard code; they are listed under [Known taint paths](#known-taint-paths).
 
 ## What taint means here
 
@@ -33,6 +33,10 @@ Code an addon runs is insecure, and every value it writes carries that taint. Bl
 
 Planned remedy: drop the pre-call and apply the wording in the item post-call with `SetText` on the native font strings, as the modifier-key switch already does. Post-calls run before the processor's `Show`, so the layout still follows. The item reader then derives the display wording itself instead of reading `prettyTooltipDisplay` and `prettyTooltipOriginal` from the data.
 
+### `RefreshData()` refills the game's tooltip under taint
+
+`Integration/Details.lua` adds the details to the game's own tooltip in its post-call, which needs nothing more. Pressing or releasing the details or original-tooltip key while such a tooltip shows calls `RefreshData()` on it, because lines cannot be taken back: the processor then runs the whole fill, `ProcessInfo` through the post-calls and `Show`, under the addon's taint, and writes the tooltip's processing fields tainted. In combat the key change does nothing (`unit/native_details.lua`); the details follow on the next tooltip the game fills. Outside combat the fields are rewritten securely the next time the game fills the tooltip itself.
+
 ### `Hide()` on GameTooltip runs its OnHide under taint
 
 `Integration/Native.lua` (`fadeOut`) and the cursor-follow fade hook in `Integration/Cursor.lua` call `Hide()` on GameTooltip when a world unit's tooltip starts fading, so the native tooltip does not show through the panel's fade. GameTooltip's OnHide (`GameTooltip_OnHide`) then runs tainted and writes `needsReset`, `default`, `overrideComparisonAnchorFrame`, `overrideComparisonAnchorSide`, and `comparing`, and hides `ShoppingTooltip1` and `ShoppingTooltip2`. Blizzard code that reads those fields before rewriting them securely runs tainted too.
@@ -58,7 +62,7 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 | --- | --- | --- |
 | `hooksecurefunc` | None: the hook runs after the original, and its taint stays in the hook | Post-hooks on the game's tooltips' `Show`, `SetShown`, `SetPoint`, `SetAlpha`, `SetOwner`, `FadeOut` (Hooks, Native, Cursor, Quest); `GameTooltipStatusBar:SetPoint` (Unit); the globals `GameTooltip_SetDefaultAnchor` (Cursor), `SetItemRef` (Quest), `TaxiNodeOnButtonEnter` (FlightPath), `ChatEdit_InsertLink` (Editor). |
 | `Frame:HookScript` | None, as above | `OnHide`, `OnTooltipCleared`, `OnShow` on the game's tooltips (Hooks, ItemLite, Aura, Cursor); `OnHyperlinkEnter` and `OnHyperlinkLeave` on the chat frames (Quest). |
-| `TooltipDataProcessor.AddTooltipPostCall` | None for the callback, which the processor runs through `securecallfunction`; its `tooltipData` can hold secrets | Hooks draws a panel per data type, Cursor follows the cursor, ItemLite switches item wording. Receives `(tooltip, tooltipData)`. |
+| `TooltipDataProcessor.AddTooltipPostCall` | None for the callback, which the processor runs through `securecallfunction`; its `tooltipData` can hold secrets | Hooks draws a panel per data type, Cursor follows the cursor, ItemLite switches item wording, Details appends the details to the game's tooltip. Receives `(tooltip, tooltipData)`. |
 | `TooltipDataProcessor.AddTooltipPreCall` | **Taint**: the processor reads the replaced line tables afterwards | ItemLite rewrites item stat lines before the game draws them; see [Known taint paths](#known-taint-paths). |
 | `issecretvalue`, `canaccesstable` | None: the permitted checks | `util.isSecret`, which every read of game data goes through. |
 
@@ -78,7 +82,9 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 | `GetWidth`, `GetHeight`, `GetPadding`, `SetPadding` | **Secret** (geometry). `SetPadding` runs no Lua | Sizes the hidden game tooltip to cover the panel, so comparisons and screen clamping treat the pair as one (Native). Checked before any arithmetic. |
 | `GetNumPoints`, `GetPoint`, `ClearAllPoints`, `SetPoint` | **Secret** (anchors). `SetPoint` fires hooks, the addon's own included | Anchors comparisons to the panels, anchors GameTooltip to the cursor tracker when it starts following (not every frame), places the health bar. Snapshots through `util.framePoints` need every part readable. |
 | `IsClampedToScreen`, `SetClampedToScreen`, `GetEffectiveScale` | **Secret** in principle (scale) | Cursor follow unclamps the game's tooltip while the panel keeps itself on screen. |
-| `Show` | None: GameTooltip has no OnShow script | The refit fallback and padding release (Native), relayout after a wording switch (ItemLite). |
+| `Show` | None: GameTooltip has no OnShow script | The refit fallback and padding release (Native), relayout after a wording switch (ItemLite) or appended details (Details). |
+| `AddLine`, `AddDoubleLine` | None: C calls that run no Lua; the text is the addon's own | The details rows on the game's tooltip, in its post-call (Details). |
+| `RefreshData` | **Taint**: runs the processor's fill under the addon's taint | Refills a tooltip with details when their key changes, outside combat only (Details); see [Known taint paths](#known-taint-paths). |
 | `Hide` | **Taint**: runs `GameTooltip_OnHide` | The early hide when a unit's tooltip starts fading (Native, Cursor), outside combat only. The editor's and options page's hover help also hide GameTooltip, as most addons do. |
 | `SetOwner`, `SetText`, `AddLine`, `Show` (hover help) | As any addon's hover help | Explanations in the style editor and options page, outside the tooltips hovered in play. |
 

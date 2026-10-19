@@ -292,9 +292,9 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Wertefarben"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Jede Art von Wert in ihrer Farbe unten, und die Schulfarben. Aus: Jeder Wert ist pergamentfarben."
-L["Lite tooltips"] = "Leichte Tooltips"
-L["Keep the game's own item tooltip, with its Equip effects shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the modifier for the full wording. The panel's item settings, such as disenchant results, do not apply."] =
-    "Behält den Gegenstands-Tooltip des Spiels, mit gekürzten Anlegen-Effekten wie +1% Kritische Trefferchance und den Farben des Spiels, außer Zaubermacht und Trefferchance-Effekten in ihren Wertefarben. Haltet die Zusatztaste für den vollen Wortlaut. Die Gegenstandseinstellungen des Rahmens, etwa Entzauberungsergebnisse, gelten nicht."
+L["Short wording"] = "Kurzer Wortlaut"
+L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
+    "Wo der Gegenstands-Tooltip des Spiels erscheint, im Blizzard-Layout oder bei nicht neu gestalteten Gegenständen, werden seine Anlegen-Effekte gekürzt, etwa zu +1% Kritische Trefferchance, und die Farben des Spiels bleiben, außer bei Zaubermacht und Trefferchance-Effekten in ihren Wertefarben. Haltet die Zusatztaste für den Standard-Tooltip für den vollen Wortlaut."
 L["Disenchant"] = "Entzaubern"
 L["Green, blue, and purple armor and weapons list what they disenchant into, with each result's chance and the Enchanting it needs; with Auctionator, the expected value."] =
     "Grüne, blaue und violette Rüstungen und Waffen zeigen, was sie beim Entzaubern ergeben, mit der Chance jedes Ergebnisses und der nötigen Verzauberkunst; mit Auctionator auch den erwarteten Wert."
@@ -461,8 +461,8 @@ L["Follow cursor"] = "Mauszeiger folgen"
 L["Disable in combat"] = "Im Kampf deaktivieren"
 L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
     "Im Kampf die Standardposition des Tooltips verwenden und danach wieder dem Mauszeiger folgen."
-L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] =
-    "Zeichnet den PrettyTooltip-Rahmen. Aus: Diese Art behält den Tooltip des Spiels."
+L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip, with the details modifier's rows added to it."] =
+    "Zeichnet den PrettyTooltip-Rahmen. Aus: Diese Art behält den Tooltip des Spiels, ergänzt um die Zeilen der Zusatztaste für Details."
 L["Not restyled yet; this kind keeps the game's own tooltip."] =
     "Noch nicht neu gestaltet; diese Art behält den Tooltip des Spiels."
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =
@@ -495,6 +495,12 @@ L["Mounts, toys, and pets"] = "Reittiere, Spielzeuge und Haustiere"
 L["Achievements"] = "Erfolge"
 L["Totems"] = "Totems"
 L["Flyout buttons"] = "Ausklappleisten"
+L["Layout Style"] = "Layout-Stil"
+L["PrettyTooltip"] = "PrettyTooltip"
+L["Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips."] =
+    "Zeichnet den PrettyTooltip-Rahmen für jede Art, die unter „Neu gestaltete Tooltips“ eingeschaltet ist."
+L["Keep the game's own tooltips. Item Equip effects are shortened, and the details modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs."] =
+    "Behält die Tooltips des Spiels. Anlegen-Effekte von Gegenständen werden gekürzt, und die Zusatztaste für Details fügt Entzauberungsergebnisse, die Aufschlüsselung der Zaubermacht und Raten, Sammelinhalte und IDs hinzu."
 L["Default Tooltip Modifier"] = "Zusatztaste für den Standard-Tooltip"
 L["Ctrl"] = "Strg"
 L["Alt"] = "Alt"

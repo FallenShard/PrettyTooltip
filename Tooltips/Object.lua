@@ -228,6 +228,16 @@ local function skillText(skill)
     return util.fill(LOCKED_WITH_SPELL, skill.name)
 end
 
+-- What a node holds; rarer finds in the caption color.
+local function shownLoot(loot)
+    local rows = {}
+    for index, row in ipairs(loot) do
+        rows[index] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
+            rightColor = row.rare and colors.caption or nil }
+    end
+    return rows
+end
+
 -- What the panel shows, for Panel/Render.lua to draw.
 local function objectView(panel, model)
     local styles = {}
@@ -259,11 +269,7 @@ local function objectView(panel, model)
             style = styles.objectDetails, color = DETAIL_COLOR, gap = 2 }
     end
     if model.loot and ns.showsDetail("gatheringLoot", panel) then
-        local rows = {}
-        for index, row in ipairs(model.loot) do
-            rows[index] = { left = row.left, right = row.right, color = row.rare and colors.caption or nil,
-                rightColor = row.rare and colors.caption or nil }
-        end
+        local rows = shownLoot(model.loot)
         sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { divider = ui.GOLD_RULE },
             kind = "rows", rows = rows, style = styles.objectLoot, color = DETAIL_COLOR, gap = 2 }
     end
@@ -313,6 +319,14 @@ ui.objectModel = function(fields)
     for _, list in ipairs({ "details", "quests", "extras" }) do fields[list] = fields[list] or {} end
     return completeModel(fields, ns.Game)
 end
+local function details(model)
+    if not (model.loot and ns.showsDetail("gatheringLoot")) then return {} end
+    local rows = shownLoot(model.loot)
+    for _, row in ipairs(rows) do row.color = row.color or DETAIL_COLOR end
+    return rows
+end
+
 ui.defineTooltipType(OBJECT, {
     read = readObject, render = renderObject, key = objectKey, option = "objectPanels",
+    details = details, detailKeys = { "gatheringLoot" },
 })

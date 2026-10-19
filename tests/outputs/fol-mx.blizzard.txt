@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "Destello de Luz  ||  Rango 2"
+ 2 "50 p. de maná  ||  Alcance de 40 m"
+ 3 "Lanzamiento de 1.5 s"
+ 4 "Sana un objetivo amistoso en 67 a 76 p."
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 7 " "
+ 8 "Coeficiente de poder de sanación  ||  |cffFBCF7442.9%|r |cff999185·|r 67 a 76 + |cffFBCF740|r"
+ 9 "Sanación por segundo  ||  47.7"
+10 "Sanación por punto de maná  ||  1.43"
+11 "ID de hechizo: 19939"

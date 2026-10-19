@@ -1,0 +1,2 @@
+== tooltip as the game shows it
+ 1 "Forja"

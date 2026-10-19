@@ -272,9 +272,9 @@ L["The small diamond before each stat; enchants use a green one."] = "每項屬�
 L["Stat colors"] = "屬性顏色"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "使用下方的屬性分類顏色和法術系別顏色。關閉後所有屬性均使用羊皮紙色。"
-L["Lite tooltips"] = "精簡提示"
-L["Keep the game's own item tooltip, with its Equip effects shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the modifier for the full wording. The panel's item settings, such as disenchant results, do not apply."] =
-    "保留遊戲的物品浮動提示，將裝備效果縮短為+1%致命一擊機率等簡短文字。保留遊戲顏色，法術能量和擊中時觸發的效果則使用屬性顏色。按住輔助鍵可查看完整原文。分解產物等面板物品設定在此模式下不生效。"
+L["Short wording"] = "簡短文字"
+L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
+    "在顯示遊戲物品浮動提示時（暴雪版面或未重繪的物品），將裝備效果縮短為+1%致命一擊機率等簡短文字。保留遊戲顏色，法術能量和擊中時觸發的效果則使用屬性顏色。按住原版提示輔助鍵可查看完整文字。"
 L["Disenchant"] = "分解"
 L["Green, blue, and purple armor and weapons list what they disenchant into, with each result's chance and the Enchanting it needs; with Auctionator, the expected value."] =
     "列出綠色、藍色和紫色護甲及武器的分解產物、各產物的機率和所需附魔技能。安裝Auctionator後還會顯示預期價值。"
@@ -428,7 +428,8 @@ L["Follow cursor"] = "跟隨游標"
 L["Disable in combat"] = "戰鬥中停用"
 L["Use the default tooltip position during combat, then resume following the cursor afterward."] =
     "戰鬥中使用滑鼠提示的預設位置，戰鬥結束後恢復跟隨游標。"
-L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip."] = "顯示PrettyTooltip面板。關閉後此類提示保留遊戲原有外觀。"
+L["Draws the PrettyTooltip panel. Off, this kind keeps the game's own tooltip, with the details modifier's rows added to it."] =
+    "顯示PrettyTooltip面板。關閉後此類提示保留遊戲原有外觀，並追加提示詳情輔助鍵的內容。"
 L["Not restyled yet; this kind keeps the game's own tooltip."] = "尚未支援重繪，此類提示保留遊戲原有外觀。"
 L["Shows this kind's tooltip at the cursor when the game would put it in its default corner; bags and other panels keep theirs. Off, its position is left to the game and other addons."] =
     "將原本顯示在預設角落的此類提示移到游標位置，背包和其他面板旁的提示保持原位。關閉後由遊戲和其他插件決定位置。"
@@ -460,6 +461,12 @@ L["Mounts, toys, and pets"] = "坐騎、玩具和寵物"
 L["Achievements"] = "成就"
 L["Totems"] = "圖騰"
 L["Flyout buttons"] = "展開按鈕"
+L["Layout Style"] = "版面樣式"
+L["PrettyTooltip"] = "PrettyTooltip"
+L["Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips."] =
+    "為「重繪浮動提示」中開啟的每類提示顯示PrettyTooltip面板。"
+L["Keep the game's own tooltips. Item Equip effects are shortened, and the details modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs."] =
+    "保留遊戲原有浮動提示。物品的裝備效果會縮短顯示，按住提示詳情輔助鍵可追加分解結果、法術能量分析和效率、採集內容以及ID。"
 L["Default Tooltip Modifier"] = "原版提示輔助鍵"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"

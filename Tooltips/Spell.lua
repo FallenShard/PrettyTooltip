@@ -502,6 +502,18 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
     return y
 end
 
+-- The spell power breakdown and the rates under it, each by its option.
+local function powerRows(part, numberCode, panel)
+    local showPower, showRates = ns.showsDetail("spellPower", panel), ns.showsDetail("spellRates", panel)
+    if not (showPower or showRates) or not ns.spellPowerRows or not ns.Locale.features.coefficients then
+        return
+    end
+    local rows, rates = ns.spellPowerRows(part, numberCode, ns.Game)
+    local list = showPower and rows or {}
+    for _, row in ipairs(showRates and rates or {}) do list[#list + 1] = row end
+    if #list > 0 then return list end
+end
+
 -- What the panel shows, for Panel/Render.lua to draw. Each spell's body,
 -- its own and a nested one's, is drawn here as one custom section.
 local function spellView(panel, model)
@@ -512,17 +524,6 @@ local function spellView(panel, model)
     local power = model.power and POWER_COLORS[model.power]
     local accent = ns.Palette.school(school) or power
     local color = accent or colors.neutral
-    -- The spell power breakdown and the rates under it, each by its option.
-    local function powerRows(part)
-        local showPower, showRates = ns.showsDetail("spellPower", panel), ns.showsDetail("spellRates", panel)
-        if not (showPower or showRates) or not ns.spellPowerRows or not ns.Locale.features.coefficients then
-            return
-        end
-        local rows, rates = ns.spellPowerRows(part, numberCode, ns.Game)
-        local list = showPower and rows or {}
-        for _, row in ipairs(showRates and rates or {}) do list[#list + 1] = row end
-        if #list > 0 then return list end
-    end
     local function bodyOf(part)
         local nextSentences = {}
         if part.talent then
@@ -530,7 +531,8 @@ local function spellView(panel, model)
                 for _, sentence in ipairs(util.splitSentences(text)) do nextSentences[#nextSentences + 1] = sentence end
             end
         end
-        return { sentences = sentencesOf(part), powerRows = powerRows(part), nextSentences = nextSentences }
+        return { sentences = sentencesOf(part), powerRows = powerRows(part, numberCode, panel),
+            nextSentences = nextSentences }
     end
 
     local sections = {}
@@ -590,6 +592,22 @@ ui.spellModel = function(fields)
     return model
 end
 
+local function details(model)
+    local school = ns.Palette.detectSchool(model.description, model.name, model.spellID)
+    local numberCode = ns.Palette.numberCode(ns.Palette.school(school))
+    local rows = {}
+    for _, row in ipairs(powerRows(model, numberCode) or {}) do rows[#rows + 1] = row end
+    local nested = model.nested
+    local nestedRows = nested and nested.name and powerRows(nested, numberCode)
+    if nestedRows then
+        rows[#rows + 1] = { left = nested.name, right = "", color = TITLE_COLOR }
+        for _, row in ipairs(nestedRows) do rows[#rows + 1] = row end
+    end
+    rows[#rows + 1] = ui.idRow(nil, L["Spell ID: %s"], model.spellID)
+    return rows
+end
+
 ui.defineTooltipType(SPELL, {
     read = readSpell, render = renderSpell, key = spellKey, option = "spellPanels",
+    details = details, detailKeys = { "spellPower", "spellRates", "showIDs" },
 })

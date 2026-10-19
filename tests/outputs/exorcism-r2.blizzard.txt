@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "Exorcism  ||  Rank 2"
+ 2 "73 Mana  ||  30 yd range"
+ 3 "Instant  ||  15 sec cooldown"
+ 4 "Causes 135 to 154 Holy damage to an Undead or Demon target."
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 7 " "
+ 8 "Spell Power Coefficient  ||  |cffFBCF7442.9%|r |cff999185·|r 135 to 154 + |cffFBCF740|r"
+ 9 "Damage per Second  ||  96.3"
+10 "Damage per Mana  ||  1.98"
+11 "Spell ID: 5614"

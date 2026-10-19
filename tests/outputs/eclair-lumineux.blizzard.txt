@@ -1,0 +1,12 @@
+== tooltip as the game shows it
+ 1 "Eclair lumineux  ||  Rang 2"
+ 2 "Mana : 50  ||  portée de 40 m."
+ 3 "1,5 s d’incantation"
+ 4 "Rend 67 à 76 points de vie à une cible alliée."
+ 5 " "
+ 6 "|c0042b1fePress F6 to submit an issue for this Spell"
+ 7 " "
+ 8 "Coefficient de puissance des soins  ||  |cffFBCF7442,9%|r |cff999185·|r 67 à 76 + |cffFBCF740|r"
+ 9 "Soins par seconde  ||  47,7"
+10 "Soins par point de mana  ||  1,43"
+11 "ID de sort : 19939"
