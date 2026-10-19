@@ -1175,6 +1175,8 @@ local DETAILS = { item = "Item Details", spell = "Spell Details", unit = "Unit D
     quest = "Quest Details" }
 section(function() return DETAILS[state.tooltipType] end, function() return DETAILS[state.tooltipType] ~= nil end)
 local items, spells, units = forTypes("item"), forTypes("spell"), forTypes("unit")
+-- The spell power rows read spell descriptions, which not every language's reading covers yet.
+local function coefficients() return ns.Locale.features.coefficients == true end
 toggles({
     { "Quest parchment", "questParchment", "DialogueUI's brown parchment for quest tooltips, Quest Items, "
         .. "and items that begin a quest, with darker ink for readability. Requires DialogueUI to be installed.",
@@ -1195,10 +1197,11 @@ toggles({
         .. "whole stack.", items },
     { "Spell power", "spellPower", "Under the description, each amount's spell power coefficient and its "
         .. "split into base and spell power. No game API has coefficients: they come from Forever's client "
-        .. "data, and ones marked ~ are estimates.", spells },
+        .. "data, and ones marked ~ are estimates.", spells, coefficients },
     { "Rates", "spellRates", "Under the spell power breakdown, the average a cast deals or heals per second "
         .. "and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec "
-        .. "global cooldown) and what comes over time over its duration. Crits and talents do not count.", spells },
+        .. "global cooldown) and what comes over time over its duration. Crits and talents do not count.", spells,
+        coefficients },
     { "Health bar", "unitHealthBar", "The game's own health bar at the bottom of player and NPC panels. The "
         .. "game fills it, so it stays live without the addon reading health, which WoW Forever keeps from "
         .. "addons.", units },

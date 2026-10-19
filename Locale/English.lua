@@ -4,6 +4,13 @@
 local _, ns = ...
 local locale = ns.Locale
 
+-- This file loads on every client, as the fallback; only the English one is
+-- English throughout.
+if GetLocale() == "enUS" then
+    locale.supported = true
+    locale.features = { coefficients = true }
+end
+
 local formats = locale.formats
 -- Right of a weapon's damage: "Speed 3.20".
 formats.weaponSpeed = "Speed %s"

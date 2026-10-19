@@ -6,6 +6,12 @@
 local _, ns = ...
 
 ns.Locale = {
+    -- Whether the addon reads this client's tooltips at all, and which of its
+    -- features that rest on more than the game's strings: coefficients, the
+    -- spell power and rate rows, which read spell descriptions. A language's
+    -- file turns them on once captures of its tooltips show them working.
+    supported = false,
+    features = {},
     -- Wordings, written as the game writes its own strings: "Speed %s".
     -- util.unformat reads text printed from them.
     formats = {},

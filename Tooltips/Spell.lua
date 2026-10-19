@@ -482,7 +482,9 @@ local function spellView(model)
     -- The spell power breakdown and the rates under it, each by its option.
     local function powerRows(part)
         local showPower, showRates = ns.option("spellPower"), ns.option("spellRates")
-        if not (showPower or showRates) or not ns.spellPowerRows then return end
+        if not (showPower or showRates) or not ns.spellPowerRows or not ns.Locale.features.coefficients then
+            return
+        end
         local rows, rates = ns.spellPowerRows(part, numberCode, ns.Game)
         local list = showPower and rows or {}
         for _, row in ipairs(showRates and rates or {}) do list[#list + 1] = row end

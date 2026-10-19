@@ -119,7 +119,7 @@ end
 -- Called once by the entry file, before the panel's item hooks.
 function ns.ItemLite.register()
     if registered then return end
-    if GetLocale() ~= "enUS" or not (TooltipDataProcessor
+    if not ns.Locale.supported or not (TooltipDataProcessor
         and TooltipDataProcessor.AddTooltipPreCall and TooltipDataProcessor.AddTooltipPostCall
         and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item) then return end
     registered = true
