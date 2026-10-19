@@ -143,6 +143,19 @@ local function rateRows(part, direct, periodic, healing)
     if #rows > 0 then return rows end
 end
 
+-- Each rank's spell ID in rank order, by the spell's name on this client;
+-- the names are asked for at the first use.
+local byName
+local function ranksNamed(name)
+    if not byName then
+        byName = {}
+        for english, ranks in pairs(ns.spellRankByName or {}) do
+            byName[ns.Game.localSpellName(ranks[1], english)] = ranks
+        end
+    end
+    return name and byName[name]
+end
+
 -- Rows splitting a spell's amounts into base and spell power, or nil; and
 -- the rows of its rates, or nil. part has the panel's name, cost,
 -- cast, description, and spellID; part.spellPower, when set, stands in for
@@ -154,7 +167,7 @@ function ns.spellPowerRows(part, bonusCode, game)
         if SCHOOLS[word] then school = word break end
     end
     local rank = ns.spellRanks and ns.spellRanks[part.spellID]
-    local named = not rank and ns.spellRankByName and ns.spellRankByName[part.name]
+    local named = not rank and ranksNamed(part.name)
     if named then
         -- A spell named without an ID it has: the rank it names, else its top rank.
         local number = tonumber((part.rank or ""):match("(%d+)"))
@@ -162,7 +175,7 @@ function ns.spellPowerRows(part, bonusCode, game)
     end
     -- The table holds every class spell that scales; another class spell, as
     -- Dampen Magic, gains nothing, however its text reads.
-    if not rank and ns.spellSchools and ns.spellSchools[part.name] then return end
+    if not rank and ns.spellSchool and ns.spellSchool(part.name) then return end
     -- Heals, healing, or healed; not health, as a totem's.
     local healing = not school and ((rank and rank.heals) or text:find("[Hh]eal[^t]") ~= nil)
     if not (school or healing) then return end

@@ -114,7 +114,7 @@ for name in pairs(palette.schools) do schoolNames[name:lower()] = name end
 local SCHOOL_PATTERNS = { "%f[%a](%a+)%s+damage%f[%A]", "%f[%a](%a+)%s+spells?%f[%A]" }
 
 function palette.detectSchool(description, name)
-    local known = name and ns.spellSchools and ns.spellSchools[name]
+    local known = ns.spellSchool and ns.spellSchool(name)
     if known then return known end
     for _, text in ipairs(description) do
         local plain = util.plainText(text):lower()

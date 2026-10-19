@@ -101,6 +101,13 @@ function game.spellName(spellID)
     if ok and not isSecret(name) and type(name) == "string" then return name end
 end
 
+-- A spell's name on this client, for one the addon's data names in English,
+-- as the English client's own tables do: an English client is not asked.
+function game.localSpellName(spellID, english)
+    if GetLocale() == "enUS" then return english end
+    return game.spellName(spellID) or english
+end
+
 -- Macros ----------------------------------------------------------------------
 
 function game.macro(name)

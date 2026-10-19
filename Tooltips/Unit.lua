@@ -141,7 +141,8 @@ local function skinning(model, game)
     for _, drop in ipairs(drops) do
         local icon = game.itemIcon(drop[1])
         local count = drop[4] == drop[5] and "" or (" (" .. drop[4] .. " to " .. drop[5] .. ")")
-        rows[#rows + 1] = { left = (icon and ("|T" .. icon .. ":" .. LOOT_ICON .. "|t ") or "") .. drop[2] .. count,
+        local name = game.itemName(drop[1]) or drop[2]
+        rows[#rows + 1] = { left = (icon and ("|T" .. icon .. ":" .. LOOT_ICON .. "|t ") or "") .. name .. count,
             right = drop[3] .. "%", rare = drop[3] < RARE }
     end
     return { needed = needed, player = game.skill("Skinning"), rows = rows }

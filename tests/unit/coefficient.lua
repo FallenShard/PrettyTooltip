@@ -1,7 +1,7 @@
 -- Spell power coefficients and the base and spell power split, against values
 -- checked in game (30 spell damage) and on foreverchanges.pro.
 return function(test)
-    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Data/Schools.lua", "Data/SpellRanks.lua", "Data/Coefficients.lua" })
+    local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Game/Game.lua", "Data/Schools.lua", "Data/SpellRanks.lua", "Data/Coefficients.lua" })
     -- The player's power, given as the game would answer it.
     local game = { spellDamage = function() return 30 end, spellHealing = function() return 300 end }
 

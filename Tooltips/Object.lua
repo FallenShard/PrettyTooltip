@@ -104,7 +104,8 @@ local function lootRows(name, game)
     if not loot then return end
     local rows = {}
     for _, drop in ipairs(loot) do
-        local id, item, chance, low, high = drop[1], drop[2], drop[3], drop[4], drop[5]
+        local id, chance, low, high = drop[1], drop[3], drop[4], drop[5]
+        local item = game.itemName(id) or drop[2]
         local icon = game.itemIcon(id)
         local right
         if chance >= 100 then

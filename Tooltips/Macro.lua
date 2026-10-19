@@ -117,7 +117,7 @@ end
 local function macroView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
-    local school = model.spell and ns.spellSchools and ns.spellSchools[model.spell]
+    local school = ns.spellSchool and ns.spellSchool(model.spell)
     local accent = ns.Palette.school(school)
     local color = accent or colors.neutral
     local sections = {}
