@@ -73,13 +73,27 @@ local function readAmounts(text)
     return direct, periodic
 end
 
+-- The strip's cast, as Tooltips/Spell.lua words it: the game's "Instant" or
+-- "Channeled", or a duration in seconds, "2.5 sec".
+local function isInstant(cast)
+    local value = cast and cast[1]
+    return util.unformat(value, SPELL_CAST_TIME_INSTANT) or util.unformat(value, SPELL_CAST_TIME_INSTANT_NO_MANA)
+end
+
+local function isChanneled(cast)
+    return util.unformat(cast and cast[1], SPELL_CAST_CHANNELED) ~= nil
+end
+
+local function castTime(cast)
+    return util.parseNumber(util.unformat(cast and cast[1], SPELL_DURATION_SEC), LARGE_NUMBER_SEPERATOR)
+end
+
 -- For the rules: instant casts count as 1.5 sec; casts beyond 3.5 sec gain no
 -- more. The tooltip shows the cast after talents and haste, so a spell the
 -- rules estimate can be off by those.
 local function castSeconds(cast)
-    local value = cast and cast[1]
-    if value == "Instant" then return 1.5 end
-    local seconds = type(value) == "string" and tonumber(value:match("^([%d%.]+) sec"))
+    if isInstant(cast) then return 1.5 end
+    local seconds = castTime(cast)
     return seconds and math.min(3.5, math.max(1.5, seconds))
 end
 
@@ -96,10 +110,9 @@ end
 -- The time a cast takes from the player: the cast shown, after talents and
 -- haste; at least the global cooldown; a channel's whole duration.
 local function executeSeconds(cast, periodic)
-    local value = cast and cast[1]
-    if value == "Instant" then return 1.5 end
-    if value == "Channeled" then return periodic and periodic.duration end
-    local seconds = type(value) == "string" and tonumber(value:match("^([%d%.]+) sec"))
+    if isInstant(cast) then return 1.5 end
+    if isChanneled(cast) then return periodic and periodic.duration end
+    local seconds = castTime(cast)
     return seconds and math.max(1.5, seconds)
 end
 
@@ -123,7 +136,7 @@ local function rateRows(part, direct, periodic, healing)
     end
     local total = directTotal + periodicTotal
     -- A cost in mana, not a share of base mana or another power.
-    local cost = part.cost and part.cost[2] == "Mana" and tonumber((part.cost[1]:gsub(",", "")))
+    local cost = part.cost and part.cost[2] == MANA and util.parseNumber(part.cost[1], LARGE_NUMBER_SEPERATOR)
     if cost and cost > 0 then
         rows[#rows + 1] = { left = noun .. " per Mana", right = string.format("%.2f", total / cost) }
     end
@@ -161,7 +174,7 @@ function ns.spellPowerRows(part, bonusCode, game)
         directShare, periodicShare = rank[2], rank[3]
     else
         -- Channeled spells have no rule.
-        if part.cast and part.cast[1] == "Channeled" then return end
+        if isChanneled(part.cast) then return end
         local cast = castSeconds(part.cast)
         if direct and periodic then
             -- Classic's split between what lands at once and over time.

@@ -11,6 +11,8 @@ local util = ns.util
 local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim = util.isSecret, util.safeText, util.trim
+local unformat, startsWith = util.unformat, util.startsWith
+local formats = ns.Locale.formats
 local add = tooltipData.add
 local LINE = Enum.TooltipDataLineType or {}
 local styledAt, measureStyled = ui.styledAt, ui.measureStyled
@@ -29,66 +31,90 @@ local ICON_SIZE = 38
 -- Spells are tinted a little less than items; the school is only a hint.
 local SPELL_TINT = .7
 local EXTRAS_RULE = { .50, .50, .54 }
-local POWER_COLORS = {
-    Mana = { .25, .55, 1 },
-    Rage = { .90, .22, .20 },
-    Energy = { 1, .86, .25 },
-    Focus = { 1, .55, .25 },
-    ["Runic Power"] = { 0, .82, 1 },
+-- Each power by the key the panel colors it by, its name, and the lines that
+-- cost it: "73 Mana".
+local POWERS = {
+    { key = "Mana", name = MANA, costs = { MANA_COST, MANA_COST_LARGE }, color = { .25, .55, 1 } },
+    { key = "Rage", name = RAGE, costs = { RAGE_COST }, color = { .90, .22, .20 } },
+    { key = "Energy", name = ENERGY, costs = { ENERGY_COST }, color = { 1, .86, .25 } },
+    { key = "Focus", name = FOCUS, costs = { FOCUS_COST }, color = { 1, .55, .25 } },
+    { key = "Runic Power", name = RUNIC_POWER, costs = { RUNIC_POWER_COST }, color = { 0, .82, 1 } },
 }
+local POWER_COLORS = {}
+for _, power in ipairs(POWERS) do POWER_COLORS[power.key] = power.color end
+
+-- The strip's times, by the line that states one and the duration the strip
+-- shows it as: "2.5 sec cast" as "2.5 sec", "Wirken in 1,5 Sek." as "1,5 Sek.".
+local TIMES = {
+    { "cast", "Cast", SPELL_CAST_TIME_SEC, SPELL_DURATION_SEC },
+    { "cast", "Cast", SPELL_CAST_TIME_MIN, SPELL_DURATION_MIN },
+    { "cooldown", "Cooldown", SPELL_RECAST_TIME_SEC, SPELL_DURATION_SEC },
+    { "cooldown", "Cooldown", SPELL_RECAST_TIME_MIN, SPELL_DURATION_MIN },
+    { "cooldown", "Cooldown", SPELL_RECAST_TIME_HOURS, SPELL_DURATION_HOURS },
+    { "cooldown", "Cooldown", SPELL_RECAST_TIME_DAYS, SPELL_DURATION_DAYS },
+}
+-- Casts the strip shows as the game words them.
+local CASTS = { SPELL_CAST_TIME_INSTANT, SPELL_CAST_TIME_INSTANT_NO_MANA, SPELL_CAST_CHANNELED, SPELL_ON_NEXT_SWING }
+
+-- A spell's requirements: "Requires Shields", "Requires Cat Form". English
+-- words them all alike; other languages do not.
+local REQUIREMENTS = { ITEM_REQ_SKILL, ITEM_MIN_LEVEL, ITEM_MIN_SKILL, SPELL_EQUIPPED_ITEM, SPELL_REQUIRED_FORM,
+    TOOLTIP_TALENT_PREREQ, TOOLTIP_TALENT_TIER_POINTS }
+local function isRequirement(text)
+    for _, format in pairs(REQUIREMENTS) do
+        if unformat(text, format) then return true end
+    end
+    return false
+end
+
+local function isAmount(text)
+    return util.parseNumber(text, LARGE_NUMBER_SEPERATOR) ~= nil
+end
 
 local function spellKey(_, data)
     if isSecret(data.id) then return end
     return data.id
 end
 
-local function titleCase(text)
-    return (text:gsub("(%a)([%w']*)", function(first, rest) return first:upper() .. rest end))
-end
-
 local function readStat(model, text)
-    local lower = text:lower()
-    local amount, power = lower:match("^([%d,]+) (%a[%a ]-)$")
-    if amount and POWER_COLORS[titleCase(power)] then
-        power = titleCase(power)
-        model.cost, model.power = { amount, power }, power
-        return true
+    for _, power in ipairs(POWERS) do
+        for _, cost in pairs(power.costs) do
+            local amount = unformat(text, cost)
+            if isAmount(amount) then
+                model.cost, model.power = { amount, power.name }, power.key
+                return true
+            end
+        end
     end
-    local percent = lower:match("^(%d+)%% of base mana$")
+    local percent = unformat(text, formats.baseManaCost)
     if percent then
         model.cost, model.power = { percent .. "%", "Base Mana" }, "Mana"
         return true
     end
-    local castLength = #(lower:match("^([%d%.]+ %a+) cast$") or "")
-    if castLength > 0 then
-        model.cast = { text:sub(1, castLength), "Cast" }
-        return true
+    for _, time in ipairs(TIMES) do
+        local amount = unformat(text, time[3])
+        if isAmount(amount) then
+            model[time[1]] = { util.fill(time[4], amount), time[2] }
+            return true
+        end
     end
-    if lower == "instant" or lower == "instant cast" then
-        model.cast = { "Instant", "Cast" }
-        return true
+    for _, cast in pairs(CASTS) do
+        if unformat(text, cast) then
+            model.cast = { text, "Cast" }
+            return true
+        end
     end
-    if lower == "passive" then
+    if unformat(text, SPELL_PASSIVE) then
         model.passive = text
         return true
     end
-    if lower == "channeled" or lower == "next melee" then
-        model.cast = { text, "Cast" }
+    local range = unformat(text, SPELL_RANGE)
+    if range then
+        model.range = { range .. " yd", "Range" }
         return true
     end
-    local cooldownLength = #(lower:match("^(.+) cooldown$") or "")
-    if cooldownLength > 0 then
-        model.cooldown = { text:sub(1, cooldownLength), "Cooldown" }
-        return true
-    end
-    local cooldown = text:match("^[Cc]ooldown:%s*(.+)$")
-    if cooldown then
-        model.cooldown = { cooldown, "Cooldown" }
-        return true
-    end
-    local rangeLength = #(lower:match("^(.+) range$") or "")
-    if rangeLength > 0 then
-        model.range = { text:sub(1, rangeLength), "Range" }
+    if unformat(text, MELEE_RANGE) then
+        model.range = { "Melee", "Range" }
         return true
     end
 end
@@ -113,7 +139,7 @@ local function badges(model, school)
     if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_BADGE } end
     if model.passive then list[#list + 1] = { model.passive, RANK_BADGE } end
     if model.talent then
-        list[#list + 1] = { "Rank " .. model.talent.rank .. "/" .. model.talent.max, RANK_BADGE }
+        list[#list + 1] = { TOOLTIP_TALENT_RANK:format(model.talent.rank, model.talent.max), RANK_BADGE }
     end
     -- Set by the types that show a spell: a macro's name, a pet ability's autocast.
     for _, tag in ipairs(model.tags or {}) do list[#list + 1] = { tag[1], tag[2] or RANK_BADGE } end
@@ -144,7 +170,7 @@ local function readDescription(model, text)
     local rest = {}
     for paragraph in (text:gsub("\r\n", "\n") .. "\n"):gmatch("(.-)\n") do
         local stripped = trim(paragraph)
-        if #rest == 0 and trim(util.uncolored(stripped)):match("^Requires ") then
+        if #rest == 0 and isRequirement(stripped) then
             add(model.requirements, stripped, "")
         elseif stripped ~= "" then
             rest[#rest + 1] = stripped
@@ -173,14 +199,14 @@ local function readLine(model, line, left, right, game)
     if rightText ~= "" and readStat(model, rightText) then rightText = "" end
     if text ~= "" and readStat(model, text) then
         if rightText ~= "" then add(model.details, rightText, "") end
-    elseif text:match("^Cooldown remaining") then
+    elseif unformat(text, ITEM_COOLDOWN_TIME) then
         add(model.details, text, rightText)
         model.details[#model.details].color = REMAINING_COLOR
-    elseif text:match("^Requires ") then
+    elseif isRequirement(text) then
         add(model.requirements, text, rightText)
         local row = model.requirements[#model.requirements]
         row.color = not tooltipData.requirementMet(text, line.leftColor, game) and UNMET_COLOR or nil
-    elseif text:match("^Reagents:") or text:match("^Tools:") then
+    elseif startsWith(text, SPELL_REAGENTS) or startsWith(text, SPELL_TOTEMS) then
         add(model.details, text, rightText)
     elseif text ~= "" and ((LINE.SpellDescription and line.type == LINE.SpellDescription)
         or isDescription(line, text, rightText)) then
@@ -201,17 +227,17 @@ local function readTalent(model, rows)
     local talent, extras, block, unlabeled
     for _, row in ipairs(rows) do
         local plain = trim(util.plainText(row.left))
-        local rank, max = plain:match("^Rank (%d+)/(%d+)$")
-        if rank and not talent then
+        local rank, max = unformat(plain, TOOLTIP_TALENT_RANK)
+        if tonumber(rank) and tonumber(max) and not talent then
             talent = { rank = tonumber(rank), max = tonumber(max), description = {}, details = {} }
             extras = {}
         elseif not talent then
             return
-        elseif plain == "Next Rank:" then
+        elseif unformat(plain, NEXT_RANK_COLON) or unformat(plain, TOOLTIP_TALENT_NEXT_RANK) then
             block = talent
-        elseif not block and plain:lower() == "passive" then
+        elseif not block and unformat(plain, SPELL_PASSIVE) then
             block, unlabeled = talent, true
-        elseif plain:match("^Spend %d+ more points? in ") or plain:match("^Requires ") then
+        elseif unformat(plain, formats.talentPoints) or isRequirement(plain) then
             local color = row.textColor
             local unmet = row.left:find("|cffff2020", 1, true) or (color and color[1] > .9 and color[2] < .3)
             add(model.requirements, plain, "")
@@ -220,7 +246,7 @@ local function readTalent(model, rows)
             -- The game's own lines bring no color of their own; this is another
             -- addon's, as Forever's "Press F6" line, which can follow the next rank.
             extras[#extras + 1] = row
-        elseif block and plain:lower() == "passive" then
+        elseif block and unformat(plain, SPELL_PASSIVE) then
             -- The rank after the data repeats it.
         elseif block then
             local color = row.textColor

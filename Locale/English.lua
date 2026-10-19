@@ -13,6 +13,10 @@ formats.recipeTeaches = "Use: Teaches you how to %s"
 formats.appearance = "Appearance %s"
 -- A kind of item, shown in its subtitle.
 formats.scarce = "Scarce"
+-- A spell's cost as a share of the caster's base mana: "15% of base mana".
+formats.baseManaCost = "%d%% of base mana"
+-- The talent window's line for a talent deeper in its tree than the points spent.
+formats.talentPoints = "Spend %d more |4point:points; in %s"
 
 -- The client's SkillLine names.
 for _, name in ipairs({ "Alchemy", "Blacksmithing", "Enchanting", "Engineering", "Leatherworking", "Tailoring",

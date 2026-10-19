@@ -26,6 +26,22 @@ return function(test)
     test.check("not a string", unformat(nil, ITEM_MIN_LEVEL), nil)
     test.check("the separators", { DECIMAL_SEPERATOR, LARGE_NUMBER_SEPERATOR }, { ".", "," })
 
+    -- Printing a game string with values as they were printed.
+    local fill = util.fill
+    test.check("a value kept as printed", fill(SPELL_DURATION_SEC, "3"), "3 sec")
+    test.check("a decimal kept as printed", fill(SPELL_DURATION_SEC, "2.5"), "2.5 sec")
+    test.check("the singular", fill(SPELL_DURATION_HOURS, "1"), "1 hour")
+    test.check("the plural", fill(SPELL_DURATION_HOURS, "2"), "2 hrs")
+    test.check("a percent sign", fill("%d%% of base mana", "15"), "15% of base mana")
+    test.check("filled text reads back", all(unformat(fill(DURABILITY_TEMPLATE, "34", "100"), DURABILITY_TEMPLATE)),
+        { n = 2, "34", "100" })
+    -- A label the game puts first.
+    test.check("a label", util.startsWith("Use: Restores 100 health.", ITEM_SPELL_TRIGGER_ONUSE), true)
+    test.check("a colored label", util.startsWith("|cff00ff00Use:|r Restores 100 health.", ITEM_SPELL_TRIGGER_ONUSE), true)
+    test.check("the label's trailing space", util.startsWith("Tools: Blacksmith Hammer", SPELL_TOTEMS), true)
+    test.check("not the label", util.startsWith("Useful: nothing", ITEM_SPELL_TRIGGER_ONUSE), false)
+    test.check("no label", util.startsWith("Use: Restores 100 health.", nil), false)
+
     -- Every string the addon names must compile, in every language.
     local function compiles(locale, strings)
         local failed = {}
@@ -49,6 +65,12 @@ return function(test)
     test.check("deDE: the singular", unformat("1 Stunde Abklingzeit", SPELL_RECAST_TIME_HOURS), "1")
     test.check("deDE: letters outside ASCII", unformat("Benötigt Stufe 40", ITEM_MIN_LEVEL), "40")
     test.check("deDE: the separators", { DECIMAL_SEPERATOR, LARGE_NUMBER_SEPERATOR }, { ",", "." })
+    test.check("deDE: a decimal comma kept as printed", util.fill(SPELL_DURATION_SEC, "1,5"), "1,5 Sek.")
+    test.check("deDE: the singular", util.fill(SPELL_DURATION_HOURS, "1"), "1 Stunde")
+    test.check("deDE: the plural", util.fill(SPELL_DURATION_HOURS, "2"), "2 Stunden")
+    test.check("deDE: arguments by position", util.fill(DURABILITY_TEMPLATE, "34", "100"), "Haltbarkeit 34 / 100")
+    test.check("deDE: a cast time", util.fill(SPELL_DURATION_SEC, unformat("Wirken in 1,5 Sek.", SPELL_CAST_TIME_SEC)),
+        "1,5 Sek.")
 
     util, world = read("frFR")
     unformat = util.unformat
@@ -63,6 +85,11 @@ return function(test)
     test.check("frFR: de before a consonant", unformat("Pas assez de Badges", NOT_ENOUGH_CURRENCY), "Badges")
     test.check("frFR: d' before a vowel", unformat("Pas assez d'Insignes", NOT_ENOUGH_CURRENCY), "Insignes")
     test.check("frFR: no group separator", LARGE_NUMBER_SEPERATOR, "")
+    test.check("frFR: arguments in another order", all(unformat(util.fill(CONTAINER_SLOTS, "16", "Sac en cuir"),
+        CONTAINER_SLOTS)), { n = 2, "16", "Sac en cuir" })
+    -- Text with a no-break space before the colon opens with the label's plain one.
+    test.check("frFR: a label with a no-break space", util.startsWith("Utiliser\194\160: Rend 100 points de vie.",
+        ITEM_SPELL_TRIGGER_ONUSE), true)
 
     util, world = read("koKR")
     unformat = util.unformat

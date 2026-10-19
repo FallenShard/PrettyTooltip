@@ -34,8 +34,7 @@ local function onItemTooltip(_, data)
                     and source.type == LINE.ItemSpellTriggerOnProc
                 for displayIndex, displayText in ipairs(displayLines) do
                     local display, colored = stats.styleStat(displayText, ns.option("statColors"), ns.option("statMarkers"))
-                    local onHit = proc or (ITEM_SPELL_TRIGGER_ONPROC ~= nil
-                        and displayText:sub(1, #ITEM_SPELL_TRIGGER_ONPROC) == ITEM_SPELL_TRIGGER_ONPROC)
+                    local onHit = proc or ns.util.startsWith(displayText, ITEM_SPELL_TRIGGER_ONPROC)
                     if onHit then
                         local effect = stats.styleEffect(displayText, ns.option("statColors"))
                         if effect ~= displayText then display, colored = effect, effect end

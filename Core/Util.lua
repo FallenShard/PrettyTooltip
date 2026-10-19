@@ -191,6 +191,32 @@ function util.unformat(text, format)
     end
 end
 
+-- The game's string format printed with values as text, kept as they were
+-- printed: util.fill(SPELL_DURATION_SEC, "2.5") gives "2.5 sec", where
+-- string.format would give "2.5" a precision of its own. A plural escape
+-- takes the form its number asks for.
+function util.fill(format, ...)
+    local values, next = { ... }, 0
+    local text = format:gsub("%%([%d%$%-%+ #%.]*)([%%sdicfgFu])", function(spec, kind)
+        if kind == "%" then return "%" end
+        local index = tonumber(spec:match("^(%d+)%$"))
+        if not index then
+            next = next + 1
+            index = next
+        end
+        return tostring(values[index] or "")
+    end)
+    return resolvePlurals(text)
+end
+
+-- Whether the text opens with a label the game puts first, as "Use:". Colors
+-- and the space around the label do not count.
+function util.startsWith(text, label)
+    if type(text) ~= "string" or type(label) ~= "string" then return false end
+    label = util.trim(normalized(label))
+    return label ~= "" and normalized(text):sub(1, #label) == label
+end
+
 -- A number as the client printed it. group is the client's group separator
 -- (LARGE_NUMBER_SEPERATOR): "," on enUS, "." on deDE, none on frFR. Only a
 -- group separator before three digits is one; any other "." or "," is the

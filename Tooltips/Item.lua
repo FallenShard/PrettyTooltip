@@ -10,7 +10,7 @@ end
 local util = ns.util
 local colors = ns.Palette.roles
 local isSecret, safeText, number = util.isSecret, util.safeText, util.number
-local plainText, rgb, unformat = util.plainText, util.rgb, util.unformat
+local plainText, rgb, unformat, startsWith = util.plainText, util.rgb, util.unformat, util.startsWith
 local formats = ns.Locale.formats
 local LINE = Enum.TooltipDataLineType
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
@@ -72,10 +72,6 @@ local function weaponDamage(text, format)
     return amount(low) ~= nil and amount(high) ~= nil
 end
 
--- Whether the text starts with a label the game puts first, as "Use:".
-local function startsWith(text, label)
-    return label ~= nil and text:sub(1, #label) == label
-end
 local function getItemInfo(tooltip, data)
     if tooltip.GetItem then
         local ok, _, link = pcall(tooltip.GetItem, tooltip)
@@ -169,8 +165,8 @@ local USE_MARKER = "|T" .. ART .. "marker-gear:11:11:-1:-2:32:32:0:32:0:32:240:2
 -- Markers that stand in for a line's opening words, which come back while
 -- markers are off.
 local MARKED = {
-    onHit = { ON_HIT_MARKER, "Chance on hit: " },
-    use = { USE_MARKER, "Use: " },
+    onHit = { ON_HIT_MARKER, ITEM_SPELL_TRIGGER_ONPROC and ITEM_SPELL_TRIGGER_ONPROC .. " " },
+    use = { USE_MARKER, ITEM_SPELL_TRIGGER_ONUSE and ITEM_SPELL_TRIGGER_ONUSE .. " " },
 }
 
 -- Whether a line is of a type the client names. Its text is the fallback,
@@ -641,7 +637,7 @@ local function drawMarked(panel, list, y, style, color, marker, numbers)
             styledAt(panel, stands and stands[1] or marker, pad(), y, hang, style, color)
         elseif stands then
             -- Without its marker, the line keeps its words.
-            text = stands[2] .. text
+            text = (stands[2] or "") .. text
         end
         y = y + styledAt(panel, text, pad() + hang, y, width, style, color) + 3
     end
