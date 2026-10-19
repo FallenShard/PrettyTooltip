@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: Tests and package smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install test tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes lua5.1 liblua5.1-0-dev luarocks
+          sudo luarocks --lua-version=5.1 install luacheck 1.2.0
+          python -m pip install -r tests/requirements.txt
+      - name: Lint and regression tests
+        run: |
+          python -m unittest discover -s tests -p test_ci.py
+          python tests/run.py --strict
+      - name: Build package without publishing
+        uses: BigWigsMods/packager@v2
+        with:
+          args: -d
+          pandoc: "false"
+      - name: Check packaged files and localized startup
+        run: python tests/check_package.py
+      - name: Save checked package
+        uses: actions/upload-artifact@v4
+        with:
+          name: PrettyTooltip-package
+          path: .release/*.zip
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7

@@ -48,6 +48,7 @@ GAME_STRINGS = {path.stem: path.read_text(encoding="utf-8") for path in sorted(L
 
 # Lines run by any test, by file, while --coverage is given.
 COVERAGE: dict[str, set[int]] | None = None
+STRICT = False
 
 
 def addon_files(locale: str = "enUS") -> list[str]:
@@ -137,6 +138,9 @@ def compare(name: str, text: str, notes, update: bool, show_notes: bool) -> bool
     """Checks text against outputs/<name>.txt, or writes it there when it is
     new or --update is given."""
     expected_path = OUTPUTS / f"{name}.txt"
+    if STRICT and not expected_path.exists():
+        print(f"FAIL {name}: missing expected output; review and generate it locally first")
+        return False
     if update or not expected_path.exists():
         expected_path.parent.mkdir(parents=True, exist_ok=True)
         expected_path.write_text(text, encoding="utf-8", newline="\n")
@@ -232,6 +236,9 @@ def run_lint() -> list[bool]:
     PATH, or where the LUACHECK environment variable points."""
     luacheck = os.environ.get("LUACHECK") or shutil.which("luacheck")
     if not luacheck:
+        if STRICT:
+            print("FAIL lint: luacheck not found (required in strict mode)")
+            return [False]
         print("skipped lint: luacheck not found (set LUACHECK to its path, or put it on the PATH)")
         return []
     finished = subprocess.run([luacheck, ".", "--no-color", "--codes", "--quiet"], cwd=ROOT,
@@ -313,13 +320,17 @@ def main() -> None:
     parser.add_argument("--notes", action="store_true", help="list what each fixture lacked an answer for")
     parser.add_argument("--coverage", action="store_true", help="report which lines and functions the tests ran")
     parser.add_argument("--profile", action="store_true", help="count the frame calls each read and render make")
+    parser.add_argument("--strict", action="store_true", help="require lint and existing expected outputs; never create baselines")
     args = parser.parse_args()
-    global COVERAGE
+    if args.strict and args.update:
+        parser.error("--strict cannot be combined with --update")
+    global COVERAGE, STRICT
+    STRICT = args.strict
     if args.coverage:
         COVERAGE = {}
 
     files = addon_files()
-    results = run_lint() if not args.pattern or args.pattern in "lint" else []
+    results = run_lint() if args.strict or not args.pattern or args.pattern in "lint" else []
     for path in sorted(UNIT.glob("*.lua")):
         if args.pattern in path.stem:
             results.append(run_unit(path, files, args.notes))

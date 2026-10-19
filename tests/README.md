@@ -10,7 +10,37 @@ python tests/run.py --update     # accept the current output as the expected
 python tests/run.py --notes      # list what each fixture lacked an answer for
 python tests/run.py --coverage   # which lines and functions the tests ran
 python tests/run.py --profile    # the frame calls each read and render make
+python tests/run.py --strict     # require lint and existing outputs; never create baselines
 ```
+
+## Continuous integration and packages
+
+GitHub Actions runs `.github/workflows/ci.yml` on pull requests and branch pushes.
+The release workflow calls the same checks on a `v*` tag and publishes only after
+they pass. Checks use Python 3.12, the pinned Lupa dependency, Lua 5.1, and
+luacheck 1.2.0. Strict mode fails if lint is unavailable or an expected output is
+missing; it cannot be combined with `--update`. New baselines must be generated
+and reviewed locally before committing them.
+
+CI also runs BigWigs Packager with `-d` (no publishing), then
+`python tests/check_package.py`. The smoke test checks the actual ZIP's integrity,
+folder name, TOC metadata and load order, locale conditions, required Lua files
+and textures, and exclusion of development files. It compiles the packaged Lua
+and starts it through the existing harness in all supported locales, including
+both Portuguese locale codes. It reads addon code from the ZIP, not the working
+tree. This cannot verify native rendering or Blizzard's taint engine.
+
+`python -m unittest discover -s tests -p test_ci.py` checks that broken packages
+and missing baselines are rejected. It runs before the Lua regression suite in CI.
+
+The checked ZIP is available as the `PrettyTooltip-package` workflow artifact for
+seven days. To check a downloaded package locally, run
+`python tests/check_package.py "path/to/PrettyTooltip.zip"` after installing the
+test dependencies. The release job retains its existing publishing process and
+rebuilds from the same checked tag; it does not publish the CI artifact directly.
+
+To require CI before merging, select **Tests and package smoke test** in the
+branch protection rule or repository ruleset after the first successful run.
 
 `--profile` counts, for one read and one render of each fixture, every method the addon calls on frames, font strings, and textures, and the calls that set what was already set (`SetFont, same font`, `SetText, same text`). It shows how much work a change adds or saves, the same on every run; how long the work takes, and how often the game asks for it, only the game can show, with `/ptip perf`.
 
