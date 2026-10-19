@@ -91,6 +91,9 @@ return function(test)
     test.check("frFR: a label with a no-break space", util.startsWith("Utiliser\194\160: Rend 100 points de vie.",
         ITEM_SPELL_TRIGGER_ONUSE), true)
 
+    util, world = read("esMX")
+    compiles("esMX", world.gameStrings)
+
     util, world = read("koKR")
     unformat = util.unformat
     compiles("koKR", world.gameStrings)
