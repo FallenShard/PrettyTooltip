@@ -135,14 +135,24 @@ end
 -- The school a text names first in one of the phrases, filled with the
 -- language's word for each school (ns.Locale.schoolWords): "%s damage" finds
 -- Fire in "40 Fire damage". Only those in only count, when given.
+-- French descriptions write "d’ombre" about as often as "d'ombre".
+local function straightQuotes(text)
+    return (text:lower():gsub("\226\128\153", "'"))
+end
+
 function palette.schoolIn(text, phrases, only)
-    local plain = util.plainText(text):lower()
-    local found, at
+    local plain = straightQuotes(util.plainText(text))
+    local found, at, length
     for school, word in pairs(ns.Locale.schoolWords) do
         if not only or only[school] then
             for _, phrase in ipairs(phrases) do
-                local start = wordsAt(plain, util.fill(phrase, word):lower())
-                if start and (not at or start < at) then found, at = school, start end
+                phrase = straightQuotes(util.fill(phrase, word))
+                local start = wordsAt(plain, phrase)
+                -- Where two start together, the longer names a blend: Holyfire's
+                -- French name begins with Fire's.
+                if start and (not at or start < at or (start == at and #phrase > length)) then
+                    found, at, length = school, start, #phrase
+                end
             end
         end
     end
