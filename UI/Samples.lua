@@ -2,7 +2,8 @@
 -- fields of its model, which its own tooltip file completes. What comes from
 -- the game or the settings is written as a marker and filled in on each draw:
 -- { item = ID } or { spell = ID } an icon, { itemName = ID, english } or
--- { spellName = ID, english } the name the client gives, { money = copper } coins (with
+-- { spellName = ID, english } or { questName = ID, english } the name the client gives,
+-- { money = copper } coins (with
 -- each and count, a stack), a stat list's strings the stat rows the settings
 -- style, enchant an "Enchanted:" line's rows, disenchant the results for
 -- { quality, class, level, slot }, expiresIn an aura's end, and after fields
@@ -22,10 +23,11 @@ local function statLine(key, amount, sign)
     return ns.Stats.text({ key = key, sign = sign or "+", amount = tostring(amount), percent = key == "CRIT_CHANCE" })
 end
 
--- An item's or spell's name on this client, asked on each draw; the English
--- one where the client has none.
+-- An item's, spell's, or quest's name on this client, asked on each draw.
+-- Quest fallbacks are translated while the client loads their titles.
 local function itemName(id, english) return { itemName = id, english } end
 local function spellName(id, english) return { spellName = id, english } end
+local function questName(id, english) return { questName = id, english } end
 
 local function quoted(text) return '"' .. text .. '"' end
 
@@ -204,15 +206,14 @@ local TYPES = {
         samples = {
             {
                 label = "Herb",
-                -- Node names stay English: the node loot table knows them only so.
-                fields = { name = "Bruiseweed", skill = "Herbalism", skillColor = { 1, .5, .25 } },
+                fields = { name = L["Bruiseweed"], skill = "Herbalism", skillColor = { 1, .5, .25 } },
                 -- Completing the model asks the game for them.
                 after = { prices = { { SELL_PRICE, { money = 40 } }, { L["Auction"], { money = 1250 } } } },
             },
             {
                 label = "Ore",
                 fields = {
-                    name = "Mithril Deposit", skill = "Mining", skillMet = false,
+                    name = L["Mithril Deposit"], skill = "Mining", skillMet = false,
                     details = { { left = fill(LOCKED_WITH_SPELL, skill("Mining")), right = "", requirement = true, met = false } },
                     extras = { { left = fill(L["Gathered here %s times"], 12), right = "", color = { .17, .51, .77 } } },
                 },
@@ -335,7 +336,7 @@ local TYPES = {
             {
                 label = "Active",
                 fields = {
-                    name = L["The Fury Runs Deep"], level = 27, tags = { LFG_TYPE_DUNGEON }, zone = L["The Stockade"],
+                    name = questName(378, "The Fury Runs Deep"), level = 27, tags = { LFG_TYPE_DUNGEON }, zone = L["The Stockade"],
                     active = true,
                     description = { L["Motley Garmason wants Kam Deepfury's head brought to him at Dun Modr."] },
                     objectives = { { left = itemName(3640, "Head of Deepfury"), right = "0/1", completed = false } },
@@ -344,7 +345,7 @@ local TYPES = {
             {
                 label = "Ready",
                 fields = {
-                    name = L["Wolves Across the Border"], level = 6, active = true, ready = true,
+                    name = questName(33, "Wolves Across the Border"), level = 6, active = true, ready = true,
                     description = { L["Eliminate the wolves to the east of Northshire and bring their paws to Eagan Peltskinner."] },
                     objectives = { { left = itemName(750, "Tough Wolf Meat"), right = "8/8", completed = true } },
                     extras = { { left = L["Ended by"], right = L["Eagan Peltskinner"] } },
@@ -353,7 +354,7 @@ local TYPES = {
             {
                 label = "New",
                 fields = {
-                    name = L["Arugal Must Die"], level = 27, tags = { LFG_TYPE_DUNGEON }, zone = L["Shadowfang Keep"],
+                    name = questName(1014, "Arugal Must Die"), level = 27, tags = { LFG_TYPE_DUNGEON }, zone = L["Shadowfang Keep"],
                     description = { L["Dalar Dawnweaver wants Arugal dead and his head brought to him."] },
                     objectives = { { left = itemName(5442, "Head of Arugal") } },
                     extras = { { left = L["Started by"], right = L["Dalar Dawnweaver"] },
@@ -411,6 +412,7 @@ local function resolve(value)
     end
     if value.itemName then return ns.Game.itemName(value.itemName) or value[1] end
     if value.spellName then return ns.Game.spellName(value.spellName) or value[1] end
+    if value.questName then return ns.Game.questName(value.questName) or L[value[1]] end
     if value.money then return money(value) end
     local copy = {}
     for key, item in pairs(value) do copy[key] = resolve(item) end
@@ -460,7 +462,8 @@ function ns.editorSampleTypes()
         if dataType and ui[sampleType.model] then
             local samples = {}
             for index, sample in ipairs(sampleType.samples) do
-                samples[index] = { label = sample.label, build = function() return build(sampleType, sample) end }
+                samples[index] = { label = sample.label, build = function() return build(sampleType, sample) end,
+                    questID = type(sample.fields.name) == "table" and sample.fields.name.questName or nil }
             end
             types[#types + 1] = { key = sampleType.key, label = sampleType.label, dataType = dataType,
                 samples = samples, first = sampleType.first, noun = sampleType.noun, noLookup = sampleType.noLookup }

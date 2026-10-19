@@ -276,6 +276,14 @@ end
 
 -- Quests ----------------------------------------------------------------------
 
+-- A quest's localized title. Request uncached data for the editor's next draw.
+function game.questName(questID)
+    if not (C_QuestLog and (C_QuestLog.GetTitleForQuestID or C_QuestLog.GetQuestInfo)) then return end
+    local name = call(C_QuestLog.GetTitleForQuestID or C_QuestLog.GetQuestInfo, questID)
+    if type(name) == "string" and name ~= "" then return name end
+    if C_QuestLog.RequestLoadQuestByID then pcall(C_QuestLog.RequestLoadQuestByID, questID) end
+end
+
 -- true or false; nil without a quest log to ask.
 function game.questCompleted(questID)
     if C_QuestLog then return call(C_QuestLog.IsQuestFlaggedCompleted, questID) == true end

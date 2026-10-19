@@ -1290,8 +1290,15 @@ end
 editor:SetScript("OnShow", function() ns.refreshEditorStyle() refresh() end)
 editor:SetScript("OnHide", closeMenu)
 editor:RegisterEvent("GET_ITEM_INFO_RECEIVED")
-editor:SetScript("OnEvent", function(_, _, itemID)
-    if editor:IsShown() and state.tooltipType == "item" and itemID == state.lookup then refresh() end
+editor:RegisterEvent("QUEST_DATA_LOAD_RESULT")
+editor:SetScript("OnEvent", function(_, event, id, success)
+    if not editor:IsShown() then return end
+    if event == "GET_ITEM_INFO_RECEIVED" then
+        if state.tooltipType == "item" and id == state.lookup then refresh() end
+    elseif event == "QUEST_DATA_LOAD_RESULT" and success and state.tooltipType == "quest" then
+        local sample = samples()[state.sample]
+        if sample and sample.questID == id then refresh() end
+    end
 end)
 
 function ns.openEditor()
