@@ -1,0 +1,163 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132879
+      id: 11138
+      name: "붉게 빛나는 작은 결정"
+  skill: 75
+effects: {}
+enchants: {}
+equipEffects: {}
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "상점가"
+    right: "|cffffffff23 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 71 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  3:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "가방"
+    right: "|cff66bbff합계: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  4:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+    right: "|cff66bbff착용: |cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+flavor: {}
+footerLeft: {}
+footerRight:
+  1:
+    left: "23|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 71|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "귀속 아이템"
+    right: ""
+  2:
+    left: "고유 장착 아이템"
+    right: ""
+icon: 133347
+kinds: {}
+level: 31
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+link: "|cnIQ3:|Hitem:2933::::::::30:1486::11:::::::|h[린의 인장]|h|r"
+name: "린의 인장"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|cffA89F8E힘|r |cffF2E8D5+3|r"
+    right: ""
+  2:
+    left: "|cffA89F8E민첩성|r |cffF2E8D5+3|r"
+    right: ""
+  3:
+    left: "|cffA89F8E체력|r |cffF2E8D5+4|r"
+    right: ""
+  4:
+    left: "|cffA89F8E지능|r |cffF2E8D5+4|r"
+    right: ""
+  5:
+    left: "|cffA89F8E정신력|r |cffF2E8D5+3|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 2371
+setBonuses: {}
+setItems: {}
+slot: "손가락"
+weaponBonus: {}
+== tooltip render
+panel 264 x 273
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
+texture at 6,6 0x100 rgb=1,1,1,1 band
+texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x0 rgb=0.1,0.075,0.08,0.6 band
+text at 19,21 w=226 size=19 rgb=0.32,0.59,0.98 "린의 인장"
+text at 19,47 w=226 size=13 rgb=0.66,0.795,0.99 "손가락"
+text at 19,66 w=226 size=12 rgb=0.78,0.72,0.63 "귀속 아이템"
+text at 19,83 w=226 size=12 rgb=0.78,0.72,0.63 "고유 장착 아이템"
+text at 19,106 w=226 size=13 rgb=0.9,0.85,0.74 "|cffA89F8E힘|r |cffF2E8D5+3|r"
+text at 19,124 w=226 size=13 rgb=0.9,0.85,0.74 "|cffA89F8E민첩성|r |cffF2E8D5+3|r"
+text at 19,142 w=226 size=13 rgb=0.9,0.85,0.74 "|cffA89F8E체력|r |cffF2E8D5+4|r"
+text at 19,160 w=226 size=13 rgb=0.9,0.85,0.74 "|cffA89F8E지능|r |cffF2E8D5+4|r"
+text at 19,178 w=226 size=13 rgb=0.9,0.85,0.74 "|cffA89F8E정신력|r |cffF2E8D5+3|r"
+text at 19,196 w=226 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,211 w=151.5 size=11 rgb=0.85,0.7,0 "상점가"
+text at 182.5,211 w=62.5 size=11 rgb=0.85,0.7,0 "|cffffffff23 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 71 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,226 w=184.5 size=11 rgb=0.85,0.7,0 "가방"
+text at 215.5,226 w=29.5 size=11 rgb=0.85,0.7,0 "|cff66bbff합계: |cffffffff1|r|r"
+text at 19,241 w=184.5 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+text at 215.5,241 w=29.5 size=11 rgb=0.85,0.7,0 "|cff66bbff착용: |cffffffff1|r|r"

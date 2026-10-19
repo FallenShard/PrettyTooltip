@@ -37,7 +37,7 @@ Every sample the style editor shows (a weapon, a herb, a hostile elite, a quest 
 
 ### The game's strings, by language
 
-Every client defines the game's strings (`ITEM_MIN_LEVEL`, `DURABILITY_TEMPLATE`, …) as globals in its own language, and the addon reads tooltips through them. `tests/locales/<locale>.lua` holds them for enUS, deDE, frFR, koKR, zhCN, and zhTW, and each world defines the ones of its fixture's language (`client.locale`, enUS when a fixture has none). `python tools/make_strings.py` writes them from Forever's own string table on wago.tools: the globals `.luacheckrc` lists, the families a quoted name ending in `_` stands for (`"TOOLTIP_ITEM_STAT_"`), and the names the unit checks use. Run it again after adding a game string to the addon.
+Every client defines the game's strings (`ITEM_MIN_LEVEL`, `DURABILITY_TEMPLATE`, …) as globals in its own language, and the addon reads tooltips through them. `tests/locales/<locale>.lua` holds them for enUS, deDE, frFR, esES, ptBR, koKR, zhCN, and zhTW, and each world defines the ones of its fixture's language (`client.locale`, enUS when a fixture has none). `python tools/make_strings.py` writes them from Forever's own string table on wago.tools: the globals `.luacheckrc` lists, the families a quoted name ending in `_` stands for (`"TOOLTIP_ITEM_STAT_"`), and the names the unit checks use. Run it again after adding a game string to the addon.
 
 ## Lint
 
