@@ -150,7 +150,7 @@ texture at 19,21 43x43 rgb=1,1,1,1 133347
 texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
 texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0448,0.0826,0.1372,1 WHITE8X8
-text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "iLvl 31"
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.694,0.8155,0.991 "GS 31"
 text at 72,21 w=187 size=19 rgb=0.32,0.59,0.98 "SIEGEL VON WRYNN"
 text at 72,47 w=187 size=13 rgb=0.66,0.795,0.99 "Finger"
 text at 72,66 w=187 size=12 rgb=0.78,0.72,0.63 "Seelengebunden"
@@ -167,7 +167,7 @@ texture at 19,222 111x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-222 111x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-217 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,235 w=83 size=11 rgb=0.86,0.74,0.45 "Entzaubern"
-text at 114,235 w=145 size=11 rgb=0.55,0.53,0.5 "Requires Verzauberkunst 75"
+text at 114,235 w=145 size=11 rgb=0.55,0.53,0.5 "Benötigt Verzauberkunst 75"
 text at 19,252 w=204 size=11 rgb=0.88,0.84,0.76 "|T132879:0|t Kleiner leuchtender Splitter"
 text at 235,252 w=24 size=11 rgb=0.88,0.84,0.76 "100%"
 texture at 19,272 240x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8

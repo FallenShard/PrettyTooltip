@@ -1,17 +1,17 @@
 == tooltip model
 cast:
   1: "1,5 Sek."
-  2: "Cast"
+  2: "Wirken"
 cells:
   1:
     1: "50"
     2: "Mana"
   2:
     1: "1,5 Sek."
-    2: "Cast"
+    2: "Wirken"
   3:
     1: "40 m"
-    2: "Range"
+    2: "Reichweite"
 cost:
   1: "50"
   2: "Mana"
@@ -45,7 +45,7 @@ name: "Lichtblitz"
 power: "Mana"
 range:
   1: "40 m"
-  2: "Range"
+  2: "Reichweite"
 rank: "Rang 2"
 requirements: {}
 spellID: 19939
@@ -73,13 +73,13 @@ texture TOP panel TOP 0,-71 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,89 w=68 size=13 rgb=0.6625,0.7975,1 "50"
 text at 19,106 w=68 size=9 rgb=0.6,0.57,0.52 "MANA"
 text at 87,89 w=68 size=13 rgb=0.96,0.92,0.84 "1,5 Sek."
-text at 87,106 w=68 size=9 rgb=0.6,0.57,0.52 "CAST"
+text at 87,106 w=68 size=9 rgb=0.6,0.57,0.52 "WIRKEN"
 texture at 87,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
 text at 155,89 w=68 size=13 rgb=0.6,0.57,0.52 "Keine"
-text at 155,106 w=68 size=9 rgb=0.6,0.57,0.52 "COOLDOWN"
+text at 155,106 w=68 size=9 rgb=0.6,0.57,0.52 "ABKLINGZEIT"
 texture at 155,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
 text at 223,89 w=68 size=13 rgb=0.96,0.92,0.84 "40 m"
-text at 223,106 w=68 size=9 rgb=0.6,0.57,0.52 "RANGE"
+text at 223,106 w=68 size=9 rgb=0.6,0.57,0.52 "REICHWEITE"
 texture at 223,91 1x26 rgb=0.588,0.438,0.132,0.5 WHITE8X8
 texture at 19,124 272x1 rgb=0.686,0.511,0.154,0.45 WHITE8X8
 text at 19,133 w=272 size=12 rgb=0.92,0.87,0.76 "Heilt ein befreundetes Ziel um |cffFBCF7467|r bis |cffFBCF7476|r Punkt(e)."

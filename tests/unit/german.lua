@@ -59,7 +59,7 @@ return function(test)
         "Schleudert eine glühende Kugel, die 16 bis 25 Punkt(e) Feuerschaden verursacht.",
     }, LINE.SpellName)
     test.check("deDE: a spell's strip", { model.cost, model.cast, model.cooldown, model.range },
-        { { "30", "Mana" }, { "1,5 Sek.", "Cast" }, { "8 Sek.", "Cooldown" }, { "35 m", "Range" } })
+        { { "30", "Mana" }, { "1,5 Sek.", "Wirken" }, { "8 Sek.", "Abklingzeit" }, { "35 m", "Reichweite" } })
     test.check("deDE: its school from the description", ns.Palette.detectSchool(model.description, "Feuerball"),
         "Fire")
     test.check("deDE: no spell power rows yet", ns.Locale.features.coefficients, false)
