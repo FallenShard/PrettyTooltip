@@ -8,5 +8,5 @@
  7 "|c0042b1fePress F6 to submit an issue for this Spell"
  8 " "
  9 "|cffff2020Spend 18 more points in Frost Talents|r"
-10 " "
-11 "Spell ID: 11180"
+   below the lines:
+   "Spell ID: 11180"

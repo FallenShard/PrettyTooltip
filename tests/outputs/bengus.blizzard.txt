@@ -6,5 +6,5 @@
  5 "PvP"
  6 " "
  7 "|c0042b1fePress F6 to submit an issue for this Creature"
- 8 " "
- 9 "NPC-ID: 4258"
+   below the lines:
+   "NPC-ID: 4258"

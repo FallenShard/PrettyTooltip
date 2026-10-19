@@ -319,8 +319,8 @@ ui.objectModel = function(fields)
     for _, list in ipairs({ "details", "quests", "extras" }) do fields[list] = fields[list] or {} end
     return completeModel(fields, ns.Game)
 end
-local function details(model)
-    if not (model.loot and ns.showsDetail("gatheringLoot")) then return {} end
+local function details(model, context)
+    if not (model.loot and ns.showsDetail("gatheringLoot", context)) then return {} end
     local rows = shownLoot(model.loot)
     for _, row in ipairs(rows) do row.color = row.color or DETAIL_COLOR end
     return rows

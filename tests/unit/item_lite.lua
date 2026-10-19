@@ -1,7 +1,7 @@
 -- The game's own item tooltip shortens selected lines and keeps native colors and other rows; with
 -- stat colors on, magical stats and chance on hit effects keep theirs.
 return function(test)
-    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua", "Locale/English.lua", "Data/Stats.lua", "Integration/ItemLite.lua" }
+    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua", "Locale/English.lua", "Game/TooltipData.lua", "Data/Stats.lua", "Game/Game.lua", "Integration/ItemLite.lua" }
     local combined = "Equip: Increases healing done by up to 20 and damage done by up to 10 for all magical spells and effects."
     local original = { "Test Item", "+6 Intellect", combined,
         "Equip: Improves your chance to get a critical strike by 1%.", "Requires Level 60",
@@ -36,8 +36,6 @@ return function(test)
         ns.setOption("statMarkers", enabled)
         ns.ItemLite.register()
         local data = capture.data
-        world.preCalls[0][1](world.main, data)
-        for index, line in ipairs(data.lines) do line.lineIndex = index end
         world.postCalls[0][1](world.main, data)
         for index, text in ipairs(expected) do
             test.check("lite wording " .. index .. " with colors " .. tostring(enabled), world.main:GetLeftLine(index):GetText(), text)
@@ -46,7 +44,7 @@ return function(test)
             test.check("native data color " .. index, data.lines[index].leftColor,
                 { r = colors[index][1], g = colors[index][2], b = colors[index][3] })
         end
-        test.check("split bonus wraps", data.lines[3].wrapText, true)
+        test.check("the game's data keeps the original wording", data.lines[3].leftText, combined)
         test.check("native row count", #data.lines, #original)
         test.check("right-hand text", world.main:GetRightLine(7):GetText(), "Other detail")
         test.check("right-hand color", { world.main:GetRightLine(7):GetTextColor() }, { .8, .6, .2, 1 })

@@ -10,5 +10,5 @@
  9 "Next Rank:"
 10 "Passive"
 11 "Increases the critical strike damage bonus of your Frost spells by 60%."
-12 " "
-13 "Spell ID: 11207"
+   below the lines:
+   "Spell ID: 11207"

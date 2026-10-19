@@ -380,13 +380,16 @@ local function readModel(tooltip, data, game)
         if not left or not right then return end
         local lineType = line.type
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
+        -- Read as the panel words it, each stat of a combined bonus apart.
+        local wording = ns.TooltipData.itemWording(line)
+        local original = wording and left
+        if wording then left = wording.display end
         local trimmed = left:match("^%s*(.-)%s*$")
         local startsQuest = unformat(trimmed, ITEM_STARTS_QUEST)
         if startsQuest or unformat(trimmed, ITEM_BIND_QUEST) then
             m.quest = true
         end
-        if isSecret(line.prettyTooltipDisplay) or isSecret(line.prettyTooltipOriginal) then return end
-        local displayed = line.prettyTooltipDisplay or left
+        local displayed = left
 
         if isStockChange(left) then
             addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
@@ -477,10 +480,10 @@ local function readModel(tooltip, data, game)
             elseif ((LINE.ItemSpellTriggerOnProc and lineType == LINE.ItemSpellTriggerOnProc)
                 or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONPROC)) and right == "" then
                 -- Rewritten proc text stays an effect, rather than a stat.
-                local text = line.prettyTooltipOriginal or trimmed
+                local text = original or trimmed
                 add(m.equipEffects, withoutLabel(text, ITEM_SPELL_TRIGGER_ONPROC), "")
                 m.equipEffects[#m.equipEffects].onHit = true
-            elseif line.prettyTooltipOriginal or lineParts(trimmed) == "+" then
+            elseif original or lineParts(trimmed) == "+" then
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
                     local stat = ns.Stats.read(plainText(piece))
@@ -1112,9 +1115,9 @@ local function render(panel, tooltip, model)
 end
 render = probe("render item", render)
 
-local function details(model)
+local function details(model, context)
     local rows = {}
-    if model.disenchant and ns.showsDetail("disenchant") then
+    if model.disenchant and ns.showsDetail("disenchant", context) then
         local heading = disenchantHeading(model.disenchant)
         heading.color = FLAVOR_GOLD
         rows[1] = heading
@@ -1123,7 +1126,7 @@ local function details(model)
             rows[#rows + 1] = row
         end
     end
-    rows[#rows + 1] = ui.idRow(nil, L["Item ID: %s"], itemID(model))
+    rows[#rows + 1] = ui.idRow(context, L["Item ID: %s"], itemID(model))
     return rows
 end
 

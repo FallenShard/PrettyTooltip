@@ -5,8 +5,8 @@
  4 "Heilt ein befreundetes Ziel um 67 bis 76 Punkt(e)."
  5 " "
  6 "|c0042b1fePress F6 to submit an issue for this Spell"
- 7 " "
- 8 "Heilkraftkoeffizient  ||  |cffFBCF7442,9%|r |cff999185·|r 67 bis 76 + |cffFBCF740|r"
- 9 "Heilung pro Sekunde  ||  47,7"
-10 "Heilung pro Mana  ||  1,43"
-11 "Zauber-ID: 19939"
+   below the lines:
+   "Heilkraftkoeffizient  ||  |cffFBCF7442,9%|r |cff999185·|r 67 bis 76 + |cffFBCF740|r"
+   "Heilung pro Sekunde  ||  47,7"
+   "Heilung pro Mana  ||  1,43"
+   "Zauber-ID: 19939"

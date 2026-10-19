@@ -5,8 +5,8 @@
  4 "Heals a friendly target for 425 to 479."
  5 " "
  6 "|c0042b1fePress F6 to submit an issue for this Spell"
- 7 " "
- 8 "Healing Power Coefficient  ||  |cffFBCF7471.4%|r |cff999185·|r 425 to 479 + |cffFBCF740|r"
- 9 "Healing per Second  ||  180.8"
-10 "Healing per Mana  ||  1.64"
-11 "Spell ID: 1042"
+   below the lines:
+   "Healing Power Coefficient  ||  |cffFBCF7471.4%|r |cff999185·|r 425 to 479 + |cffFBCF740|r"
+   "Healing per Second  ||  180.8"
+   "Healing per Mana  ||  1.64"
+   "Spell ID: 1042"

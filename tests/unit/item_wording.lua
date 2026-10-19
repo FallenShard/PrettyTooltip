@@ -26,7 +26,7 @@ return function(test)
 
     local function lefts(ns, rows)
         local out = {}
-        for index, row in ipairs(rows or {}) do out[index] = ns.util.plainText(row.left) end
+        for index, row in ipairs(rows or {}) do out[index] = ns.util.trim(ns.util.plainText(row.left)) end
         return out
     end
 
@@ -66,7 +66,7 @@ return function(test)
         "Requires Level 40",
         "Requires Thorium Brotherhood - Friendly",
         "Chance on hit: Sends a shadowy bolt at the enemy.",
-        "Equip: Improves your chance to hit by 1%.",
+        "Equip: Increases your speed in a specific zone.",
         "Use: Restores 100 health.",
         "Enchanted: Crusader",
         "<Made by Thrall>",
@@ -87,7 +87,7 @@ return function(test)
         level = { "Requires Level 40", false },
         footerRight = { "Requires Thorium Brotherhood - Friendly" },
         onHit = { "Sends a shadowy bolt at the enemy.", true },
-        equip = "Improves your chance to hit by 1%.",
+        equip = "Increases your speed in a specific zone.",
         use = { "Restores 100 health.", true },
         enchants = { "Crusader" },
         madeBy = "Thrall",

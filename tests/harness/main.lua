@@ -154,6 +154,24 @@ local function nativeLines(label, tooltip)
         if rightText and rightText ~= "" then text = text .. "  ||  " .. rightText end
         out[#out + 1] = string.format("%2d %q", index, text)
     end
+    -- Frames of the addon's own inside the tooltip, as the details are: their
+    -- text row by row, top first.
+    for _, child in ipairs(tooltip._children or {}) do
+        if child._kind == "Frame" and child._shown then
+            local rows, order = {}, {}
+            for _, font in ipairs(child._children) do
+                local point = font._points[1]
+                if font._kind == "FontString" and font._shown and point then
+                    local y = point[5]
+                    if not rows[y] then rows[y], order[#order + 1] = {}, y end
+                    table.insert(rows[y], font._text or "")
+                end
+            end
+            table.sort(order, function(a, b) return a > b end)
+            if #order > 0 then out[#out + 1] = "   below the lines:" end
+            for _, y in ipairs(order) do out[#out + 1] = string.format("   %q", table.concat(rows[y], "  ||  ")) end
+        end
+    end
     return table.concat(out, "\n")
 end
 

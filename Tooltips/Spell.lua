@@ -592,18 +592,18 @@ ui.spellModel = function(fields)
     return model
 end
 
-local function details(model)
+local function details(model, context)
     local school = ns.Palette.detectSchool(model.description, model.name, model.spellID)
     local numberCode = ns.Palette.numberCode(ns.Palette.school(school))
     local rows = {}
-    for _, row in ipairs(powerRows(model, numberCode) or {}) do rows[#rows + 1] = row end
+    for _, row in ipairs(powerRows(model, numberCode, context) or {}) do rows[#rows + 1] = row end
     local nested = model.nested
-    local nestedRows = nested and nested.name and powerRows(nested, numberCode)
+    local nestedRows = nested and nested.name and powerRows(nested, numberCode, context)
     if nestedRows then
         rows[#rows + 1] = { left = nested.name, right = "", color = TITLE_COLOR }
         for _, row in ipairs(nestedRows) do rows[#rows + 1] = row end
     end
-    rows[#rows + 1] = ui.idRow(nil, L["Spell ID: %s"], model.spellID)
+    rows[#rows + 1] = ui.idRow(context, L["Spell ID: %s"], model.spellID)
     return rows
 end
 

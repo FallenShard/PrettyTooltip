@@ -424,13 +424,18 @@ end
 function ns.originalKeyDown() return keyDown(ns.option("originalKey")) end
 function ns.isOriginalKey(key) return isKey(ns.option("originalKey"), key) end
 
-function ns.detailsKeyDown() return keyDown(ns.option("detailsKey")) end
+-- Whether the details show now: their key is held, or they always show.
+function ns.detailsKeyDown()
+    local name = ns.option("detailsKey")
+    return not MODIFIERS[name] or keyDown(name)
+end
 function ns.isDetailsKey(key) return isKey(ns.option("detailsKey"), key) end
 
--- Whether a panel shows a detail its option turns on. The editor's previews
--- show every detail that is on, so it can be styled without holding the key.
+-- Whether a panel shows a detail its option turns on. The editor's previews,
+-- and the details on the game's own tooltip, which follow the key themselves,
+-- have every detail that is on.
 function ns.showsDetail(key, panel)
     if not ns.option(key) then return false end
-    if panel and panel.isPreview then return true end
-    return not MODIFIERS[ns.option("detailsKey")] or ns.detailsKeyDown()
+    if panel and (panel.isPreview or panel.allDetails) then return true end
+    return ns.detailsKeyDown()
 end

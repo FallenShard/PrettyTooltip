@@ -31,7 +31,7 @@ return function(test)
     test.check("zhTW: supported", ns.Locale.supported, true)
     test.check("zhTW: an item with full-width punctuation and no-space stats", {
         header = model.header[1] and model.header[1].left, weapon = { model.weaponDamage, model.weaponSpeed },
-        dps = model.weaponDps, primary = model.primary[1] and ns.util.plainText(model.primary[1].left),
+        dps = model.weaponDps, primary = model.primary[1] and ns.util.trim(ns.util.plainText(model.primary[1].left)),
         durability = model.footerLeft[1].durability,
         level = model.levelRequirement and model.levelRequirement.text, extras = #model.extras,
     }, {

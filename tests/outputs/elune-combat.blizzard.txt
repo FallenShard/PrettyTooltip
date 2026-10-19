@@ -5,5 +5,5 @@
  4 "(hidden)"
  5 "(hidden)"
  6 "(hidden)"
- 7 " "
- 8 "Spell ID: 1259799"
+   below the lines:
+   "Spell ID: 1259799"

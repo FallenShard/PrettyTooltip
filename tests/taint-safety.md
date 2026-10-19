@@ -2,7 +2,7 @@
 
 Reviewed on 2026-10-19 for WoW Forever (interface 16001), against the addon's code and Blizzard's `classic_beta` UI source.
 
-The addon contains guards and regression checks for the cases below. This is not a certification that no combination of client state, Blizzard changes, or other addons can cause taint. The offline Lua harness does not implement Blizzard's secure execution engine, protected-frame ancestry, or every behavior of secret primitives. Three paths still taint Blizzard code; they are listed under [Known taint paths](#known-taint-paths).
+The addon contains guards and regression checks for the cases below. This is not a certification that no combination of client state, Blizzard changes, or other addons can cause taint. The offline Lua harness does not implement Blizzard's secure execution engine, protected-frame ancestry, or every behavior of secret primitives. One path still taints Blizzard code; it is listed under [Known taint paths](#known-taint-paths).
 
 ## What taint means here
 
@@ -15,7 +15,7 @@ Code an addon runs is insecure, and every value it writes carries that taint. Bl
 | Area | Handling |
 | --- | --- |
 | Game functions | Integrations use `hooksecurefunc`, `HookScript`, and the tooltip processor callback API. They do not replace Blizzard functions or use secure-call wrappers to attempt protected actions. |
-| Callback isolation | The processor runs callbacks an addon registers through `securecallfunction` after `forceinsecure()`, so a callback's own execution does not taint the processor. Values a callback writes into the tooltip data are not isolated; see the item rewrite below. |
+| Callback isolation | The processor runs callbacks an addon registers through `securecallfunction` after `forceinsecure()`, so a callback's own execution does not taint the processor. Values a callback writes into the tooltip data are not isolated, so the addon writes none: it registers no pre-call, and its post-calls only read the data. |
 | Restricted data | `util.isSecret` checks secret values and, when available, inaccessible tables through `canaccesstable`. `util.call` rejects restricted arguments and results; individual consumers also validate nested fields. |
 | Tooltip callbacks | Restricted callback data and failed key, read, or render operations leave or restore the native tooltip. Secret alpha and visibility arguments are not compared or formatted. |
 | Combat | In combat the client hides a spell's "Cooldown remaining" line (text and color) and every font string of the game's tooltip, the spell's name included. The spell reader keeps its panel: a hidden line is kept as an opaque value and drawn by `ui.hiddenTextAt`, which passes it to a font string of its own without reading, measuring, or comparing it; rows other addons append are left out while unreadable. Font strings that showed a secret are never reused for readable text, and the panel's size comes from the addon's own numbers, so its geometry stays readable. The item, aura, and unit readers still restore the native tooltip when a line is hidden. |
@@ -26,16 +26,6 @@ Code an addon runs is insecure, and every value it writes carries that taint. Bl
 | Diagnostics | Dump output marks restricted fields rather than stringifying secrets. Anchor output omits unreadable geometry. Captures retain restricted-value markers and skip forbidden/protected frames. |
 
 ## Known taint paths
-
-### Item wording rewrites Blizzard's tooltip data
-
-`Integration/ItemLite.lua` registers an item pre-call that replaces stat lines in the tooltip data with tables it builds (`lines[index] = copy`). After the pre-calls, the processor's `ProcessLines` reads `leftText`, `wrapText`, and the other fields of every line, so from the first replaced line the rest of that processing runs tainted: the remaining lines, the post-calls including the comparison setup, `SharedTooltip_SetBackdropStyle`, and `self:Show()`. This happens on most equipment tooltips. Other addons' callbacks also see the rewritten lines instead of the game's.
-
-Planned remedy: drop the pre-call and apply the wording in the item post-call with `SetText` on the native font strings, as the modifier-key switch already does. Post-calls run before the processor's `Show`, so the layout still follows. The item reader then derives the display wording itself instead of reading `prettyTooltipDisplay` and `prettyTooltipOriginal` from the data.
-
-### `RefreshData()` refills the game's tooltip under taint
-
-`Integration/Details.lua` adds the details to the game's own tooltip in its post-call, which needs nothing more. Pressing or releasing the details or original-tooltip key while such a tooltip shows calls `RefreshData()` on it, because lines cannot be taken back: the processor then runs the whole fill, `ProcessInfo` through the post-calls and `Show`, under the addon's taint, and writes the tooltip's processing fields tainted. In combat the key change does nothing (`unit/native_details.lua`); the details follow on the next tooltip the game fills. Outside combat the fields are rewritten securely the next time the game fills the tooltip itself.
 
 ### `Hide()` on GameTooltip runs its OnHide under taint
 
@@ -62,8 +52,7 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 | --- | --- | --- |
 | `hooksecurefunc` | None: the hook runs after the original, and its taint stays in the hook | Post-hooks on the game's tooltips' `Show`, `SetShown`, `SetPoint`, `SetAlpha`, `SetOwner`, `FadeOut` (Hooks, Native, Cursor, Quest); `GameTooltipStatusBar:SetPoint` (Unit); the globals `GameTooltip_SetDefaultAnchor` (Cursor), `SetItemRef` (Quest), `TaxiNodeOnButtonEnter` (FlightPath), `ChatEdit_InsertLink` (Editor). |
 | `Frame:HookScript` | None, as above | `OnHide`, `OnTooltipCleared`, `OnShow` on the game's tooltips (Hooks, ItemLite, Aura, Cursor); `OnHyperlinkEnter` and `OnHyperlinkLeave` on the chat frames (Quest). |
-| `TooltipDataProcessor.AddTooltipPostCall` | None for the callback, which the processor runs through `securecallfunction`; its `tooltipData` can hold secrets | Hooks draws a panel per data type, Cursor follows the cursor, ItemLite switches item wording, Details appends the details to the game's tooltip. Receives `(tooltip, tooltipData)`. |
-| `TooltipDataProcessor.AddTooltipPreCall` | **Taint**: the processor reads the replaced line tables afterwards | ItemLite rewrites item stat lines before the game draws them; see [Known taint paths](#known-taint-paths). |
+| `TooltipDataProcessor.AddTooltipPostCall` | None for the callback, which the processor runs through `securecallfunction`; its `tooltipData` can hold secrets | `ns.Processor`, in `Game/Game.lua`, registers the addon's only ones: one per data type, which runs the stages in a fixed order, each in its own `pcall` (ItemLite words item lines, Hooks draws the panel, Details lays out the details on the game's tooltip, Cursor follows the cursor). No `AddTooltipPreCall`: the processor reads the data after the pre-calls, so anything written there taints its fill. Receives `(tooltip, tooltipData)`. |
 | `issecretvalue`, `canaccesstable` | None: the permitted checks | `util.isSecret`, which every read of game data goes through. |
 
 ### The game's tooltips (GameTooltip, ItemRefTooltip, ShoppingTooltip1 and 2)
@@ -74,17 +63,17 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 | `IsTooltipType`, `GetItem`, `GetUnit` | **Secret** (results) | Which type a tooltip shows, and the item link and unit token for the readers. Through `util.call` or `pcall`. |
 | `NumLines`, `GetLeftLine`, `GetRightLine` | None; the font strings they return can hold secrets | Change detection, other addons' rows, a spell line's drawn right side, and the rows ItemLite rewords. |
 | FontString `GetText`, `GetTextColor` (the game's lines) | **Secret**: every drawn line in combat, the name included | Read through `safeText` and `isSecret`. A secret leaves the row out, or keeps it as an opaque value drawn by `ui.hiddenTextAt`. |
-| FontString `SetText` (the game's lines) | None: a C call that runs no Lua | ItemLite swaps item wording when the modifier key changes. |
+| FontString `SetText`, `SetWordWrap` (the game's lines) | None: C calls that run no Lua | ItemLite words item lines in its post-call, after the game drew them from its untouched data, and again when the modifier key changes. Until 1.3 a pre-call replaced the data's line tables instead, which tainted the rest of the processor's fill. |
 | `GetOwner`, `GetName`, `GetParent` | The owner can be protected or forbidden | Quest-log buttons and chat links (Quest), captures. Owners pass `util.canModify` first. |
 | `IsForbidden`, `IsProtected`, `GetWidth` (as a probe) | None | `util.canModify`: forbidden or protected frames are left alone, as is a frame whose width read fails; a failed check counts as restricted. |
 | `IsShown` | **Secret** in principle | Throughout, mostly through `util.call`. |
 | `GetAlpha`, `SetAlpha` | **Secret** (alpha). `SetAlpha` runs no Blizzard Lua, though other addons' hooks on it run | Keeps the game's tooltip at alpha 0 under the panel and restores it. A secret alpha restores the game's tooltip. |
-| `GetWidth`, `GetHeight`, `GetPadding`, `SetPadding` | **Secret** (geometry). `SetPadding` runs no Lua | Sizes the hidden game tooltip to cover the panel, so comparisons and screen clamping treat the pair as one (Native). Checked before any arithmetic. |
+| `GetWidth`, `GetHeight`, `GetPadding`, `SetPadding` | **Secret** (geometry). `SetPadding` runs no Lua | Sizes the hidden game tooltip to cover the panel, so comparisons and screen clamping treat the pair as one (Native). Checked before any arithmetic. Details takes bottom padding for its rows, as the game does for an embedded item, from the padding before it or none when that is hidden; it never reads the tooltip's size. |
+| `GetMinimumWidth`, `SetMinimumWidth` | **Secret** in principle; runs no Lua | Details widens the tooltip to its rows, keeping a wider minimum the game set (as `GameTooltip_InsertFrame` does), and gives it back on hide or refill. |
+| `CreateFrame` with a game tooltip as parent | None: the frame and its font strings are the addon's, with no scripts | Details' rows, in the room at the tooltip's bottom; the key shows and hides them without the game filling the tooltip again. |
 | `GetNumPoints`, `GetPoint`, `ClearAllPoints`, `SetPoint` | **Secret** (anchors). `SetPoint` fires hooks, the addon's own included | Anchors comparisons to the panels, anchors GameTooltip to the cursor tracker when it starts following (not every frame), places the health bar. Snapshots through `util.framePoints` need every part readable. |
 | `IsClampedToScreen`, `SetClampedToScreen`, `GetEffectiveScale` | **Secret** in principle (scale) | Cursor follow unclamps the game's tooltip while the panel keeps itself on screen. |
-| `Show` | None: GameTooltip has no OnShow script | The refit fallback and padding release (Native), relayout after a wording switch (ItemLite) or appended details (Details). |
-| `AddLine`, `AddDoubleLine` | None: C calls that run no Lua; the text is the addon's own | The details rows on the game's tooltip, in its post-call (Details). |
-| `RefreshData` | **Taint**: runs the processor's fill under the addon's taint | Refills a tooltip with details when their key changes, outside combat only (Details); see [Known taint paths](#known-taint-paths). |
+| `Show` | None: GameTooltip has no OnShow script | The refit fallback and padding release (Native), relayout after a wording switch (ItemLite) or when the details key shows or hides the details (Details). |
 | `Hide` | **Taint**: runs `GameTooltip_OnHide` | The early hide when a unit's tooltip starts fading (Native, Cursor), outside combat only. The editor's and options page's hover help also hide GameTooltip, as most addons do. |
 | `SetOwner`, `SetText`, `AddLine`, `Show` (hover help) | As any addon's hover help | Explanations in the style editor and options page, outside the tooltips hovered in play. |
 
@@ -155,7 +144,7 @@ The tests exercise secret values, inaccessible tables, secret nested API fields,
 
 ## Client results
 
-On 2026-10-19 two sessions with `/console taintLog 2`, each with several fights alongside EllesmereUI, AtlasLoot, Baganator, Questie, and other addons, logged no blocked action and no taint from PrettyTooltip in tooltip or combat code. Its only entries were two kinds every addon produces: Blizzard's `CloseWindows` reading the `PrettyTooltipEditor` name the addon registers in `UISpecialFrames` (inside `securecall`, on login, logout, and Escape), and the chat frame reading `SLASH_PRETTYTOOLTIP1` and `SLASH_PRETTYTOOLTIP2` to register `/ptip`. The log does not report reads of fields inside the tooltip processor's data tables, so it neither confirms nor rules out the item rewrite path above.
+On 2026-10-19 two sessions with `/console taintLog 2`, each with several fights alongside EllesmereUI, AtlasLoot, Baganator, Questie, and other addons, logged no blocked action and no taint from PrettyTooltip in tooltip or combat code. Its only entries were two kinds every addon produces: Blizzard's `CloseWindows` reading the `PrettyTooltipEditor` name the addon registers in `UISpecialFrames` (inside `securecall`, on login, logout, and Escape), and the chat frame reading `SLASH_PRETTYTOOLTIP1` and `SLASH_PRETTYTOOLTIP2` to register `/ptip`. The log does not report reads of fields inside the tooltip processor's data tables, so it could neither confirm nor rule out the item pre-call's rewrite of those tables, which has since been removed.
 
 ## Sources
 

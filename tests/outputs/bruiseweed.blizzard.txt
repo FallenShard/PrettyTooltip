@@ -1,5 +1,5 @@
 == tooltip as the game shows it
  1 "Bruiseweed"
  2 "Herbalism"
- 3 " "
- 4 "Bruiseweed  ||  1 to 3"
+   below the lines:
+   "Bruiseweed  ||  1 to 3"

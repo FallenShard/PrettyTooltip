@@ -91,7 +91,21 @@ local function nested(data)
 end
 
 tooltipData.add = add
+-- An item line's shortened wordings (Data/Stats.lua's itemWording), from the
+-- game's own data, which stays as it is. Nil for a line that reads the same,
+-- has a right side, or is hidden.
+local function itemWording(line)
+    if isSecret(line) or type(line) ~= "table" then return end
+    local text, right = line.leftText, line.rightText
+    if isSecret(text) or type(text) ~= "string" or isSecret(right) or right then return end
+    -- The game marks proc lines; the text is the fallback for clients that do not.
+    local procType = Enum.TooltipDataLineType and Enum.TooltipDataLineType.ItemSpellTriggerOnProc
+    local proc = procType ~= nil and not isSecret(line.type) and line.type == procType
+    return ns.Stats.itemWording(text, proc, ns.option("statColors"), ns.option("statMarkers"))
+end
+
 tooltipData.colorOf = colorOf
+tooltipData.itemWording = itemWording
 tooltipData.isRed = isRed
 tooltipData.requirementMet = requirementMet
 tooltipData.appendedRows = appendedRows

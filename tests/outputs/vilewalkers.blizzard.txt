@@ -11,7 +11,7 @@
 10 "Sell Price: 9|A:coin-silver:14:14:2:0|a 70|A:coin-copper:14:14:2:0|a"
 11 " "
 12 "|c0042b1fePress F6 to submit an issue for this Item"
-13 " "
-14 "Disenchant  ||  Requires Enchanting 25"
-15 "|T132877:0|t Small Glimmering Shard  ||  100%"
-16 "Item ID: 271211"
+   below the lines:
+   "Disenchant  ||  Requires Enchanting 25"
+   "|T132877:0|t Small Glimmering Shard  ||  100%"
+   "Item ID: 271211"

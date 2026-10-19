@@ -6,5 +6,5 @@
  5 "\"Fragmented remnants of the construct, refracting light like a kaleidoscope.\""
  6 " "
  7 "|c0042b1fePress F6 to submit an issue for this Item"
- 8 " "
- 9 "Item ID: 270865"
+   below the lines:
+   "Item ID: 270865"

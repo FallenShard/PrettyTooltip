@@ -77,12 +77,10 @@ local function place()
     return true
 end
 
--- Cursor placement follows rewrite restoration and panel fitting.
 function ns.Cursor.register()
     if registered then return end
     local TYPES = Enum and Enum.TooltipDataType
-    if not (TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall
-        and TYPES and ns.TOOLTIP_TYPES) then return end
+    if not (ns.Processor.available() and TYPES and ns.TOOLTIP_TYPES) then return end
     registered = true
     tracker = CreateFrame("Frame", nil, UIParent)
     tracker:SetSize(1, 1)
@@ -181,7 +179,7 @@ function ns.Cursor.register()
         for _, typeName in ipairs(tooltipType.types) do
             local dataType = TYPES[typeName]
             if dataType then
-                TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip)
+                ns.Processor.onData("cursor", dataType, function(tooltip)
                     if tooltip == GameTooltip then
                         cursorKey = tooltipType.cursor
                         refresh(true)

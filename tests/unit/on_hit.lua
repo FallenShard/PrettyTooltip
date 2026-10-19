@@ -61,18 +61,14 @@ return function(test)
     test.check("highlighting is repeatable", styleEffect(styled), styled)
     ns.setOption("statColors", false)
     test.check("stat colors off preserves wording", styleEffect(original), original)
-    local plainData = { type = 0, lines = { { type = 0, lineIndex = 2, leftText = original } } }
-    world.preCalls[0][1](world.main, plainData)
-    test.check("native proc stays unchanged with stat colors off", plainData.lines[1].leftText, original)
-    test.check("disabled colors do not create a proc rewrite", plainData.lines[1].prettyTooltipOriginal, nil)
+    test.check("disabled colors do not reword a proc",
+        ns.TooltipData.itemWording({ type = 0, lineIndex = 2, leftText = original }), nil)
     ns.setOption("statColors", true)
 
     local data = capture.data
-    world.preCalls[0][1](world.main, data)
-    test.check("native rewrite keeps original text", data.lines[2].prettyTooltipOriginal, original)
-    test.check("lite colors the proc's numbers, as magic", data.lines[2].prettyTooltipLite, styled)
-    test.check("native display keeps chance-on-hit wording", data.lines[2].prettyTooltipDisplay, styled)
-    data.lines[2].lineIndex = 2
+    local wording = ns.TooltipData.itemWording(data.lines[2])
+    test.check("lite colors the proc's numbers, as magic", wording.lite, styled)
+    test.check("display keeps chance-on-hit wording", wording.display, styled)
     ns.setOption("layout", "blizzard")
     world.postCalls[0][1](world.main, data)
     test.check("lite tooltip shows the proc's colored numbers", world.main:GetLeftLine(2):GetText(), styled)
@@ -82,8 +78,7 @@ return function(test)
     IsAltKeyDown = function() return false end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
     test.check("releasing ALT restores lite wording", world.main:GetLeftLine(2):GetText(), styled)
-    world.preCalls[0][1](world.main, data)
-    test.check("cached proc is not rewritten twice", data.lines[2].prettyTooltipDisplay, styled)
+    test.check("the game's data keeps the original proc", data.lines[2].leftText, original)
 
     ns.setOption("layout", "pretty")
     local model = ns.TooltipTypes[0].read(world.main, data, ns.Game)
@@ -132,8 +127,6 @@ return function(test)
     local markedData = markedCapture.data
     test.check("a marked proc is read as an on-hit effect", ns.TooltipTypes[0].read(world.main, markedData, ns.Game)
         .equipEffects[1], { left = marked, right = "", onHit = true })
-    ns.ItemLite.register()
-    world.preCalls[0][1](world.main, markedData)
-    test.check("a marked proc is colored on the game's tooltip", markedData.lines[2].prettyTooltipDisplay,
+    test.check("a marked proc is colored on the game's tooltip", ns.TooltipData.itemWording(markedData.lines[2]).display,
         ns.Stats.styleEffect(marked, true))
 end

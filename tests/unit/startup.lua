@@ -1,7 +1,7 @@
 -- Registration waits for the addon's own event and uses saved settings.
 return function(test)
     local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
-        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Data/Stats.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
         "Integration/ItemLite.lua", "UI/Options.lua", "UI/Commands.lua", "PrettyTooltip.lua" }
     local fixture = { enums = { TooltipDataType = { Item = 0 } } }
     local ns, world = test.load(files, fixture)
@@ -9,8 +9,7 @@ return function(test)
     test.check("slash command waits for startup", SlashCmdList.PRETTYTOOLTIP, nil)
     test.check("slash aliases wait for startup", SLASH_PRETTYTOOLTIP1, nil)
     test.check("settings are available before startup", ns.option("itemPanels"), true)
-    test.check("rewrite pre-call waits for startup", world.preCalls[0], nil)
-    test.check("rewrite post-call waits for startup", world.postCalls[0], nil)
+    test.check("wording post-call waits for startup", world.postCalls[0], nil)
 
     local page, registered, opened
     local registrations = 0
@@ -32,8 +31,8 @@ return function(test)
 
     PrettyTooltipDB = { itemPanels = false, originalKey = "CTRL" }
     world.fireEvent("ADDON_LOADED", "PrettyTooltip")
-    test.check("startup installs rewrite pre-call", #world.preCalls[0], 1)
-    test.check("startup installs rewrite post-call", #world.postCalls[0], 1)
+    test.check("startup installs no pre-call", world.preCalls[0], nil)
+    test.check("startup installs wording post-call", #world.postCalls[0], 1)
     test.check("settings category registered", registered == category, true)
     test.check("settings page starts hidden", page:IsShown(), false)
     -- The first checkbox controls item panels; it must use the saved false.
@@ -67,8 +66,7 @@ return function(test)
     test.check("repeated startup does not recreate UI", #world.objects, after)
     test.check("repeated startup does not register another category", registrations, 1)
     test.check("repeated startup preserves command handler", SlashCmdList.PRETTYTOOLTIP == handler, true)
-    test.check("repeated startup preserves rewrite pre-call count", #world.preCalls[0], 1)
-    test.check("repeated startup preserves rewrite post-call count", #world.postCalls[0], 1)
+    test.check("repeated startup preserves wording post-call count", #world.postCalls[0], 1)
     local listeners = 0
     for _, object in ipairs(world.objects) do
         if object:IsEventRegistered("ADDON_LOADED") then listeners = listeners + 1 end
@@ -114,13 +112,17 @@ return function(test)
     local integrated = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
         "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
         "Panel/Layout.lua", "Tooltips/Item.lua", "Panel/Render.lua", "Integration/Native.lua", "Integration/Hooks.lua",
-        "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
+        "Integration/Details.lua", "Integration/ItemLite.lua", "Integration/Cursor.lua", "UI/Options.lua",
         "UI/Commands.lua", "PrettyTooltip.lua" }
     ns, world = test.load(integrated, item)
     test.check("item integration post-calls wait for startup", world.postCalls[0], nil)
     PrettyTooltipDB = {}
     world.fireEvent("ADDON_LOADED", "PrettyTooltip")
-    test.check("startup installs rewrite, item panel, and cursor", #world.postCalls[0], 3)
+    test.check("startup installs one post-call for items", #world.postCalls[0], 1)
+    test.check("which runs wording, panel, details, and cursor in order", ns.Processor.stages(0),
+        { "wording", "panel", "details", "cursor" })
+    test.check("and no pre-call that would change the game's data", world.preCalls[0], nil)
+    local display = ns.TooltipData.itemWording(item.data.lines[2]).display
     local observed
     local read = ns.TooltipTypes[0].read
     ns.TooltipTypes[0].read = function(tooltip, data, game)
@@ -137,10 +139,9 @@ return function(test)
     ns.setOption("cursorItems", true)
     GameTooltip_SetDefaultAnchor(world.main, UIParent)
     world.main:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 30)
-    world.preCalls[0][1](world.main, item.data)
-    item.data.lines[2].lineIndex = 2
     for _, callback in ipairs(world.postCalls[0]) do callback(world.main, item.data) end
-    test.check("panel sees wording restored by rewrite first", observed, item.data.lines[2].prettyTooltipDisplay)
+    test.check("panel sees the wording applied first", observed, display)
+    test.check("the game's data keeps its wording", item.data.lines[2].leftText, "+6 Intellect")
     test.check("cursor sees the fitted panel", cursorSeesPanel, true)
     IsAltKeyDown = function() return true end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 1)
@@ -148,8 +149,7 @@ return function(test)
     test.check("modifier hides the custom panel", shownPanel(world.main), nil)
     IsAltKeyDown = function() return false end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
-    test.check("modifier release restores rewritten wording", world.main:GetLeftLine(2):GetText(),
-        item.data.lines[2].prettyTooltipDisplay)
+    test.check("modifier release restores the panel's wording", world.main:GetLeftLine(2):GetText(), display)
     test.check("modifier release restores custom panel", shownPanel(world.main) ~= nil, true)
     local count = #world.objects
     ns.start()
@@ -157,16 +157,17 @@ return function(test)
     ns.Hooks.install()
     ns.Cursor.register()
     test.check("repeated installation creates no frames", #world.objects, count)
-    test.check("repeated installation creates no post-calls", #world.postCalls[0], 3)
+    test.check("repeated installation creates no post-calls", #world.postCalls[0], 1)
+    test.check("or stages", #ns.Processor.stages(0), 4)
 
     local rewriteFiles = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
-        "Locale/English.lua", "Data/Stats.lua",
-        "Integration/ItemLite.lua" }
+        "Locale/English.lua", "Game/TooltipData.lua", "Data/Stats.lua",
+        "Game/Game.lua", "Integration/ItemLite.lua" }
     ns, world = test.load(rewriteFiles, { client = { locale = "ruRU" }, enums = fixture.enums })
     ns.ItemLite.register()
-    test.check("unsupported locale installs no rewrite", next(world.preCalls), nil)
+    test.check("unsupported locale installs no wording", next(world.postCalls), nil)
     ns, world = test.load(rewriteFiles, fixture)
     TooltipDataProcessor.AddTooltipPostCall = nil
     ns.ItemLite.register()
-    test.check("missing API installs no partial rewrite", next(world.preCalls), nil)
+    test.check("missing API installs no partial wording", next(world.postCalls), nil)
 end

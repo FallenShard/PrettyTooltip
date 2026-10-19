@@ -14,7 +14,7 @@
 13 "Preço de venda  ||  |cffffffff23 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 71 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
 14 "Inventário  ||  |cff66bbffTotal: |cffffffff1|r|r"
 15 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r  ||  |cff66bbffEquipado: |cffffffff1|r|r"
-16 " "
-17 "Desencantar  ||  Requer Encantamento 75"
-18 "|T132879:0|t Estilhaço Faiscante Pequeno  ||  100%"
-19 "ID do item: 2933"
+   below the lines:
+   "Desencantar  ||  Requer Encantamento 75"
+   "|T132879:0|t Estilhaço Faiscante Pequeno  ||  100%"
+   "ID do item: 2933"

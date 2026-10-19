@@ -12,7 +12,7 @@
 11 "Sell Price: 74|A:coin-silver:14:14:2:0|a 59|A:coin-copper:14:14:2:0|a"
 12 " "
 13 "|c0042b1fePress F6 to submit an issue for this Item"
-14 " "
-15 "Disenchant  ||  Requires Enchanting 75"
-16 "|T132879:0|t Small Glowing Shard  ||  100%"
-17 "Item ID: 6953"
+   below the lines:
+   "Disenchant  ||  Requires Enchanting 75"
+   "|T132879:0|t Small Glowing Shard  ||  100%"
+   "Item ID: 6953"

@@ -17,7 +17,7 @@
 16 "Инвентарь  ||  |cff66bbffВсего: |cffffffff1|r|r"
 17 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r  ||  |cff66bbffЭкипировано: |cffffffff1|r|r"
 18 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t Испытание доблести  |cffaa9f85- Мертвые копи|r"
-19 " "
-20 "Распылить  ||  Требуется: Наложение чар 75"
-21 "|T132879:0|t Малый светящийся осколок  ||  100%"
-22 "ID предмета: 6953"
+   below the lines:
+   "Распылить  ||  Требуется: Наложение чар 75"
+   "|T132879:0|t Малый светящийся осколок  ||  100%"
+   "ID предмета: 6953"

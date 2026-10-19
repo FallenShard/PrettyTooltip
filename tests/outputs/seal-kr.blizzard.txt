@@ -14,7 +14,7 @@
 13 "상점가  ||  |cffffffff23 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 71 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
 14 "가방  ||  |cff66bbff합계: |cffffffff1|r|r"
 15 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r  ||  |cff66bbff착용: |cffffffff1|r|r"
-16 " "
-17 "마력 추출  ||  요구 사항: 마법부여 75"
-18 "|T132879:0|t 붉게 빛나는 작은 결정  ||  100%"
-19 "아이템 ID: 2933"
+   below the lines:
+   "마력 추출  ||  요구 사항: 마법부여 75"
+   "|T132879:0|t 붉게 빛나는 작은 결정  ||  100%"
+   "아이템 ID: 2933"

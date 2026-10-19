@@ -17,7 +17,7 @@
 16 "가방  ||  |cff66bbff합계: |cffffffff1|r|r"
 17 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r  ||  |cff66bbff착용: |cffffffff1|r|r"
 18 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t 정의의 시험  |cffaa9f85- 죽음의 폐광|r"
-19 " "
-20 "마력 추출  ||  요구 사항: 마법부여 75"
-21 "|T132879:0|t 붉게 빛나는 작은 결정  ||  100%"
-22 "아이템 ID: 6953"
+   below the lines:
+   "마력 추출  ||  요구 사항: 마법부여 75"
+   "|T132879:0|t 붉게 빛나는 작은 결정  ||  100%"
+   "아이템 ID: 6953"

@@ -37,7 +37,7 @@ return function(test)
         "Benötigt Stufe 58",
     }, LINE.ItemName)
     test.check("deDE: supported", ns.Locale.supported, true)
-    local primary = model.primary[1] and ns.util.plainText(model.primary[1].left)
+    local primary = model.primary[1] and ns.util.trim(ns.util.plainText(model.primary[1].left))
     test.check("deDE: an item", {
         header = model.header[1] and model.header[1].left, weapon = { model.weaponDamage, model.weaponSpeed },
         dps = model.weaponDps, primary = primary, durability = model.footerLeft[1].durability,

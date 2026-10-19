@@ -13,10 +13,10 @@
 12 "You haven't collected this appearance"
 13 " "
 14 "|c0042b1fePress F6 to submit an issue for this Item"
-15 " "
-16 "Disenchant  ||  Requires Enchanting 100"
-17 "|T132878:0|t Large Glowing Shard  ||  100%"
-18 "Item ID: 280604"
+   below the lines:
+   "Disenchant  ||  Requires Enchanting 100"
+   "|T132878:0|t Large Glowing Shard  ||  100%"
+   "Item ID: 280604"
 
 == comparison 1 as the game shows it
  1 "Verigan's Fist"
@@ -36,7 +36,7 @@
 15 "|cff00ff00+6|r Intellect"
 16 "|cffff2020-10|r Spirit"
 17 "|cff00ff00+10|r Stamina"
-18 " "
-19 "Disenchant  ||  Requires Enchanting 75"
-20 "|T132879:0|t Small Glowing Shard  ||  100%"
-21 "Item ID: 6953"
+   below the lines:
+   "Disenchant  ||  Requires Enchanting 75"
+   "|T132879:0|t Small Glowing Shard  ||  100%"
+   "Item ID: 6953"

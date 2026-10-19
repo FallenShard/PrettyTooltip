@@ -33,7 +33,7 @@ return function(test)
     test.check("ruRU: native number separators", { DECIMAL_SEPERATOR, LARGE_NUMBER_SEPERATOR }, { ",", "" })
     test.check("ruRU: weapon, stat, and requirement wording", {
         header = model.header[1] and model.header[1].left, weapon = { model.weaponDamage, model.weaponSpeed },
-        dps = model.weaponDps, primary = model.primary[1] and ns.util.plainText(model.primary[1].left),
+        dps = model.weaponDps, primary = model.primary[1] and ns.util.trim(ns.util.plainText(model.primary[1].left)),
         durability = model.footerLeft[1].durability,
         level = model.levelRequirement and model.levelRequirement.text, extras = #model.extras,
     }, {

@@ -38,7 +38,7 @@ Common Equip wordings become short stat rows:
 
 With **Layout Style** set to **Blizzard** on the options page, every tooltip keeps the game's own look, and so does each kind whose **Restyle** box is off. Items keep the game's tooltip with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat colors** is on. Combined bonuses split into separate lines. **Short wording** under **Item Details** in the style editor turns this off.
 
-While the **Tooltip Details Modifier** is held (Shift by default), the details a panel would show are added at the bottom of the game's tooltip: disenchant results, the spell power breakdown and rates, gathering contents, and IDs, each as its switch in the style editor allows. Pressing or releasing the key refills a tooltip that is showing; in combat the change waits for the next tooltip. Holding the **Default Tooltip Modifier** shows the game's tooltip as it is, with neither.
+While the **Tooltip Details Modifier** is held (Shift by default), the details a panel would show appear at the bottom of the game's tooltip, below every other addon's rows: disenchant results, the spell power breakdown and rates, gathering contents, and IDs, each as its switch in the style editor allows. They show and hide as the key is pressed and released, in combat too. Holding the **Default Tooltip Modifier** shows the game's tooltip as it is, with neither.
 
 ### Colors
 

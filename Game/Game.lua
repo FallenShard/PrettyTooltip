@@ -2,6 +2,8 @@
 -- quests, the player, and other addons, as ns.Game. Answers the game hides
 -- come back as nil, and a missing API answers nothing. Readers receive this
 -- table as an argument, so a test can pass its own.
+-- Last, ns.Processor, through which the addon's stages hook the game's
+-- tooltip processor.
 local _, ns = ...
 local util = ns.util
 local isSecret, readable, call, number, rgb = util.isSecret, util.readable, util.call, util.number, util.rgb
@@ -353,4 +355,76 @@ function game.questieText(phrase)
         if ok and not isSecret(text) and type(text) == "string" then return text end
     end
     return phrase
+end
+
+-- The tooltip processor --------------------------------------------------------
+
+-- The addon's one hand in the game's tooltip processor: a single post-call for
+-- each tooltip data type and one modifier-key watcher, which run the stages in
+-- a fixed order, whatever order they were added in. Every stage only reads the
+-- tooltip data; the addon registers no pre-call, as the game reads the data
+-- after those, and anything an addon wrote there would taint its fill.
+local processor = {}
+ns.Processor = processor
+
+-- The item wording first, as the panel reads the game's lines; then the
+-- panel; then the details on a game tooltip no panel covers; then follow
+-- cursor, which places what was drawn.
+local ORDER = { "wording", "panel", "details", "cursor" }
+local RANK = {}
+for rank, stage in ipairs(ORDER) do RANK[stage] = rank end
+
+local byType = {}
+local onKeys = {}
+local watcher
+
+-- Each stage apart, as with a post-call of its own: one that fails is
+-- reported, and the rest still run.
+local function run(handler, ...)
+    local ok, failure = pcall(handler, ...)
+    if ok then return end
+    local report = geterrorhandler and geterrorhandler()
+    if report then report(failure) else error(failure, 0) end
+end
+
+local function insert(list, stage, handler)
+    assert(RANK[stage], "unknown stage " .. tostring(stage))
+    list[#list + 1] = { stage = stage, rank = RANK[stage], handler = handler }
+    table.sort(list, function(a, b) return a.rank < b.rank end)
+end
+
+function processor.available()
+    return TooltipDataProcessor ~= nil and TooltipDataProcessor.AddTooltipPostCall ~= nil
+end
+
+-- handler(tooltip, data), once the game has filled a tooltip of dataType.
+function processor.onData(stage, dataType, handler)
+    local list = byType[dataType]
+    if not list then
+        list = {}
+        byType[dataType] = list
+        TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip, data)
+            for _, entry in ipairs(list) do run(entry.handler, tooltip, data) end
+        end)
+    end
+    insert(list, stage, handler)
+end
+
+-- handler(key), as MODIFIER_STATE_CHANGED names it.
+function processor.onKey(stage, handler)
+    if not watcher then
+        watcher = CreateFrame("Frame")
+        watcher:RegisterEvent("MODIFIER_STATE_CHANGED")
+        watcher:SetScript("OnEvent", function(_, _, key)
+            for _, entry in ipairs(onKeys) do run(entry.handler, key) end
+        end)
+    end
+    insert(onKeys, stage, handler)
+end
+
+-- The stages a data type runs, in order.
+function processor.stages(dataType)
+    local names = {}
+    for index, entry in ipairs(byType[dataType] or {}) do names[index] = entry.stage end
+    return names
 end

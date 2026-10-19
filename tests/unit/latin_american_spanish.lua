@@ -34,12 +34,12 @@ return function(test)
     test.check("esMX: native number separators", { DECIMAL_SEPERATOR, LARGE_NUMBER_SEPERATOR }, { ".", "," })
     test.check("esMX: an item with its own damage wording", {
         header = model.header[1] and model.header[1].left, weapon = { model.weaponDamage, model.weaponSpeed },
-        dps = model.weaponDps, primary = model.primary[1] and ns.util.plainText(model.primary[1].left),
+        dps = model.weaponDps, primary = model.primary[1] and ns.util.trim(ns.util.plainText(model.primary[1].left)),
         durability = model.footerLeft[1].durability,
         level = model.levelRequirement and model.levelRequirement.text, extras = #model.extras,
     }, {
         header = "Se liga al equiparlo", weapon = { "153 - 256 p. de daño", "Velocidad 3.80" }, dps = "53.8",
-        primary = "+13 p. de aguante", durability = { 61, 120 }, level = "Necesitas ser de nivel 58", extras = 0,
+        primary = "+13 Aguante", durability = { 61, 120 }, level = "Necesitas ser de nivel 58", extras = 0,
     })
     local stat = ns.Stats.read("+13 p. de aguante")
     test.check("esMX: a stat uses the client's capitalized label", { stat.key, ns.Stats.text(stat) },

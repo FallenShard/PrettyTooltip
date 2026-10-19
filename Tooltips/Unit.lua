@@ -577,15 +577,15 @@ ui.unitModel = function(fields)
     return completeModel(fields, nil, ns.Game)
 end
 -- Its target, tapped, and dead rows come from the game, not the tooltip's text.
-local function details(model)
+local function details(model, context)
     local rows = {}
-    if model.skinning and ns.showsDetail("gatheringLoot") then
+    if model.skinning and ns.showsDetail("gatheringLoot", context) then
         for _, row in ipairs(skinningRows(model.skinning)) do
             row.color = row.color or DETAIL_COLOR
             rows[#rows + 1] = row
         end
     end
-    rows[#rows + 1] = ui.idRow(nil, L["NPC ID: %s"], npcID(model.guid))
+    rows[#rows + 1] = ui.idRow(context, L["NPC ID: %s"], npcID(model.guid))
     return rows
 end
 

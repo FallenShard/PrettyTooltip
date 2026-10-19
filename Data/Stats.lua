@@ -396,3 +396,30 @@ function stats.rewrite(text)
         end
     end
 end
+
+-- An item line's two wordings, each stat on its own line: display for the
+-- panel, styled by colors and markers; lite for the game's own tooltip, in its
+-- colors but for magic, spell power and what a proc deals. proc marks a
+-- chance on hit line. nil when the line reads the same either way.
+function stats.itemWording(text, proc, colors, markers)
+    local replacements = stats.rewrite(text)
+    local display = replacements or { text }
+    local lite = {}
+    local styled = false
+    for index, piece in ipairs(display) do
+        local shown, colored = stats.styleStat(piece, colors, markers)
+        local onHit = proc or util.startsWith(piece, ITEM_SPELL_TRIGGER_ONPROC)
+        if onHit then
+            local effect = stats.styleEffect(piece, colors)
+            if effect ~= piece then shown, colored = effect, effect end
+        end
+        local magical = onHit or stats.isMagical(piece)
+        lite[index] = colored and magical and colors and colored or piece
+        if colored then
+            display[index] = shown
+            styled = true
+        end
+    end
+    if not (replacements or styled) then return end
+    return { display = table.concat(display, "|n"), lite = table.concat(lite, "|n"), lines = #display }
+end

@@ -1,7 +1,7 @@
 -- Drive tooltip handovers and combat events, including an already-open panel.
 return function(test)
     local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
-        "Locale/Locale.lua", "Locale/English.lua", "UI/Options.lua", "Integration/Cursor.lua" },
+        "Locale/Locale.lua", "Locale/English.lua", "UI/Options.lua", "Game/Game.lua", "Integration/Cursor.lua" },
         { enums = { TooltipDataType = { Object = 1, Spell = 2, Unit = 3 } } })
     local combat, clamped = false, true
     InCombatLockdown = function() return combat end

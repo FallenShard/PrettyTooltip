@@ -7,7 +7,6 @@ if not (ui and ns.Native) then return end
 
 local isSecret = ns.util.isSecret
 local util = ns.util
-local ITEM = Enum.TooltipDataType.Item
 local TooltipTypes = ns.TooltipTypes
 local panels, getPanel, isComparison, alignPanel = ui.panels, ui.getPanel, ui.isComparison, ui.alignPanel
 local probe, tally = ui.probe, ui.tally
@@ -236,30 +235,22 @@ local function onTooltipData(dataType, tooltip, data)
 end
 onTooltipData = probe("tooltip data", onTooltipData)
 
--- Items first: the item rewrite is installed before them, and follow cursor
--- after every type.
 local installed = false
 function hooks.install()
     if installed then return end
     installed = true
-    local order = {}
     -- A type drawn from lines alone has no data for the game to hand over.
     for dataType, tooltipType in pairs(TooltipTypes) do
-        if dataType ~= ITEM and not tooltipType.linesOnly then order[#order + 1] = dataType end
-    end
-    table.sort(order)
-    if TooltipTypes[ITEM] then table.insert(order, 1, ITEM) end
-    for _, dataType in ipairs(order) do
-        TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip, data)
-            onTooltipData(dataType, tooltip, data)
-        end)
+        if not tooltipType.linesOnly then
+            ns.Processor.onData("panel", dataType, function(tooltip, data)
+                onTooltipData(dataType, tooltip, data)
+            end)
+        end
     end
 
-    local modifier = CreateFrame("Frame")
-    modifier:RegisterEvent("MODIFIER_STATE_CHANGED")
     -- The original-tooltip key swaps the panel for the game's tooltip; Shift
     -- shows or hides the details.
-    modifier:SetScript("OnEvent", function(_, _, key)
+    ns.Processor.onKey("panel", function(key)
         if not (ns.isOriginalKey(key) or ns.isDetailsKey(key)) then return end
         for tooltip, panel in pairs(panels) do
             if util.canModify(tooltip) and tooltip:IsShown() and showsDataType(tooltip, panel) then

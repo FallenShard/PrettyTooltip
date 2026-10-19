@@ -12,5 +12,5 @@
    5 points: 150 damage over 12 sec."
  6 " "
  7 "|c0042b1fePress F6 to submit an issue for this Spell"
- 8 " "
- 9 "Spell ID: 1079"
+   below the lines:
+   "Spell ID: 1079"

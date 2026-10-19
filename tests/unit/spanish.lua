@@ -37,7 +37,7 @@ return function(test)
         "Necesitas ser de nivel 58",
     }, LINE.ItemName)
     test.check("esES: supported", ns.Locale.supported, true)
-    local primary = model.primary[1] and ns.util.plainText(model.primary[1].left)
+    local primary = model.primary[1] and ns.util.trim(ns.util.plainText(model.primary[1].left))
     local stamina = ns.Stats.read("+13 p. de aguante")
     test.check("esES: a stat as the game words it", { stamina and stamina.key, stamina and ns.Stats.text(stamina) },
         { "STAMINA", "+13 aguante" })
@@ -47,7 +47,7 @@ return function(test)
         level = model.levelRequirement and model.levelRequirement.text, extras = #model.extras,
     }, {
         header = "Se liga al equiparlo", weapon = { "153 - 256 Daño", "Velocidad 3,80" }, dps = "53,8",
-        primary = "+13 p. de aguante", durability = { 61, 120 }, level = "Necesitas ser de nivel 58", extras = 0,
+        primary = "+13 aguante", durability = { 61, 120 }, level = "Necesitas ser de nivel 58", extras = 0,
     })
 
     model = read(ITEM, { "Diseño: Cinturón de anillas de cobre", "Requiere Herrería (35)",
