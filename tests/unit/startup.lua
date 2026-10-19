@@ -49,8 +49,13 @@ return function(test)
     ns.openEditor = function() editorOpened = editorOpened + 1 end
     SlashCmdList.PRETTYTOOLTIP("")
     test.check("default command opens editor", editorOpened, 1)
+    local printed = {}
+    local realPrint = print
+    print = function(text) printed[#printed + 1] = text end
     SlashCmdList.PRETTYTOOLTIP(" OPTIONS ")
-    test.check("options command opens registered settings", opened, 42)
+    print = realPrint
+    test.check("options command tells where the page is, without opening the window",
+        { opened, printed[1] }, { nil, "PrettyTooltip: its options are in Options > AddOns > PrettyTooltip." })
     local version = ns.settingsVersion
     page.OnDefault()
     test.check("settings page defaults refresh controls", firstCheckbox:GetChecked(), true)
@@ -74,15 +79,13 @@ return function(test)
     test.check("startup listener removed", listeners, 0)
 
     Settings = nil
-    local legacyPage, legacyOpened
+    local legacyPage
     InterfaceOptions_AddCategory = function(canvas) legacyPage = canvas end
-    InterfaceOptionsFrame_OpenToCategory = function(canvas) legacyOpened = canvas end
     ns, world = test.load(files, fixture)
     test.check("legacy category also waits for startup", legacyPage, nil)
     world.fireEvent("ADDON_LOADED", "PrettyTooltip")
-    ns.openSettings()
-    test.check("legacy settings opens registered page", legacyOpened == legacyPage and legacyPage ~= nil, true)
-    InterfaceOptions_AddCategory, InterfaceOptionsFrame_OpenToCategory = nil, nil
+    test.check("legacy settings registers the page", legacyPage ~= nil, true)
+    InterfaceOptions_AddCategory = nil
 
     ns, world = test.load({ "Core/Util.lua", "UI/Options.lua" })
     listeners = 0

@@ -38,9 +38,9 @@ In combat both hooks now leave the tooltip to the game's own fade: the panel sta
 - `Show()` on GameTooltip runs no Blizzard Lua: in `classic_beta` GameTooltip has no OnShow script. `EmbeddedItemTooltip`'s OnShow sets `recalculatePadding`, should a panel ever draw on it.
 - The editor's and options page's `GameTooltip:Hide()` on mouse-leave runs the same OnHide, as in most addons, outside the tooltips hovered in play.
 
-### Settings window in combat
+### The game's settings window
 
-The game's settings window does not open in combat (checked on the client). `ns.openSettings` checks `InCombatLockdown()` first and tells the player instead, so `/ptip options` and the style editor's More options button do nothing to Blizzard's window then; the editor stays open (`unit/options_combat.lua`). The style editor is the addon's own frame and opens in combat.
+The addon never opens or closes the game's settings window. `Settings.OpenToCategory` and `HideUIPanel(SettingsPanel)` run the window's own code under the addon's taint, which stays in its fields after; on retail clients this is a known cause of blocked actions in action bar and key binding settings. `/ptip options` and the style editor's More options button print where the page is instead, in combat as out of it, and the page's editor button opens the editor over the window, which stays open (`unit/options_path.lua`). The page's `OnRefresh` and `OnDefault` are still called by the window directly, as for every addon's canvas page. The style editor is the addon's own frame and opens in combat.
 
 ## Blizzard APIs the addon uses
 
@@ -114,8 +114,8 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 | `CreateFrame`, `CreateColor`, `NineSliceUtil.ApplyLayoutByName`, `SetPortraitTexture` | None: addon-owned frames | Panels, the editor, the report window, and the cursor tracker GameTooltip hangs from while following. The editor's scanner is an addon-created `GameTooltip`, `PrettyTooltipScanner`. |
 | `PixelUtil.GetPixelToUIUnitFactor`, `PixelUtil.GetNearestPixelSize`, `GetPhysicalScreenSize`, `GetCursorPosition` | **Secret** in principle; checked before arithmetic | Pixel snapping, cursor follow, the editor's dragging. |
 | `Settings.RegisterCanvasLayoutCategory`, `Settings.RegisterAddOnCategory`, `InterfaceOptions_AddCategory` | None known | Registers the options page. |
-| `Settings.OpenToCategory`, `InterfaceOptionsFrame_OpenToCategory` | Does not open in combat; not called then | `/ptip options` and the editor's More options. In combat the player is told instead. |
-| `HideUIPanel(SettingsPanel)`, `ShowUIPanel(ColorPickerFrame)` | Low: on the player's click, through the game's panel manager | Leaves the settings window for the editor; opens the color picker. |
+| `Settings.OpenToCategory`, `HideUIPanel(SettingsPanel)` | **Taint** in the settings window | Not called: `/ptip options` and More options print where the page is. |
+| `ShowUIPanel(ColorPickerFrame)` | Low: on the player's click, through the game's panel manager | Opens the color picker. |
 | `UISpecialFrames` (`tinsert`) | Low: the addon's frame names in a shared Blizzard list, as most addons add | Escape closes the editor and the report window. |
 | `C_Timer.After` | None | Deferred refits and restores (Hooks, Native). |
 | `C_AddOns.GetAddOnInfo`, `GetAddOnMetadata`, `GetAddOnMemoryUsage`, `UpdateAddOnMemoryUsage` | None | Whether DialogueUI, EllesmereUI, Questie, and Auctionator are installed; the report's version line; `/ptip perf`. |
