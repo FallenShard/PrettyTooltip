@@ -11,5 +11,4 @@ panel 81 x 62
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x39 rgb=1,1,1,1 band
-texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x0 rgb=0.1,0.075,0.08,0.6 band
 text at 19,21 w=43 size=17 rgb=0.96,0.92,0.84 "FORJA"

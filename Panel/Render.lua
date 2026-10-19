@@ -232,7 +232,6 @@ local function renderView(panel, tooltip, view)
         y = pad() - 2
         panel.header:SetHeight(0)
     end
-    panel.footer:SetHeight(0)
 
     -- The header's rows are not a section's: the first separator follows the band.
     panel.rowTail = nil
@@ -242,7 +241,6 @@ local function renderView(panel, tooltip, view)
     end
     if hasFooter then
         y = y + FOOTER_TOP
-        local top = y
         if footer.draw then
             y = footer.draw(panel, y)
         else
@@ -250,7 +248,6 @@ local function renderView(panel, tooltip, view)
                 y = ui.drawRow(panel, row, y, footer.style, footer.color, 0, footer.gap)
             end
         end
-        panel.footer:SetHeight(y - top + 23)
     end
     ui.finishPanel(panel, tooltip, y)
 end

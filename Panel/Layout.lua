@@ -293,7 +293,6 @@ local function createPanel(parent)
     panel.shades[3]:SetWidth(8)
     panel.shades[4]:SetWidth(8)
     panel.header = makeTexture(panel, "BORDER")
-    panel.footer = makeTexture(panel, "BORDER")
     panel.icon = makeTexture(panel, "OVERLAY")
     panel.icon:SetSize(ICON_SIZE, ICON_SIZE)
     panel.iconBorder = makeTexture(panel, "OVERLAY")
@@ -429,15 +428,14 @@ local function applyBackdrop(panel, chrome)
         panel.background:SetColorTexture(1, 1, 1, 1)
         if panel.glow then panel.glow:Hide() end
     end
-    for _, band in ipairs({ panel.header, panel.footer }) do
-        band:SetShown(not parchment)
-        if textured then
-            band:SetTexture(ART .. "band")
-            band:SetTextureSliceMargins(BAND_MARGIN, BAND_MARGIN, BAND_MARGIN, BAND_MARGIN)
-        else
-            if band.SetTextureSliceMargins then band:SetTextureSliceMargins(0, 0, 0, 0) end
-            band:SetTexture(WHITE)
-        end
+    local band = panel.header
+    band:SetShown(not parchment)
+    if textured then
+        band:SetTexture(ART .. "band")
+        band:SetTextureSliceMargins(BAND_MARGIN, BAND_MARGIN, BAND_MARGIN, BAND_MARGIN)
+    else
+        if band.SetTextureSliceMargins then band:SetTextureSliceMargins(0, 0, 0, 0) end
+        band:SetTexture(WHITE)
     end
     for _, region in ipairs(panel.shades) do region:SetShown(mode == "flat") end
     for _, region in ipairs(panel.edges) do region:SetShown(mode == "flat") end
@@ -446,10 +444,6 @@ local function applyBackdrop(panel, chrome)
     panel.header:ClearAllPoints()
     panel.header:SetPoint("TOPLEFT", panel, "TOPLEFT", inset, -inset)
     panel.header:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -inset, -inset)
-    panel.footer:ClearAllPoints()
-    panel.footer:SetPoint("BOTTOMLEFT", panel, "BOTTOMLEFT", inset, inset)
-    panel.footer:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -inset, inset)
-    panel.footer:SetVertexColor(.10, .075, .08, textured and .6 or .95)
 end
 
 local function clearPool(panel)
@@ -770,8 +764,6 @@ local function drawChrome(panel, tooltip, style)
     local suffix = ns.TYPE_SUFFIX[style.tooltipType] or ""
     local body = ns.option("backdropAlpha" .. suffix) or ns.BACKDROP_ALPHA
     local glow = ns.option("glowAlpha" .. suffix) or 1
-    local footer = ns.option("footerAlpha" .. suffix) or 1
-    panel.footer:SetVertexColor(.10, .075, .08, (panel.textured and .6 or .95) * footer)
     if panel.parchment then
         panel.background:SetVertexColor(1, 1, 1, body)
     elseif panel.textured then

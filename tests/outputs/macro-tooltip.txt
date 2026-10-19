@@ -46,7 +46,6 @@ panel 330 x 218
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x102 rgb=1,1,1,1 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-TopLeftCorner
 texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-TopRightCorner
 texture unplaced 16x16 rgb=0.8,0.8,0.8,1 tooltip-BottomLeftCorner

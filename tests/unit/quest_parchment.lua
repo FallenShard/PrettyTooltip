@@ -24,7 +24,7 @@ return function(test)
     test.check("it uses DialogueUI's settings paper", panel.background:GetTexture(),
         "Interface\\AddOns\\DialogueUI\\Art\\Theme_Brown\\GenericFrame-Tiled-Large.png")
     test.check("paper suppresses the dark bands and halo",
-        { panel.header:IsShown(), panel.footer:IsShown(), panel.halo:IsShown() }, { false, false, false })
+        { panel.header:IsShown(), panel.halo:IsShown() }, { false, false })
     test.check("paper hides the native border", panel.nativeBorder:IsShown(), false)
     local title = panel.pool[1]
     test.check("the quest title becomes dark brown ink", { title:GetTextColor() }, { .11, .085, .055, 1 })
@@ -41,7 +41,7 @@ return function(test)
     panel = ns.ui.renderPreview(anchor, ordinary, ITEM)
     test.check("an ordinary item restores its normal treatment", panel.backdropMode, "native")
     test.check("normal bands and halo return on a reused panel",
-        { panel.header:IsShown(), panel.footer:IsShown(), panel.halo:IsShown() }, { true, true, true })
+        { panel.header:IsShown(), panel.halo:IsShown() }, { true, true })
     test.check("normal text colors return", { panel.pool[1]:GetTextColor() }, normalColor)
 
     -- Quest-starter detection uses the item's actual reader, not just a sample.

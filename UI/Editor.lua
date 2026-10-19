@@ -1169,7 +1169,6 @@ local function typeOpacity(name, default)
 end
 row("Backdrop", typeOpacity("backdropAlpha", ns.BACKDROP_ALPHA), optionSetting(typeKey("backdropAlpha")))
 row("Glow", typeOpacity("glowAlpha", 1), optionSetting(typeKey("glowAlpha")))
-row("Footer", typeOpacity("footerAlpha", 1), optionSetting(typeKey("footerAlpha")))
 
 -- What only the type shown has ---------------------------------------------------------
 

@@ -67,7 +67,6 @@ texture BOTTOMLEFT panel BOTTOMLEFT 0,0 0x10 rgb=1,1,1,1 color
 texture at 0,0 8x0 rgb=1,1,1,1 color
 texture TOPRIGHT panel TOPRIGHT 0,0 8x0 rgb=1,1,1,1 color
 texture at 1,1 0x88 rgb=1,1,1,1 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 1,1 0x40 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture at 19,21 43x43 rgb=1,1,1,1 133634
 texture CENTER Texture CENTER 0,0 45x45 rgb=0.77,0.77,0.77,0.85 WHITE8X8
 texture at 0,0 0x2 rgb=0.616,0.616,0.616,0.95 WHITE8X8

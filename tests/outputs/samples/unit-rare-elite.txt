@@ -17,7 +17,6 @@ panel 260 x 119
 texture at -16,-16 0x0 rgb=1,0.27,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x86 rgb=1,1,1,1 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture at 19,21 38x38 rgb=1,1,1,1 INV_Misc_Gear_01
 texture CENTER Texture CENTER 0,0 40x40 rgb=1,0.27,0.22,0.85 WHITE8X8
 texture TOP Texture BOTTOM 0,-5 40x16 rgb=0.8,0.216,0.176,0.9 WHITE8X8

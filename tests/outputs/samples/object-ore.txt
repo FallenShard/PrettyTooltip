@@ -58,7 +58,6 @@ panel 260 x 255
 texture at -16,-16 0x0 rgb=0.85,0.55,0.3,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x0 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture at 19,21 38x38 rgb=1,1,1,1 Trade_Mining
 texture CENTER Texture CENTER 0,0 40x40 rgb=0.85,0.55,0.3,0.85 WHITE8X8
 texture unplaced 16x16 rgb=0.85,0.55,0.3,1 tooltip-TopLeftCorner

@@ -106,7 +106,6 @@ panel 327 x 556
 texture at -16,-16 0x0 rgb=0.72,0.4,0.94,0.55 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x91 rgb=1,1,1,1 WHITE8X8
-texture BOTTOMLEFT panel BOTTOMLEFT 4,4 0x57 rgb=0.1,0.075,0.08,0.95 WHITE8X8
 texture at 19,21 43x43 rgb=1,1,1,1 INV_Misc_QuestionMark
 texture CENTER Texture CENTER 0,0 45x45 rgb=0.72,0.4,0.94,0.85 WHITE8X8
 texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.576,0.32,0.752,0.9 WHITE8X8

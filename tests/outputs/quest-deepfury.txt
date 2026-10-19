@@ -54,7 +54,6 @@ texture at -16,-16 0x0 rgb=0.86,0.74,0.45,0.2475 glow
 texture at 0,0 0x0 rgb=0.9717,0.9474,0.8886,0.9 TooltipBackground-Temp.png
 texture at 0,0 0x0 rgb=0.86,0.74,0.45,0.1418 TooltipBackground-Temp.png
 texture at 6,6 0x63 rgb=1,1,1,1 band
-texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x0 rgb=0.1,0.075,0.08,0.6 band
 text at 19,21 w=270 size=16 rgb=0.96,0.92,0.84 "THE FURY RUNS DEEP"
 text at 19,45 w=44 size=12 rgb=0.82,0.78,0.71 "|cffE6D19DDungeon|r"
 texture at 19,74 126x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8

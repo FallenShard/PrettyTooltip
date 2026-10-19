@@ -182,7 +182,6 @@ panel 269 x 348
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x100 rgb=1,1,1,1 band
-texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x0 rgb=0.1,0.075,0.08,0.6 band
 text at 19,21 w=231 size=19 rgb=0.32,0.59,0.98 "大副的指環"
 text at 19,47 w=231 size=13 rgb=0.66,0.795,0.99 "手指"
 text at 19,66 w=175 size=12 rgb=0.78,0.72,0.63 "已綁定"

@@ -145,7 +145,6 @@ texture at -16,-16 0x0 rgb=0.32,0.59,0.98,0.55 glow
 texture at 0,0 0x0 rgb=0.694,0.8155,0.991,0.9 TooltipBackground-Temp.png
 texture at 0,0 0x0 rgb=0.32,0.59,0.98,0.315 TooltipBackground-Temp.png
 texture at 6,6 0x100 rgb=1,1,1,1 band
-texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x40 rgb=0.1,0.075,0.08,0.6 band
 texture at 19,21 43x43 rgb=1,1,1,1 133347
 texture CENTER Texture CENTER 0,0 45x45 rgb=0.32,0.59,0.98,0.85 WHITE8X8
 texture TOP Texture BOTTOM 0,-5 45x16 rgb=0.256,0.472,0.784,0.9 WHITE8X8
