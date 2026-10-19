@@ -1,5 +1,6 @@
 """Copy PrettyTooltip's game files into a World of Warcraft AddOns folder."""
 
+import re
 from argparse import ArgumentParser
 from pathlib import Path
 from shutil import copy2
@@ -13,10 +14,11 @@ TOC = "PrettyTooltip.toc"
 
 def game_files(source: Path) -> list[str]:
     """The .toc, the Lua files it loads, in its order, and every texture. A path with [TextLocale] in it
-    names the client's language, so every language's file is copied."""
+    names the client's language, so every language's file is copied, as is a file only some clients load
+    ([AllowLoadTextLocale ptBR, ptPT] after its name)."""
     files = [TOC]
     for line in (source / TOC).read_text(encoding="utf-8").splitlines():
-        line = line.strip()
+        line = re.sub(r"\s+\[[^\]]*\]$", "", line.strip())
         if not line or line.startswith("#") or not line.endswith(".lua"):
             continue
         line = line.replace("\\", "/")

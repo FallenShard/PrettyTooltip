@@ -53,20 +53,25 @@ COVERAGE: dict[str, set[int]] | None = None
 def addon_files(locale: str = "enUS") -> list[str]:
     """The addon's Lua files, in the order its .toc loads them on a client in that language. [TextLocale]
     in a path names the client's language, and a file it names that is missing is skipped, as the client
-    skips it."""
+    skips it. A file with [AllowLoadTextLocale ptBR, ptPT] after its name loads only in those languages."""
     files = []
     for line in (ROOT / "PrettyTooltip.toc").read_text(encoding="utf-8").splitlines():
         line = line.strip()
         if line.startswith("#"):
             continue
+        condition = re.search(r"\s+\[(\w+)\s*([^\]]*)\]$", line)
+        if condition:
+            line = line[:condition.start()]
+            if condition.group(1) != "AllowLoadTextLocale":
+                sys.exit(f"The tests cannot load .toc lines with this condition yet: {condition.group(0).strip()}")
+            if locale not in re.split(r"[,\s]+", condition.group(2).strip()):
+                continue
         if "[TextLocale]" in line:
             line = line.replace("[TextLocale]", locale)
             if not (ROOT / line.replace("\\", "/")).exists():
                 continue
-        # A load condition, as [AllowLoadTextLocale deDE], would need the harness to load the
-        # file only for fixtures of that language; until it does, say so rather than skip it.
         if "[" in line:
-            sys.exit(f"The tests cannot load .toc lines with conditions yet: {line}")
+            sys.exit(f"The tests cannot read this .toc line: {line}")
         if line.endswith(".lua"):
             files.append(line.replace("\\", "/"))
     return files

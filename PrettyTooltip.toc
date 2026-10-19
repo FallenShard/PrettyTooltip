@@ -15,6 +15,7 @@ Core\Settings.lua
 Locale\Locale.lua
 Locale\English.lua
 Locale\[TextLocale].lua
+Locale\Portuguese.lua [AllowLoadTextLocale ptBR, ptPT]
 Game\Game.lua
 Game\TooltipData.lua
 Data\Schools.lua
