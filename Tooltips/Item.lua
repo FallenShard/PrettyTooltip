@@ -38,10 +38,9 @@ local QUALITY = {
     [4] = { .72, .40, .94 },
     [5] = { 1.00, .57, .22 },
 }
-local PRIMARY_STATS = {
-    Strength = true, Agility = true, Stamina = true, Intellect = true, Spirit = true,
-    ["All Stats"] = true,
-}
+local PRIMARY_STATS = { STRENGTH = true, AGILITY = true, STAMINA = true, INTELLECT = true, SPIRIT = true,
+    ALL_STATS = true }
+local lineParts = ns.Stats.lineParts
 local QUEST_MARK = "|TInterface\\GossipFrame\\AvailableQuestIcon:0|t "
 -- Kinds of item the game names on a line of their own, as "Crafting Reagent".
 local ITEM_KINDS = {}
@@ -358,7 +357,7 @@ local function readModel(tooltip, data, game)
             inStockChanges = true
             return true
         end
-        if inStockChanges and (trimmed == "" or trimmed:match("^[%+%-][%d%.,]+%%? %S")) then
+        if inStockChanges and (trimmed == "" or lineParts(trimmed)) then
             return true
         end
         inStockChanges = false
@@ -480,11 +479,11 @@ local function readModel(tooltip, data, game)
                 local text = line.prettyTooltipOriginal or trimmed
                 add(m.equipEffects, withoutLabel(text, ITEM_SPELL_TRIGGER_ONPROC), "")
                 m.equipEffects[#m.equipEffects].onHit = true
-            elseif line.prettyTooltipOriginal or trimmed:match("^%+[%d%.]+") then
+            elseif line.prettyTooltipOriginal or lineParts(trimmed) == "+" then
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
-                    local label = plainText(piece):match("^%s*[%+%-]?[%d%.,]+%%? (.+)$")
-                    add(PRIMARY_STATS[label] and m.primary or m.secondary, piece, right)
+                    local stat = ns.Stats.read(plainText(piece))
+                    add(stat and PRIMARY_STATS[stat.key] and m.primary or m.secondary, piece, right)
                     right = ""
                 end
             elseif isType(lineType, "FlavorText") or trimmed:match('^".+"$') then

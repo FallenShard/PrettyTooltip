@@ -29,7 +29,7 @@ local SKILLS = {
 }
 local QUEST = { label = "Quest object", color = QUEST_GOLD, icon = "Interface\\Icons\\INV_Misc_Note_01" }
 -- Each skill's name as the client words it, which its lines print
--- ("Kräuterkunde"), and the other way round.
+-- ("Bergbau"), and the other way round.
 local SKILL_NAMES, SKILL_KEYS = {}, {}
 for key in pairs(SKILLS) do
     SKILL_NAMES[key] = ns.Locale.skills[key] or key

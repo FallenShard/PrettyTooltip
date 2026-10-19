@@ -1,7 +1,7 @@
 -- Formatting and shortening need only explicit inputs, not settings or game hooks.
 return function(test)
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Data/Stats.lua" },
-        { client = { locale = "deDE" } })
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Locale/Locale.lua", "Locale/English.lua",
+        "Data/Stats.lua" })
     test.check("rules install no pre-calls", next(world.preCalls), nil)
     test.check("rules install no post-calls", next(world.postCalls), nil)
     test.check("rules do not create saved settings", PrettyTooltipDB, nil)

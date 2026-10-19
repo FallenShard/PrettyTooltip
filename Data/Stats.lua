@@ -1,55 +1,12 @@
 -- Item wording and formatting rules. Settings are explicit arguments, but for
 -- the category and school colors the style editor may replace; no game hooks.
+-- A stat is read from the game's own wording, in the client's language, into
+-- its key and amount, and printed again from them as the game prints a stat.
 local _, ns = ...
 local util = ns.util
+local unformat, fill = util.unformat, util.fill
 local stats = {}
 ns.Stats = stats
-
-local function titleCase(word)
-    return word:sub(1, 1):upper() .. word:sub(2)
-end
-
-local function bonus(amount, label, percent)
-    return "+" .. amount .. (percent and "% " or " ") .. label
-end
-
-local ratings = {
-    ["hit"] = "Hit Rating",
-    ["spell hit"] = "Spell Hit Rating",
-    ["critical strike"] = "Critical Strike Rating",
-    ["spell critical strike"] = "Spell Critical Strike Rating",
-    ["haste"] = "Haste Rating",
-    ["spell haste"] = "Spell Haste Rating",
-    ["defense"] = "Defense Rating",
-    ["dodge"] = "Dodge Rating",
-    ["parry"] = "Parry Rating",
-    ["block"] = "Block Rating",
-    ["resilience"] = "Resilience Rating",
-    ["expertise"] = "Expertise Rating",
-}
-
-local attributes = {
-    ["strength"] = "Strength",
-    ["agility"] = "Agility",
-    ["stamina"] = "Stamina",
-    ["intellect"] = "Intellect",
-    ["spirit"] = "Spirit",
-    ["armor"] = "Armor",
-    ["attack power"] = "Attack Power",
-    ["ranged attack power"] = "Ranged Attack Power",
-    ["spell power"] = "Spell Power",
-    ["spell penetration"] = "Spell Penetration",
-    ["all stats"] = "All Stats",
-}
-
-local schools = {
-    ["arcane"] = "Arcane Spell Damage Power",
-    ["fire"] = "Fire Spell Damage Power",
-    ["frost"] = "Frost Spell Damage Power",
-    ["holy"] = "Holy Spell Damage Power",
-    ["nature"] = "Nature Spell Damage Power",
-    ["shadow"] = "Shadow Spell Damage Power",
-}
 
 -- Category colors are soft and evenly light, so every kind of stat reads
 -- alike on the dark panel; the vivid school colors stay apart from them.
@@ -70,50 +27,153 @@ for _, category in ipairs(CATEGORIES) do CATEGORY[category.key] = category end
 stats.CATEGORIES = CATEGORIES
 local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  "
 
-local statCategories = {
-    Strength = "Primary",
-    Agility = "Primary",
-    Stamina = "Primary",
-    Intellect = "Primary",
-    Spirit = "Primary",
-    ["All Stats"] = "Primary",
+local function mod(name) return _G["ITEM_MOD_" .. name] end
+local function itemStat(name) return _G["TOOLTIP_ITEM_STAT_" .. name] end
 
-    ["Attack Power"] = "Attack",
-    ["Ranged Attack Power"] = "Attack",
-    ["Hit Chance"] = "Attack",
-    ["Critical Strike Chance"] = "Attack",
-    ["Hit Rating"] = "Attack",
-    ["Critical Strike Rating"] = "Attack",
-    ["Haste Rating"] = "Attack",
-    ["Expertise Rating"] = "Attack",
+-- The schools, by the client's names for them.
+local SCHOOL_NAMES = { Holy = DAMAGE_SCHOOL2, Fire = DAMAGE_SCHOOL3, Nature = DAMAGE_SCHOOL4,
+    Frost = DAMAGE_SCHOOL5, Shadow = DAMAGE_SCHOOL6, Arcane = DAMAGE_SCHOOL7 }
+local RESISTANCE_NAMES = { Holy = RESISTANCE1_NAME, Fire = RESISTANCE2_NAME, Nature = RESISTANCE3_NAME,
+    Frost = RESISTANCE4_NAME, Shadow = RESISTANCE5_NAME, Arcane = RESISTANCE6_NAME }
+local SCHOOLS = { "Holy", "Fire", "Nature", "Frost", "Shadow", "Arcane" }
+local SCHOOL_KEYS = {}
+for school, name in pairs(SCHOOL_NAMES) do SCHOOL_KEYS[name] = school end
 
-    Armor = "Defense",
-    ["Defense Skill"] = "Defense",
-    ["Defense Rating"] = "Defense",
-    ["Dodge Chance"] = "Defense",
-    ["Dodge Rating"] = "Defense",
-    ["Parry Chance"] = "Defense",
-    ["Parry Rating"] = "Defense",
-    ["Block Chance"] = "Defense",
-    ["Block Rating"] = "Defense",
-    ["Shield Block Value"] = "Defense",
-    ["Resilience Rating"] = "Defense",
-    ["All Resistances"] = "Defense",
+-- Creature types, by the game's key for them, and the panel's name for each.
+local CREATURES = { BEAST = "Beasts", DEMON = "Demons", DRAGONKIN = "Dragonkin", ELEMENTAL = "Elementals",
+    GIANT = "Giants", HUMANOID = "Humanoids", MECHANICAL = "Mechanical", UNDEAD = "Undead" }
+local CREATURE_KEYS = { "BEAST", "DEMON", "DRAGONKIN", "ELEMENTAL", "GIANT", "HUMANOID", "MECHANICAL", "UNDEAD" }
 
-    ["Spell Power"] = "Magic",
-    ["Spell Damage Power"] = "Magic",
-    ["Spell Penetration"] = "Magic",
-    ["Spell Hit Chance"] = "Magic",
-    ["Spell Critical Strike Chance"] = "Magic",
-    ["Spell Hit Rating"] = "Magic",
-    ["Spell Critical Strike Rating"] = "Magic",
-    ["Spell Haste Rating"] = "Magic",
+-- Every stat the panel shows, by key: its category, which colors it, else
+-- its school's colors; whether lite mode colors it (magic); whether its value
+-- is a percent; and its name, the game's or the addon's own. A stat of each
+-- school or creature type fills its name's %s with it.
+local STATS = {
+    STRENGTH = { category = "Primary", name = mod("STRENGTH_SHORT"), line = mod("STRENGTH") },
+    AGILITY = { category = "Primary", name = mod("AGILITY_SHORT"), line = mod("AGILITY") },
+    STAMINA = { category = "Primary", name = mod("STAMINA_SHORT"), line = mod("STAMINA") },
+    INTELLECT = { category = "Primary", name = mod("INTELLECT_SHORT"), line = mod("INTELLECT") },
+    SPIRIT = { category = "Primary", name = mod("SPIRIT_SHORT"), line = mod("SPIRIT") },
+    ALL_STATS = { category = "Primary", name = "All Stats" },
 
-    ["Healing Power"] = "Healing",
-    ["Health per 5 sec"] = "Healing",
-    ["Mana per 5 sec"] = "Mana",
-    Mana = "Mana",
+    ATTACK_POWER = { category = "Attack", name = mod("ATTACK_POWER_SHORT") },
+    RANGED_ATTACK_POWER = { category = "Attack", name = mod("RANGED_ATTACK_POWER_SHORT") },
+    ATTACK_POWER_VS = { category = "Attack", name = "Attack Power vs %s", each = "creature" },
+    HIT_CHANCE = { category = "Attack", name = "Hit Chance", percent = true },
+    CRIT_CHANCE = { category = "Attack", name = "Critical Strike Chance", percent = true },
+    HIT_RATING = { category = "Attack", name = "Hit Rating" },
+    CRIT_RATING = { category = "Attack", name = "Critical Strike Rating" },
+    HASTE_RATING = { category = "Attack", name = "Haste Rating" },
+    EXPERTISE_RATING = { category = "Attack", name = "Expertise Rating" },
+
+    ARMOR = { category = "Defense", name = RESISTANCE0_NAME },
+    DEFENSE_SKILL = { category = "Defense", name = "Defense Skill" },
+    DEFENSE_RATING = { category = "Defense", name = "Defense Rating" },
+    DODGE_CHANCE = { category = "Defense", name = "Dodge Chance", percent = true },
+    DODGE_RATING = { category = "Defense", name = "Dodge Rating" },
+    PARRY_CHANCE = { category = "Defense", name = "Parry Chance", percent = true },
+    PARRY_RATING = { category = "Defense", name = "Parry Rating" },
+    BLOCK_CHANCE = { category = "Defense", name = "Block Chance", percent = true },
+    BLOCK_RATING = { category = "Defense", name = "Block Rating" },
+    BLOCK_VALUE = { category = "Defense", name = "Shield Block Value" },
+    RESILIENCE_RATING = { category = "Defense", name = "Resilience Rating" },
+    ALL_RESISTANCES = { category = "Defense", name = "All Resistances" },
+    RESISTANCE = { each = "school" },
+
+    SPELL_POWER = { category = "Magic", magic = true, name = mod("SPELL_POWER_SHORT") },
+    SPELL_DAMAGE = { category = "Magic", magic = true, name = "Spell Damage Power" },
+    SPELL_DAMAGE_VS = { category = "Magic", name = "Spell Damage Power vs %s", each = "creature" },
+    SPELL_PENETRATION = { category = "Magic", magic = true, name = "Spell Penetration" },
+    SPELL_HIT_CHANCE = { category = "Magic", magic = true, name = "Spell Hit Chance", percent = true },
+    SPELL_CRIT_CHANCE = { category = "Magic", magic = true, name = "Spell Critical Strike Chance", percent = true },
+    SPELL_HIT_RATING = { category = "Magic", magic = true, name = "Spell Hit Rating" },
+    SPELL_CRIT_RATING = { category = "Magic", magic = true, name = "Spell Critical Strike Rating" },
+    SPELL_HASTE_RATING = { category = "Magic", magic = true, name = "Spell Haste Rating" },
+    SCHOOL_SPELL_POWER = { magic = true, name = "%s Spell Power", each = "school" },
+    SCHOOL_SPELL_DAMAGE = { magic = true, name = "%s Spell Damage Power", each = "school" },
+
+    HEALING_POWER = { category = "Healing", magic = true, name = "Healing Power" },
+    HEALTH_REGEN = { category = "Healing", name = "Health per 5 sec" },
+    MANA_REGEN = { category = "Mana", name = "Mana per 5 sec" },
+    MANA = { category = "Mana", name = mod("MANA_SHORT"), line = mod("MANA") },
 }
+
+-- A stat's name, as the panel shows it: "Fire Resistance", "Attack Power vs Undead".
+local function nameOf(stat)
+    if stat.key == "RESISTANCE" then return RESISTANCE_NAMES[stat.school] end
+    local name = STATS[stat.key].name
+    local filler = stat.school and SCHOOL_NAMES[stat.school] or stat.creature and CREATURES[stat.creature]
+    return name and filler and fill(name, filler) or name
+end
+
+-- Its value as printed: "+12", "+1%".
+local function valueOf(stat)
+    return stat.sign .. stat.amount .. (stat.percent and "%" or "")
+end
+
+-- A stat as the game prints one: "+12 Spell Power", or in Korean the name first.
+function stats.text(stat)
+    return fill(TOOLTIP_ITEM_STAT_FORMAT, stat.sign, stat.amount .. (stat.percent and "%" or ""), nameOf(stat))
+end
+
+-- Every stat the panel knows, by its name.
+local NAMED = {}
+local function known(stat)
+    local text = nameOf(stat)
+    if text then NAMED[text] = stat end
+end
+for key, def in pairs(STATS) do
+    if def.each == "school" then
+        for _, school in ipairs(SCHOOLS) do known({ key = key, school = school }) end
+    elseif def.each == "creature" then
+        for _, creature in ipairs(CREATURE_KEYS) do known({ key = key, creature = creature }) end
+    else
+        known({ key = key })
+    end
+end
+
+-- Lines the game prints its own way, besides as a stat's name after its value.
+local LINES = { { ITEM_RESIST_ALL, "ALL_RESISTANCES" }, { ITEM_RESIST_SINGLE, "RESISTANCE", school = true } }
+for key, def in pairs(STATS) do
+    if def.line then LINES[#LINES + 1] = { def.line, key } end
+end
+
+local function isNumber(text)
+    return type(text) == "string" and text:match("^%d[%d%.,]*$") ~= nil
+end
+
+-- A value's sign, amount, and the rest when the text is printed as a stat
+-- line, whatever the stat: "+6", "Intellect" from "+6 Intellect".
+function stats.lineParts(text)
+    local sign, amount, rest = unformat(text, TOOLTIP_ITEM_STAT_FORMAT)
+    if sign and isNumber((amount or ""):gsub("%%$", "")) and rest ~= "" then return sign, amount, rest end
+end
+
+local function withValue(found, sign, amount)
+    local stat = { key = found.key, school = found.school, creature = found.creature, sign = sign }
+    stat.percent = amount:sub(-1) == "%"
+    if stat.percent then amount = amount:sub(1, -2) end
+    -- Shown without the client's group separator: "1,000" as "1000".
+    local group = LARGE_NUMBER_SEPERATOR
+    if group == "," or group == "." then amount = amount:gsub("%" .. group .. "(%d%d%d)", "%1") end
+    stat.amount = amount
+    return stat
+end
+
+-- The stat a line names, as the game or stats.text prints it: "+6 Intellect",
+-- "+5 Fire Resistance". nil for other text and stats the panel does not know.
+function stats.read(text)
+    if type(text) ~= "string" then return end
+    local sign, amount, rest = stats.lineParts(text)
+    if sign and NAMED[rest] then return withValue(NAMED[rest], sign, amount) end
+    for _, line in ipairs(LINES) do
+        local lineSign, lineAmount, word = unformat(text, line[1])
+        local school = line.school and SCHOOL_KEYS[word]
+        if lineSign and isNumber(lineAmount) and (school or not line.school) then
+            return withValue({ key = line[2], school = school }, lineSign, lineAmount)
+        end
+    end
+end
 
 -- A category's color and its name's shade, as "RRGGBB": the style editor's,
 -- if set, with a shade lifted toward white, else the defaults.
@@ -129,37 +189,43 @@ local function categoryColors(key)
 end
 stats.categoryColors = categoryColors
 
-local function colorizeStat(text, colors)
-    local sign, amount, percent, label = text:match("^([%+%-])([%d%.,]+)(%%?) (.+)$")
-    if not amount then return end
-    amount = amount:gsub(",", "")
+-- Text in a color, the space around it left outside the color.
+local function tinted(text, color)
+    local before, core, after = text:match("^(%s*)(.-)(%s*)$")
+    if core == "" then return text end
+    return before .. "|cff" .. color .. core .. "|r" .. after
+end
 
-    -- A bonus against one kind of creature, "Attack Power vs Undead", takes
-    -- its stat's color.
-    local category = statCategories[label] or statCategories[label:match("^(.-) vs %a+$") or ""]
+-- The text with its value, from first to last, in one color, and the rest,
+-- before it or after it, in another.
+local function colorValue(text, first, last, value, rest)
+    return tinted(text:sub(1, first - 1), rest) .. "|cff" .. value .. text:sub(first, last) .. "|r"
+        .. tinted(text:sub(last + 1), rest)
+end
+
+local function colorizeStat(text, colors)
+    local stat = stats.read(text)
+    if not stat then return end
     local value, name
-    if category then
-        value, name = categoryColors(category)
+    if STATS[stat.key].category then
+        value, name = categoryColors(STATS[stat.key].category)
     else
-        local school = label:match("^(%a+) Spell Power$")
-            or label:match("^(%a+) Spell Damage Power$")
-            or label:match("^(%a+) Resistance$")
-        value, name = ns.Palette.schoolStatColors(school)
+        value, name = ns.Palette.schoolStatColors(stat.school)
     end
     if not value then return end
 
     if not colors then value, name = "F2E8D5", "A89F8E" end
-    if sign == "-" then value = categoryColors("Negative") end
-    return "|cff" .. value .. sign .. amount .. percent .. "|r |cff" .. name .. label .. "|r"
+    if stat.sign == "-" then value = categoryColors("Negative") end
+    local printed = stats.text(stat)
+    local first, last = printed:find(valueOf(stat), 1, true)
+    return colorValue(printed, first, last, value, name)
 end
 
 -- Whether a stat row is a spell's: spell power and its schools, spell hit,
 -- crit, and penetration, and healing power. Lite mode colors only these.
 function stats.isMagical(text)
-    local label = text:match("^[%+%-][%d%.,]+%%? (.+)$")
-    if not label then return false end
-    return statCategories[label] == "Magic" or label == "Healing Power"
-        or label:match("^%a+ Spell Power$") ~= nil or label:match("^%a+ Spell Damage Power$") ~= nil
+    local stat = stats.read(text)
+    return stat ~= nil and STATS[stat.key].magic == true
 end
 
 function stats.styleStat(text, colors, markers)
@@ -172,10 +238,15 @@ end
 -- Weapon damage of a school in that school's stat colors: a wand's
 -- "64 - 120 Shadow Damage", or a bonus "+5 - 7 Fire Damage".
 function stats.styleDamage(text, colors)
-    local amount, school = text:match("^%s*(%+?%s*[%d,]+%s*%-%s*[%d,]+) (%a+) Damage%s*$")
-    local color, label = ns.Palette.schoolStatColors(school)
-    if not color or not colors then return text end
-    return "|cff" .. color .. amount .. "|r |cff" .. label .. school .. " Damage|r"
+    local trimmed = util.trim(text)
+    local low, high, word = unformat(trimmed, DAMAGE_TEMPLATE_WITH_SCHOOL)
+    if not low then low, high, word = unformat(trimmed, PLUS_DAMAGE_TEMPLATE_WITH_SCHOOL) end
+    local color, label = ns.Palette.schoolStatColors(SCHOOL_KEYS[word])
+    if not color or not colors or not isNumber(low) or not isNumber(high) then return text end
+    local first = trimmed:find(low, 1, true)
+    local _, last = trimmed:find(high, first + #low, true)
+    if trimmed:sub(first - 1, first - 1) == "+" then first = first - 1 end
+    return colorValue(trimmed, first, last, color, label)
 end
 
 -- Item effects (procs, Use, and Equip) use the same school detection and
@@ -187,100 +258,124 @@ function stats.styleEffect(text, colors)
     return ns.util.colorNumbers(text, ns.Palette.numberCode(ns.Palette.school(school)))
 end
 
-local chanceRules = {
-    { "^equip: improves your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },
-    { "^equip: increases your chance to hit with spells by ([%d%.]+)%%%.?$", "Spell Hit Chance" },
-    { "^equip: improves your chance to hit by ([%d%.]+)%%%.?$", "Hit Chance" },
-    { "^equip: increases your chance to hit by ([%d%.]+)%%%.?$", "Hit Chance" },
-    { "^equip: improves your chance to get a critical strike with spells by ([%d%.]+)%%%.?$", "Spell Critical Strike Chance" },
-    { "^equip: improves your chance to get a critical strike by ([%d%.]+)%%%.?$", "Critical Strike Chance" },
-    { "^equip: increases your chance to dodge an attack by ([%d%.]+)%%%.?$", "Dodge Chance" },
-    { "^equip: increases your chance to parry an attack by ([%d%.]+)%%%.?$", "Parry Chance" },
-    { "^equip: increases your chance to block attacks with a shield by ([%d%.]+)%%%.?$", "Block Chance" },
-}
+-- Equip wordings, read without case or a final period, and the stats each
+-- gives: keys in the order of their amounts; a school or creature type; or,
+-- for words, the table that names the stat (no key) or creature type in them.
+local RULES = {}
 
-local shortEquipStats = {
-    ["attack power"] = "Attack Power",
-    ["ranged attack power"] = "Ranged Attack Power",
-    ["spell power"] = "Spell Power",
-    ["spell damage"] = "Spell Damage Power",
-    ["healing power"] = "Healing Power",
-}
+-- No-break spaces, as French puts before a colon, read as spaces.
+local function normalized(text)
+    text = util.uncolored(text):gsub("\194\160", " "):gsub("\226\128\175", " ")
+    return (util.trim(text):lower():gsub("%.$", ""))
+end
 
+local function rule(format, keys, fields)
+    if type(format) ~= "string" then return end
+    local entry = { format = normalized(format), keys = type(keys) == "table" and keys or { keys } }
+    -- Its words before anything it fills in, which a line must open with.
+    entry.opening = entry.format:match("^[^%%|]*")
+    for field, value in pairs(fields or {}) do entry[field] = value end
+    RULES[#RULES + 1] = entry
+end
+
+-- The game's own sentences.
+for _, entry in ipairs({
+    { "SPELL_POWER_INCREASE", "SPELL_POWER" },
+    { "SPELL_DAMAGE_INCREASE", "SPELL_DAMAGE" },
+    { "SPELL_HEALING_INCREASE", "HEALING_POWER" },
+    { "SPELL_HEALING_INCREASE_DAMAGE_INCREASE", { "HEALING_POWER", "SPELL_DAMAGE" } },
+    { "ATTACK_POWER_INCREASE", "ATTACK_POWER" },
+    { "RANGED_ATTACK_POWER_INCREASE", "RANGED_ATTACK_POWER" },
+    { "HIT_PERCENT_INCREASE", "HIT_CHANCE" },
+    { "CRIT_PERCENT_INCREASE", "CRIT_CHANCE" },
+    { "DODGE_PCT_INCREASE", "DODGE_CHANCE" },
+    { "PARRY_PCT_INCREASE", "PARRY_CHANCE" },
+    { "BLOCK_CHANCE_INCREASE", "BLOCK_CHANCE" },
+    { "DEFENSE_INCREASE", "DEFENSE_SKILL" },
+    { "BLOCK_VALUE_INCREASE", "BLOCK_VALUE" },
+    { "MANA_REGEN_INCREASE", "MANA_REGEN" },
+    { "HEALTH_REGEN_INCREASE", "HEALTH_REGEN" },
+    { "SPELL_PENETRATION_INCREASE", "SPELL_PENETRATION" },
+}) do
+    rule(itemStat(entry[1]), entry[2])
+end
+for _, school in ipairs(SCHOOLS) do
+    rule(itemStat(school:upper() .. "_DAMAGE_INCREASE"), "SCHOOL_SPELL_DAMAGE", { school = school })
+end
+for _, creature in ipairs(CREATURE_KEYS) do
+    rule(itemStat("SD_VS_" .. creature .. "_INCREASE"), "SPELL_DAMAGE_VS", { creature = creature })
+    rule(itemStat("AP_VS_" .. creature .. "_INCREASE"), "ATTACK_POWER_VS", { creature = creature })
+end
+
+-- The game's descriptions of item stats, after the label it puts first.
+local function equipMod(name, key, fields)
+    local sentence = mod(name)
+    if sentence and ITEM_SPELL_TRIGGER_ONEQUIP then rule(ITEM_SPELL_TRIGGER_ONEQUIP .. " " .. sentence, key, fields) end
+end
+for _, entry in ipairs({
+    { "ATTACK_POWER", "ATTACK_POWER" }, { "RANGED_ATTACK_POWER", "RANGED_ATTACK_POWER" },
+    { "SPELL_POWER", "SPELL_POWER" }, { "SPELL_DAMAGE_DONE", "SPELL_DAMAGE" }, { "SPELL_HEALING_DONE", "HEALING_POWER" },
+    { "HIT_RATING", "HIT_RATING" }, { "CRIT_RATING", "CRIT_RATING" }, { "HASTE_RATING", "HASTE_RATING" },
+    { "EXPERTISE_RATING", "EXPERTISE_RATING" }, { "HIT_SPELL_RATING", "SPELL_HIT_RATING" },
+    { "CRIT_SPELL_RATING", "SPELL_CRIT_RATING" }, { "DEFENSE_SKILL_RATING", "DEFENSE_SKILL" },
+    { "DODGE_RATING", "DODGE_RATING" }, { "PARRY_RATING", "PARRY_RATING" }, { "BLOCK_RATING", "BLOCK_RATING" },
+    { "RESILIENCE_RATING", "RESILIENCE_RATING" }, { "BLOCK_VALUE", "BLOCK_VALUE" },
+    { "MANA_REGENERATION", "MANA_REGEN" }, { "HEALTH_REGEN", "HEALTH_REGEN" }, { "EXTRA_ARMOR", "ARMOR" },
+}) do
+    equipMod(entry[1], entry[2])
+end
+for _, school in ipairs(SCHOOLS) do
+    equipMod(school:upper() .. "_DAMAGE_DONE", "SCHOOL_SPELL_DAMAGE", { school = school })
+end
+
+-- Wordings the game's strings do not cover, from the client's language file.
+for _, wording in ipairs(ns.Locale.statWordings) do
+    rule(wording[1], wording[2], { words = wording[3] and ns.Locale.statWords[wording[3]] })
+end
+
+-- The stats one rule reads from what it found; nil when they are not stats.
+local function apply(entry, found)
+    local amounts, word = {}, nil
+    for index = 1, found.n do
+        local value = found[index]
+        if isNumber(value) then amounts[#amounts + 1] = value elseif type(value) == "string" then word = value end
+    end
+    local named = entry.words and entry.words[word or ""]
+    if entry.words and not named then return end
+    local list = {}
+    for index, key in ipairs(entry.keys) do
+        if not amounts[index] then return end
+        local stat = { key = key, sign = "+", amount = amounts[index], school = entry.school,
+            creature = entry.creature }
+        -- A word names the stat itself, or the creature type of a stat that has one.
+        if named then
+            if STATS[key].each == "creature" then stat.creature = named else stat.key = named end
+        end
+        stat.percent = STATS[stat.key].percent
+        list[index] = stats.text(stat)
+    end
+    if #entry.keys == 0 and named then
+        if not amounts[1] then return end
+        local stat = { key = named, sign = "+", amount = amounts[1], percent = STATS[named].percent }
+        list[1] = stats.text(stat)
+    end
+    return list
+end
+
+-- An equip line's stats, each printed as the game prints a stat: "Equip:
+-- Increases healing done by up to 20 and damage done by up to 10 for all
+-- magical spells and effects." gives "+20 Healing Power", "+10 Spell Damage
+-- Power". nil for any other line.
 function stats.rewrite(text)
     if type(text) ~= "string" then return end
-    local line = ns.util.trim(text):lower()
-    -- Bonuses against one kind of creature: Undead, Demons, Elementals, Beasts.
-    local creature, amount = line:match("^equip: increases damage done to (%a+) by magical spells and effects by up to (%d+)%.?$")
-    if creature then return { bonus(amount, "Spell Damage Power vs " .. titleCase(creature)) } end
-    amount, creature = line:match("^equip: %+(%d+) attack power when fighting (%a+)%.?$")
-    if not amount then amount, creature = line:match("^equip: increases attack power by (%d+) when fighting (%a+)%.?$") end
-    if not amount then amount, creature = line:match("^equip: increases attack power by (%d+) against (%a+)%.?$") end
-    if amount then return { bonus(amount, "Attack Power vs " .. titleCase(creature)) } end
-
-    local shortAmount, shortStat = line:match("^equip: %+(%d+) ([%a ]+)%.?$")
-    if shortAmount and shortEquipStats[shortStat] then
-        return { bonus(shortAmount, shortEquipStats[shortStat]) }
+    local line = normalized(text)
+    for _, entry in ipairs(RULES) do
+        if line:sub(1, #entry.opening) == entry.opening then
+            local found = util.pack(unformat(line, entry.format))
+            if found[1] ~= nil then
+                local list = apply(entry, found)
+                if list and #list > 0 then return list end
+            end
+        end
     end
-
-    local healing, damage = line:match("^equip: increases healing done by up to (%d+) and damage done by up to (%d+) for all magical spells and effects%.?$")
-    if healing then
-        return {
-            bonus(healing, "Healing Power"),
-            bonus(damage, "Spell Damage Power"),
-        }
-    end
-
-    amount = line:match("^equip: increases damage and healing done by magical spells and effects by up to (%d+)%.?$")
-        or line:match("^equip: increases spell damage and healing by up to (%d+)%.?$")
-        or line:match("^equip: increases damage and healing done by spells and effects by up to (%d+)%.?$")
-    if amount then return { bonus(amount, "Spell Power") } end
-
-    amount = line:match("^equip: increases healing done by spells and effects by up to (%d+)%.?$")
-        or line:match("^equip: increases healing done by magical spells and effects by up to (%d+)%.?$")
-        or line:match("^equip: increases healing done by up to (%d+) for all magical spells and effects%.?$")
-    if amount then return { bonus(amount, "Healing Power") } end
-
-    local school
-    school, amount = line:match("^equip: increases damage done by (%a+) spells and effects by up to (%d+)%.?$")
-    if school and schools[school] then return { bonus(amount, schools[school]) } end
-
-    amount = line:match("^equip: increases damage done by magical spells and effects by up to (%d+)%.?$")
-        or line:match("^equip: increases spell damage by up to (%d+)%.?$")
-    if amount then return { bonus(amount, "Spell Damage Power") } end
-
-    local stat
-    stat, amount = line:match("^equip: increases your ([%a ]+) rating by (%d+)%.?$")
-    if not stat then
-        stat, amount = line:match("^equip: improves ([%a ]+) rating by (%d+)%.?$")
-    end
-    if stat and ratings[stat] then return { bonus(amount, ratings[stat]) } end
-
-    stat, amount = line:match("^equip: increases your ([%a ]+) by (%d+)%.?$")
-    if not stat then stat, amount = line:match("^equip: increases ([%a ]+) by (%d+)%.?$") end
-    if stat and attributes[stat] then return { bonus(amount, attributes[stat]) } end
-
-    for _, rule in ipairs(chanceRules) do
-        amount = line:match(rule[1])
-        if amount then return { bonus(amount, rule[2], true) } end
-    end
-
-    amount = line:match("^equip: increases defense skill by (%d+)%.?$")
-        or line:match("^equip: increases your defense skill by (%d+)%.?$")
-        or line:match("^equip: increased defense %+(%d+)%.?$")
-    if amount then return { bonus(amount, "Defense Skill") } end
-
-    amount = line:match("^equip: increases the block value of your shield by (%d+)%.?$")
-    if amount then return { bonus(amount, "Shield Block Value") } end
-
-    amount = line:match("^equip: restores (%d+) mana per 5 sec%.?$")
-        or line:match("^equip: restores (%d+) mana per 5 seconds%.?$")
-    if amount then return { bonus(amount, "Mana per 5 sec") } end
-
-    amount = line:match("^equip: restores (%d+) health per 5 sec%.?$")
-        or line:match("^equip: restores (%d+) health per 5 seconds%.?$")
-    if amount then return { bonus(amount, "Health per 5 sec") } end
-
-    amount = line:match("^equip: decreases the magical resistances of your spell targets by (%d+)%.?$")
-    if amount then return { bonus(amount, "Spell Penetration") } end
 end

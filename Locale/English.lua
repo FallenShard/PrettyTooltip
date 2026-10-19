@@ -22,6 +22,53 @@ formats.talentPoints = "Spend %d more |4point:points; in %s"
 formats.rare = "Rare"
 formats.rareElite = "Rare Elite"
 
+-- Older items' equip wordings. A wording with no stat takes it from its word.
+locale.statWordings = {
+    { "Equip: +%d Attack Power when fighting %s.", "ATTACK_POWER_VS", "creature" },
+    { "Equip: Increases attack power by %d when fighting %s.", "ATTACK_POWER_VS", "creature" },
+    { "Equip: Increases attack power by %d against %s.", "ATTACK_POWER_VS", "creature" },
+    { "Equip: +%d Spell Power.", "SPELL_POWER" },
+    { "Equip: +%d Spell Damage.", "SPELL_DAMAGE" },
+    { "Equip: +%d Healing Power.", "HEALING_POWER" },
+    { "Equip: Increases spell damage and healing by up to %d.", "SPELL_POWER" },
+    { "Equip: Increases damage and healing done by spells and effects by up to %d.", "SPELL_POWER" },
+    { "Equip: Increases healing done by spells and effects by up to %d.", "HEALING_POWER" },
+    { "Equip: Increases healing done by up to %d for all magical spells and effects.", "HEALING_POWER" },
+    { "Equip: Increases spell damage by up to %d.", "SPELL_DAMAGE" },
+    { "Equip: Increases your %s rating by %d.", nil, "rating" },
+    { "Equip: Improves %s rating by %d.", nil, "rating" },
+    { "Equip: Increases your %s by %d.", nil, "attribute" },
+    { "Equip: Increases %s by %d.", nil, "attribute" },
+    { "Equip: Increases your chance to hit by %s%%.", "HIT_CHANCE" },
+    { "Equip: Improves your chance to hit with spells by %s%%.", "SPELL_HIT_CHANCE" },
+    { "Equip: Increases your chance to hit with spells by %s%%.", "SPELL_HIT_CHANCE" },
+    { "Equip: Improves your chance to get a critical strike with spells by %s%%.", "SPELL_CRIT_CHANCE" },
+    { "Equip: Increases your defense skill by %d.", "DEFENSE_SKILL" },
+    { "Equip: Restores %d mana per 5 seconds.", "MANA_REGEN" },
+    { "Equip: Restores %d health per 5 seconds.", "HEALTH_REGEN" },
+    { "Equip: Decreases the magical resistances of your spell targets by %d.", "SPELL_PENETRATION" },
+}
+-- The words those wordings name a stat or a creature type with, in lower case.
+locale.statWords = {
+    rating = {
+        ["hit"] = "HIT_RATING", ["spell hit"] = "SPELL_HIT_RATING", ["critical strike"] = "CRIT_RATING",
+        ["spell critical strike"] = "SPELL_CRIT_RATING", ["haste"] = "HASTE_RATING",
+        ["spell haste"] = "SPELL_HASTE_RATING", ["defense"] = "DEFENSE_RATING", ["dodge"] = "DODGE_RATING",
+        ["parry"] = "PARRY_RATING", ["block"] = "BLOCK_RATING", ["resilience"] = "RESILIENCE_RATING",
+        ["expertise"] = "EXPERTISE_RATING",
+    },
+    attribute = {
+        ["strength"] = "STRENGTH", ["agility"] = "AGILITY", ["stamina"] = "STAMINA", ["intellect"] = "INTELLECT",
+        ["spirit"] = "SPIRIT", ["armor"] = "ARMOR", ["attack power"] = "ATTACK_POWER",
+        ["ranged attack power"] = "RANGED_ATTACK_POWER", ["spell power"] = "SPELL_POWER",
+        ["spell penetration"] = "SPELL_PENETRATION", ["all stats"] = "ALL_STATS",
+    },
+    creature = {
+        ["beasts"] = "BEAST", ["demons"] = "DEMON", ["dragonkin"] = "DRAGONKIN", ["elementals"] = "ELEMENTAL",
+        ["giants"] = "GIANT", ["humanoids"] = "HUMANOID", ["mechanical units"] = "MECHANICAL", ["undead"] = "UNDEAD",
+    },
+}
+
 -- The client's SkillLine names, which in English are the addon's keys.
 for _, name in ipairs({ "Alchemy", "Blacksmithing", "Enchanting", "Engineering", "Leatherworking", "Tailoring",
     "Cooking", "First Aid", "Fishing", "Mining", "Herbalism", "Skinning", "Jewelcrafting", "Inscription",

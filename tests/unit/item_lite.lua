@@ -1,7 +1,7 @@
 -- Lite shortens selected lines and keeps native colors and other rows; with
 -- stat colors on, magical stats and chance on hit effects keep theirs.
 return function(test)
-    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Data/Stats.lua", "Integration/ItemLite.lua" }
+    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua", "Locale/English.lua", "Data/Stats.lua", "Integration/ItemLite.lua" }
     local combined = "Equip: Increases healing done by up to 20 and damage done by up to 10 for all magical spells and effects."
     local original = { "Test Item", "+6 Intellect", combined,
         "Equip: Improves your chance to get a critical strike by 1%.", "Requires Level 60",

@@ -158,7 +158,8 @@ return function(test)
     test.check("repeated installation creates no frames", #world.objects, count)
     test.check("repeated installation creates no post-calls", #world.postCalls[0], 3)
 
-    local rewriteFiles = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Data/Stats.lua",
+    local rewriteFiles = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
+        "Locale/English.lua", "Data/Stats.lua",
         "Integration/ItemLite.lua" }
     ns, world = test.load(rewriteFiles, { client = { locale = "deDE" }, enums = fixture.enums })
     ns.ItemLite.register()

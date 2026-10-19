@@ -9,8 +9,13 @@ ns.Locale = {
     -- Wordings, written as the game writes its own strings: "Speed %s".
     -- util.unformat reads text printed from them.
     formats = {},
+    -- Equip wordings of stats the game's own strings do not word, each with
+    -- the stat it gives (Data/Stats.lua's keys) and, for one with a word in
+    -- it, the statWords table that word comes from.
+    statWordings = {},
+    statWords = {},
     -- Skills and professions by the client's names for them (its SkillLine
-    -- table), keyed by the addon's: skills.Herbalism is "Kräuterkunde" on deDE.
+    -- table), keyed by the addon's: skills.Mining is "Bergbau" on deDE.
     skills = {},
     -- Dispel types by the client's names for them (its SpellDispelType table),
     -- keyed by the aura API's: dispels.Poison is "Gift" on deDE.
