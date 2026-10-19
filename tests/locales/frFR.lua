@@ -311,7 +311,6 @@ return {
     ["MELEE"] = "Mêlée",
     ["MELEE_RANGE"] = "Allonge",
     ["NEXT_RANK_COLON"] = "Rang suivant :",
-    ["NONE"] = "Aucun",
     ["NOT_ENOUGH_CURRENCY"] = "Pas assez |2 %s",
     ["OBJECTIVES_LABEL"] = "Objectifs",
     ["PLAYER"] = "Joueur",

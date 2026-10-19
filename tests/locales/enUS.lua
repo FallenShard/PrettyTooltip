@@ -311,7 +311,6 @@ return {
     ["MELEE"] = "Melee",
     ["MELEE_RANGE"] = "Melee Range",
     ["NEXT_RANK_COLON"] = "Next Rank:",
-    ["NONE"] = "None",
     ["NOT_ENOUGH_CURRENCY"] = "Not enough %s",
     ["OBJECTIVES_LABEL"] = "Objectives",
     ["PLAYER"] = "Player",

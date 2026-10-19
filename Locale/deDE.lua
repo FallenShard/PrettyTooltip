@@ -59,3 +59,5 @@ locale.questTags = { Elite = true, Dungeon = true, Schlachtzug = true, Gruppe = 
 -- The addon's own words. German spells measure their range in meters.
 local L = ns.L
 L["%s yd"] = "%s m"
+-- A spell without a cooldown.
+L["None"] = "Keine"

@@ -311,7 +311,6 @@ return {
     ["MELEE"] = "근접 공격",
     ["MELEE_RANGE"] = "근접 거리",
     ["NEXT_RANK_COLON"] = "다음 등급:",
-    ["NONE"] = "없음",
     ["NOT_ENOUGH_CURRENCY"] = "%s|1이;가; 부족합니다.",
     ["OBJECTIVES_LABEL"] = "임무",
     ["PLAYER"] = "플레이어",

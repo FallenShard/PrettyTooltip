@@ -64,6 +64,14 @@ function palette.school(name)
     if default then return customColor("schoolColor" .. name) or default end
 end
 
+-- A school's name on this client, as a badge shows it: the game's for each of
+-- the six, the addon's own for a blend of two.
+function palette.schoolName(school)
+    local names = { Holy = DAMAGE_SCHOOL2, Fire = DAMAGE_SCHOOL3, Nature = DAMAGE_SCHOOL4, Frost = DAMAGE_SCHOOL5,
+        Shadow = DAMAGE_SCHOOL6, Arcane = DAMAGE_SCHOOL7 }
+    return names[school] or ns.L[school]
+end
+
 function palette.schoolStatColors(name)
     local color = palette.school(name)
     if not color then return end
@@ -141,12 +149,12 @@ function palette.schoolIn(text, phrases, only)
     return found
 end
 
--- A class spell's school comes from Data/Schools.lua, by its name. Otherwise
+-- A class spell's school comes from Data/Schools.lua, by its ID or name. Otherwise
 -- the text must name damage or spells, as "40 Fire damage" or "your Fire
 -- spells", so "Fire Elementals" and "Rapid Fire" cannot change the color.
 -- Spell names may supply a leading school instead.
-function palette.detectSchool(description, name)
-    local known = ns.spellSchool and ns.spellSchool(name)
+function palette.detectSchool(description, name, spellID)
+    local known = ns.spellSchool and ns.spellSchool(name, spellID)
     if known then return known end
     for _, text in ipairs(description) do
         local found = palette.schoolIn(text, ns.Locale.descriptions.school)

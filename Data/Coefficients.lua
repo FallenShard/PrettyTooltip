@@ -204,7 +204,7 @@ function ns.spellPowerRows(part, bonusCode, game)
     end
     -- The table holds every class spell that scales; another class spell, as
     -- Dampen Magic, gains nothing, however its text reads.
-    if not rank and ns.spellSchool and ns.spellSchool(part.name) then return end
+    if not rank and ns.spellSchool and ns.spellSchool(part.name, part.spellID) then return end
     -- Heals, healing, or healed; not health, as a totem's.
     local healing = not school and ((rank and rank.heals) or heals(text))
     if not (school or healing) then return end

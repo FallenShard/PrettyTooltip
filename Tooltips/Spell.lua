@@ -136,7 +136,7 @@ local colorNumbers = util.colorNumbers
 
 local function badges(model, school)
     local list = {}
-    if school then list[#list + 1] = { school, ns.Palette.school(school) } end
+    if school then list[#list + 1] = { ns.Palette.schoolName(school), ns.Palette.school(school) } end
     if model.rank ~= "" then list[#list + 1] = { model.rank, RANK_BADGE } end
     if model.passive then list[#list + 1] = { model.passive, RANK_BADGE } end
     if model.talent then
@@ -344,7 +344,7 @@ end
 local STRIP = {
     { "cost", L["Free"], L["Cost"] },
     { "cast", SPELL_CAST_TIME_INSTANT, L["Cast"] },
-    { "cooldown", NONE, L["Cooldown"] },
+    { "cooldown", L["None"], L["Cooldown"] },
     { "range", L["Self"], L["Range"] },
 }
 
@@ -474,7 +474,7 @@ end
 local function spellView(model)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
-    local school = ns.Palette.detectSchool(model.description, model.name)
+    local school = ns.Palette.detectSchool(model.description, model.name, model.spellID)
     local numberCode = ns.Palette.numberCode(ns.Palette.school(school))
     local power = model.power and POWER_COLORS[model.power]
     local accent = ns.Palette.school(school) or power

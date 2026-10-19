@@ -311,7 +311,6 @@ return {
     ["MELEE"] = "近戰",
     ["MELEE_RANGE"] = "近戰範圍",
     ["NEXT_RANK_COLON"] = "下一級：",
-    ["NONE"] = "無",
     ["NOT_ENOUGH_CURRENCY"] = "%s不足",
     ["OBJECTIVES_LABEL"] = "目標",
     ["PLAYER"] = "玩家",

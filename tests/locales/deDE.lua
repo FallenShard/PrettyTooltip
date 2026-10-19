@@ -311,7 +311,6 @@ return {
     ["MELEE"] = "Nahkampf",
     ["MELEE_RANGE"] = "Nahkampfreichweite",
     ["NEXT_RANK_COLON"] = "Nächster Rang:",
-    ["NONE"] = "Nichts",
     ["NOT_ENOUGH_CURRENCY"] = "Nicht genügend %s",
     ["OBJECTIVES_LABEL"] = "Questziele",
     ["PLAYER"] = "Spieler",
