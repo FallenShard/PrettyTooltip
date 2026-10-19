@@ -50,7 +50,10 @@ read_globals = {
     "SPELL_DURATION_MIN", "SPELL_DURATION_HOURS", "SPELL_DURATION_DAYS", "SPELL_RANGE", "MELEE_RANGE", "SPELL_PASSIVE",
     "SPELL_REAGENTS", "SPELL_TOTEMS", "ITEM_COOLDOWN_TIME", "SPELL_EQUIPPED_ITEM", "SPELL_REQUIRED_FORM",
     "TOOLTIP_TALENT_RANK", "TOOLTIP_TALENT_NEXT_RANK", "NEXT_RANK_COLON", "TOOLTIP_TALENT_PREREQ",
-    "TOOLTIP_TALENT_TIER_POINTS",
+    "TOOLTIP_TALENT_TIER_POINTS", "TOOLTIP_UNIT_LEVEL", "TOOLTIP_UNIT_LEVEL_TYPE", "TOOLTIP_UNIT_LEVEL_RACE",
+    "TOOLTIP_UNIT_LEVEL_RACE_TYPE", "PLAYER", "BOSS", "ELITE", "FACTION_ALLIANCE", "FACTION_HORDE", "PVP_ENABLED",
+    "DEAD", "CORPSE", "UNIT_SKINNABLE_LEATHER", "QUEST_TOOLTIP_ACTIVE", "OBJECTIVES_LABEL", "QUEST_TOOLTIP_REQUIREMENTS",
+    "UNIT_LEVEL_TEMPLATE",
     -- Tooltip data
     "TooltipDataProcessor", "Enum",
     -- Game state
@@ -68,5 +71,5 @@ read_globals = {
     "UnitHealth", "UnitHealthMax", "UnitIsTapDenied", "UnitIsPVP", "UnitIsDeadOrGhost", "UnitIsDND",
     "UnitIsAFK", "UnitCreatureType", "UnitClassification",
     -- Other addons, used when installed
-    "LibStub", "Auctionator",
+    "LibStub", "Auctionator", "QuestieLoader",
 }

@@ -304,3 +304,16 @@ function game.addonInstalled(addon)
     local ok, name, _, _, _, reason = pcall(C_AddOns.GetAddOnInfo, addon)
     return ok and name ~= nil and reason ~= "MISSING"
 end
+
+-- One of Questie's phrases as its tooltips print it, in the language Questie
+-- is set to, which need not be the client's; the English phrase without it.
+-- Its modules are read directly, since ImportModule creates a missing one.
+function game.questieText(phrase)
+    local modules = QuestieLoader and QuestieLoader._modules
+    local l10n = type(modules) == "table" and modules.l10n
+    if l10n then
+        local ok, text = pcall(l10n, phrase)
+        if ok and type(text) == "string" then return text end
+    end
+    return phrase
+end

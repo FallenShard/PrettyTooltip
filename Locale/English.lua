@@ -17,9 +17,16 @@ formats.scarce = "Scarce"
 formats.baseManaCost = "%d%% of base mana"
 -- The talent window's line for a talent deeper in its tree than the points spent.
 formats.talentPoints = "Spend %d more |4point:points; in %s"
+-- Ranks a unit's level line names, as "Level 30 (Rare Elite)"; the game's
+-- BOSS and ELITE name the others.
+formats.rare = "Rare"
+formats.rareElite = "Rare Elite"
 
 -- The client's SkillLine names.
 for _, name in ipairs({ "Alchemy", "Blacksmithing", "Enchanting", "Engineering", "Leatherworking", "Tailoring",
     "Cooking", "First Aid", "Fishing", "Mining", "Herbalism", "Skinning", "Jewelcrafting", "Inscription" }) do
     locale.professions[name] = true
 end
+
+-- The client's QuestInfo names, and "Group", which Forever's table lacks.
+for _, name in ipairs({ "Elite", "Dungeon", "Raid", "Group", "PvP" }) do locale.questTags[name] = true end

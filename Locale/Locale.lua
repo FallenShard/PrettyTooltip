@@ -12,4 +12,7 @@ ns.Locale = {
     -- The professions, by the names the client gives its skill lines, as
     -- requirements print them: "Requires Blacksmithing (80)".
     professions = {},
+    -- The kinds of quest a quest's tooltip names on a line of its own, by the
+    -- names in the client's QuestInfo table: "Dungeon".
+    questTags = {},
 }

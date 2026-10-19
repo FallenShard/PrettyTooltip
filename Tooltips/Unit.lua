@@ -10,6 +10,8 @@ local util = ns.util
 local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, hex = util.isSecret, util.safeText, util.trim, util.hex
+local unformat = util.unformat
+local formats = ns.Locale.formats
 local get = util.call
 local LINE = Enum.TooltipDataLineType or {}
 local WHITE = "Interface\\Buttons\\WHITE8X8"
@@ -33,7 +35,25 @@ local BADGES = {
 -- The rank the tooltip's level line names, as "Level ?? (Boss)". It outranks
 -- UnitClassification, which answers "elite" for bosses such as faction
 -- leaders that the tooltip and the target frame show as bosses.
-local RANKS = { Boss = "worldboss", Elite = "elite", Rare = "rare", ["Rare Elite"] = "rareelite" }
+local RANKS = {}
+for _, rank in ipairs({ { BOSS, "worldboss" }, { ELITE, "elite" }, { formats.rare, "rare" },
+    { formats.rareElite, "rareelite" } }) do
+    if rank[1] then RANKS[rank[1]] = rank[2] end
+end
+-- Lines the badges and the faction crest show: "Alliance", "PvP", "Dead".
+local SHOWN_ELSEWHERE = {}
+for _, word in pairs({ FACTION_ALLIANCE, FACTION_HORDE, PVP_ENABLED, DEAD, CORPSE, UNIT_SKINNABLE_LEATHER }) do
+    SHOWN_ELSEWHERE[word] = true
+end
+
+-- What the level line names in parentheses, then the level and race before
+-- it: "Boss" in "Level ?? (Boss)", "Player" in "Level 12 Night Elf (Player)".
+local function levelKind(text)
+    local level, race, kind = unformat(text, TOOLTIP_UNIT_LEVEL_RACE_TYPE)
+    if level then return kind, level, race end
+    level, kind = unformat(text, TOOLTIP_UNIT_LEVEL_TYPE)
+    return kind, level
+end
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
 -- Watermarks in the panel's top right, the same size on every panel, so a
 -- taller panel shows more of one: width by height, right and top the gaps to
@@ -152,7 +172,7 @@ local function completeModel(model, unit, game)
             model.targetColor = unitColor(target, game)
         end
     end
-    local rank = not model.isPlayer and model.levelLine and RANKS[model.levelLine:match("%(([^)]+)%)%s*$")]
+    local rank = not model.isPlayer and model.levelLine and RANKS[levelKind(model.levelLine) or ""]
     if rank then model.classification = rank end
     -- Forever puts the guild, unbracketed, and the class on lines of their own;
     -- the header already shows them.
@@ -198,12 +218,17 @@ local function readUnit(tooltip, data, game)
             if not model.name then
                 model.name = text
             elseif text ~= "" or right ~= "" then
-                if text:match("^Level ") then
-                    model.levelLine = text:gsub("%s*%(Player%)$", "")
+                if unformat(text, TOOLTIP_UNIT_LEVEL) then
+                    -- The panel names a player as one by its colors and badges.
+                    local kind, level, race = levelKind(text)
+                    model.levelLine = text
+                    if kind == PLAYER then
+                        model.levelLine = race and util.fill(TOOLTIP_UNIT_LEVEL_RACE, level, race)
+                            or util.fill(TOOLTIP_UNIT_LEVEL, level)
+                    end
                 elseif text:match("^<.+>$") and not model.tag then
                     model.tag = text
-                elseif text == "Alliance" or text == "Horde" or text == "PvP" or text == "Dead"
-                    or text == "Corpse" or text == "Skinnable" then
+                elseif SHOWN_ELSEWHERE[text] then
                     -- Shown as badges.
                 elseif LINE.UnitOwner and line.type == LINE.UnitOwner then
                     model.owner = text

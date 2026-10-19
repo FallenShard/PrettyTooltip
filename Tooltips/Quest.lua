@@ -10,6 +10,7 @@ local util = ns.util
 local tooltipData = ns.TooltipData
 local colors = ns.Palette.roles
 local isSecret, safeText, trim, readable = util.isSecret, util.safeText, util.trim, util.readable
+local unformat, startsWith = util.unformat, util.startsWith
 local LINE = Enum.TooltipDataLineType or {}
 local pad = ui.pad
 local ICON_SIZE = 38
@@ -23,14 +24,14 @@ local FAILED_COLOR = { 1, .35, .30 }
 local EXTRAS_RULE = { .50, .50, .54 }
 local REPEAT_COLOR = { .45, .70, 1 }
 local QUEST_ICON = "Interface\\Icons\\INV_Misc_Book_08"
-local TAGS = { Elite = true, Dungeon = true, Raid = true, Group = true, PvP = true }
+local TAGS = ns.Locale.questTags
 -- Questie writes the tag as a suffix on the level: "[27D] The Fury Runs Deep".
 local SUFFIX_TAGS = {
     ["+"] = "Elite", ["++"] = "Legendary", D = "Dungeon", R = "Raid", H = "Heroic",
     G = "Group", S = "Scenario", W = "World event",
 }
 -- Questie's labeled rows, shown as label and value.
-local LABELS = { ["Started by"] = true, ["Ended by"] = true, ["Found in"] = true, ["Completed on"] = true }
+local LABELS = { "Started by", "Ended by", "Found in", "Completed on" }
 local PARTS = { "questTitle", "questInfo", "questBadges", "questText", "questCaption", "questObjectives",
     "extras" }
 
@@ -84,6 +85,25 @@ local function readTitle(model, text)
     model.name = text:gsub("%s*%(%d+%)$", "")
 end
 
+-- Questie's words, in the language it is set to: its phrases, the separator
+-- it puts after a label (" : " in French), and its labels.
+local function questieWords(game)
+    local words = {}
+    for _, phrase in ipairs({ "You are on this quest", "Complete", "Failed", "You have completed this quest",
+        "This quest is repeatable", "You have not done this quest", "Your progress", "Objectives", "Instance",
+        ": " }) do
+        words[phrase] = game.questieText(phrase)
+    end
+    words.labels = {}
+    for index, label in ipairs(LABELS) do words.labels[index] = game.questieText(label) end
+    return words
+end
+
+-- The text after a label, trimmed: "" for the label alone; nil without it.
+local function afterLabel(text, label)
+    if startsWith(text, label) then return trim(text:sub(#trim(label) + 1)) end
+end
+
 -- A row from the data or from a font string, read the same way.
 local function readRow(model, row, state)
     local text = trim(util.uncolored(row.left))
@@ -95,26 +115,33 @@ local function readRow(model, row, state)
         state.label = nil
         return
     end
-    local label = text:match("^(.-):")
-    local level = text:match("^Level (%d+)") or text:match("^Requires Level (%d+)")
-    if level and not model.level then
+    local words = state.words
+    local colon = words[": "]
+    local label, value
+    for _, name in ipairs(words.labels) do
+        value = afterLabel(text, name .. colon)
+        if value then label = name break end
+    end
+    local onQuest = afterLabel(text, words["You are on this quest"]) or afterLabel(text, QUEST_TOOLTIP_ACTIVE)
+    local level = unformat(text, UNIT_LEVEL_TEMPLATE) or unformat(text, ITEM_MIN_LEVEL)
+    if tonumber(level) and not model.level then
         model.level = tonumber(level)
     elseif TAGS[text] then
         model.tags[#model.tags + 1] = text
-    elseif text:match("^You are on this quest") then
+    elseif onQuest then
         model.active = true
-        model.ready = text:find("(Complete)", 1, true) ~= nil
-        model.failed = text:find("(Failed)", 1, true) ~= nil
-    elseif text:match("^You have completed this quest") then
+        model.ready = onQuest:find("(" .. words.Complete .. ")", 1, true) ~= nil
+        model.failed = onQuest:find("(" .. words.Failed .. ")", 1, true) ~= nil
+    elseif startsWith(text, words["You have completed this quest"]) then
         model.completed = true
-    elseif text:match("^This quest is repeatable") then
+    elseif startsWith(text, words["This quest is repeatable"]) then
         model.repeatable = true
-    -- The game's headings over the objectives; the panel has its own caption.
-    elseif text:match("^You have not done this quest") or text == "Objectives" or text == "Requirements:"
-        or text:match("^Your progress") then
+    -- The headings over the objectives; the panel has its own caption.
+    elseif startsWith(text, words["You have not done this quest"]) or text == words.Objectives
+        or text == OBJECTIVES_LABEL or text == QUEST_TOOLTIP_REQUIREMENTS or startsWith(text, words["Your progress"]) then
         return
-    elseif text:match("^Instance: ") then
-        model.zone = text:match("^Instance: (.+)")
+    elseif afterLabel(text, words.Instance .. colon) then
+        model.zone = afterLabel(text, words.Instance .. colon)
     elseif row.objective or text:match("^%-") or text:match("%d+%s*/%s*%d+%s*$") then
         local name = text:gsub("^%-%s*", "")
         local goal, progress = name:match("^(.-):%s*(%d+%s*/%s*%d+)$")
@@ -125,9 +152,8 @@ local function readRow(model, row, state)
         local objective = { left = goal or name, right = progress or right, completed = row.completed }
         objective.completed = objectiveDone(objective)
         model.objectives[#model.objectives + 1] = objective
-    elseif label and LABELS[label] then
-        local value = text:match("^.-:%s*(.+)$")
-        if value then
+    elseif label then
+        if value ~= "" then
             model.extras[#model.extras + 1] = { left = label, right = value }
         else
             -- "Completed on:" puts its date on the next line.
@@ -150,7 +176,7 @@ end
 local function readQuest(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local model = { description = {}, objectives = {}, tags = {}, extras = {} }
-    local lineIndices, state = {}, {}
+    local lineIndices, state = {}, { words = questieWords(game) }
     for _, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then return end
         if line.lineIndex then
