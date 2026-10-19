@@ -9,9 +9,12 @@ ns.Locale = {
     -- Wordings, written as the game writes its own strings: "Speed %s".
     -- util.unformat reads text printed from them.
     formats = {},
-    -- The professions, by the names the client gives its skill lines, as
-    -- requirements print them: "Requires Blacksmithing (80)".
-    professions = {},
+    -- Skills and professions by the client's names for them (its SkillLine
+    -- table), keyed by the addon's: skills.Herbalism is "Kräuterkunde" on deDE.
+    skills = {},
+    -- Dispel types by the client's names for them (its SpellDispelType table),
+    -- keyed by the aura API's: dispels.Poison is "Gift" on deDE.
+    dispels = {},
     -- The kinds of quest a quest's tooltip names on a line of its own, by the
     -- names in the client's QuestInfo table: "Dungeon".
     questTags = {},

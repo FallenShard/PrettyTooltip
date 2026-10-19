@@ -26,6 +26,19 @@ local DISPELS = {
     Poison = { 0, .60, 0 },
 }
 local PARTS = { "auraName", "auraBadges", "auraText", "auraTime", "extras" }
+-- Each dispel type by the client's name for it, which the name line prints
+-- on its right: "Gift" on deDE is Poison.
+local DISPEL_KEYS = {}
+for key in pairs(DISPELS) do DISPEL_KEYS[ns.Locale.dispels[key] or key] = key end
+-- The line saying how long the aura lasts: "5 seconds remaining".
+local REMAINING = { SPELL_TIME_REMAINING_SEC, SPELL_TIME_REMAINING_MIN, SPELL_TIME_REMAINING_HOURS,
+    SPELL_TIME_REMAINING_DAYS }
+local function isRemaining(text)
+    for _, format in pairs(REMAINING) do
+        if util.unformat(text, format) then return true end
+    end
+    return false
+end
 
 -- The tooltip's lines lack the duration and stacks; the aura it shows has them.
 -- The getter is known only while the game fills the tooltip, so the aura is
@@ -84,9 +97,9 @@ local function readAura(tooltip, data, game)
             local text = trim(left)
             if not model.name then
                 model.name = text
-                if DISPELS[trim(right)] then model.dispel = trim(right) end
+                model.dispel = DISPEL_KEYS[trim(right)]
             elseif text ~= "" or right ~= "" then
-                if text:match("remaining$") then
+                if isRemaining(text) then
                     model.remaining = text
                 elseif text ~= "" and not model.text then
                     model.text = text
@@ -112,7 +125,9 @@ local function badges(model)
     if model.harmful ~= nil then
         list[#list + 1] = model.harmful and { "Debuff", DEBUFF_COLOR } or { "Buff", BUFF_COLOR }
     end
-    if model.dispel and DISPELS[model.dispel] then list[#list + 1] = { model.dispel, DISPELS[model.dispel] } end
+    if model.dispel and DISPELS[model.dispel] then
+        list[#list + 1] = { ns.Locale.dispels[model.dispel] or model.dispel, DISPELS[model.dispel] }
+    end
     if type(model.stacks) == "number" and model.stacks > 1 then
         list[#list + 1] = { model.stacks .. " stacks", MUTED }
     end

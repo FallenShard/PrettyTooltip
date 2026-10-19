@@ -21,10 +21,12 @@ end
 local function loadAddon(files, sources)
     local ns = {}
     for _, file in ipairs(files) do
-        local chunk, problem = loadstring(sources[file], "@" .. file)
+        -- A test's own chunk in place of a file, as a language file would load.
+        local chunk, problem = file, nil
+        if type(file) ~= "function" then chunk, problem = loadstring(sources[file], "@" .. file) end
         if not chunk then error(problem, 0) end
         local ok, failure = xpcall(function() chunk("PrettyTooltip", ns) end, debug.traceback)
-        if not ok then error("loading " .. file .. ": " .. failure, 0) end
+        if not ok then error("loading " .. tostring(file) .. ": " .. failure, 0) end
     end
     return ns
 end

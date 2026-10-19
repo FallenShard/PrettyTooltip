@@ -18,7 +18,12 @@ local EXTRAS_RULE = { .50, .50, .54 }
 local COMMAND = util.hex(colors.quest)
 local MUTED = util.hex(colors.caption)
 local PARTS = { "macroName", "macroBadges", "macroText", "extras" }
+-- The commands that name what a macro casts, each by every name the client
+-- takes for it: "/cast", "/spell", and in German also "/wirken".
 local CASTS = { ["#showtooltip"] = true, ["/cast"] = true, ["/use"] = true }
+for _, command in pairs({ SLASH_CAST1, SLASH_CAST2, SLASH_CAST3, SLASH_CAST4, SLASH_USE1, SLASH_USE2 }) do
+    CASTS[command:lower()] = true
+end
 local SPELL = Enum.TooltipDataType.Spell
 
 local function macroKey(_, data)
@@ -33,7 +38,7 @@ end
 -- The spell a macro shows or casts: its first option, without conditions or rank.
 local function spellOf(body)
     for _, line in ipairs(body) do
-        local command, rest = line:match("^([/#]%a+)%s+(.+)$")
+        local command, rest = line:match("^([/#]%S+)%s+(.+)$")
         if command and CASTS[command:lower()] then
             local spell = trim((rest:gsub("%b[]", ""):match("^%s*([^;]*)") or ""):gsub("%(.-%)", ""))
             if spell ~= "" then return spell end

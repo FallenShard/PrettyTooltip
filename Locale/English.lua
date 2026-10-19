@@ -22,11 +22,15 @@ formats.talentPoints = "Spend %d more |4point:points; in %s"
 formats.rare = "Rare"
 formats.rareElite = "Rare Elite"
 
--- The client's SkillLine names.
+-- The client's SkillLine names, which in English are the addon's keys.
 for _, name in ipairs({ "Alchemy", "Blacksmithing", "Enchanting", "Engineering", "Leatherworking", "Tailoring",
-    "Cooking", "First Aid", "Fishing", "Mining", "Herbalism", "Skinning", "Jewelcrafting", "Inscription" }) do
-    locale.professions[name] = true
+    "Cooking", "First Aid", "Fishing", "Mining", "Herbalism", "Skinning", "Jewelcrafting", "Inscription",
+    "Lockpicking" }) do
+    locale.skills[name] = name
 end
+
+-- The client's SpellDispelType names, which in English are the aura API's.
+for _, name in ipairs({ "Magic", "Curse", "Disease", "Poison" }) do locale.dispels[name] = name end
 
 -- The client's QuestInfo names, and "Group", which Forever's table lacks.
 for _, name in ipairs({ "Elite", "Dungeon", "Raid", "Group", "PvP" }) do locale.questTags[name] = true end

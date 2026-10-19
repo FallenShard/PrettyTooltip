@@ -215,10 +215,17 @@ end
 -- source; their "+5 Stamina" lines must not be read as the item's own stats.
 local STOCK_CHANGES = ITEM_DELTA_DESCRIPTION
 
+-- The professions a recipe or crafted item can require, by the client's names.
+local PROFESSIONS = {}
+for _, key in ipairs({ "Alchemy", "Blacksmithing", "Enchanting", "Engineering", "Leatherworking", "Tailoring",
+    "Cooking", "First Aid", "Fishing", "Mining", "Herbalism", "Skinning", "Jewelcrafting", "Inscription" }) do
+    PROFESSIONS[ns.Locale.skills[key] or key] = true
+end
+
 -- "Requires Blacksmithing (80)": the profession and level a recipe needs.
 local function professionRequirement(text)
     local name, level = unformat(text, ITEM_MIN_SKILL)
-    if name and ns.Locale.professions[name] then return name, tonumber(level) end
+    if name and PROFESSIONS[name] then return name, tonumber(level) end
 end
 
 -- "Requires Bronze Bar (10), Sulfuric Acid (2)": a recipe's reagents.

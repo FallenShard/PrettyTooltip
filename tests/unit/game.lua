@@ -2,7 +2,7 @@
 -- back as nil, and code given the game works from any table that answers the same.
 return function(test)
     local secret = { __secret = true }
-    local ns = test.load({ "Core/Util.lua", "Game/Game.lua" }, { calls = {
+    local ns = test.load({ "Core/Util.lua", "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua" }, { calls = {
         UnitName = { party1 = { n = 2, secret }, player = { n = 2, "Moonseeker" } },
         UnitLevel = { player = { n = 1, secret } },
         ["C_Item.GetItemInfo"] = { ["19019"] = { n = 11, "Thunderfury", secret, 5, 80, 60, "Weapon", "One-Handed Swords",
@@ -17,6 +17,17 @@ return function(test)
     test.check("an unknown item has no fields", game.itemInfo(1), {})
     test.check("an API the client lacks answers nothing", game.itemType(19019), nil)
     test.check("without Auctionator there is no price", game.auctionPrice(19019), nil)
+
+    -- A skill is asked for by the addon's name, and found by the client's.
+    ns = test.load({ "Core/Util.lua", "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua" }, { calls = {
+        GetProfessions = { [""] = { n = 2, 6, 7 } },
+        GetProfessionInfo = { ["6"] = { n = 3, "K\195\188rschnerei", 134366, 125 },
+            ["7"] = { n = 3, "Verzauberkunst", 136244, 80 } },
+    } })
+    ns.Locale.skills.Skinning, ns.Locale.skills.Enchanting = "K\195\188rschnerei", "Verzauberkunst"
+    test.check("a skill by the client's name for it", { ns.Game.skill("Skinning"), ns.Game.skill("Enchanting") },
+        { 125, 80 })
+    test.check("a skill the player lacks", ns.Game.skill("Mining"), nil)
 
     -- Disenchant results from a table standing in for the game.
     ns = test.load({ "Data/Disenchant.lua" })

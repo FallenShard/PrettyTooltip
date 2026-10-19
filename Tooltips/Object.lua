@@ -28,6 +28,21 @@ local SKILLS = {
     Fishing = { label = "Fishing pool", color = { .35, .65, .95 }, icon = "Interface\\Icons\\Trade_Fishing" },
 }
 local QUEST = { label = "Quest object", color = QUEST_GOLD, icon = "Interface\\Icons\\INV_Misc_Note_01" }
+-- Each skill's name as the client words it, which its lines print
+-- ("Kräuterkunde"), and the other way round.
+local SKILL_NAMES, SKILL_KEYS = {}, {}
+for key in pairs(SKILLS) do
+    SKILL_NAMES[key] = ns.Locale.skills[key] or key
+    SKILL_KEYS[SKILL_NAMES[key]] = key
+end
+-- An object's requirements: "Requires Mining", "Requires Lockpicking (25)".
+local REQUIREMENTS = { LOCKED_WITH_SPELL, LOCKED_WITH_ITEM, ITEM_MIN_SKILL, ITEM_REQ_SKILL }
+local function isRequirement(text)
+    for _, format in pairs(REQUIREMENTS) do
+        if util.unformat(text, format) then return true end
+    end
+    return false
+end
 
 -- No API links a node to what it yields or the skill it needs. Item IDs are
 -- checked against the item's name, so a wrong entry is skipped, not shown.
@@ -110,7 +125,7 @@ local function completeModel(model, game)
     model.look = model.skill and SKILLS[model.skill] or (#model.quests > 0 and QUEST) or nil
     if model.skill and SKILLS[model.skill] and model.skill ~= "Lockpicking" then
         model.skillRow = {
-            name = model.skill,
+            name = SKILL_NAMES[model.skill],
             level = node and node[2],
             player = game.skill(model.skill),
         }
@@ -156,20 +171,20 @@ local function readObject(tooltip, data, game)
             if not model.name then
                 model.name = text
             elseif text ~= "" or right ~= "" then
-                if text:match("^Requires ") then
+                if isRequirement(text) then
                     tooltipData.add(model.details, left, right)
                     local row = model.details[#model.details]
                     row.requirement, row.met = true, tooltipData.requirementMet(text, line.leftColor, game)
-                    for skill in pairs(SKILLS) do
-                        if not model.skill and text:find(skill, 1, true) then
-                            model.skill, model.skillMet = skill, row.met
+                    for key, name in pairs(SKILL_NAMES) do
+                        if not model.skill and text:find(name, 1, true) then
+                            model.skill, model.skillMet = key, row.met
                         end
                     end
-                elseif SKILLS[text] then
+                elseif SKILL_KEYS[text] then
                     -- Colored by how likely gathering is to raise the skill.
-                    model.skill = model.skill or text
+                    model.skill = model.skill or SKILL_KEYS[text]
                     model.skillColor = util.rgb(line.leftColor)
-                elseif text == "Locked" then
+                elseif text == LOCKED then
                     model.skill = model.skill or "Lockpicking"
                     tooltipData.add(model.details, left, right)
                 elseif LINE.QuestTitle and line.type == LINE.QuestTitle then

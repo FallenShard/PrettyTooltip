@@ -175,9 +175,11 @@ function game.spellHealing()
     return number((call(GetSpellBonusHealing)))
 end
 
--- The player's rank in a skill or profession, by name. Older clients list
--- skills; newer ones, like Forever's, only list professions.
-function game.skill(name)
+-- The player's rank in a skill or profession, by the addon's name for it
+-- ("Skinning"), which the client knows by its own (ns.Locale.skills). Older
+-- clients list skills; newer ones, like Forever's, only list professions.
+function game.skill(key)
+    local name = ns.Locale.skills[key] or key
     if GetNumSkillLines and GetSkillLineInfo then
         for index = 1, number((call(GetNumSkillLines))) or 0 do
             local skillName, isHeader, _, rank = call(GetSkillLineInfo, index)
