@@ -1,0 +1,195 @@
+== tooltip model
+armor: {}
+comparison: false
+disenchant:
+  rows:
+    1:
+      chance: 100
+      count:
+        1: 1
+        2: 1
+      icon: 132879
+      id: 11138
+      name: "小块闪光碎片"
+  skill: 75
+effects: {}
+enchants: {}
+equipEffects:
+  1:
+    left: "以大锻炉之焰点燃目标，造成39到59点神圣火焰伤害。对火元素和土元素造成3倍伤害。"
+    onHit: true
+    right: ""
+equippable: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "商人"
+    right: "|cffffffff74 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 59 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  3:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "物品栏"
+    right: "|cff66bbff总计：|cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  4:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+    right: "|cff66bbff已装备：|cffffffff1|r|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  5:
+    color:
+      1: 0.85
+      2: 0.6967
+      3: 0
+    left: "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t 正义试炼  |cffaa9f85- 死亡矿井|r"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8196
+      3: 0
+      4: 1
+flavor: {}
+footerLeft:
+  1:
+    durability:
+      1: 99
+      2: 100
+    left: "耐久度 99 / 100"
+    right: ""
+footerRight:
+  1:
+    left: "职业：圣骑士"
+    met: true
+    requirement: true
+    right: ""
+  2:
+    left: "74|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 43|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+    right: ""
+    sellPrice: true
+hasSellPrice: true
+header:
+  1:
+    left: "已绑定"
+    right: ""
+icon: 133042
+kinds: {}
+level: 31
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+  8: true
+  9: true
+  10: true
+  11: true
+link: "|cnIQ3:|Hitem:6953::::::::30:1486::11:::::::|h[维里甘之拳]|h|r"
+name: "维里甘之拳"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary:
+  1:
+    left: "|cffF2E8D5+6|r |cffA89F8E智力|r"
+    right: ""
+  2:
+    left: "|cffF2E8D5+5|r |cffA89F8E耐力|r"
+    right: ""
+  3:
+    left: "|cffF2E8D5+10|r |cffA89F8E精神|r"
+    right: ""
+quality: 3
+quest: false
+secondary: {}
+sellPrice: 7443
+setBonuses: {}
+setItems: {}
+slot: "锤 · 双手"
+weaponBonus: {}
+weaponDamage: "65 - 99伤害"
+weaponDps: "25.6"
+weaponSpeed: "速度 3.20"
+== tooltip render
+panel 305 x 341
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
+texture at 6,6 0x83 rgb=1,1,1,1 band
+texture BOTTOMLEFT panel BOTTOMLEFT 6,6 0x40 rgb=0.1,0.075,0.08,0.6 band
+text at 19,21 w=267 size=19 rgb=0.32,0.59,0.98 "维里甘之拳"
+text at 19,47 w=267 size=13 rgb=0.66,0.795,0.99 "锤 · 双手"
+text at 19,66 w=267 size=12 rgb=0.78,0.72,0.63 "已绑定"
+text at 19,89 w=267 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D525.6|r |cffA89F8E每秒伤害|r"
+text at 26,115 w=260 size=12 rgb=0.71,0.72,0.73 "65 - 99伤害  ·  速度 3.20"
+text at 19,136 w=267 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+6|r |cffA89F8E智力|r"
+text at 19,154 w=267 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+5|r |cffA89F8E耐力|r"
+text at 19,172 w=267 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+10|r |cffA89F8E精神|r"
+text at 19,190 w=267 size=13 rgb=0.48,0.88,0.48 "击中时可能： 以大锻炉之焰点燃目标，造成39到59点神圣火焰伤害。对火元素和土元素造成3倍伤害。"
+text at 19,223 w=267 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,238 w=192.5 size=11 rgb=0.85,0.7,0 "商人"
+text at 223.5,238 w=62.5 size=11 rgb=0.85,0.7,0 "|cffffffff74 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 59 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,253 w=231 size=11 rgb=0.85,0.7,0 "物品栏"
+text at 262,253 w=24 size=11 rgb=0.85,0.7,0 "|cff66bbff总计：|cffffffff1|r|r"
+text at 19,268 w=225.5 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+text at 256.5,268 w=29.5 size=11 rgb=0.85,0.7,0 "|cff66bbff已装备：|cffffffff1|r|r"
+text at 19,283 w=267 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t |TInterface\\GossipFrame\\AvailableQuestIcon:14:14:0:0|t 正义试炼  |cffaa9f85- 死亡矿井|r"
+text at 251,307 w=35 size=11 rgb=1,1,1 "职业：圣骑士"
+texture at 19,312 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 0,0 53.46x4 rgb=0.45,0.8,0.4,1 WHITE8X8
+text at 80,307 w=90 size=11 rgb=0.82,0.78,0.71 "99 / 100"

@@ -21,6 +21,9 @@ ns.Locale = {
     -- descriptions name schools with.
     descriptions = {},
     schoolWords = {},
+    -- Whether school phrases must stand apart as words. Chinese joins them
+    -- directly to the surrounding text, without spaces.
+    schoolBoundaries = true,
     -- Equip wordings of stats the game's own strings do not word, each with
     -- the stat it gives (Data/Stats.lua's keys) and, for one with a word in
     -- it, the statWords table that word comes from.

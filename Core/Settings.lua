@@ -238,13 +238,19 @@ local GAME_FONTS = {
     { "Morpheus", "Fonts\\MORPHEUS.TTF" },
     { "Skurri", "Fonts\\SKURRI.TTF" },
 }
--- The Latin faces above have no Hangul glyphs. LibSharedMedia filters its
--- registered fonts by client language; these are the Korean choices without it.
+-- The Latin faces above have no Hangul or Chinese glyphs. LibSharedMedia
+-- filters its registered fonts by language; these are the choices without it.
 if GetLocale() == "koKR" then
     GAME_FONTS = {
         { "기본 글꼴", "Fonts\\2002.TTF" },
         { "굵은 글꼴", "Fonts\\2002B.TTF" },
         { "퀘스트 글꼴", "Fonts\\K_Pagetext.TTF" },
+    }
+elseif GetLocale() == "zhCN" then
+    GAME_FONTS = {
+        { "默认", "Fonts\\ARKai_T.ttf" },
+        { "聊天", "Fonts\\ARHei.ttf" },
+        { "伤害数字", "Fonts\\ARKai_C.ttf" },
     }
 end
 

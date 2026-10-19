@@ -173,8 +173,9 @@ end
 local function titleFont()
     local chosen = ns.fontPath(ns.option("titleFont"))
     if chosen then return chosen end
-    -- Expressway has no Hangul; Korean titles follow the client's header font.
-    return GetLocale() ~= "koKR" and ellesmereInstalled() and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
+    -- Expressway has no Hangul or Chinese; use the client's header font there.
+    return GetLocale() ~= "koKR" and GetLocale() ~= "zhCN" and ellesmereInstalled() and ELLESMERE_BOLD
+        or fontOf(GameTooltipHeaderText)
 end
 
 -- "dialogue", "flat", or "native". Unchosen, DialogueUI's art while it is

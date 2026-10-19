@@ -119,13 +119,15 @@ local function isLetter(char)
 end
 
 -- Where a phrase first stands in the text as words of their own: "fire
--- damage" in "40 fire damage", not in "wildfire damage".
+-- damage" in "40 fire damage", not in "wildfire damage". A language without
+-- spaces between words opts out of the boundary check.
 local function wordsAt(text, phrase)
     local position = 1
     while true do
         local start, stop = text:find(phrase, position, true)
         if not start then return end
-        if not isLetter(text:sub(start - 1, start - 1)) and not isLetter(text:sub(stop + 1, stop + 1)) then
+        if ns.Locale.schoolBoundaries == false
+            or (not isLetter(text:sub(start - 1, start - 1)) and not isLetter(text:sub(stop + 1, stop + 1))) then
             return start
         end
         position = start + 1
@@ -171,10 +173,16 @@ function palette.detectSchool(description, name, spellID)
         if found then return found end
     end
     local lower = name and name:lower() or ""
+    local leading, length
     for school, word in pairs(ns.Locale.schoolWords) do
         word = word:lower()
-        if lower:sub(1, #word) == word and not isLetter(lower:sub(#word + 1, #word + 1)) then return school end
+        if lower:sub(1, #word) == word
+            and (ns.Locale.schoolBoundaries == false or not isLetter(lower:sub(#word + 1, #word + 1)))
+            and (not length or #word > length) then
+            leading, length = school, #word
+        end
     end
+    return leading
 end
 
 -- The lighter description tint shared by spells, auras, and weapon procs.
