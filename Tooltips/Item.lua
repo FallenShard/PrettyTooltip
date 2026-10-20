@@ -326,8 +326,9 @@ end
 -- and a single one without a count: "Heavy Leather, Magenta Dye".
 local function reagentList(text, placed)
     text = plainText(text)
-    -- "Requires Cooking (80)" has the same shape, but names a skill.
-    if professionRequirement(text) then return end
+    -- "Requires Cooking (80)" has the same shape, but names a skill; so does a
+    -- crafted item's "Unique-Equipped: Embellished (2)", which is its own.
+    if professionRequirement(text) or isBinding(text) then return end
     text = unformat(text, ITEM_REQ_SKILL) or text
     if not placed and not text:find("%(%d+%)") then return end
     local list = {}
