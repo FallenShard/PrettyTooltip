@@ -966,7 +966,8 @@ local partPicker = dropdown(CONTROLS_WIDTH, function()
     local items = {}
     for _, element in ipairs(ns.ELEMENTS) do
         local tooltipType = element.tooltipType or "item"
-        if (tooltipType == state.tooltipType or tooltipType == "shared") and not (element.classic and ns.retail) then
+        if (tooltipType == state.tooltipType or tooltipType == "shared") and not (element.classic and ns.retail)
+            and not (element.retail and not ns.retail) then
             items[#items + 1] = { value = element.key, text = element.label }
         end
     end

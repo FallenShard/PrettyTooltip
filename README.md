@@ -62,7 +62,7 @@ Set **School colors** under **All Tooltips** in the style editor. The same choic
 
 ## Spell tooltips
 
-Spells use the same panel: the icon and name, small badges for the spell's school, its rank, and **Passive** for passive spells and talents, and a strip with cost, cast time, cooldown, and range. The description follows one sentence per line, with its numbers highlighted.
+Spells use the same panel: the icon and name, small badges for the spell's school, its rank, and **Passive** for passive spells and talents, and a strip with cost, cast time, cooldown, and range. On retail, a spell with charges shows its recharge in the cooldown cell, its most charges under the strip (**Charges** in the style editor), and the time left on the next charge in orange. The description follows one sentence per line, with its numbers highlighted.
 
 The panel is tinted by the spell's school: a class spell's comes from WoW Forever's client spell data, which the addon carries, and any other spell's is read from the damage its description names (`Fire damage`) or a school that starts its name (`Holy Light`). Spells with neither are tinted by the resource they cost: blue for mana, red for rage, yellow for energy.
 

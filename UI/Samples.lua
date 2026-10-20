@@ -198,6 +198,20 @@ local TYPES = {
                     extras = { { left = fill(L["Spell ID: %s"], 635), right = "", color = { .60, .60, .63 } } },
                 },
             },
+            -- Retail's spells with charges: their most, the time each takes to
+            -- come back, and the time left on the next.
+            ns.retail and {
+                label = "Charges",
+                fields = {
+                    name = spellName(108853, "Fire Blast"), icon = { spell = 108853 },
+                    cost = { "1%", L["Base Mana"] }, power = "Mana", cast = { SPELL_CAST_TIME_INSTANT, L["Cast"] },
+                    cooldown = { fill(SPELL_DURATION_SEC, 12), L["Recharge"] }, range = { fill(L["%s yd"], 40), L["Range"] },
+                    charges = ns.util.resolvePlurals(fill(SPELL_MAX_CHARGES, 2)),
+                    details = { { left = ns.util.resolvePlurals(fill(SPELL_RECHARGE_TIME_SEC, 5)), right = "",
+                        color = { 1, .60, .25 } } },
+                    description = { L["Blasts the enemy for 950 Fire damage."] },
+                },
+            } or nil,
         },
     },
     {

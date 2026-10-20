@@ -133,7 +133,8 @@ function ns.resetOptions()
 end
 
 -- tooltipType: "item" (default), "spell", "object", "unit", "aura", "quest", "macro", or "shared" by all. color is where the picker starts
--- while the color is automatic. classic: drawn from Classic-only data, so not offered on retail.
+-- while the color is automatic. classic: drawn from Classic-only data, so not offered on retail. retail: only
+-- retail's tooltips have it.
 ns.ELEMENTS = {
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
         note = "Quality color unless set." },
@@ -179,6 +180,8 @@ ns.ELEMENTS = {
         note = "The cost takes its resource color unless set." },
     { key = "spellCaptions", label = "Strip captions", size = 9, color = colors.caption,
         tooltipType = "spell" },
+    { key = "spellCharges", label = "Charges", size = 11, color = { .60, .80, 1 }, tooltipType = "spell",
+        retail = true, note = "Under the strip, on a spell with charges: Max 2 Charges." },
     { key = "spellDetails", label = "Requirements and details", size = 11,
         color = colors.detail, tooltipType = "spell",
         note = "Unmet requirements red, time remaining orange, unless set." },

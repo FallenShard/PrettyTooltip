@@ -403,6 +403,10 @@ L["Colored by school unless set."] = "Coloreadas por escuela, salvo que se elija
 L["Cost, cast, cooldown, range"] = "Costo, lanzamiento, reutilización, alcance"
 L["The cost takes its resource color unless set."] = "El costo toma el color de su recurso, salvo que se elija otro."
 L["Strip captions"] = "Leyendas de la franja"
+L["Charges"] = "Cargas"
+L["Recharge"] = "Recarga"
+L["Under the strip, on a spell with charges: Max 2 Charges."] = "Bajo la franja, en un hechizo con cargas: Máximo: 2 cargas."
+L["Blasts the enemy for 950 Fire damage."] = "Lanza una explosión al enemigo que inflige 950 de daño de Fuego."
 L["Requirements and details"] = "Requisitos y detalles"
 L["Unmet requirements red, time remaining orange, unless set."] =
     "Requisitos no cumplidos en rojo, tiempo restante en naranja, salvo que se elija otro."
