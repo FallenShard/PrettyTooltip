@@ -251,11 +251,13 @@ def run_lint() -> list[bool]:
 
 
 def run_unit(path: Path, files, show_notes: bool) -> bool:
+    """files: the .toc's files in load order, for test.files."""
     lua, load, harness = new_runtime()
     try:
         results, notes = harness["main"].unit(path.read_text(encoding="utf-8"), f"unit/{path.name}",
                                                 sources_table(lua, every_source()), harness["serialize"],
-                                                harness["wow"])
+                                                harness["wow"], lua_table(lua, dict(enumerate(files, 1))),
+                                                default_enums(load))
     except Exception as error:
         print(f"FAIL unit/{path.stem}: {error}")
         return False
