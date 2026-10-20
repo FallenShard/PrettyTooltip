@@ -39,6 +39,32 @@ local QUALITY = {
     [4] = { .72, .40, .94 },
     [5] = { 1.00, .57, .22 },
 }
+-- Retail's lines about where an item comes from, how far it is upgraded, and
+-- what it looks like, each in the game's color unless the editor sets one.
+local SOURCE_COLOR = { .12, 1, .12 }
+local UPGRADE_COLOR = { .90, .80, .55 }
+local TRANSMOG_COLOR = { 1, .50, 1 }
+
+-- "Upgrade Level: Myth 2/6" as "Myth 2/6", in the game's own short wording.
+local function upgradeOf(text)
+    local track, level, most = unformat(text, ITEM_UPGRADE_TOOLTIP_FORMAT_STRING)
+    if track and tonumber(level) and tonumber(most) then
+        return util.fill(ITEM_UPGRADE_DROPDOWN_LEVEL_FORMAT_STRING, track, level, most)
+    end
+    level, most = unformat(text, ITEM_UPGRADE_TOOLTIP_FORMAT)
+    if tonumber(level) and tonumber(most) then return util.fill(ITEM_UPGRADE_DROPDOWN_LEVEL_FORMAT, level, most) end
+end
+
+-- What an item is transmogrified to: "Transmogrified to:" and the appearance,
+-- on the line after it or the same one; "" when the next line names it.
+local function transmogOf(text)
+    local header = type(TRANSMOGRIFIED_HEADER) == "string" and util.trim(TRANSMOGRIFIED_HEADER) or ""
+    local plain = util.trim(plainText(text))
+    if header == "" or plain:sub(1, #header) ~= header then return end
+    local rest = plain:sub(#header + 1):gsub("|n", "\n")
+    return util.trim((rest:gsub("%s+", " ")))
+end
+
 -- A primary stat another specialization uses, as retail's tooltip greys it.
 local INACTIVE_STAT_COLOR = { .50, .50, .50 }
 local PRIMARY_STATS = { STRENGTH = true, AGILITY = true, STAMINA = true, INTELLECT = true, SPIRIT = true,
@@ -362,6 +388,7 @@ local function readModel(tooltip, data, game)
     local m = model
     local inSet, setTotal = false, 0
     local teachesLast = false
+    local nameLast, transmogLast = false, false
     local inStockChanges = false
     local function isStockChange(text)
         local trimmed = plainText(text):match("^%s*(.-)%s*$")
@@ -376,7 +403,13 @@ local function readModel(tooltip, data, game)
         return false
     end
 
-    for _, line in ipairs(data.lines) do
+    -- Whether the line after this one is the item level, as under a source.
+    local function levelFollows(index)
+        local after = data.lines[index + 1]
+        return LINE.ItemLevel ~= nil and not isSecret(after) and type(after) == "table" and not isSecret(after.type)
+            and after.type == LINE.ItemLevel
+    end
+    for lineNumber, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then
             return
         end
@@ -404,6 +437,8 @@ local function readModel(tooltip, data, game)
 
         local afterTeaches = teachesLast
         teachesLast = false
+        local afterName, afterTransmog = nameLast, transmogLast
+        nameLast, transmogLast = false, false
         if isStockChange(left) then
             addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
         elseif isType(lineType, "ItemSpellTriggerLearn") or unformat(trimmed, formats.recipeTeaches) then
@@ -424,7 +459,10 @@ local function readModel(tooltip, data, game)
             model.skill = { name = name, level = level, text = left, met = requirementMet(trimmed, line.leftColor, game) }
         elseif model.created and not model.reagents and reagentList(trimmed) then
             model.reagents, m = reagentList(trimmed), model
+        elseif afterTransmog and trimmed ~= "" and right == "" then
+            m.transmog = util.trim(plainText(trimmed))
         elseif lineType == LINE.ItemName then
+            nameLast = true
             if not model.name then
                 model.name, model.nameColor = left, rgb(line.leftColor)
             elseif not model.created then
@@ -436,6 +474,13 @@ local function readModel(tooltip, data, game)
         elseif lineType == LINE.ItemLevel then
             local level = left:match("(%d+)")
             if level then m.level, m.levelLine = tonumber(level), true end
+        elseif (LINE.ItemUpgradeLevel and lineType == LINE.ItemUpgradeLevel) or upgradeOf(plainText(trimmed)) then
+            m.upgrade = upgradeOf(plainText(trimmed)) or trimmed
+        elseif right == "" and transmogOf(trimmed) then
+            local appearance = transmogOf(trimmed)
+            if appearance == "" then transmogLast = true else m.transmog = appearance end
+        elseif right == "" and unformat(plainText(trimmed), TRANSMOGRIFIED_ENCHANT) then
+            m.illusion = util.trim(plainText(trimmed))
         elseif lineType == LINE.EquipSlot then
             m.equippable = true
             local slot = unusable(left, line.leftColor)
@@ -450,6 +495,10 @@ local function readModel(tooltip, data, game)
         elseif itemKind(left, right) then
             local kind, text = itemKind(left, right, line.leftColor)
             m.kinds[kind] = text
+        elseif ns.retail and afterName and right == "" and trimmed ~= "" and (lineType == nil or isType(lineType, "None"))
+            and levelFollows(lineNumber) then
+            -- Retail names where an item comes from between its name and level: Heroic, Mythic.
+            m.source, m.sourceColor = util.trim(plainText(trimmed)), colorOf(line.leftColor)
         elseif trimmed ~= "" then
             local setName, count, total = unformat(trimmed, ITEM_SET_NAME)
             if setName and tonumber(count) and tonumber(total) and not m.setName then
@@ -1136,11 +1185,24 @@ local function itemView(panel, model)
     local quality = QUALITY[model.quality] or QUALITY[1]
     local accent = model.quest and colors.quest or quality
     local header = { { text = model.name, style = styles.title, color = quality, gap = 4 } }
+    if model.source then
+        header[#header + 1] = { text = model.source, style = styles.itemSource, color = model.sourceColor or SOURCE_COLOR,
+            gap = 4 }
+    end
     if model.slot and model.slot ~= "" then
         header[#header + 1] = { text = model.slot, style = styles.subtitle,
             color = { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }, gap = 4 }
     end
+    if model.upgrade then
+        header[#header + 1] = { text = model.upgrade, style = styles.itemUpgrade, color = UPGRADE_COLOR, gap = 4 }
+    end
     header[#header + 1] = { rows = model.header, style = styles.header, color = { .78, .72, .63 }, gap = 3 }
+    local looks = {}
+    if model.transmog then looks[#looks + 1] = { left = util.trim(TRANSMOGRIFIED_HEADER) .. " " .. model.transmog, right = "" } end
+    if model.illusion then looks[#looks + 1] = { left = model.illusion, right = "" } end
+    if #looks > 0 then
+        header[#header + 1] = { rows = looks, style = styles.itemTransmog, color = TRANSMOG_COLOR, gap = 3 }
+    end
 
     local sections, sectioned = {}, false
     local function section(entry) sections[#sections + 1] = entry end

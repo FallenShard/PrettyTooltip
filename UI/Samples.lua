@@ -44,6 +44,10 @@ local TYPES = {
                     equippable = true,
                     slot = L["Axe"] .. DOT .. INVTYPE_2HWEAPON,
                     header = { { left = ITEM_BIND_ON_EQUIP, right = fill(ITEM_MIN_LEVEL, 58), rightColor = PALE } },
+                    -- Retail's source, upgrade level, and transmogrification.
+                    source = ns.retail and ITEM_HEROIC or nil,
+                    upgrade = ns.retail and fill(ITEM_UPGRADE_DROPDOWN_LEVEL_FORMAT_STRING, L["Myth"], 2, 6) or nil,
+                    transmog = ns.retail and itemName(7717, "Ravager") or nil,
                     weaponDps = "53.8",
                     weaponDamage = fill(DAMAGE_TEMPLATE, 153, 256), weaponSpeed = fill(formats.weaponSpeed, "3.80"),
                     primary = { statLine("STAMINA", 13) },
