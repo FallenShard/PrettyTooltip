@@ -33,11 +33,11 @@ return function(test)
         return table.concat(out, "\n")
     end
     test.check("a cast's damage over its cast time and its mana", rates("2.25 sec", { "1,000", "Mana" },
-        "Throws a fiery ball that causes 12,340 Fire damage."), "Damage per Second | 5484.4\nDamage per Mana | 12.34")
+        "Throws a fiery ball that causes 12,340 Fire damage."), "Damage per Second | 5,484.4\nDamage per Mana | 12.34")
     test.check("an instant over the hasted global cooldown", rates("Instant", { "500", "Mana" },
-        "Blasts the enemy for 6,000 Fire damage."), "Damage per Second | 5000.0\nDamage per Mana | 12.00")
+        "Blasts the enemy for 6,000 Fire damage."), "Damage per Second | 5,000.0\nDamage per Mana | 12.00")
     test.check("a heal", rates("1.5 sec", { "2,000", "Mana" }, "Heals a friendly target for 9,000."),
-        "Healing per Second | 6000.0\nHealing per Mana | 4.50")
+        "Healing per Second | 6,000.0\nHealing per Mana | 4.50")
     test.check("damage over time over its duration", rates("Instant", { "300", "Mana" },
         "A word of darkness that causes 4,800 Shadow damage over 16 sec."),
         "Damage per Second | 300.0\nDamage per Mana | 16.00")
@@ -57,8 +57,14 @@ return function(test)
     end }
     test.check("the game's cost is the mana one", { ns.Game.spellManaCost(133), ns.Game.spellManaCost(2) }, { 1000, nil })
     C_Spell = spellAPI
+    test.check("thousands grouped as the client groups them", { ns.SpellAmounts.decimal(1234567.25, 1),
+        ns.SpellAmounts.decimal(999.94, 1), ns.SpellAmounts.decimal(123456, 2) }, { "1,234,567.2", "999.9", "123,456.00" })
+    local group, point = LARGE_NUMBER_SEPERATOR, DECIMAL_SEPERATOR
+    LARGE_NUMBER_SEPERATOR, DECIMAL_SEPERATOR = ".", ","
+    test.check("and in German", ns.SpellAmounts.decimal(5484.44, 1), "5.484,4")
+    LARGE_NUMBER_SEPERATOR, DECIMAL_SEPERATOR = group, point
     test.check("another power has no per mana", rates("Instant", { "30", "Energy" },
-        "Blasts the enemy for 6,000 Fire damage."), "Damage per Second | 5000.0")
+        "Blasts the enemy for 6,000 Fire damage."), "Damage per Second | 5,000.0")
     test.check("a physical ability has no rates", rates("Instant", { "30", "Rage" },
         "A vicious strike that deals 500 damage."), "none")
 

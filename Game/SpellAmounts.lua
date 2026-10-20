@@ -139,9 +139,16 @@ local function castTime(cast)
     return util.parseNumber(util.unformat(cast and cast[1], SPELL_DURATION_SEC), LARGE_NUMBER_SEPERATOR)
 end
 
--- A number with places decimals, as the client prints one: "1,5" in German.
+-- A number with places decimals, as the client prints one, its thousands
+-- grouped: "5,484.4", and "5.484,4" in German.
 local function decimal(value, places)
-    return (string.format("%." .. places .. "f", value):gsub("%.", function() return DECIMAL_SEPERATOR or "." end))
+    local whole, fraction = string.format("%." .. places .. "f", value):match("^(-?%d+)%.?(%d*)$")
+    local group = type(LARGE_NUMBER_SEPERATOR) == "string" and LARGE_NUMBER_SEPERATOR or ","
+    if group ~= "" then
+        whole = whole:reverse():gsub("(%d%d%d)", "%1\0"):reverse():gsub("^(-?)%z", "%1"):gsub("%z", group)
+    end
+    if fraction == "" then return whole end
+    return whole .. (DECIMAL_SEPERATOR or ".") .. fraction
 end
 
 -- The time a cast takes from the player: the cast shown, after talents and
