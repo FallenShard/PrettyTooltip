@@ -278,6 +278,9 @@ L["Green, blue, and purple armor and weapons list what they disenchant into, wit
     "列出绿色、蓝色和紫色护甲及武器的分解产物、各产物的概率和所需附魔技能。安装Auctionator后还会显示预期价值。"
 L["Sell price"] = "出售价格"
 L["The vendor price in the footer; for a stack, the price of one and of the whole stack."] = "在底部显示商店售价。堆叠物品同时显示单件和整组价格。"
+L["Swap Damage Stats"] = "交换伤害显示"
+L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
+    "武器伤害显示在大字行，速度和每秒伤害显示在其下方的小字行。"
 L["Spell power"] = "法术强度"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "在说明下方显示各项数值的法术强度系数，以及基础值和法术强度加成。游戏API不提供系数，数据来自Forever客户端，带~的数值为估算值。"

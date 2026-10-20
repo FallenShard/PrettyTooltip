@@ -31,6 +31,8 @@ local DEFAULTS = {
     statColors = true,
     qualityTint = true,
     statMarkers = true,
+    -- A weapon's damage on the large line, its DPS and speed under it.
+    swapDamage = false,
     itemLevelBadge = true,
     unitLevelBadge = true,
     separators = true,

@@ -281,6 +281,9 @@ L["Green, blue, and purple armor and weapons list what they disenchant into, wit
 L["Sell price"] = "판매 가격"
 L["The vendor price in the footer; for a stack, the price of one and of the whole stack."] =
     "바닥글에 상점 판매 가격을 표시합니다. 묶음 아이템은 개당 가격과 전체 가격을 표시합니다."
+L["Swap Damage Stats"] = "피해량 표시 바꾸기"
+L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
+    "무기의 피해량을 큰 줄에, 공격 속도와 초당 피해량을 그 아래 작은 줄에 표시합니다."
 L["Spell power"] = "주문력"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "설명 아래에 각 수치의 주문력 계수와 기본값 및 주문력 기여분을 표시합니다. 계수는 게임 API가 아닌 Forever 클라이언트 데이터에서 가져오며 ~ 표시는 추정값입니다."

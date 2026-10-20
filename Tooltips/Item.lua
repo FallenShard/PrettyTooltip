@@ -709,6 +709,51 @@ local function weaponText(model)
     return text
 end
 
+-- Swap Damage Stats puts the damage on the large line, and the DPS and speed
+-- on the small one under it.
+local function swapsDamage(model)
+    return ns.option("swapDamage") and model.weaponDamage ~= nil and model.weaponDps ~= nil
+end
+
+-- A large line's value, from first to last, bright and its words dim, as
+-- valueLabel colors them. Its words can come first, as Russian's "Урон: 153-256".
+local function valueWords(text, first, last)
+    local before, gap = text:sub(1, first - 1):match("^(.-)(%s*)$")
+    local space, after = text:sub(last + 1):match("^(%s*)(.*)$")
+    local function dim(words) return words ~= "" and "|cffA89F8E" .. words .. "|r" or "" end
+    return dim(before) .. gap .. "|cffF2E8D5" .. text:sub(first, last) .. "|r" .. space .. dim(after)
+end
+
+-- A school's damage keeps its stat colors.
+local function leadDamage(model)
+    local text = damageText(model.weaponDamage)
+    if text ~= model.weaponDamage then return text end
+    local low, high = unformat(util.trim(text), DAMAGE_TEMPLATE_WITH_SCHOOL)
+    if not low then low, high = unformat(util.trim(text), DAMAGE_TEMPLATE) end
+    if not (low and high and tostring(high):match("^%d[%d%.,]*$")) then return text end
+    local first = text:find(low, 1, true)
+    local _, last = text:find(high, first and first + #low or 1, true)
+    if not (first and last) then return text end
+    return valueWords(text, first, last)
+end
+
+-- On the small line, its numbers a little brighter than its grey words.
+local SMALL_NUMBER = "D9DADB"
+
+-- The text with its number, as the game filled it in, in that brighter grey.
+local function brightened(text, value)
+    local first, last
+    if value then first, last = text:find(value, 1, true) end
+    if not first then return text end
+    return text:sub(1, first - 1) .. "|cff" .. SMALL_NUMBER .. value .. "|r" .. text:sub(last + 1)
+end
+
+local function rateText(model)
+    local text = "|cff" .. SMALL_NUMBER .. model.weaponDps .. "|r " .. DAMAGE_PER_SECOND
+    if not model.weaponSpeed then return text end
+    return text .. "  \194\183  " .. brightened(model.weaponSpeed, unformat(model.weaponSpeed, formats.weaponSpeed))
+end
+
 local function setCountStyle(setName)
     local style = {}
     for field, value in pairs(setName) do style[field] = value end
@@ -814,10 +859,14 @@ local function statsWidth(panel, model, styles)
         need = math.max(need, listWidth(panel, { row }, styles.effects,
             row.use and markerIndent(panel, styles.effects) or 0, true))
     end
+    local swapped = swapsDamage(model)
     if model.weaponDps then
-        need = math.max(need, measureStyled(panel, valueLabel(model.weaponDps, DAMAGE_PER_SECOND), styles.dps))
+        need = math.max(need, measureStyled(panel, swapped and leadDamage(model)
+            or valueLabel(model.weaponDps, DAMAGE_PER_SECOND), styles.dps))
     end
-    if model.weaponDamage then need = math.max(need, measureStyled(panel, weaponText(model), styles.damage) + 7) end
+    if model.weaponDamage then
+        need = math.max(need, measureStyled(panel, swapped and rateText(model) or weaponText(model), styles.damage) + 7)
+    end
     for _, bonus in ipairs(model.weaponBonus) do
         need = math.max(need, measureStyled(panel, damageText(bonus), styles.damage) + 7)
     end
@@ -886,15 +935,17 @@ end
 local function drawStats(panel, model, styles, y)
     local inner = panel.width - 2 * pad()
     local top = y
+    local swapped = swapsDamage(model)
     if model.weaponDps then
         y = drawRow(panel, {
-            left = valueLabel(model.weaponDps, DAMAGE_PER_SECOND), right = "",
+            left = swapped and leadDamage(model) or valueLabel(model.weaponDps, DAMAGE_PER_SECOND),
+            right = "",
         }, y, styles.dps, { .93, .87, .75 }) + 2
     end
     if model.weaponDamage or #model.weaponBonus > 0 then
         if model.weaponDamage then
-            y = y + styledAt(panel, weaponText(model), pad() + 7, y, inner - 7, styles.damage,
-                { .71, .72, .73 })
+            y = y + styledAt(panel, swapped and rateText(model) or weaponText(model), pad() + 7, y, inner - 7,
+                styles.damage, { .71, .72, .73 })
         end
         for _, bonus in ipairs(model.weaponBonus) do
             y = y + 2 + styledAt(panel, damageText(bonus), pad() + 7, y + 2, inner - 7, styles.damage,

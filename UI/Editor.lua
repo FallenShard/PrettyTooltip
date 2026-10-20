@@ -1192,6 +1192,8 @@ toggles({
         .. "items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's "
         .. "colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default "
         .. "tooltip modifier for the full wording.", items },
+    { "Swap Damage Stats", "swapDamage", "A weapon's damage on the large line, with its speed and damage per "
+        .. "second on the small one under it.", items },
     { "Disenchant", "disenchant", "Green, blue, and purple armor and weapons list what they disenchant into, "
         .. "with each result's chance and the Enchanting it needs; with Auctionator, the expected value.", items },
     { "Sell price", "sellPrice", "The vendor price in the footer; for a stack, the price of one and of the "
