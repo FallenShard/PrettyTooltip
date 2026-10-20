@@ -25,7 +25,7 @@ globals = {
 -- The game's functions, objects, and constants the addon reads.
 read_globals = {
     -- Lua the game adds
-    "date", "tinsert", "issecretvalue", "canaccesstable", "debugprofilestop", "hooksecurefunc", "geterrorhandler",
+    "date", "tinsert", "issecretvalue", "canaccesstable", "debugprofilestop", "hooksecurefunc", "geterrorhandler", "debugstack",
     -- Frames and UI
     "CreateFrame", "CreateColor", "UIParent", "GameTooltip", "GameTooltipStatusBar", "ItemRefTooltip", "GameTooltipText",
     "GameTooltipHeaderText", "QuestScrollFrame", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",

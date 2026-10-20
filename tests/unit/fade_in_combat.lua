@@ -1,6 +1,8 @@
--- A world unit's tooltip that starts fading: outside combat the panel fades
--- and the game's tooltip hides at once; in combat the addon never hides the
--- game's tooltip, as that would run its OnHide under the addon's taint.
+-- A world unit's tooltip that starts fading: the game sets its alpha every
+-- frame past the SetAlpha hook, so in combat and out the addon moves it off
+-- the screen and fades the panel where it stands. It never hides the game's
+-- tooltip, as that would run its OnHide under the addon's taint. New content,
+-- or the game's own hide, gives the tooltip its clamping back.
 return function(test)
     local fixture = { enums = { TooltipDataType = { Item = 0, Object = 33, UnitAura = 7 } },
         data = { type = 33, id = 1, lines = { { lineIndex = 1, leftText = "Mailbox" } } },
@@ -15,20 +17,58 @@ return function(test)
     ns.Hooks.install()
     local callback = world.postCalls[33][1]
     local function show()
+        tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        tooltip:SetClampedToScreen(true)
+        tooltip:ClearAllPoints()
+        tooltip:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 30)
         tooltip:Show()
         tooltip:SetAlpha(1)
         callback(tooltip, fixture.data)
         return ns.ui.panels[tooltip]
     end
+    local function anchor(frame)
+        local point, relativeTo, relativePoint, x, y = frame:GetPoint(1)
+        return { point, relativeTo == UIParent, relativePoint, x, y }
+    end
 
-    combat = true
+    for _, inCombat in ipairs({ true, false }) do
+        local label = inCombat and "in combat" or "out of combat"
+        combat = inCombat
+        local panel = show()
+        test.check(label .. ": the panel starts on its tooltip", panel:GetPoint(1) ~= nil
+            and select(2, panel:GetPoint(1)) == tooltip, true)
+        tooltip:FadeOut()
+        test.check(label .. ": the game's tooltip is not hidden", tooltip:IsShown(), true)
+        test.check(label .. ": it goes off the screen, unclamped",
+            { anchor(tooltip), tooltip:IsClampedToScreen() }, { { "TOPRIGHT", true, "BOTTOMLEFT", -10000, -10000 }, false })
+        test.check(label .. ": the panel stays where it stood and fades",
+            { select(2, panel:GetPoint(1)) == UIParent, panel.fadePending, panel:IsShown() }, { true, true, true })
+        ns.ui.alignPanel(panel, tooltip)
+        test.check(label .. ": and is not pulled after it", select(2, panel:GetPoint(1)) == UIParent, true)
+        if inCombat then
+            -- The mouse comes back to the unit: new content, anchored afresh.
+            tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+            test.check("new content gives the clamping back", tooltip:IsClampedToScreen(), true)
+            callback(tooltip, fixture.data)
+            test.check("and the panel follows its tooltip again", select(2, panel:GetPoint(1)) == tooltip, true)
+        else
+            tooltip:Hide()
+            tooltip:GetScript("OnHide")(tooltip)
+            test.check("the game's own hide gives the clamping back", tooltip:IsClampedToScreen(), true)
+        end
+        ns.Native.restoreNative(tooltip)
+    end
+
+    -- After its fade the game leaves the tooltip shown, off the screen. New
+    -- content then shows the panel again; when another addon hides the
+    -- tooltip, the panel goes with it rather than waiting for the old fade.
     local panel = show()
-    ns.Native.fadeOut(tooltip)
-    test.check("in combat the game's tooltip is left to its own fade", { tooltip:IsShown(), panel:IsShown() },
-        { true, true })
-    combat = false
-    ns.Native.restoreNative(tooltip)
+    tooltip:FadeOut()
+    panel.fade:GetScript("OnFinished")()
+    test.check("the panel is gone once its fade ends", panel:IsShown(), false)
     panel = show()
-    ns.Native.fadeOut(tooltip)
-    test.check("outside combat the game's tooltip hides at once", tooltip:IsShown(), false)
+    test.check("new content shows it again", panel:IsShown(), true)
+    tooltip:Hide()
+    ns.Native.restoreNative(tooltip)
+    test.check("and a later hide takes it away", panel:IsShown(), false)
 end

@@ -915,6 +915,8 @@ end
 -- the tooltip itself is anchored by, so the difference faces away from
 -- whatever it is attached to.
 local function alignPanel(panel, tooltip)
+    -- Pinned while its fading tooltip is off the screen.
+    if panel.parked then return end
     local side = anchoredSide(tooltip)
     local dx, dy = gridOffset(panel, tooltip, side)
     if panel.side == side and panel:GetNumPoints() > 0
@@ -926,6 +928,17 @@ local function alignPanel(panel, tooltip)
     panel:SetPoint("TOP" .. side, tooltip, "TOP" .. side, dx, dy)
 end
 alignPanel = probe("align panel", alignPanel)
+
+-- Holds a panel where it stands while its tooltip moves; the next alignment
+-- anchors it to the tooltip again. False when where it stands cannot be read.
+local function pinPanel(panel)
+    local left, top = util.number(panel:GetLeft()), util.number(panel:GetTop())
+    if not (left and top) then return false end
+    panel:ClearAllPoints()
+    panel:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
+    panel.side = nil
+    return true
+end
 
 local function finishPanel(panel, tooltip, y)
     panel:SetHeight(snap(panel, y + pad() - 2))
@@ -989,6 +1002,7 @@ ns.ui = {
     defaultHeaderAlpha = defaultHeaderAlpha,
     styleOf = styleOf,
     alignPanel = alignPanel,
+    pinPanel = pinPanel,
     shownPanel = function(tooltip)
         local panel = panels[tooltip]
         if panel and panel:IsShown() then return panel end

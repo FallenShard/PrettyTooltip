@@ -175,8 +175,10 @@ local function onTooltipData(dataType, tooltip, data)
             pcall(faded.SetAlpha, faded, 0)
             panel.settingAlpha = false
         end)
-        -- Hooked after follow cursor's, which hides a following tooltip first.
+        -- Hooked after follow cursor's, which stops following first.
         if tooltip.FadeOut then hooksecurefunc(tooltip, "FadeOut", native.fadeOut) end
+        hooksecurefunc(tooltip, "SetOwner", native.unpark)
+        tooltip:HookScript("OnHide", native.unpark)
         panel.hooked = true
         panel:SetScript("OnUpdate", function(self, elapsed)
             if not util.canModify(tooltip) then self:Hide(); return end

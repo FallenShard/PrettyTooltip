@@ -100,12 +100,27 @@ function ns.Cursor.register()
         reclamp()
         cursorKey, originalPoints = nil, nil
     end
+    -- A fading tooltip moved off the screen (Integration/Native.lua) stays
+    -- there, shown, after its fade; moving or clamping it would bring it back
+    -- into view. Its next owner anchors it afresh.
+    local function parked()
+        return ns.Native ~= nil and ns.Native.isParked(GameTooltip)
+    end
     local function restoreAnchor()
         follower:Hide()
         forgetPlacement()
         if not util.canModify(GameTooltip) then return end
+        if parked() then
+            originalPoints = nil
+            return
+        end
         reclamp()
         if not originalPoints then return end
+        -- A tooltip being hidden keeps its panel for a frame; it stays where it
+        -- stands rather than following the tooltip back to its own anchor.
+        local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
+        local hiding = not util.call(GameTooltip.IsShown, GameTooltip)
+        if panel and hiding then pcall(ns.ui.pinPanel, panel) end
         -- Restore without SetOwner, which can clear the tooltip's content.
         local points = originalPoints
         local ok = pcall(function()
@@ -114,11 +129,10 @@ function ns.Cursor.register()
         end)
         if not ok then return end
         originalPoints = nil
-        local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
-        if panel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
+        if panel and not hiding then pcall(ns.ui.alignPanel, panel, GameTooltip) end
     end
     local function refresh(allowHidden)
-        if not util.canModify(GameTooltip) then follower:Hide(); return end
+        if not util.canModify(GameTooltip) or parked() then follower:Hide(); return end
         local follows = (allowHidden or util.call(GameTooltip.IsShown, GameTooltip))
             and defaultAnchored and cursorKey and ns.option(cursorKey)
             and not (ns.option("cursorDisableInCombat") and InCombatLockdown())
@@ -156,13 +170,11 @@ function ns.Cursor.register()
         end
     end)
 
-    -- A world unit's tooltip fades out where it stands, which trails the cursor.
-    -- In combat it stops following instead, as hiding it from here would run
-    -- its OnHide under the addon's taint.
+    -- A world unit's tooltip fades out where it stands, rather than trailing
+    -- the cursor; its panel fades in its place.
     if GameTooltip.FadeOut then
         hooksecurefunc(GameTooltip, "FadeOut", function(self)
-            if not (util.canModify(self) and follower:IsShown()) then return end
-            if InCombatLockdown() then follower:Hide() else self:Hide() end
+            if util.canModify(self) and follower:IsShown() then follower:Hide() end
         end)
     end
 

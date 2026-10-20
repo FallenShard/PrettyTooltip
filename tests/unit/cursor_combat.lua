@@ -16,10 +16,11 @@ return function(test)
     end
     local panel = CreateFrame("Frame", nil, UIParent)
     panel:SetHeight(80)
-    local alignments = 0
+    local alignments, pins = 0, 0
     ns.ui = {
         shownPanel = function() return panel end,
         alignPanel = function() alignments = alignments + 1 end,
+        pinPanel = function() pins = pins + 1 end,
     }
     -- The game fades a world unit's tooltip with a method of its own.
     GameTooltip.FadeOut = function() end
@@ -160,6 +161,40 @@ return function(test)
     endCombat()
     test.check("hidden tooltips do not resume after combat", follower:IsShown(), false)
 
+    -- Leaving an action button hides a following tooltip, which clears it: its
+    -- anchor goes back, but its panel, kept a frame longer, stays where it
+    -- stands instead of showing at that anchor for the frame.
+    GameTooltip:Show()
+    GameTooltip_SetDefaultAnchor(GameTooltip)
+    handover(1)
+    test.check("following again before the hide", point(), cursor)
+    GameTooltip:Hide()
+    local alignedBefore = alignments
+    GameTooltip:GetScript("OnTooltipCleared")()
+    test.check("a hiding tooltip gets its anchor back, its panel pinned, not aligned to it",
+        { point(), pins, alignments - alignedBefore }, { default, 1, 0 })
+
+    -- After its fade the game leaves a parked tooltip shown, off the screen.
+    -- A change of combat must not follow it to the cursor, or give it its
+    -- anchor back: either would bring it into view.
+    local parkedNow = false
+    ns.Native = { isParked = function() return parkedNow end }
+    ns.setOption("cursorDisableInCombat", true)
+    GameTooltip:Show()
+    GameTooltip_SetDefaultAnchor(GameTooltip)
+    handover(1)
+    GameTooltip:FadeOut()
+    parkedNow = true
+    GameTooltip:ClearAllPoints()
+    GameTooltip:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", -10000, -10000)
+    local offScreen = { "TOPRIGHT", "BOTTOMLEFT", -10000, -10000 }
+    beginCombat()
+    test.check("entering combat leaves a parked tooltip off the screen", point(), offScreen)
+    endCombat()
+    test.check("and so does leaving it", { point(), follower:IsShown() }, { offScreen, false })
+    parkedNow = false
+    ns.Native = nil
+
     -- The main options control saves the setting and participates in Defaults.
     local page
     Settings = {
@@ -186,9 +221,9 @@ return function(test)
     test.check("Defaults restores the combat override", ns.option("cursorDisableInCombat"), true)
     test.check("Defaults refreshes the checkbox", combatBox:GetChecked(), true)
 
-    -- A following tooltip that starts fading is hidden at once outside combat,
-    -- and in combat left to the game's fade: hiding it would run its OnHide
-    -- under the addon's taint.
+    -- A following tooltip that starts fading stops following, in combat or
+    -- out, and is never hidden by the addon, which would run its OnHide under
+    -- the addon's taint.
     local hide, hides = GameTooltip.Hide, 0
     GameTooltip.Hide = function(self) hides = hides + 1 return hide(self) end
     ns.setOption("cursorDisableInCombat", false)
@@ -201,6 +236,6 @@ return function(test)
     combat = false
     handover(1)
     GameTooltip:FadeOut()
-    test.check("outside combat a fading tooltip is hidden at once", hides, 1)
+    test.check("nor outside combat; it stops following", { hides, follower:IsShown() }, { 0, false })
     GameTooltip.Hide = hide
 end

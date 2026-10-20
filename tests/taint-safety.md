@@ -2,7 +2,7 @@
 
 Reviewed on 2026-10-19 for WoW Forever (interface 16001), against the addon's code and Blizzard's `classic_beta` UI source.
 
-The addon contains guards and regression checks for the cases below. This is not a certification that no combination of client state, Blizzard changes, or other addons can cause taint. The offline Lua harness does not implement Blizzard's secure execution engine, protected-frame ancestry, or every behavior of secret primitives. One path still taints Blizzard code; it is listed under [Known taint paths](#known-taint-paths).
+The addon contains guards and regression checks for the cases below. This is not a certification that no combination of client state, Blizzard changes, or other addons can cause taint. The offline Lua harness does not implement Blizzard's secure execution engine, protected-frame ancestry, or every behavior of secret primitives. No path is known to taint Blizzard code; see [Known taint paths](#known-taint-paths).
 
 ## What taint means here
 
@@ -27,15 +27,13 @@ Code an addon runs is insecure, and every value it writes carries that taint. Bl
 
 ## Known taint paths
 
-### `Hide()` on GameTooltip runs its OnHide under taint
+### None known
 
-`Integration/Native.lua` (`fadeOut`) and the cursor-follow fade hook in `Integration/Cursor.lua` call `Hide()` on GameTooltip when a world unit's tooltip starts fading, so the native tooltip does not show through the panel's fade. GameTooltip's OnHide (`GameTooltip_OnHide`) then runs tainted and writes `needsReset`, `default`, `overrideComparisonAnchorFrame`, `overrideComparisonAnchorSide`, and `comparing`, and hides `ShoppingTooltip1` and `ShoppingTooltip2`. Blizzard code that reads those fields before rewriting them securely runs tainted too.
-
-In combat both hooks now leave the tooltip to the game's own fade: the panel stays until the game hides the tooltip, which takes the panel with it, and a cursor-following tooltip stops following and fades where it stands (`unit/fade_in_combat.lua`, `unit/cursor_combat.lua`). Outside combat the early `Hide()` remains for the smooth fade. The fields it taints are rewritten securely the next time the game hides the tooltip itself, as when the mouse leaves an action button, so a short window remains in which a fight can begin before that happens.
+A world unit's tooltip that starts fading used to be hidden with `Hide()` outside combat, which ran `GameTooltip_OnHide` under the addon's taint. The game sets a fading tooltip's alpha every frame in C, past the `SetAlpha` hook (seen with `/ptip trace`), so the addon now moves it off the screen instead, in combat and out: it unclamps it, anchors it far below the screen's corner, pins the panel where it stood, and fades the panel. `SetClampedToScreen`, `ClearAllPoints`, and `SetPoint` run no Lua. The game hides the tooltip itself when its fade ends; new content anchors it afresh, and the addon gives its clamping back on `SetOwner` or hide (`unit/fade_in_combat.lua`, `unit/cursor_combat.lua`).
 
 ### Not a concern
 
-- `Show()` on GameTooltip runs no Blizzard Lua: in `classic_beta` GameTooltip has no OnShow script. `EmbeddedItemTooltip`'s OnShow sets `recalculatePadding`, should a panel ever draw on it.
+- `Show()` on a GameTooltip that is shown already. On Forever GameTooltip has an OnShow, `GameTooltip_OnShow`: it can hide the tooltip for the gamepad and Edit Mode, fires `EventRegistry` `"Tooltip.OnShown"` (`NarratableTooltipMixin`), whose listeners, as tooltip narration, may read the tooltip's text, which combat hides, and ends with `GameTooltip_CalculatePadding`, which clears the padding. OnShow fires only when a hidden frame shows, so the addon calls `Show()` only on a tooltip that is shown: ItemLite to lay out reworded lines when the original-tooltip key changes, Native in its refit fallback and padding release. Showing a hidden game tooltip from the addon would run all of the above tainted. Details calls no `Show()`: `SetPadding` resizes the tooltip at once, and its hooks on `Show` and `SetShown` take the details' room again after the game's OnShow has cleared it (`unit/native_details.lua`). `EmbeddedItemTooltip`'s OnShow is `GameTooltip_CalculatePadding` too.
 - The editor's and options page's `GameTooltip:Hide()` on mouse-leave runs the same OnHide, as in most addons, outside the tooltips hovered in play.
 
 ### The game's settings window
@@ -73,7 +71,7 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 | `CreateFrame` with a game tooltip as parent | None: the frame and its font strings are the addon's, with no scripts | Details' rows, in the room at the tooltip's bottom; the key shows and hides them without the game filling the tooltip again. |
 | `GetNumPoints`, `GetPoint`, `ClearAllPoints`, `SetPoint` | **Secret** (anchors). `SetPoint` fires hooks, the addon's own included | Anchors comparisons to the panels, anchors GameTooltip to the cursor tracker when it starts following (not every frame), places the health bar. Snapshots through `util.framePoints` need every part readable. |
 | `IsClampedToScreen`, `SetClampedToScreen`, `GetEffectiveScale` | **Secret** in principle (scale) | Cursor follow unclamps the game's tooltip while the panel keeps itself on screen. |
-| `Show` | None: GameTooltip has no OnShow script | The refit fallback and padding release (Native), relayout after a wording switch (ItemLite) or when the details key shows or hides the details (Details). |
+| `Show` | None on a shown tooltip; on a hidden one it runs `GameTooltip_OnShow`, so the addon never calls it then | The refit fallback and padding release (Native), relayout after a wording switch (ItemLite). Details hooks it to take its room again after the game's OnShow. |
 | `Hide` | **Taint**: runs `GameTooltip_OnHide` | The early hide when a unit's tooltip starts fading (Native, Cursor), outside combat only. The editor's and options page's hover help also hide GameTooltip, as most addons do. |
 | `SetOwner`, `SetText`, `AddLine`, `Show` (hover help) | As any addon's hover help | Explanations in the style editor and options page, outside the tooltips hovered in play. |
 
@@ -132,7 +130,7 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 
 ## Automated checks
 
-The tests exercise secret values, inaccessible tables, secret nested API fields, secret anchors and cursor positions, failed permission checks, protected and forbidden tooltips, reader and key failures, native health-bar return, and diagnostic redaction (`unit/safe_values.lua`, `unit/safe_integration.lua`, `unit/safe_health_bar.lua`). The `elune-combat` capture replays a spell on cooldown in combat, and `unit/combat_hidden_line.lua` repeats it in every client language. `unit/fade_in_combat.lua` and `unit/cursor_combat.lua` check that the addon does not hide the game's tooltip in combat. The harness's secret stand-in refuses indexing, concatenation, arithmetic, ordering, length, and `tostring`; it cannot catch `==` comparisons, which were checked by reading the code. Existing captures and editor sample outputs check normal behavior.
+The tests exercise secret values, inaccessible tables, secret nested API fields, secret anchors and cursor positions, failed permission checks, protected and forbidden tooltips, reader and key failures, native health-bar return, and diagnostic redaction (`unit/safe_values.lua`, `unit/safe_integration.lua`, `unit/safe_health_bar.lua`). The `elune-combat` capture replays a spell on cooldown in combat, and `unit/combat_hidden_line.lua` repeats it in every client language. `unit/fade_in_combat.lua` and `unit/cursor_combat.lua` check that the addon never hides the game's tooltip, and moves a fading one off the screen. The harness's secret stand-in refuses indexing, concatenation, arithmetic, ordering, length, and `tostring`; it cannot catch `==` comparisons, which were checked by reading the code. Existing captures and editor sample outputs check normal behavior.
 
 ## Client verification
 

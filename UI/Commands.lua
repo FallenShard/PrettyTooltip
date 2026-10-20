@@ -81,6 +81,12 @@ local function handleCommand(message)
         if ns.perfCapture then ns.perfCapture(5) end
         return
     end
+    -- /ptip trace [seconds]: what the tooltips do while the player hovers.
+    local traceSeconds = wanted:match("^trace%s*(%d*)$")
+    if traceSeconds then
+        if ns.traceTooltips then ns.traceTooltips(math.min(10, math.max(1, tonumber(traceSeconds) or 4))) end
+        return
+    end
     if wanted == "anchors" then
         if ns.dumpAnchors then pcall(ns.dumpAnchors) end
         return

@@ -58,6 +58,12 @@ return function(test)
     local height = tooltip._room.padding[2]
     test.check("the tooltip leaves room at its bottom", height > 0, true)
     test.check("and is at least as wide as the details", tooltip._room.minWidth > 0, true)
+    -- The game's OnShow clears the padding as it shows the tooltip.
+    tooltip._room.padding = { 0, 0, 0, 0 }
+    tooltip:Show()
+    test.check("the details take their room again once the game shows the tooltip", tooltip._room.padding[2], height)
+    local shows = 0
+    hooksecurefunc(tooltip, "Show", function() shows = shows + 1 end)
 
     capture.shiftUp = true
     key("LSHIFT", false)
@@ -77,6 +83,7 @@ return function(test)
     test.check("and releasing it brings them back", details(tooltip), { "Item ID: 1307" })
     key("LCTRL", true)
     test.check("other keys change nothing", details(tooltip), { "Item ID: 1307" })
+    test.check("no key shows the tooltip again, which would run the game's OnShow", shows, 0)
 
     capture.shiftUp = true
     fill()

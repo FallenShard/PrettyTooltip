@@ -190,10 +190,9 @@ local function releaseNative(tooltip, panel)
     end
 end
 
--- A world unit's tooltip fades out once the mouse leaves the unit. The game
--- sets that fade's alpha itself, past the SetAlpha hook, so the hidden tooltip
--- shows through whenever its fade runs after the panel's OnUpdate; it goes at
--- once instead, and the panel fades in its place.
+-- A world unit's tooltip fades out once the mouse leaves the unit, the game
+-- setting its alpha every frame, past the SetAlpha hook (seen with /ptip
+-- trace); it is moved off the screen instead, and the panel fades in its place.
 local FADE_TIME = .5
 
 local function stopFade(panel)
@@ -203,14 +202,43 @@ local function stopFade(panel)
     panel:SetAlpha(1)
 end
 
+-- Off the screen, where a fading tooltip goes so its alpha no longer matters.
+local PARKED = -10000
+
+-- Moves a fading tooltip off the screen, its panel pinned where it stands.
+-- Hiding the tooltip instead would run its OnHide under the addon's taint.
+-- False when where either stands cannot be read.
+local function park(tooltip, panel)
+    if panel.parked then return true end
+    local clamped = util.call(tooltip.IsClampedToScreen, tooltip)
+    if type(clamped) ~= "boolean" or not ui.pinPanel(panel) then return false end
+    panel.parked = { clamped = clamped }
+    return pcall(function()
+        if clamped then tooltip:SetClampedToScreen(false) end
+        tooltip:ClearAllPoints()
+        tooltip:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", PARKED, PARKED)
+    end)
+end
+
+-- Once the tooltip is hidden or given new content, which the game anchors
+-- afresh. Follow cursor clamps the tooltip again itself when it unclamped it.
+local function unpark(tooltip)
+    local panel = panels[tooltip]
+    local parked = panel and panel.parked
+    if not parked then return end
+    panel.parked = nil
+    if not util.canModify(tooltip) then return end
+    if parked.clamped then pcall(tooltip.SetClampedToScreen, tooltip, true) end
+    pcall(ui.alignPanel, panel, tooltip)
+end
+
 local function fadeOut(tooltip)
     if not util.canModify(tooltip) then return end
-    -- Hiding the game's tooltip from here runs its OnHide under the addon's
-    -- taint. In combat the panel stays until the game hides the tooltip itself.
-    if InCombatLockdown() then return end
     local panel = panels[tooltip]
-    -- Following the cursor hides the tooltip at once, before this hook runs.
     if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
+    -- The game sets a fading tooltip's alpha itself, past the SetAlpha hook,
+    -- so it would show through the panel.
+    if not park(tooltip, panel) then return end
     if not panel.fade then
         local fade = panel:CreateAnimationGroup()
         local alpha = fade:CreateAnimation("Alpha")
@@ -219,15 +247,15 @@ local function fadeOut(tooltip)
         alpha:SetDuration(FADE_TIME)
         fade:SetToFinalAlpha(true)
         fade:SetScript("OnFinished", function()
+            panel.fadePending = false
             panel:Hide()
             panel:SetAlpha(1)
         end)
         panel.fade = fade
     end
     panel.fade:Play()
-    -- The restore this hide schedules leaves the panel to its fade.
+    -- The restore the game's hide schedules leaves the panel to its fade.
     panel.fadePending = true
-    tooltip:Hide()
 end
 fadeOut = probe("fade out", fadeOut)
 
@@ -241,7 +269,9 @@ local function restoreNative(tooltip)
     if not panel then return end
     panel.restorePending = false
     pcall(releaseNative, tooltip, panel)
-    if panel.fadePending then
+    -- After its fade the game leaves the tooltip shown, off the screen, so a
+    -- later hide must not wait for a fade that has ended.
+    if panel.fadePending and isFading(panel) then
         panel.fadePending = false
     else
         stopFade(panel)
@@ -266,6 +296,11 @@ native.refitNative = refitNative
 native.refitUnlessPartial = refitUnlessPartial
 native.restoreNative = restoreNative
 native.fadeOut = fadeOut
+native.unpark = unpark
+native.isParked = function(tooltip)
+    local panel = panels[tooltip]
+    return panel ~= nil and panel.parked ~= nil
+end
 native.isFading = isFading
 native.stopFade = stopFade
 native.showsDataType = showsDataType

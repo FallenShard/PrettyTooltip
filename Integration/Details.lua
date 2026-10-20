@@ -32,24 +32,36 @@ local function number(value)
     return value
 end
 
--- What the tooltip had before the details took room, as it is when the game
--- has just cleared it if it cannot be read.
-local function keepBase(tooltip, state)
-    if state.base then return end
+-- The room the tooltip has without the details: what it has now, unless that
+-- is still what the details set, or cannot be read, when the game has just
+-- cleared it.
+local function baseOf(tooltip, state)
     local right, bottom, left, top = util.call(tooltip.GetPadding, tooltip)
-    state.base = { right = number(right) or 0, bottom = number(bottom) or 0, left = number(left) or 0,
-        top = number(top) or 0, minWidth = number((util.call(tooltip.GetMinimumWidth, tooltip))) or 0 }
+    local minWidth = number((util.call(tooltip.GetMinimumWidth, tooltip)))
+    right, bottom, left, top = number(right), number(bottom), number(left), number(top)
+    local base, applied = state.base, state.applied
+    if not (right and bottom and left and top and minWidth) then
+        return base or { right = 0, bottom = 0, left = 0, top = 0, minWidth = 0 }
+    end
+    local fresh = { right = right, bottom = bottom, left = left, top = top, minWidth = minWidth }
+    if not (applied and base) then return fresh end
+    -- The game clears the padding on show but keeps the width, so each is
+    -- told apart from the details' own on its own.
+    if math.abs(bottom - applied.bottom) < .01 then
+        fresh.right, fresh.bottom, fresh.left, fresh.top = base.right, base.bottom, base.left, base.top
+    end
+    if math.abs(minWidth - applied.minWidth) < .01 then fresh.minWidth = base.minWidth end
+    return fresh
 end
 
 -- keepPadding: the game clears the padding itself, as on hide.
 local function giveBack(tooltip, state, keepPadding)
     state.block:Hide()
     local base = state.base
-    if not base then return end
-    state.base = nil
-    if not util.canModify(tooltip) then return end
-    if not keepPadding then pcall(tooltip.SetPadding, tooltip, base.right, base.bottom, base.left, base.top) end
+    state.base, state.applied = nil, nil
+    if not (base and util.canModify(tooltip)) then return end
     pcall(tooltip.SetMinimumWidth, tooltip, base.minWidth)
+    if not keepPadding then pcall(tooltip.SetPadding, tooltip, base.right, base.bottom, base.left, base.top) end
 end
 
 local function fontAt(state, side, index)
@@ -103,23 +115,21 @@ local function shows(state)
 end
 
 -- Takes room for the details while they show and gives it back otherwise.
--- relayout: the tooltip lays itself out again, which the game's fill does
--- itself right after the post-calls.
-local function apply(tooltip, state, relayout)
+-- SetPadding resizes the tooltip at once, so it needs no Show, which would run
+-- the game's OnShow under the addon's taint; it comes last, after the width.
+local function apply(tooltip, state)
     if not util.canModify(tooltip) then return end
     if not shows(state) then
-        if state.base then
-            giveBack(tooltip, state)
-            if relayout then tooltip:Show() end
-        end
+        if state.base then giveBack(tooltip, state, false) end
         return
     end
-    keepBase(tooltip, state)
-    local base = state.base
-    tooltip:SetPadding(base.right, base.bottom + state.height, base.left, base.top)
-    tooltip:SetMinimumWidth(math.max(base.minWidth, state.width + 2 * INSET))
+    local base = baseOf(tooltip, state)
+    local minWidth = math.max(base.minWidth, state.width + 2 * INSET)
+    local bottom = base.bottom + state.height
+    state.base, state.applied = base, { bottom = bottom, minWidth = minWidth }
+    tooltip:SetMinimumWidth(minWidth)
+    tooltip:SetPadding(base.right, bottom, base.left, base.top)
     state.block:Show()
-    if relayout then tooltip:Show() end
 end
 
 local function stateOf(tooltip)
@@ -131,6 +141,15 @@ local function stateOf(tooltip)
     block:Hide()
     state = { block = block, lefts = {}, rights = {} }
     states[tooltip] = state
+    -- The game's OnShow clears the padding (GameTooltip_CalculatePadding), so
+    -- the details take their room again once the game has shown the tooltip.
+    local function shown(visible)
+        if state.rows then pcall(apply, visible, state) end
+    end
+    hooksecurefunc(tooltip, "Show", shown)
+    hooksecurefunc(tooltip, "SetShown", function(toggled, visible)
+        if not isSecret(visible) and visible then shown(toggled) end
+    end)
     -- The game clears its padding on hide, but not on a refill.
     tooltip:HookScript("OnHide", function(hidden)
         state.rows = nil
@@ -162,7 +181,7 @@ local function onTooltipData(dataType, tooltip, data)
     local state = stateOf(tooltip)
     if not pcall(draw, state, rows) then return end
     state.rows, state.dataType = rows, dataType
-    pcall(apply, tooltip, state, false)
+    pcall(apply, tooltip, state)
 end
 
 -- Called once by the entry file.
@@ -182,7 +201,7 @@ function ns.Details.register()
         if not (ns.isDetailsKey(key) or ns.isOriginalKey(key)) then return end
         for tooltip, state in pairs(states) do
             if state.rows and util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip) then
-                pcall(apply, tooltip, state, true)
+                pcall(apply, tooltip, state)
             end
         end
     end)

@@ -214,6 +214,8 @@ return function(fixture, enums, report, strings)
         return self._height
     end
     function Object:GetSize() return self:GetWidth(), self:GetHeight() end
+    function Object:SetClampedToScreen(clamped) self._clamped = not not clamped end
+    function Object:IsClampedToScreen() return self._clamped or false end
     function Object:GetLeft() return 0 end
     function Object:GetRight() return self:GetWidth() end
     function Object:GetTop() return 0 end
