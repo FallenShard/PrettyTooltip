@@ -1195,11 +1195,8 @@ local function drawStats(panel, model, styles, y)
         ENCHANT_MARKER)
     -- Temporary enchants under the permanent ones.
     if model.imbues then y = drawMarked(panel, model.imbues, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER) end
-    if model.sockets and #model.sockets > 0 then
-        if y > top then y = y + 4 end
-        y = drawSockets(panel, model.sockets, y, styles.gems)
-        if #model.equipEffects > 0 then y = y + 4 end
-    end
+    -- Spaced as the stats, enchants, and equip effects around them.
+    if model.sockets then y = drawSockets(panel, model.sockets, y, styles.gems) end
     -- Equip effects after what is added to the item: its enchants and gems.
     y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     -- Use effects and flavor stand apart from the stats above them; first under
