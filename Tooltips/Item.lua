@@ -314,10 +314,27 @@ for _, key in ipairs({ "Alchemy", "Blacksmithing", "Enchanting", "Engineering", 
     for _, name in ipairs(ns.Locale.skillNames(key)) do PROFESSIONS[name] = true end
 end
 
+-- Whether a name is a profession's: its own, or, on a line the game marks as a
+-- requirement, retail's for one expansion's part of it, "Midnight
+-- Blacksmithing", which holds the profession's as a word. A reagent's name can
+-- hold one too ("Elixir of Mining"), so other lines need the name exactly.
+local function isProfession(name, marked)
+    if PROFESSIONS[name] then return true end
+    if not marked then return false end
+    for profession in pairs(PROFESSIONS) do
+        local start, stop = name:find(profession, 1, true)
+        if start and not name:sub(start - 1, start - 1):match("%a") and not name:sub(stop + 1, stop + 1):match("%a") then
+            return true
+        end
+    end
+    return false
+end
+
 -- "Requires Blacksmithing (80)": the profession and level a recipe needs.
-local function professionRequirement(text)
+local function professionRequirement(text, lineType)
     local name, level = unformat(text, ITEM_MIN_SKILL)
-    if name and PROFESSIONS[name] then return name, tonumber(level) end
+    local marked = LINE.UsageRequirement ~= nil and lineType == LINE.UsageRequirement
+    if name and tonumber(level) and isProfession(name, marked) then return name, tonumber(level) end
 end
 
 -- "Requires Bronze Bar (10), Sulfuric Acid (2)": a recipe's reagents.
@@ -514,10 +531,10 @@ local function readModel(tooltip, data, game)
             model.reagents, m = reagentList(trimmed, true), model
         elseif m == model and startsQuest then
             model.startsQuest = trimmed
-        elseif professionRequirement(trimmed) and (m == model or (model.created and not model.skill)) then
+        elseif professionRequirement(trimmed, lineType) and (m == model or (model.created and not model.skill)) then
             -- A recipe's skill, before the item it creates or, as on cooking
             -- recipes, after it; once the recipe has one, the item's own.
-            local name, level = professionRequirement(trimmed)
+            local name, level = professionRequirement(trimmed, lineType)
             model.skill = { name = name, level = level, text = left, met = requirementMet(trimmed, line.leftColor, game) }
         elseif model.created and not model.reagents and reagentList(trimmed) then
             model.reagents, m = reagentList(trimmed), model
