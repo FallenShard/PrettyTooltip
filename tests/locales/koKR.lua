@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%3$s 저항력 %1$c%2$d",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) 세트 효과: %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
+    ["ITEM_SOCKETABLE"] = "<보석을 장착하려면 SHIFT 오른쪽 클릭>",
     ["ITEM_SOCKET_BONUS"] = "보석 장착 보너스: %s",
     ["ITEM_SOULBOUND"] = "귀속 아이템",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "착용 효과:",

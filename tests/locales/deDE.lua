@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%1$c%2$d %3$swiderstand",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Set: %s",
     ["ITEM_SET_NAME"] = "%1$s (%2$d/%3$d)",
+    ["ITEM_SOCKETABLE"] = "<Zum Sockeln Umschalt-Rechtsklick>",
     ["ITEM_SOCKET_BONUS"] = "Sockelbonus: %s",
     ["ITEM_SOULBOUND"] = "Seelengebunden",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Anlegen:",

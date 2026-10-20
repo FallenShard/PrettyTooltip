@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%c%d %s Resistance",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Set: %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
+    ["ITEM_SOCKETABLE"] = "<Shift Right Click to Socket>",
     ["ITEM_SOCKET_BONUS"] = "Socket Bonus: %s",
     ["ITEM_SOULBOUND"] = "Soulbound",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equip:",

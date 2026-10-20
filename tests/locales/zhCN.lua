@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%c%d %s抗性",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) 套装：%s",
     ["ITEM_SET_NAME"] = "%s（%d/%d）",
+    ["ITEM_SOCKETABLE"] = "<Shift+右键点击打开镶嵌界面>",
     ["ITEM_SOCKET_BONUS"] = "镶孔奖励：%s",
     ["ITEM_SOULBOUND"] = "已绑定",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "装备：",

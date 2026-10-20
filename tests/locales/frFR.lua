@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%1$c%2$d à la résistance %3$s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Ensemble : %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
+    ["ITEM_SOCKETABLE"] = "<Maj-clic droit pour sertir>",
     ["ITEM_SOCKET_BONUS"] = "Bonus de sertissage : %s",
     ["ITEM_SOULBOUND"] = "Lié",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equipé :",

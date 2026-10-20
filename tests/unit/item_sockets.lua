@@ -17,6 +17,7 @@ return function(test)
         { leftText = "Your spells sometimes burn the target.", type = LINE.GemSocketEnchantment },
         { leftText = "Prismatic Socket", type = LINE.GemSocket, socketType = "Prismatic", leftColor = GREY },
         { leftText = "Socket Bonus: +8 Stamina", type = LINE.None, leftColor = GREY },
+        { leftText = "<Shift Right Click to Socket>", type = LINE.None, leftColor = GREEN },
     }
     local capture = { enums = { TooltipDataType = { Item = ITEM }, TooltipDataLineType = LINE },
         data = { type = ITEM, id = 3000, lines = {} }, lines = {} }
@@ -41,7 +42,7 @@ return function(test)
         { "+70 Haste", 4555555, 0 },
         { "Your spells sometimes burn the target.", false, 20 },
         { "Prismatic Socket", "Interface\\ItemSocketingFrame\\UI-EmptySocket-Prismatic", 0 },
-        { "Socket Bonus: +8 Stamina", false, 0 } })
+        { "Socket Bonus: +8 Stamina", false, 0 }, { "<Shift Right Click to Socket>", false, 0 } })
     test.check("the gem's stat in its stat color", model.sockets[1].left:find("|cffF2D57C", 1, true) ~= nil, true)
     test.check("an empty socket and an inactive bonus in the game's grey",
         { model.sockets[3].color, model.sockets[4].color }, { ns.TooltipData.colorOf(GREY), ns.TooltipData.colorOf(GREY) })
@@ -65,6 +66,12 @@ return function(test)
         if element.key == "gems" or element.key == "craftingQuality" then parts[element.key] = element.retail end
     end
     test.check("offered on retail", parts, { gems = true, craftingQuality = true })
+    -- The socket hint can be turned off.
+    ns.setOption("socketHint", false)
+    model = ns.TooltipTypes[ITEM].read(world.main, capture.data, ns.Game)
+    test.check("the socket hint hidden", { #model.sockets, model.sockets[4].left, #model.extras, #model.effects },
+        { 4, "Socket Bonus: +8 Stamina", 0, 0 })
+    ns.setOption("socketHint", nil)
     -- An active bonus keeps the game's green.
     lines[8].leftColor = GREEN
     model = ns.TooltipTypes[ITEM].read(world.main, capture.data, ns.Game)

@@ -502,6 +502,13 @@ local function readModel(tooltip, data, game)
             m.sockets = m.sockets or {}
             add(m.sockets, left, right)
             m.sockets[#m.sockets].indent, m.sockets[#m.sockets].color = GEM_ENCHANT_INDENT, GEM_ENCHANT_COLOR
+        elseif right == "" and type(ITEM_SOCKETABLE) == "string" and util.trim(plainText(trimmed)) == ITEM_SOCKETABLE then
+            -- "<Shift Right Click to Socket>", with the sockets, unless turned off.
+            if ns.option("socketHint") then
+                m.sockets = m.sockets or {}
+                add(m.sockets, left, "")
+                m.sockets[#m.sockets].color = colorOf(line.leftColor)
+            end
         elseif right == "" and unformat(plainText(trimmed), ITEM_SOCKET_BONUS) then
             -- Green while every socket matches, grey before.
             m.sockets = m.sockets or {}

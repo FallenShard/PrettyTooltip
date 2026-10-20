@@ -1221,6 +1221,10 @@ local function coefficients() return ns.Locale.features.coefficients == true end
 local function classicOnly(shown)
     return function() return not ns.retail and shown() end
 end
+-- Settings for what only retail's tooltips have.
+local function retailOnly(shown)
+    return function() return ns.retail and shown() end
+end
 toggles({
     { "Quest parchment", "questParchment", "DialogueUI's brown parchment for quest tooltips, Quest Items, "
         .. "and items that begin a quest, with darker ink for readability. Requires DialogueUI to be installed.",
@@ -1242,6 +1246,8 @@ toggles({
     { "Disenchant", "disenchant", "Green, blue, and purple armor and weapons list what they disenchant into, "
         .. "with each result's chance and the Enchanting it needs; with Auctionator, the expected value.",
         classicOnly(items) },
+    { "Socket hint", "socketHint", "The game's Shift Right Click to Socket line, under an item's sockets. Off, "
+        .. "the panel leaves it out.", retailOnly(items) },
     { "Sell price", "sellPrice", "The vendor price in the footer; for a stack, the price of one and of the "
         .. "whole stack.", items },
     { "Spell power", "spellPower", "Under the description, each amount's spell power coefficient and its "

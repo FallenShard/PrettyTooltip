@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%c%d resistencia a %s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Bonif.: %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
+    ["ITEM_SOCKETABLE"] = "<Mayús clic derecho para insertar>",
     ["ITEM_SOCKET_BONUS"] = "Bonus ranura: %s",
     ["ITEM_SOULBOUND"] = "Ligado",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equipar:",

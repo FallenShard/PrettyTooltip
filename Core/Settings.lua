@@ -43,6 +43,8 @@ local DEFAULTS = {
     -- What herb and ore nodes and skinnable creatures give, on their panels.
     gatheringLoot = true,
     sellPrice = true,
+    -- Retail's "<Shift Right Click to Socket>" under an item's sockets.
+    socketHint = true,
     spellPower = true,
     -- Damage or healing per second and per mana, under the spell power breakdown.
     spellRates = true,

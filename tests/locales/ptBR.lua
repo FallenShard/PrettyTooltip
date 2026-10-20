@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%c%d de resistência a %s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Conjunto: %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
+    ["ITEM_SOCKETABLE"] = "<Shift + botão direito para engastar>",
     ["ITEM_SOCKET_BONUS"] = "Bônus de engaste: %s",
     ["ITEM_SOULBOUND"] = "Vinculado",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equipado:",

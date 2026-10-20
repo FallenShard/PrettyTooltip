@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "%c%d %s抗性",
     ["ITEM_SET_BONUS_GRAY"] = "（%d） 套裝: %s",
     ["ITEM_SET_NAME"] = "%s（%d/%d）",
+    ["ITEM_SOCKETABLE"] = "<按下Shift+右鍵以插入寶石>",
     ["ITEM_SOCKET_BONUS"] = "插槽加成：%s",
     ["ITEM_SOULBOUND"] = "已綁定",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "裝備：",

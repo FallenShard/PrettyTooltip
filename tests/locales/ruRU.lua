@@ -294,6 +294,7 @@ return {
     ["ITEM_RESIST_SINGLE"] = "Устойчивость: %c%d %s",
     ["ITEM_SET_BONUS_GRAY"] = "Комплект (%d |4предмет:предмета:предметов;): %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
+    ["ITEM_SOCKETABLE"] = "<Нажмите Shift и щелкните правой кнопкой мыши, чтобы инкрустировать предмет.>",
     ["ITEM_SOCKET_BONUS"] = "При соответствии цвета: %s",
     ["ITEM_SOULBOUND"] = "Персональный предмет",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Если на персонаже:",
