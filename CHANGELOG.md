@@ -1,3 +1,9 @@
+# PrettyTooltip 1.3.4
+
+## Options
+
+- Fixed the **Global scale** slider's layout on the main options page: the percentage stays inside the settings window, and the slider uses the game's artwork without overlapping custom graphics.
+
 # PrettyTooltip 1.3.3
 
 ## Tooltips
