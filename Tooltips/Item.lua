@@ -917,6 +917,11 @@ local function listWidth(panel, list, style, extra, prose)
 end
 
 -- Whether an item has stats, effects, or flavor, drawn under the first divider.
+-- Retail styles its secondary stats apart from the primary ones.
+local function secondaryStyle(styles)
+    return ns.retail and styles.secondaryStats or styles.stats
+end
+
 local function hasStats(model)
     return model.weaponDps or model.weaponDamage or #model.weaponBonus > 0 or #model.armor > 0
         or #model.primary > 0 or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
@@ -927,7 +932,7 @@ local function statsWidth(panel, model, styles)
     local need = math.max(
         listWidth(panel, model.armor, styles.armor, 0),
         listWidth(panel, model.primary, styles.stats, 0),
-        listWidth(panel, model.secondary, styles.stats, 0),
+        listWidth(panel, model.secondary, secondaryStyle(styles), 0),
         listWidth(panel, model.enchants, styles.enchants, markerIndent(panel, styles.enchants)),
         listWidth(panel, model.flavor, styles.flavor, 0, true))
     for _, row in ipairs(model.equipEffects) do
@@ -1053,7 +1058,7 @@ local function drawStats(panel, model, styles, y)
     if (#model.secondary > 0 or #model.equipEffects > 0) and above then
         y = divider(panel, y, GOLD_RULE, DIVIDER_AFTER)
     end
-    y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
+    y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
     y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
     -- Use effects and flavor stand apart from the stats above them; first under

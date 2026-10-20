@@ -51,7 +51,9 @@ local TYPES = {
                     weaponDps = "53.8",
                     weaponDamage = fill(DAMAGE_TEMPLATE, 153, 256), weaponSpeed = fill(formats.weaponSpeed, "3.80"),
                     primary = { statLine("STAMINA", 13) },
-                    secondary = { statLine("ATTACK_POWER", 62) },
+                    -- Retail's secondary stats, each in its color.
+                    secondary = ns.retail and { statLine("CRITICAL_STRIKE", 48), statLine("HASTE", 31),
+                        statLine("MASTERY", 27), statLine("VERSATILITY", 19) } or { statLine("ATTACK_POWER", 62) },
                     equipEffects = {
                         { left = L["Your attacks have a chance to cleave a nearby enemy."], right = "" },
                         { left = L["Wounds the target for 40 to 60 damage."], right = "", onHit = true },

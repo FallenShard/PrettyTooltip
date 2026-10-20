@@ -1265,6 +1265,10 @@ toggles({
 row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)
     return hexColor((ns.Stats.categoryColors(key)))
 end), colorGroupSetting(ns.Stats.CATEGORIES, "statColor"), items, true)
+-- Retail's secondary stats, each in its own color.
+row("Secondary stat colors", colorSwatches(ns.Stats.RETAIL_CATEGORIES, "statColor", function(key)
+    return hexColor((ns.Stats.categoryColors(key)))
+end), colorGroupSetting(ns.Stats.RETAIL_CATEGORIES, "statColor"), function() return ns.retail and items() end, true)
 row("Class colors", colorSwatches(ns.Palette.CLASSES, "classColor", ns.Palette.classColor, function()
     if ns.Palette.addonClassColors() then
         return L["Your class colors addon sets these; the colors chosen here apply without it."]

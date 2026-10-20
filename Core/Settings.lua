@@ -153,6 +153,8 @@ ns.ELEMENTS = {
     { key = "armor", label = "Armor", size = 16, color = { .90, .93, .95 } },
     { key = "stats", label = "Stats", size = 13, color = { .90, .85, .74 },
         note = "Colored by category unless set." },
+    { key = "secondaryStats", label = "Secondary stats", size = 13, color = { .90, .85, .74 }, retail = true,
+        note = "Critical Strike, Haste, Mastery, Versatility, and the stats under them. Colored by stat unless set." },
     { key = "equipEffects", label = "Equip effects", size = 13, color = { .48, .88, .48 },
         note = "On-hit numbers use the spell tooltip's school colors unless set." },
     { key = "enchants", label = "Enchants", size = 13, color = { .30, .90, .30 } },

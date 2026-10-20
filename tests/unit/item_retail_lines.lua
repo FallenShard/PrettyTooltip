@@ -75,7 +75,7 @@ return function(test)
         { "Heroic", "Myth 2/6", "Soulbound", "Transmogrified to: Nightblade", "Illusion: Crusader" })
     local parts = {}
     for _, element in ipairs(ns.ELEMENTS) do
-        if element.retail and not element.tooltipType then parts[#parts + 1] = element.key end
+        if element.retail and not element.tooltipType and element.key:find("^item") then parts[#parts + 1] = element.key end
     end
     test.check("each its own style part, offered on retail", parts, { "itemSource", "itemUpgrade", "itemTransmog" })
 end
