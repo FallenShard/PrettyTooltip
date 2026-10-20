@@ -292,6 +292,7 @@ return {
     ["ITEM_REQ_SKILL"] = "Требуется: %s",
     ["ITEM_RESIST_ALL"] = "%c%d к полной устойчивости",
     ["ITEM_RESIST_SINGLE"] = "Устойчивость: %c%d %s",
+    ["ITEM_SET_BONUS"] = "Комплект: %s",
     ["ITEM_SET_BONUS_GRAY"] = "Комплект (%d |4предмет:предмета:предметов;): %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
     ["ITEM_SOCKETABLE"] = "<Нажмите Shift и щелкните правой кнопкой мыши, чтобы инкрустировать предмет.>",

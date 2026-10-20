@@ -292,6 +292,7 @@ return {
     ["ITEM_REQ_SKILL"] = "Requires %s",
     ["ITEM_RESIST_ALL"] = "%c%d to All Resistances",
     ["ITEM_RESIST_SINGLE"] = "%c%d %s Resistance",
+    ["ITEM_SET_BONUS"] = "Set: %s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Set: %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
     ["ITEM_SOCKETABLE"] = "<Shift Right Click to Socket>",

@@ -292,6 +292,7 @@ return {
     ["ITEM_REQ_SKILL"] = "Requer %s",
     ["ITEM_RESIST_ALL"] = "%c%d a todas as resistências",
     ["ITEM_RESIST_SINGLE"] = "%c%d de resistência a %s",
+    ["ITEM_SET_BONUS"] = "Conjunto: %s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Conjunto: %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
     ["ITEM_SOCKETABLE"] = "<Shift + botão direito para engastar>",

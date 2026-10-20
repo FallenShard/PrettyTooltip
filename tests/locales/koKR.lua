@@ -292,6 +292,7 @@ return {
     ["ITEM_REQ_SKILL"] = "요구 사항: %s",
     ["ITEM_RESIST_ALL"] = "모든 저항 %c%d",
     ["ITEM_RESIST_SINGLE"] = "%3$s 저항력 %1$c%2$d",
+    ["ITEM_SET_BONUS"] = "세트 효과: %s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) 세트 효과: %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
     ["ITEM_SOCKETABLE"] = "<보석을 장착하려면 SHIFT 오른쪽 클릭>",

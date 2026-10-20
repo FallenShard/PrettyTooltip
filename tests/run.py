@@ -173,20 +173,36 @@ def variant_names(load) -> dict[str, list[str]]:
     return {tooltip_type: sorted(byName.keys()) for tooltip_type, byName in variants.items()}
 
 
+def is_retail_capture(fixture) -> bool:
+    """Whether retail captured the fixture: its client is 2.0 or later, where
+    Forever's is 1.x."""
+    client = fixture.client
+    version = str(client.version) if client and client.version else ""
+    return version.split(".")[0].isdigit() and int(version.split(".")[0]) >= 2
+
+
 def run_fixture(path: Path, files, args, retail=False) -> list[bool]:
     """The fixture with the default settings, then with each variant its type
     of tooltip has. Each run gets a fresh runtime, as a run changes the fixture's data.
     retail: read and drawn with the retail .toc's files, which must not fail;
-    the fixtures are Forever's tooltips, so there is no expected output."""
+    Forever's fixtures have no expected output there. A fixture retail
+    captured runs with the retail .toc's files alone, against its expected output."""
     results = []
     _, load, _ = new_runtime()
     fixture = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}")
+    captured_on_retail = is_retail_capture(fixture)
+    if captured_on_retail and not retail:
+        return []
+    checked = not retail or captured_on_retail
+    # Forever's fixtures have no retail output to update.
+    if not checked and args.update:
+        return []
     # Fixtures imported before the rename name it kind.
     tooltip_type = fixture.tooltipType or fixture.kind
-    variants = [None] if retail else [None] + variant_names(load).get(tooltip_type, [])
+    variants = [None] + variant_names(load).get(tooltip_type, []) if checked else [None]
     for variant in variants:
         name = path.stem if variant is None else f"{path.stem}.{variant}"
-        if retail:
+        if retail and not captured_on_retail:
             name = f"retail/{name}"
         lua, load, harness = new_runtime()
         fixture = load(path.read_text(encoding="utf-8"), f"fixtures/{path.name}")
@@ -212,7 +228,7 @@ def run_fixture(path: Path, files, args, retail=False) -> list[bool]:
             results.append(False)
             continue
         collect_coverage(harness)
-        if retail:
+        if not checked:
             print(f"ok {name}")
             results.append(True)
             continue
@@ -360,7 +376,7 @@ def main() -> None:
     for path in sorted(FIXTURES.glob("*.lua")):
         if args.pattern in path.stem:
             results += run_fixture(path, files, args)
-        if args.pattern in f"retail/{path.stem}" and not args.update:
+        if args.pattern in f"retail/{path.stem}":
             results += run_fixture(path, retail_files, args, retail=True)
     if not args.pattern or "samples" in args.pattern or any(
             args.pattern in name for name in ("item", "spell", "object", "unit", "aura", "quest")):

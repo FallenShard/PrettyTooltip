@@ -56,6 +56,22 @@ local function upgradeOf(text)
     if tonumber(level) and tonumber(most) then return util.fill(ITEM_UPGRADE_DROPDOWN_LEVEL_FORMAT, level, most) end
 end
 
+-- Retail writes some colors with spaces for zeros, as "|cFF 0FF 0Mythic+":
+-- read as the color it means, not as text.
+local function repairedColors(text)
+    return (text:gsub("|c([%x ][%x ][%x ][%x ][%x ][%x ][%x ][%x ])", function(code)
+        return "|c" .. code:gsub(" ", "0")
+    end))
+end
+
+-- The color a line's text opens with, as a panel color; nil without one.
+local function openingColor(text)
+    local code = text:match("^%s*|c%x%x(%x%x%x%x%x%x)")
+    if not code then return end
+    local r, g, b = tonumber(code:sub(1, 2), 16), tonumber(code:sub(3, 4), 16), tonumber(code:sub(5, 6), 16)
+    return colorOf({ r = r / 255, g = g / 255, b = b / 255 })
+end
+
 -- What an item is transmogrified to: "Transmogrified to:" and the appearance,
 -- on the line after it or the same one; "" when the next line names it.
 local function transmogOf(text)
@@ -436,6 +452,7 @@ local function readModel(tooltip, data, game)
         if line.lineIndex then
         local left, right = safeText(line.leftText), safeText(line.rightText)
         if not left or not right then return end
+        left, right = repairedColors(left), repairedColors(right)
         local lineType = line.type
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
         -- Read as the panel words it, each stat of a combined bonus apart.
@@ -539,7 +556,8 @@ local function readModel(tooltip, data, game)
         elseif ns.retail and afterName and right == "" and trimmed ~= "" and (lineType == nil or isType(lineType, "None"))
             and levelFollows(lineNumber) then
             -- Retail names where an item comes from between its name and level: Heroic, Mythic.
-            m.source, m.sourceColor = util.trim(plainText(trimmed)), colorOf(line.leftColor)
+            m.source = util.trim(plainText(trimmed))
+            m.sourceColor = openingColor(trimmed) or colorOf(line.leftColor)
         elseif trimmed ~= "" then
             local setName, count, total = unformat(trimmed, ITEM_SET_NAME)
             if setName and tonumber(count) and tonumber(total) and not m.setName then
@@ -568,7 +586,7 @@ local function readModel(tooltip, data, game)
                 if isRed(line.leftColor) then
                     m.footerLeft[#m.footerLeft].color = UNUSABLE_COLOR
                 end
-            elseif inSet and unformat(trimmed, ITEM_SET_BONUS_GRAY) then
+            elseif inSet and (unformat(trimmed, ITEM_SET_BONUS_GRAY) or unformat(trimmed, ITEM_SET_BONUS)) then
                 add(m.setBonuses, left, right)
                 m.setBonuses[#m.setBonuses].active = isActive(line.leftColor)
             -- Set pieces are names alone: letters (of any alphabet), spaces,

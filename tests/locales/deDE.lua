@@ -292,6 +292,7 @@ return {
     ["ITEM_REQ_SKILL"] = "Benötigt %1$s",
     ["ITEM_RESIST_ALL"] = "%1$c%2$d zu allen Widerstandsarten",
     ["ITEM_RESIST_SINGLE"] = "%1$c%2$d %3$swiderstand",
+    ["ITEM_SET_BONUS"] = "Set: %s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Set: %s",
     ["ITEM_SET_NAME"] = "%1$s (%2$d/%3$d)",
     ["ITEM_SOCKETABLE"] = "<Zum Sockeln Umschalt-Rechtsklick>",

@@ -292,6 +292,7 @@ return {
     ["ITEM_REQ_SKILL"] = "Requiert %s",
     ["ITEM_RESIST_ALL"] = "%c%d à toutes les résistances",
     ["ITEM_RESIST_SINGLE"] = "%1$c%2$d à la résistance %3$s",
+    ["ITEM_SET_BONUS"] = "Complet : %s",
     ["ITEM_SET_BONUS_GRAY"] = "(%d) Ensemble : %s",
     ["ITEM_SET_NAME"] = "%s (%d/%d)",
     ["ITEM_SOCKETABLE"] = "<Maj-clic droit pour sertir>",

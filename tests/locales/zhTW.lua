@@ -292,6 +292,7 @@ return {
     ["ITEM_REQ_SKILL"] = "需要%s",
     ["ITEM_RESIST_ALL"] = "%c%d 所有抗性",
     ["ITEM_RESIST_SINGLE"] = "%c%d %s抗性",
+    ["ITEM_SET_BONUS"] = "套裝：%s",
     ["ITEM_SET_BONUS_GRAY"] = "（%d） 套裝: %s",
     ["ITEM_SET_NAME"] = "%s（%d/%d）",
     ["ITEM_SOCKETABLE"] = "<按下Shift+右鍵以插入寶石>",
