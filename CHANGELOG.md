@@ -1,3 +1,18 @@
+# PrettyTooltip 1.3.2
+
+## Options
+
+- Added **Global scale** to resize all PrettyTooltip panels together, including text, icons, spacing, and bars, from 50% to 150%. Available on the main options page and under **All Tooltips** in the style editor. Individual text settings are preserved.
+- Added **Swap Damage Stats** under **Item Details** in the style editor: weapon damage takes the large line, with DPS and speed beneath it. Off by default.
+
+## Tooltips
+
+- Improved anchor restoration between hovers, including when following the cursor, so tooltips do not retain their temporary off-screen position.
+- Player and NPC tooltip panels now disappear immediately when the mouse leaves, without the lingering fade.
+- Shield block value now appears alongside armor.
+- Base weapon damage, DPS, armor, and block use steel-gray colors, with brighter numbers and dimmer labels.
+- Scaled editor previews keep their clickable parts aligned and can scroll horizontally when enlarged.
+
 # PrettyTooltip 1.3.1
 
 ## Layouts
