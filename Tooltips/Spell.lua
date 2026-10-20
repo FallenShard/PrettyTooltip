@@ -167,6 +167,19 @@ local function newModel(icon)
         icon = icon }
 end
 
+-- A line that is only a pointer to another spell's description, which the
+-- game left unfilled: "$@382021" on Earthliving Weapon's imbue, the
+-- "spelldesc" missing from it. The other spell's description, or "" while
+-- the game has not loaded it, so the pointer is never shown; nil for any
+-- other line.
+local function pointedDescription(text, game)
+    local id = tonumber(text:match("^%$@%a*(%d+)$"))
+    if not id then return end
+    local target = game.spellDescription(id)
+    if not target or target:find("^%$@") then return "" end
+    return target
+end
+
 -- A description can open with its own requirement, on a line of its own.
 local function readDescription(model, text)
     local rest = {}
@@ -209,6 +222,11 @@ end
 local function readLine(model, line, left, right, game)
     local text, rightText = trim(left), trim(right)
     if text == "" and rightText == "" then return end
+    local pointed = rightText == "" and pointedDescription(text, game)
+    if pointed then
+        if pointed ~= "" then readDescription(model, pointed) end
+        return
+    end
     if LINE.UsageRequirement and line.type == LINE.UsageRequirement then
         add(model.requirements, text, rightText)
         local usable = line.usable

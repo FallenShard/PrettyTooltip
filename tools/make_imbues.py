@@ -26,6 +26,14 @@ TABLES = ["SpellEffect", "SpellName", "SpellItemEnchantment"]
 TEMPORARY = {54, 360}
 # Spells left in the tables for testing or retired: never what a player applied.
 JUNK = re.compile(r"DONOTREUSE|\bTest\b|Runecarving|^S03|\bQA\b|\[DNT\]|^zz|\bOLD\b")
+# Retail's shaman imbues enchant the weapon from a hidden spell the one the shaman casts sets off, which no
+# table links to it. The cast spell, by enchant ID, so the panel shows that one: Earthliving's hidden spell
+# has no description of its own.
+RETAIL_CAST = {
+    5400: 318038,  # Flametongue Weapon
+    5401: 33757,  # Windfury Weapon
+    6498: 382021,  # Earthliving Weapon
+}
 
 
 def label(name):
@@ -35,8 +43,9 @@ def label(name):
     return re.sub(r"\s+", " ", name).strip(" :")
 
 
-def imbues(fs, build, offline):
-    """{enchant ID: (spell ID, duration in seconds, name)} for one build."""
+def imbues(fs, build, offline, cast=None):
+    """{enchant ID: (spell ID, duration in seconds, name)} for one build; cast picks some enchants' spells."""
+    cast = cast or {}
     tables = fs.load_tables(TABLES, build, fs.CACHE, offline)
     names = {int(row["ID"]): row["Name_lang"] for row in tables["SpellName"]}
     enchants = {int(row["ID"]): row for row in tables["SpellItemEnchantment"]}
@@ -57,6 +66,10 @@ def imbues(fs, build, offline):
             continue
         # A class imbue's own spell first, then the oldest: the one the item or trainer gives.
         _, spell_id = min(usable, key=lambda c: (c[0] != 360, c[1]))
+        if enchant_id in cast:
+            spell_id = cast[enchant_id]
+            if spell_id not in names:
+                sys.exit(f"Spell {spell_id}, for enchant {enchant_id}, is not in build {build}.")
         found[enchant_id] = (spell_id, duration, label(enchant["Name_lang"]) or names[spell_id])
     return found
 
@@ -94,7 +107,7 @@ def main():
     if not (build and retail):
         sys.exit("No Forever or retail build found. Pass --build and --retail-build.")
 
-    forever, mainline = imbues(fs, build, args.offline), imbues(fs, retail, args.offline)
+    forever, mainline = imbues(fs, build, args.offline), imbues(fs, retail, args.offline, RETAIL_CAST)
     lines = [
         "-- Each temporary weapon enchant's spell and full duration in seconds, by its",
         "-- enchant ID: shamans' and rogues' imbues, oils, stones, fishing lures, and the",

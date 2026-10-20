@@ -72,7 +72,7 @@ read_globals = {
     "C_Item", "C_Spell", "C_Texture", "C_AddOns", "C_QuestLog", "C_UnitAuras", "C_Timer", "C_CurrencyInfo",
     "C_PaperDollInfo", "GetWeaponEnchantInfo", "GetInventoryItemTexture", "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE",
     "GetLocale", "GetBuildInfo", "GetAddOnMetadata", "GetTime", "IsAltKeyDown", "IsControlKeyDown", "IsShiftKeyDown", "InCombatLockdown",
-    "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
+    "GetSpellInfo", "GetSpellDescription", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
     "GetNumMacros", "GetMacroSpell", "GetMacroItem", "MAX_ACCOUNT_MACROS", "GetPetActionInfo",
     "NumTaxiNodes", "TaxiNodeName", "TaxiNodeCost", "TaxiNodeGetType", "TaxiNodeOnButtonEnter",
     "TAXINODEYOUAREHERE", "UpdateAddOnMemoryUsage", "GetAddOnMemoryUsage", "GetPhysicalScreenSize", "PixelUtil",

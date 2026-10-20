@@ -108,6 +108,16 @@ function game.spellName(spellID)
     if ok and not isSecret(name) and type(name) == "string" then return name end
 end
 
+-- A spell's description as the game fills it in; nil while the game has not
+-- loaded the spell, or where it hides it.
+function game.spellDescription(spellID)
+    if isSecret(spellID) or type(spellID) ~= "number" then return end
+    local getter = C_Spell and C_Spell.GetSpellDescription or GetSpellDescription
+    if not getter then return end
+    local ok, text = pcall(getter, spellID)
+    if ok and not isSecret(text) and type(text) == "string" and text ~= "" then return text end
+end
+
 -- A spell's name on this client, for one the addon's data names in English,
 -- as the English client's own tables do: an English client is not asked.
 function game.localSpellName(spellID, english)

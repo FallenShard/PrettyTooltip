@@ -24,8 +24,18 @@ return function(test)
         [8232] = { "Windfury Weapon", "Rank 1",
             "Imbue the Shaman's weapon with wind. Each hit has a 20% chance of dealing additional damage." },
         [8679] = { "Instant Poison", "", "Coats a weapon with poison that lasts for 30 minutes." },
-        [334302] = { "Windfury Weapon", "", "Imbue your main-hand weapon with the element of Wind for 1 hour." },
+        [33757] = { "Windfury Weapon", "", "Imbue your main-hand weapon with the element of Wind for 1 hour." },
+        [382021] = { "Earthliving Weapon", "", "Imbue your weapon with the element of Earth for 1 hour. Your "
+            .. "Riptide, Healing Wave, and Chain Heal healing has a 20% chance to trigger Earthliving on the target." },
+        -- Earthliving's hidden enchanting spell: its description only a
+        -- pointer to the cast spell's, which the game leaves unfilled.
+        [382023] = { "Earthliving Weapon", "", "$@382021" },
+        -- Its talent, which names Earthliving without pointing to it.
+        [382315] = { "Improved Earthliving Weapon", "", "Earthliving receives 150% additional benefit from "
+            .. "Mastery: Deep Healing.\r\n\r\nHealing Wave always triggers Earthliving on its target." },
     }
+    -- The descriptions the game gives by spell ID, for the spells it has loaded.
+    local loaded = { [382021] = spells[382021][3] }
     local function start(enchants)
         local ns, world = test.load(files, fixture)
         PrettyTooltipDB = {}
@@ -40,6 +50,7 @@ return function(test)
             } }
         end
         ns.Game.slotIcon = function(slot) return "weapon icon " .. slot end
+        ns.Game.spellDescription = function(spellID) return loaded[spellID] end
         enchants(ns)
         ns.Hooks.install()
         return ns, world
@@ -146,5 +157,35 @@ return function(test)
     model = ns.TooltipTypes.imbue.read(world.main, weapon, ns.Game)
     test.check("retail: the imbue by retail's enchant ID", { panel.dataType, has(text, "element of Wind"),
         has(text, "30 minutes remaining"), model.duration }, { "imbue", true, true, 3600 })
+    C_PaperDollInfo, WOW_PROJECT_ID, WOW_PROJECT_MAINLINE = nil, nil, nil
+
+    -- Earthliving: the imbue as the spell the shaman casts, by its own ID.
+    WOW_PROJECT_ID, WOW_PROJECT_MAINLINE = 1, 1
+    ns, world = start(function()
+        C_PaperDollInfo = { GetTemporaryEnchantmentInfo = function(slot)
+            if slot == 16 then
+                return { enchantID = 6498, remainingTimeMs = 3000000, chargesRemaining = 0, hasExpirationTime = true }
+            end
+        end }
+    end)
+    panel, text = hover(ns, world, button(16))
+    model = ns.TooltipTypes.imbue.read(world.main, weapon, ns.Game)
+    test.check("Earthliving as its cast spell", { panel.dataType, model.spell.spellID, has(text, "element of Earth"),
+        has(text, "$@") }, { "imbue", 382021, true, false })
+
+    -- A description that only points to another spell's shows that one's,
+    -- and nothing while the game has not loaded it; never the pointer.
+    local function described(spellID)
+        local scanner, data = ns.Game.spellTooltip(spellID)
+        return table.concat(ns.TooltipTypes[SPELL].read(scanner, data, ns.Game).description, " ")
+    end
+    test.check("a pointer shows the spell it points to", described(382023), spells[382021][3])
+    loaded[382021] = nil
+    test.check("an unloaded pointer shows nothing", described(382023), "")
+    loaded[382021] = spells[382021][3]
+    -- Improved Earthliving Weapon keeps its own description.
+    test.check("the talent's description is its own", described(382315),
+        "Earthliving receives 150% additional benefit from Mastery: Deep Healing.\nHealing Wave always triggers "
+            .. "Earthliving on its target.")
     C_PaperDollInfo, WOW_PROJECT_ID, WOW_PROJECT_MAINLINE = nil, nil, nil
 end
