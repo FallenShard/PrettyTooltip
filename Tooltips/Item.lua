@@ -44,6 +44,7 @@ local QUALITY = {
 local SOURCE_COLOR = { .12, 1, .12 }
 local UPGRADE_COLOR = { .90, .80, .55 }
 local TRANSMOG_COLOR = { 1, .50, 1 }
+local CRAFTED_COLOR = { .90, .85, .74 }
 
 -- "Upgrade Level: Myth 2/6" as "Myth 2/6", in the game's own short wording.
 local function upgradeOf(text)
@@ -63,6 +64,19 @@ local function transmogOf(text)
     if header == "" or plain:sub(1, #header) ~= header then return end
     local rest = plain:sub(#header + 1):gsub("|n", "\n")
     return util.trim((rest:gsub("%s+", " ")))
+end
+
+local GEM_COLOR = { .90, .85, .74 }
+-- A gem's own enchantment, as the game draws it: indented, in gold.
+local GEM_ENCHANT_COLOR = { 1, .82, 0 }
+local GEM_ENCHANT_INDENT = 20
+
+-- A socket's icon: the gem in it, else the game's empty socket of its kind.
+local function socketIcon(line)
+    local gem = not isSecret(line.gemIcon) and line.gemIcon or nil
+    if type(gem) == "number" or type(gem) == "string" then return gem end
+    local kind = not isSecret(line.socketType) and line.socketType or nil
+    if type(kind) == "string" and kind ~= "" then return "Interface\\ItemSocketingFrame\\UI-EmptySocket-" .. kind end
 end
 
 -- A primary stat another specialization uses, as retail's tooltip greys it.
@@ -476,6 +490,26 @@ local function readModel(tooltip, data, game)
             if level then m.level, m.levelLine = tonumber(level), true end
         elseif (LINE.ItemUpgradeLevel and lineType == LINE.ItemUpgradeLevel) or upgradeOf(plainText(trimmed)) then
             m.upgrade = upgradeOf(plainText(trimmed)) or trimmed
+        elseif LINE.GemSocket and lineType == LINE.GemSocket then
+            -- A gem's stat in its stat color, without the stat marker; an empty
+            -- socket as the game words it.
+            local text = ns.Stats.styleStat(util.trim(original or left), ns.option("statColors"), false)
+            m.sockets = m.sockets or {}
+            add(m.sockets, text, right)
+            local row = m.sockets[#m.sockets]
+            row.icon, row.color = socketIcon(line), colorOf(line.leftColor)
+        elseif LINE.GemSocketEnchantment and lineType == LINE.GemSocketEnchantment then
+            m.sockets = m.sockets or {}
+            add(m.sockets, left, right)
+            m.sockets[#m.sockets].indent, m.sockets[#m.sockets].color = GEM_ENCHANT_INDENT, GEM_ENCHANT_COLOR
+        elseif right == "" and unformat(plainText(trimmed), ITEM_SOCKET_BONUS) then
+            -- Green while every socket matches, grey before.
+            m.sockets = m.sockets or {}
+            add(m.sockets, original or left, "")
+            m.sockets[#m.sockets].color = colorOf(line.leftColor)
+        elseif (LINE.ProfessionCraftingQuality and lineType == LINE.ProfessionCraftingQuality)
+            or (right == "" and unformat(plainText(trimmed), PROFESSIONS_CRAFTING_QUALITY)) then
+            m.craftingQuality = trimmed
         elseif right == "" and transmogOf(trimmed) then
             local appearance = transmogOf(trimmed)
             if appearance == "" then transmogLast = true else m.transmog = appearance end
@@ -916,16 +950,31 @@ local function listWidth(panel, list, style, extra, prose)
     return need
 end
 
--- Whether an item has stats, effects, or flavor, drawn under the first divider.
 -- Retail styles its secondary stats apart from the primary ones.
 local function secondaryStyle(styles)
     return ns.retail and styles.secondaryStats or styles.stats
 end
 
+-- Whether an item has stats, effects, gems, or flavor, drawn under the first divider.
 local function hasStats(model)
     return model.weaponDps or model.weaponDamage or #model.weaponBonus > 0 or #model.armor > 0
         or #model.primary > 0 or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
-        or #model.effects > 0 or #model.flavor > 0
+        or #model.effects > 0 or #model.flavor > 0 or (model.sockets and #model.sockets > 0)
+end
+
+-- A socket's row with its icon before the text, the icon the text's height.
+local function socketRow(row, style)
+    if not row.icon then return row end
+    local size = math.floor((style.size or 12) * 1.25 + .5)
+    return { left = "|T" .. row.icon .. ":" .. size .. ":" .. size .. ":0:0|t " .. row.left, right = row.right,
+        color = row.color, rightColor = row.rightColor }
+end
+
+local function drawSockets(panel, sockets, y, style)
+    for _, row in ipairs(sockets) do
+        y = drawRow(panel, socketRow(row, style), y, style, GEM_COLOR, row.indent or 0, 3)
+    end
+    return y
 end
 
 local function statsWidth(panel, model, styles)
@@ -935,6 +984,9 @@ local function statsWidth(panel, model, styles)
         listWidth(panel, model.secondary, secondaryStyle(styles), 0),
         listWidth(panel, model.enchants, styles.enchants, markerIndent(panel, styles.enchants)),
         listWidth(panel, model.flavor, styles.flavor, 0, true))
+    for _, row in ipairs(model.sockets or {}) do
+        need = math.max(need, listWidth(panel, { socketRow(row, styles.gems) }, styles.gems, row.indent or 0))
+    end
     for _, row in ipairs(model.equipEffects) do
         need = math.max(need, math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
             + markerIndent(panel, styles.equipEffects))
@@ -1061,6 +1113,10 @@ local function drawStats(panel, model, styles, y)
     y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
     y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
+    if model.sockets and #model.sockets > 0 then
+        if y > top then y = y + 4 end
+        y = drawSockets(panel, model.sockets, y, styles.gems)
+    end
     -- Use effects and flavor stand apart from the stats above them; first under
     -- the divider, they start where anything would.
     if #model.effects > 0 and y > top then y = y + 5 end
@@ -1200,6 +1256,10 @@ local function itemView(panel, model)
     end
     if model.upgrade then
         header[#header + 1] = { text = model.upgrade, style = styles.itemUpgrade, color = UPGRADE_COLOR, gap = 4 }
+    end
+    if model.craftingQuality then
+        header[#header + 1] = { text = model.craftingQuality, style = styles.craftingQuality, color = CRAFTED_COLOR,
+            gap = 4 }
     end
     header[#header + 1] = { rows = model.header, style = styles.header, color = { .78, .72, .63 }, gap = 3 }
     local looks = {}

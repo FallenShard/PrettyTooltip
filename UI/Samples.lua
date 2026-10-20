@@ -48,6 +48,16 @@ local TYPES = {
                     source = ns.retail and ITEM_HEROIC or nil,
                     upgrade = ns.retail and fill(ITEM_UPGRADE_DROPDOWN_LEVEL_FORMAT_STRING, L["Myth"], 2, 6) or nil,
                     transmog = ns.retail and itemName(7717, "Ravager") or nil,
+                    craftingQuality = ns.retail and fill(PROFESSIONS_CRAFTING_QUALITY,
+                        "|A:Professions-ChatIcon-Quality-Tier5:17:17|a") or nil,
+                    -- Retail's sockets: a gem, an empty socket, and the bonus once both are filled.
+                    sockets = ns.retail and {
+                        { left = ns.Stats.styleStat(statLine("HASTE", 70), true, false), right = "",
+                            icon = "Interface\\Icons\\INV_Misc_Gem_Diamond_02" },
+                        { left = EMPTY_SOCKET_PRISMATIC, right = "", color = { .5, .5, .5 },
+                            icon = "Interface\\ItemSocketingFrame\\UI-EmptySocket-Prismatic" },
+                        { left = fill(ITEM_SOCKET_BONUS, statLine("STAMINA", 8)), right = "", color = { .5, .5, .5 } },
+                    } or nil,
                     weaponDps = "53.8",
                     weaponDamage = fill(DAMAGE_TEMPLATE, 153, 256), weaponSpeed = fill(formats.weaponSpeed, "3.80"),
                     primary = { statLine("STAMINA", 13) },

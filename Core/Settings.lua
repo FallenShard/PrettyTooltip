@@ -146,6 +146,8 @@ ns.ELEMENTS = {
         note = "Where the item comes from, as Heroic or Mythic, under its name. The game's color unless set." },
     { key = "itemUpgrade", label = "Upgrade level", size = 12, color = { .90, .80, .55 }, retail = true,
         note = "The upgrade track and level, as Myth 2/6." },
+    { key = "craftingQuality", label = "Crafted quality", size = 12, color = { .90, .85, .74 }, retail = true,
+        note = "A crafted item's quality, with the game's quality icon." },
     { key = "itemTransmog", label = "Transmogrification", size = 12, color = { 1, .50, 1 }, retail = true,
         note = "The appearance and weapon illusion the item is transmogrified to." },
     { key = "dps", label = "Damage per second", size = 18, color = { .90, .93, .95 } },
@@ -158,6 +160,9 @@ ns.ELEMENTS = {
     { key = "equipEffects", label = "Equip effects", size = 13, color = { .48, .88, .48 },
         note = "On-hit numbers use the spell tooltip's school colors unless set." },
     { key = "enchants", label = "Enchants", size = 13, color = { .30, .90, .30 } },
+    { key = "gems", label = "Gems and sockets", size = 12, color = { .90, .85, .74 }, retail = true,
+        note = "Socketed gems with their icons, empty sockets, and the socket bonus. Gem stats in their stat colors, "
+            .. "the socket bonus green once active, unless set." },
     { key = "effects", label = "Use and other effects", size = 13, color = { .48, .88, .48 } },
     { key = "flavor", label = "Flavor text", size = 12, color = colors.flavor },
     { key = "setName", label = "Set name and count", size = 15, title = true,
