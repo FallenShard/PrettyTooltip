@@ -265,7 +265,7 @@ L["Stat markers"] = "Маркеры характеристик"
 L["The small diamond before each stat; enchants use a green one."] = "Маленький ромб перед каждой характеристикой; у чар он зеленый."
 L["Stat colors"] = "Цвета характеристик"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] = "Каждый тип характеристик использует свой цвет из списка ниже, а также цвета школ. При отключении все характеристики имеют цвет пергамента."
-L["Short wording"] = "Краткие формулировки"
+L["Abbreviated Equip Effects"] = "Краткие эффекты «Если на персонаже»"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "Там, где показывается игровая подсказка предмета, в макете Blizzard или для предметов без оформления, эффекты «Если на персонаже» сокращаются, например до +1% к вероятности критического удара, а игровые цвета сохраняются, кроме силы заклинаний и эффектов при попадании, которые окрашены в цвета характеристик. Удерживайте клавишу игровой подсказки, чтобы увидеть полный текст."
 L["Disenchant"] = "Распыление"

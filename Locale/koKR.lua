@@ -272,7 +272,7 @@ L["The small diamond before each stat; enchants use a green one."] = "각 능력
 L["Stat colors"] = "능력치 색상"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "아래의 능력치 분류 색상과 주문 계열 색상을 사용합니다. 끄면 모든 능력치를 양피지 색으로 표시합니다."
-L["Short wording"] = "짧은 문구"
+L["Abbreviated Equip Effects"] = "착용 효과 줄여 표시"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "블리자드 레이아웃이나 꾸미지 않는 아이템처럼 게임의 아이템 툴팁이 보일 때, 착용 효과를 치명타 확률 +1%처럼 줄여 표시합니다. 게임 색상을 유지하되 주문력과 적중 시 발동 효과에는 능력치 색상을 씁니다. 기본 툴팁 보조키를 누르면 전체 문구를 표시합니다."
 L["Disenchant"] = "마력 추출"

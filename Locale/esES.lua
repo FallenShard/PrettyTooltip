@@ -295,7 +295,7 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Colores de estadísticas"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Cada tipo de estadística en su color de abajo, y los colores de escuela. Desactivado, todas las estadísticas son color pergamino."
-L["Short wording"] = "Texto abreviado"
+L["Abbreviated Equip Effects"] = "Efectos de Equipar abreviados"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "Donde se muestra la descripción de objeto del juego, en el diseño Blizzard o con los objetos sin rediseñar, sus efectos de Equipar se abrevian, como +1% Probabilidad de golpe crítico, y se conservan los colores del juego, salvo el poder con hechizos y los efectos de probabilidad al golpear, en sus colores de atributo. Mantén pulsada la tecla para la descripción del juego para ver el texto completo."
 L["Disenchant"] = "Desencantar"

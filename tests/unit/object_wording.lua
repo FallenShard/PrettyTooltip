@@ -10,9 +10,10 @@ return function(test)
         local capture = { enums = { TooltipDataType = { Item = 0, Object = OBJECT, UnitAura = AURA } },
             data = { type = kind, lines = {} }, lines = {} }
         for index, line in ipairs(lines) do
-            local left, right = line, nil
-            if type(line) == "table" then left, right = line[1], line[2] end
-            capture.data.lines[index] = { type = 0, lineIndex = index, leftText = left, rightText = right }
+            local left, right, color = line, nil, nil
+            if type(line) == "table" then left, right, color = line[1], line[2], line.color end
+            capture.data.lines[index] = { type = 0, lineIndex = index, leftText = left, rightText = right,
+                leftColor = color and { r = color[1], g = color[2], b = color[3] } }
             capture.lines[index] = { left = { text = left }, right = right and { text = right } }
         end
         -- A language file loads after English.lua, before everything that reads it.
@@ -40,6 +41,9 @@ return function(test)
         { skill = "Mining", row = "Mining", details = { "Requires Mining" } })
     test.check("enUS: a locked chest", object({ "Battered Chest", "Locked", "Requires Lockpicking (25)" }),
         { skill = "Lockpicking", details = { "Locked", "Requires Lockpicking (25)" } })
+    -- "Locked" keeps the game's color, which tells how hard the lock is to pick.
+    local chest = read(OBJECT, "Tooltips/Object.lua", { "Battered Chest", { "Locked", "", color = { 1, .5, .25 } } })
+    test.check("enUS: a lock's difficulty color", chest.details[1].color, { 1, .5, .25 })
     test.check("a skill line in the client's words", object({ "Peacebloom", "Kr\195\164uterkunde" },
         { skills = { Herbalism = "Kr\195\164uterkunde" } }),
         { skill = "Herbalism", row = "Kr\195\164uterkunde", details = {} })

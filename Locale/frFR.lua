@@ -290,7 +290,7 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Couleurs des caractéristiques"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Chaque type de caractéristique dans sa couleur ci-dessous, et les couleurs des écoles. Désactivé : toutes les caractéristiques sont couleur parchemin."
-L["Short wording"] = "Libellés courts"
+L["Abbreviated Equip Effects"] = "Effets Équipé abrégés"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "Là où l'infobulle d'objet du jeu s'affiche, dans la mise en page Blizzard ou pour les objets non restylés, ses effets Équipé sont raccourcis, comme +1% Chances de coup critique, et les couleurs du jeu gardées, sauf la puissance des sorts et les effets Chances quand vous touchez, dans leurs couleurs de caractéristique. Maintenez la touche pour l'infobulle du jeu pour le libellé complet."
 L["Disenchant"] = "Désenchanter"

@@ -270,7 +270,7 @@ L["The small diamond before each stat; enchants use a green one."] = "每项属�
 L["Stat colors"] = "属性颜色"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "使用下方的属性分类颜色和法术学派颜色。关闭后所有属性均使用羊皮纸色。"
-L["Short wording"] = "简短文字"
+L["Abbreviated Equip Effects"] = "简化装备效果"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "在显示游戏物品提示时（暴雪布局或未重绘的物品），将装备效果缩短为+1%爆击几率等简短文字。保留游戏颜色，法术强度和击中时触发的效果则使用属性颜色。按住原版提示修饰键可查看完整文字。"
 L["Disenchant"] = "分解"

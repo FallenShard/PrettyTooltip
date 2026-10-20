@@ -198,6 +198,8 @@ local function readObject(tooltip, data, game)
                 elseif text == LOCKED then
                     model.skill = model.skill or "Lockpicking"
                     tooltipData.add(model.details, left, right)
+                    -- The game colors it by the lockpicking it needs against the player's.
+                    model.details[#model.details].color = util.rgb(line.leftColor)
                 elseif LINE.QuestTitle and line.type == LINE.QuestTitle then
                     tooltipData.add(model.quests, left, right)
                     model.quests[#model.quests].title = true
@@ -259,7 +261,7 @@ local function objectView(panel, model)
     for _, row in ipairs(model.details) do
         -- The skill row already says what this requirement says.
         if not (skill and row.requirement and row.left:find(skill.name, 1, true)) then
-            local rowColor = DETAIL_COLOR
+            local rowColor = row.color or DETAIL_COLOR
             if row.requirement then rowColor = row.met and { 1, 1, 1 } or UNMET_COLOR end
             details[#details + 1] = { left = row.left, right = row.right, color = rowColor }
         end

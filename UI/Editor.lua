@@ -1188,7 +1188,7 @@ toggles({
     { "Stat markers", "statMarkers", "The small diamond before each stat; enchants use a green one.", items },
     { "Stat colors", "statColors",
         "Each kind of stat in its color below, and the school colors. Off, every stat is parchment.", items },
-    { "Short wording", "liteWording", "Where the game's own item tooltip shows, in the Blizzard layout or with "
+    { "Abbreviated Equip Effects", "liteWording", "Where the game's own item tooltip shows, in the Blizzard layout or with "
         .. "items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's "
         .. "colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default "
         .. "tooltip modifier for the full wording.", items },

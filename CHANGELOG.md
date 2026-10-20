@@ -1,3 +1,27 @@
+# PrettyTooltip 1.3.1
+
+## Layouts
+
+- Added **Layout Style** to the options page: **PrettyTooltip** draws the panels as before, **Blizzard** keeps the game's own tooltips everywhere. In the Blizzard layout, or for a kind whose **Restyle** box is off, the game's tooltip shows the panel's details while the **Tooltip Details Modifier** is held: disenchant results, the spell power breakdown and rates, gathering contents, and IDs.
+- **Lite tooltips** is now **Abbreviated Equip Effects**: item Equip effects are shortened wherever the game's item tooltip shows. If you had Lite tooltips on, items are no longer restyled, which gives the same tooltip.
+
+## Tooltips
+
+- Fixed the game's original tooltip showing under the panel as a world unit's tooltip fades, most noticeably in combat, and popping back up after combat when follow cursor is on.
+- Fixed the panel briefly appearing at the tooltip's default anchor when moving between action buttons.
+- NPC panels show the NPC's title next to its type ("Humanoid · Herbalism Supplier") and its faction above the PvP badge.
+- Trainer recipes show the item they create, and their reagents in a list of their own, missing ones in red.
+- "Locked" on chests keeps the game's color for how hard the lock is to pick, instead of always showing gray.
+- Recipes no longer list their required skill as a reagent ("Cooking 0 / 80"), and show reagents listed without a count. Reagents no longer show icons, since the game only knows icons of items it has already loaded.
+
+## Reliability
+
+- The addon no longer changes the game's tooltip data or hides the game's tooltip, which reduces taint in combat.
+
+## Bug reports
+
+- Added `/ptip trace`: for a few seconds it records how the game's tooltips and their panels show, fade, and move, to copy into a bug report.
+
 # PrettyTooltip 1.3.0
 
 ## Languages
