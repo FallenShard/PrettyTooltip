@@ -36,6 +36,11 @@ return function(test)
             strip = { model.cost, model.cast, model.cooldown, model.range },
             power = model.power, passive = model.passive,
             requirements = lefts(model.requirements), details = lefts(model.details),
+            reagents = model.reagents and (function()
+                local names = {}
+                for index, reagent in ipairs(model.reagents) do names[index] = reagent.name end
+                return names
+            end)() or nil,
             description = model.description, extras = lefts(model.extras),
         }
     end
@@ -52,7 +57,7 @@ return function(test)
         strip = { { "10", "Rage" }, { "Instant", "Cast" }, { "12 sec", "Cooldown" }, { "Melee", "Range" } },
         power = "Rage",
         requirements = { "Requires Shields" },
-        details = { "Cooldown remaining: 8 sec", "Reagents: Holy Candle" },
+        details = { "Cooldown remaining: 8 sec" }, reagents = { "Holy Candle" },
         description = { "Bashes the target with your shield." },
         extras = {},
     })

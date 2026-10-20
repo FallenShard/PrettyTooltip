@@ -1,0 +1,106 @@
+== tooltip model
+cells: {}
+created:
+  armor: {}
+  comparison: false
+  effects:
+    1:
+      left: "Ignites an incense candle that allows you and others sitting nearby to gain 12 increased Intellect, mutually exclusive with Arcane Intellect.\r\n\r\nRequires a Campfire nearby. All camping features share a cooldown of 1 |4hour:hrs;."
+      right: ""
+      use: true
+  enchants: {}
+  equipEffects: {}
+  extras: {}
+  flavor: {}
+  footerLeft: {}
+  footerRight:
+    1:
+      left: "Requires Herbalism (20)"
+      met: false
+      requirement: true
+      right: ""
+  header: {}
+  kinds: {}
+  levelRequirement:
+    met: false
+    text: "Requires Herbalism (20)"
+  lineIndices:
+    4: true
+    5: true
+    6: true
+  link: 279962
+  name: "Incense Candle"
+  nameColor:
+    1: 1
+    2: 1
+    3: 1
+  primary: {}
+  quality: 1
+  quest: false
+  secondary: {}
+  setBonuses: {}
+  setItems: {}
+  skill:
+    level: 20
+    met: false
+    name: "Herbalism"
+    text: "Requires Herbalism (20)"
+  weaponBonus: {}
+description:
+  1: "Craft an Incense Candle."
+details: {}
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Spell"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+icon: 133751
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+name: "Herbalism: Incense Candle"
+rank: ""
+reagents:
+  1:
+    count: 1
+    missing: true
+    name: "Peacebloom"
+  2:
+    count: 1
+    missing: true
+    name: "Silverleaf"
+requirements: {}
+spellID: 1229705
+== tooltip render
+panel 330 x 352
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
+texture at 6,6 0x45 rgb=1,1,1,1 band
+text at 19,21 w=292 size=17 rgb=0.96,0.92,0.84 "HERBALISM: INCENSE CANDLE"
+text at 19,51 w=292 size=12 rgb=0.92,0.87,0.76 "Craft an Incense Candle."
+text at 148.2,80 w=33.5 size=9 rgb=0.6,0.57,0.52 "CREATES"
+text at 19,98 w=292 size=14 rgb=0.77,0.77,0.77 "INCENSE CANDLE"
+text at 19,116 w=292 size=13 rgb=1,0.34,0.28 "Requires Herbalism (20)"
+text at 19,141 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-gear:11:11:-1:-2:32:32:0:32:0:32:240:200:90|t"
+text at 41,141 w=270 size=13 rgb=0.48,0.88,0.48 "Ignites an incense candle that allows you and others sitting nearby to gain |cffFFF6E412|r increased Intellect, mutually exclusive with Arcane Intellect.\r\n\r\nRequires a Campfire nearby. All camping features share a cooldown of |cffFFF6E41|r hour."
+text at 146,257 w=38 size=9 rgb=0.6,0.57,0.52 "REAGENTS"
+text at 19,275 w=292 size=11 rgb=1,0.34,0.28 "Peacebloom"
+text at 19,290 w=292 size=11 rgb=1,0.34,0.28 "Silverleaf"
+text at 19,305 w=292 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Spell"
+text at 19,320 w=292 size=11 rgb=0.6,0.6,0.63 "Spell ID: 1229705"

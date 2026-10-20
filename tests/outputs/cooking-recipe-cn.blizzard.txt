@@ -1,0 +1,16 @@
+== tooltip as the game shows it
+ 1 "食谱：烤鼠尾鱼"
+ 2 "\
+烤鼠尾鱼"
+ 3 "使用： 在21秒内恢复总计234点生命值，进食时必须保持坐姿。如果你花费至少10秒钟进食，你就会获得进食充分的效果，使你的法术伤害提高4点，持续15分钟。此外，击杀获得的经验值提高5%。 （1秒冷却）"
+ 4 "需要等级 10"
+ 5 "使用： 教你学会烹制烤鼠尾鱼。"
+ 6 "新鲜的鼠尾鱼, 甜香料"
+ 7 "需要烹饪（80）"
+ 8 "已经学会"
+ 9 " "
+10 "|c0042b1fePress F6 to submit an issue for this Item"
+11 "商人  ||  |cffffffff1 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 25 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+12 "拍卖  ||  |cffffffff35 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+   below the lines:
+   "物品ID：21099"

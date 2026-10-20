@@ -1,0 +1,168 @@
+== tooltip model
+armor: {}
+comparison: false
+created:
+  armor: {}
+  effects:
+    1:
+      left: "Places a Trapper's Workbench containing 1 trap, and provides all the benefits of a Camp Chair. Requires a Campfire nearby. \r\n\r\nMay be placed over a Camp Chair to replace it. All camping features share a cooldown of 1 |4hour:hrs;."
+      right: ""
+      use: true
+  enchants: {}
+  equipEffects: {}
+  extras: {}
+  flavor: {}
+  footerLeft: {}
+  footerRight: {}
+  header: {}
+  icon: 5948139
+  kinds: {}
+  link: "|cnIQ1:|Hitem:279938::::::::30:1486:::1:3524::::::|h[Trapper's Workbench]|h|r"
+  name: "Trapper's Workbench"
+  nameColor:
+    1: 1
+    2: 1
+    3: 1
+  primary: {}
+  quality: 1
+  secondary: {}
+  setBonuses: {}
+  setItems: {}
+  weaponBonus: {}
+effects: {}
+enchants: {}
+equipEffects: {}
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|c0042b1fePress F6 to submit an issue for this Item"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Vendor"
+    right: "|cffffffff1 |TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t 20 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  3:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "Auction"
+    right: "|cffffffff3 |TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+    rightColor:
+      1: 0.85
+      2: 0.7
+      3: 0
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+flavor: {}
+footerLeft: {}
+footerRight: {}
+header:
+  1:
+    left: ""
+    right: "Requires Skinning 300"
+    rightColor:
+      1: 1
+      2: 0.34
+      3: 0.28
+icon: 1001491
+kinds: {}
+level: 60
+levelRequirement:
+  met: false
+  text: "Requires Skinning 300"
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+  5: true
+  6: true
+  7: true
+link: 273109
+name: "Blueprint: Trapper's Workbench"
+nameColor:
+  1: 0.1176
+  2: 1
+  3: 0
+primary: {}
+quality: 2
+quest: false
+reagents:
+  1:
+    count: 2
+    have: 0
+    name: "Simple Wood"
+  2:
+    count: 4
+    have: 0
+    name: "Heavy Leather"
+  3:
+    count: 1
+    name: "Iron Bar"
+secondary: {}
+setBonuses: {}
+setItems: {}
+skill:
+  level: 300
+  met: false
+  name: "Skinning"
+  text: "Requires Skinning (300)"
+slot: "Blueprint · Skinning"
+teaches:
+  left: "Use: Teaches you how to place a Trapper's Workbench at a campsite."
+  right: ""
+weaponBonus: {}
+== tooltip render
+panel 323 x 409
+texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
+texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
+texture at 6,6 0x83 rgb=1,1,1,1 band
+text at 19,21 w=285 size=19 rgb=0.3,0.82,0.3 "BLUEPRINT: TRAPPER'S WORKBENCH"
+text at 19,47 w=285 size=13 rgb=0.65,0.91,0.65 "Blueprint · Skinning"
+text at 176,66 w=128 size=12 rgb=1,0.34,0.28 "Requires Skinning 300"
+text at 144.8,93 w=33.5 size=9 rgb=0.6,0.57,0.52 "CREATES"
+texture at 19,111 28x28 rgb=0.616,0.616,0.616,1 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 26x26 rgb=1,1,1,1 5948139
+text at 55,111 w=249 size=14 rgb=0.77,0.77,0.77 "TRAPPER'S WORKBENCH"
+text at 19,147 w=285 size=13 rgb=0.48,0.88,0.48 "Use: Places a Trapper's Workbench containing 1 trap, and provides all the benefits of a Camp Chair. Requires a Campfire nearby. \r\n\r\nMay be placed over a Camp Chair to replace it. All camping features share a cooldown of 1 |4hour:hrs;."
+text at 142.5,263 w=38 size=9 rgb=0.6,0.57,0.52 "REAGENTS"
+text at 19,281 w=241 size=12 rgb=0.9,0.85,0.74 "Simple Wood"
+text at 272,281 w=32 size=12 rgb=1,0.34,0.28 "0 / 2"
+text at 19,298 w=241 size=12 rgb=0.9,0.85,0.74 "Heavy Leather"
+text at 272,298 w=32 size=12 rgb=1,0.34,0.28 "0 / 4"
+text at 19,315 w=265 size=12 rgb=0.9,0.85,0.74 "Iron Bar"
+text at 296,315 w=8 size=12 rgb=0.9,0.85,0.74 "1"
+text at 19,332 w=285 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,347 w=183 size=11 rgb=0.85,0.7,0 "Vendor"
+text at 214,347 w=90 size=11 rgb=0.85,0.7,0 "|cffffffff1 |TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t 20 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,362 w=183 size=11 rgb=0.85,0.7,0 "Auction"
+text at 214,362 w=90 size=11 rgb=0.85,0.7,0 "|cffffffff3 |TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,377 w=285 size=11 rgb=0.6,0.6,0.63 "Item ID: 273109"

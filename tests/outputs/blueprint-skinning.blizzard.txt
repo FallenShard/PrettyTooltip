@@ -1,0 +1,17 @@
+== tooltip as the game shows it
+ 1 "Blueprint: Trapper's Workbench"
+ 2 "\
+Trapper's Workbench"
+ 3 "Use: Places a Trapper's Workbench containing 1 trap, and provides all the benefits of a Camp Chair. Requires a Campfire nearby. \r\
+\r\
+May be placed over a Camp Chair to replace it. All camping features share a cooldown of 1 hour."
+ 4 "Requires Skinning (300)"
+ 5 "Use: Teaches you how to place a Trapper's Workbench at a campsite."
+ 6 "Simple Wood (2), Heavy Leather (4), Iron Bar"
+ 7 "Requires Skinning (300)"
+ 8 " "
+ 9 "|c0042b1fePress F6 to submit an issue for this Item"
+10 "Vendor  ||  |cffffffff1 |TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t 20 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+11 "Auction  ||  |cffffffff3 |TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+   below the lines:
+   "Item ID: 273109"

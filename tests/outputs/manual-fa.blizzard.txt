@@ -1,0 +1,14 @@
+== tooltip as the game shows it
+ 1 "Manual: Potent Anti-Venom"
+ 2 "\
+Potent Anti-Venom"
+ 3 "Use: Target is cured of poisons up to level 45. (1 Min Cooldown)"
+ 4 "Use: Teaches you how to make a Potent Anti-Venom."
+ 5 "Swollen Venom Sac"
+ 6 "Requires First Aid (215)"
+ 7 " "
+ 8 "|c0042b1fePress F6 to submit an issue for this Item"
+ 9 "Vendor  ||  |cffffffff16 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+10 "Auction  ||  |cffffffff7 |TInterface\\MoneyFrame\\UI-GoldIcon:12:12:0:0|t 50 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 00 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+   below the lines:
+   "Item ID: 255728"

@@ -1,0 +1,14 @@
+== tooltip as the game shows it
+ 1 "Herbalism: Incense Candle"
+ 2 "Reagents: |n|cffff2020Peacebloom|r, |cffff2020Silverleaf|r"
+ 3 "Craft an Incense Candle."
+ 4 "\
+Incense Candle"
+ 5 "Use: Ignites an incense candle that allows you and others sitting nearby to gain 12 increased Intellect, mutually exclusive with Arcane Intellect.\r\
+\r\
+Requires a Campfire nearby. All camping features share a cooldown of 1 hour."
+ 6 "Requires Herbalism (20)"
+ 7 " "
+ 8 "|c0042b1fePress F6 to submit an issue for this Spell"
+   below the lines:
+   "Spell ID: 1229705"

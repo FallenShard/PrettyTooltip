@@ -127,4 +127,53 @@ return function(test)
         slot = "Plans \194\183 Blacksmithing",
         level = "Requires Blacksmithing 35",
     })
+
+    -- Cooking recipes name their skill after the dish: it is the recipe's, not a reagent.
+    model, ns = read("enUS", {
+        "Recipe: Smoked Sagefish",
+        "Use: Teaches you how to cook Smoked Sagefish.",
+        "\nSmoked Sagefish",
+        "Requires Level 10",
+        "Use: Restores 234 health over 21 sec.",
+        "Requires Cooking (80)",
+        "Requires Raw Sagefish (2), Mild Spices (1)",
+    })
+    reagents = {}
+    for index, reagent in ipairs(model.reagents or {}) do reagents[index] = { reagent.name, reagent.count } end
+    test.check("enUS: a cooking recipe's skill after the dish", {
+        skill = model.skill and { model.skill.name, model.skill.level }, reagents = reagents,
+    }, { skill = { "Cooking", 80 }, reagents = { { "Raw Sagefish", 2 }, { "Mild Spices", 1 } } })
+
+    -- Once the recipe has its skill, another is the crafted item's, never a reagent.
+    model, ns = read("enUS", {
+        "Schematic: Green Lens",
+        "Requires Engineering (245)",
+        "Use: Teaches you how to make a Green Lens.",
+        "\nGreen Lens",
+        "Requires Engineering (245)",
+        "Requires Thorium Widget (1), Ruby Crown (2)",
+    })
+    reagents = {}
+    for index, reagent in ipairs(model.reagents or {}) do reagents[index] = { reagent.name, reagent.count } end
+    test.check("enUS: a crafted item that needs a profession itself", {
+        skill = model.skill and { model.skill.name, model.skill.level }, reagents = reagents,
+    }, { skill = { "Engineering", 245 }, reagents = { { "Thorium Widget", 1 }, { "Ruby Crown", 2 } } })
+
+    -- Forever's blueprints repeat the skill after the item, and list reagents
+    -- without "Requires", a single one without a count.
+    model, ns = read("enUS", {
+        "Blueprint: Trapper's Workbench",
+        "Requires Skinning (300)",
+        "Use: Teaches you how to make a Trapper's Workbench.",
+        "\nTrapper's Workbench",
+        "Use: Places a Trapper's Workbench containing 1 trap.",
+        "Requires Skinning (300)",
+        "Simple Wood (2), Heavy Leather (4), Iron Bar",
+    })
+    reagents = {}
+    for index, reagent in ipairs(model.reagents or {}) do reagents[index] = { reagent.name, reagent.count } end
+    test.check("enUS: a blueprint's repeated skill and its reagents", {
+        skill = model.skill and { model.skill.name, model.skill.level }, reagents = reagents,
+    }, { skill = { "Skinning", 300 },
+        reagents = { { "Simple Wood", 2 }, { "Heavy Leather", 4 }, { "Iron Bar", 1 } } })
 end

@@ -229,10 +229,15 @@ local function professionRequirement(text)
 end
 
 -- "Requires Bronze Bar (10), Sulfuric Acid (2)": a recipe's reagents.
-local function reagentList(text)
+-- placed: the line stands where a recipe lists its reagents, right after
+-- "Teaches you how to make", where Forever words them without "Requires"
+-- and a single one without a count: "Heavy Leather, Magenta Dye".
+local function reagentList(text, placed)
     text = plainText(text)
+    -- "Requires Cooking (80)" has the same shape, but names a skill.
+    if professionRequirement(text) then return end
     text = unformat(text, ITEM_REQ_SKILL) or text
-    if not text:find("%(%d+%)") then return end
+    if not placed and not text:find("%(%d+%)") then return end
     local list = {}
     for piece in (text .. ","):gmatch("%s*(.-)%s*,") do
         if piece == "" then return end
@@ -333,8 +338,7 @@ local function finishRecipe(tooltip, model, data, game)
         add(model.effects, model.teaches.left, model.teaches.right)
     end
     for _, reagent in ipairs(model.reagents or {}) do
-        local link, _, icon = itemByName(reagent.name, game)
-        reagent.icon = icon
+        local link = itemByName(reagent.name, game)
         reagent.have = game.itemCount(link or reagent.name)
     end
 end
@@ -351,6 +355,7 @@ local function readModel(tooltip, data, game)
     -- Lines go to the recipe or, inside its embedded tooltip, the crafted item.
     local m = model
     local inSet, setTotal = false, 0
+    local teachesLast = false
     local inStockChanges = false
     local function isStockChange(text)
         local trimmed = plainText(text):match("^%s*(.-)%s*$")
@@ -391,13 +396,24 @@ local function readModel(tooltip, data, game)
         end
         local displayed = left
 
+        local afterTeaches = teachesLast
+        teachesLast = false
         if isStockChange(left) then
             addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
-        elseif unformat(trimmed, formats.recipeTeaches) then
+        elseif isType(lineType, "ItemSpellTriggerLearn") or unformat(trimmed, formats.recipeTeaches) then
+            -- Its type marks it in every language; cooking words it apart from
+            -- the other professions ("烹制", not "制作"). The recipe's own lines follow.
             model.teaches = { left = left, right = right }
+            teachesLast = true
+            if model.created then m = model end
+        elseif afterTeaches and model.created and not model.reagents and right == ""
+            and (lineType == nil or isType(lineType, "None")) and reagentList(trimmed, true) then
+            model.reagents, m = reagentList(trimmed, true), model
         elseif m == model and startsQuest then
             model.startsQuest = trimmed
-        elseif m == model and professionRequirement(trimmed) then
+        elseif professionRequirement(trimmed) and (m == model or (model.created and not model.skill)) then
+            -- A recipe's skill, before the item it creates or, as on cooking
+            -- recipes, after it; once the recipe has one, the item's own.
             local name, level = professionRequirement(trimmed)
             model.skill = { name = name, level = level, text = left, met = requirementMet(trimmed, line.leftColor, game) }
         elseif model.created and not model.reagents and reagentList(trimmed) then
@@ -737,8 +753,8 @@ local CREATED_ICON = 26
 local function reagentRows(model)
     local rows = {}
     for _, reagent in ipairs(model.reagents or {}) do
-        local icon = reagent.icon and ("|T" .. reagent.icon .. ":0|t ") or ""
-        local row = { left = icon .. reagent.name, right = tostring(reagent.count) }
+        -- No icons: the client knows one by name only once it has loaded the item.
+        local row = { left = reagent.name, right = tostring(reagent.count) }
         if reagent.have then
             row.right = reagent.have .. " / " .. reagent.count
             if reagent.have < reagent.count then row.rightColor = UNUSABLE_COLOR end
@@ -1114,6 +1130,27 @@ local function render(panel, tooltip, model)
     ui.renderView(panel, tooltip, itemView(panel, model))
 end
 render = probe("render item", render)
+
+-- An item nested in another tooltip, as the item a trainer's recipe spell
+-- crafts: read from its own lines, and drawn as a recipe draws the item it creates.
+ui.createdItem = {
+    read = function(tooltip, data, game)
+        local ok, item = pcall(readModel, tooltip, data, game)
+        if not ok or not item or not item.name then return end
+        -- Its name line starts with a line break; other addons' rows are the outer tooltip's.
+        item.name, item.extras = util.trim(item.name), {}
+        if item.skill and not item.levelRequirement then
+            item.levelRequirement = { text = item.skill.text, met = item.skill.met }
+        end
+        return item
+    end,
+    section = function(created, before)
+        local styles = itemStyles()
+        return { separator = { caption = L["Creates"], style = styles.caption, before = before }, kind = "custom",
+            measure = function(p) return createdWidth(p, created, styles) end,
+            draw = function(p, y) return drawCreated(p, created, styles, y) end }
+    end,
+}
 
 local function details(model, context)
     local rows = {}

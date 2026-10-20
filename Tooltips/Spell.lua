@@ -3,6 +3,7 @@
 local _, ns = ...
 local ui = ns.ui
 local SPELL = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Spell
+local ITEM = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item
 if not (ui and SPELL and ui.renderView) then
     return
 end
@@ -180,6 +181,31 @@ local function readDescription(model, text)
     if #rest > 0 then model.description[#model.description + 1] = table.concat(rest, "\n") end
 end
 
+-- A recipe spell's "Reagents: |nPeacebloom, Silverleaf (2)", each the game
+-- colors red while the player lacks it. Nil for a list it cannot read.
+local function readReagents(text)
+    -- The label as startsWith matched it: without its line break.
+    local label = trim((SPELL_REAGENTS:gsub("|n", "")))
+    local at = text:find(label, 1, true)
+    if label == "" or not at then return end
+    local list = trim((text:sub(at + #label):gsub("^%s*|n", "")))
+    for _, separator in ipairs(ns.Locale.listSeparators) do
+        local following = type(separator) == "table" and separator[2] or ""
+        separator = type(separator) == "table" and separator[1] or separator
+        list = list:gsub(((separator .. following):gsub("%p", "%%%0")), "\031" .. following)
+    end
+    local reagents = {}
+    for piece in (list .. "\031"):gmatch("(.-)\031") do
+        local plain = trim(util.plainText(piece))
+        if plain == "" then return end
+        local name, count = plain:match("^(.-)%s*%((%d+)%)$")
+        name = name or plain
+        reagents[#reagents + 1] = { name = name, count = tonumber(count) or 1,
+            missing = piece:find("|cffff2020", 1, true) ~= nil }
+    end
+    if #reagents > 0 then return reagents end
+end
+
 local function readLine(model, line, left, right, game)
     local text, rightText = trim(left), trim(right)
     if text == "" and rightText == "" then return end
@@ -218,7 +244,8 @@ local function readLine(model, line, left, right, game)
         local row = model.requirements[#model.requirements]
         row.color = not tooltipData.requirementMet(text, line.leftColor, game) and UNMET_COLOR or nil
     elseif startsWith(text, SPELL_REAGENTS) or startsWith(text, SPELL_TOTEMS) then
-        add(model.details, text, rightText)
+        local reagents = not model.reagents and startsWith(text, SPELL_REAGENTS) and readReagents(text)
+        if reagents then model.reagents = reagents else add(model.details, text, rightText) end
     elseif text ~= "" and ((LINE.SpellDescription and line.type == LINE.SpellDescription)
         or isDescription(line, text, rightText)) then
         readDescription(model, text)
@@ -286,12 +313,28 @@ local function readSpell(tooltip, data, game)
     model.spellID = not isSecret(data.id) and data.id or nil
     model.lineIndices = {}
     local current = model
-    for _, line in ipairs(data.lines) do
+    for index, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.lineIndex) or isSecret(line.type) then return end
         -- The game can send a line's index twice, the second time empty.
         local repeated = line.lineIndex and model.lineIndices[line.lineIndex]
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
-        if LINE.NestedBlock and line.type == LINE.NestedBlock then
+        local nestsItem = LINE.NestedBlock and line.type == LINE.NestedBlock and not isSecret(line.tooltipType)
+            and line.tooltipType == ITEM
+        if nestsItem then
+            -- The item a recipe crafts, as a trainer shows it: every line after
+            -- the block is the item's own. Unread, they stay the spell's rows.
+            local created = ui.createdItem and ui.createdItem.read(tooltip, tooltipData.nested(data), game)
+            if created then
+                model.created = created
+                for after = index + 1, #data.lines do
+                    local itemLine = data.lines[after]
+                    local itemIndex = not isSecret(itemLine) and type(itemLine) == "table" and itemLine.lineIndex
+                    if itemIndex and not isSecret(itemIndex) then model.lineIndices[itemIndex] = true end
+                end
+                break
+            end
+            current = model
+        elseif LINE.NestedBlock and line.type == LINE.NestedBlock then
             -- Another spell inside this one: another form's version, or a recipe's result.
             local id = line.tooltipID
             if isSecret(id) then id = nil end
@@ -555,6 +598,19 @@ local function spellView(panel, model)
                 y = y + styledAt(p, nested.name, pad(), y, p.width - 2 * pad(), titleStyle, TITLE_COLOR) + 6
                 return drawBody(p, nested, nestedBody, y, color, styles, numberCode)
             end }
+    end
+    if model.created then sections[#sections + 1] = ui.createdItem.section(model.created, #sections > 0 and 6 or 0) end
+    for _, part in ipairs({ model, nested }) do
+        if part.reagents then
+            local rows = {}
+            for index, reagent in ipairs(part.reagents) do
+                rows[index] = { left = reagent.name, right = reagent.count > 1 and tostring(reagent.count) or "",
+                    color = reagent.missing and UNMET_COLOR or nil }
+            end
+            sections[#sections + 1] = { separator = { caption = util.upper(L["Reagents"]), style = styles.spellCaptions,
+                before = 4 },
+                kind = "rows", rows = rows, style = styles.spellDetails, color = DETAIL_COLOR, gap = 2 }
+        end
     end
     local extras = ui.withID(panel, model.extras, L["Spell ID: %s"], model.spellID)
     if #extras > 0 then
