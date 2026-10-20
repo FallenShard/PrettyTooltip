@@ -342,6 +342,7 @@ return {
     ["RUNIC_POWER"] = "Runic Power",
     ["RUNIC_POWER_COST"] = "%s Runic Power",
     ["SELL_PRICE"] = "Sell Price",
+    ["SHIELD_BLOCK_TEMPLATE"] = "%s Block",
     ["SLASH_CAST1"] = "/cast",
     ["SLASH_CAST2"] = "/spell",
     ["SLASH_CAST3"] = "/cast",

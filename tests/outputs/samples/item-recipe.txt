@@ -107,7 +107,7 @@ texture at 19,111 28x28 rgb=0.24,0.656,0.24,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 1,-1 26x26 rgb=1,1,1,1 INV_Gauntlets_05
 text at 55,111 w=301 size=14 rgb=0.3,0.82,0.3 "VETERAN'S GLOVES"
 text at 55,129 w=301 size=13 rgb=0.65,0.91,0.65 "Mail · Hands · Requires Level 15"
-text at 19,154 w=337 size=16 rgb=0.93,0.87,0.75 "|cffF2E8D5115|r |cffA89F8EArmor|r"
+text at 19,154 w=337 size=16 rgb=0.9,0.93,0.95 "|cffE6ECF2115|r |cffAEB9C7Armor|r"
 text at 19,180 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStrength|r"
 text at 19,198 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+3|r |cffEEE7DAAgility|r"
 text at 19,216 w=337 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAStamina|r"

@@ -31,7 +31,7 @@ read_globals = {
     "GameTooltipHeaderText", "QuestScrollFrame", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",
     "SetPortraitTexture", "ChatEdit_InsertLink", "GetCursorPosition", "NUM_CHAT_WINDOWS",
     "Settings", "SettingsPanel", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory",
-    "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "LOCALIZED_CLASS_NAMES_MALE", "NineSliceUtil",
+    "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "CUSTOM_CLASS_COLORS", "LOCALIZED_CLASS_NAMES_MALE", "NineSliceUtil",
     -- The game's strings, in the client's language; tools/make_strings.py gives
     -- the tests each one listed here.
     "ITEM_DELTA_DESCRIPTION", "ITEM_SPELL_TRIGGER_ONUSE", "ITEM_SPELL_TRIGGER_ONEQUIP", "ITEM_SPELL_TRIGGER_ONPROC",
@@ -43,6 +43,7 @@ read_globals = {
     "ITEM_RACES_ALLOWED", "TRANSMOGRIFY_TOOLTIP_APPEARANCE_UNKNOWN", "TRANSMOGRIFY_STYLE_UNCOLLECTED",
     "DAMAGE_TEMPLATE", "DAMAGE_TEMPLATE_WITH_SCHOOL", "PLUS_DAMAGE_TEMPLATE_WITH_SCHOOL", "DPS_TEMPLATE",
     "ARMOR_TEMPLATE", "SELL_PRICE", "PROFESSIONS_USED_IN_COOKING", "LARGE_NUMBER_SEPERATOR", "DECIMAL_SEPERATOR",
+    "SHIELD_BLOCK_TEMPLATE",
     "MANA", "RAGE", "ENERGY", "FOCUS", "RUNIC_POWER", "MANA_COST", "MANA_COST_LARGE", "RAGE_COST", "ENERGY_COST",
     "FOCUS_COST", "RUNIC_POWER_COST", "SPELL_CAST_TIME_SEC", "SPELL_CAST_TIME_MIN", "SPELL_CAST_TIME_INSTANT",
     "SPELL_CAST_TIME_INSTANT_NO_MANA", "SPELL_CAST_CHANNELED", "SPELL_ON_NEXT_SWING", "SPELL_RECAST_TIME_SEC",

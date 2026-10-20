@@ -78,12 +78,18 @@ local function fitNative(tooltip, panel)
     if not util.call(tooltip.IsShown, tooltip) then return end
     local width, height = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
     if not (width and height) then return end
+    -- Padding uses the native tooltip's units; the panel can have its own scale.
+    local panelScale = util.number(panel:GetEffectiveScale())
+    local nativeScale = util.number(tooltip:GetEffectiveScale())
+    if not (panelScale and nativeScale and panelScale > 0 and nativeScale > 0) then return end
+    local ratio = panelScale / nativeScale
+    local panelWidth, panelHeight = panel:GetWidth() * ratio, panel:GetHeight() * ratio
     -- A refresh asks for several refits; only a changed size needs one.
     local start = perf.on and debugprofilestop()
     if panel.fittedWidth and math.abs(width - panel.fittedWidth) <= .5
         and math.abs(height - panel.fittedHeight) <= .5
-        and math.abs(panel:GetWidth() - panel.fittedPanelWidth) <= .5
-        and math.abs(panel:GetHeight() - panel.fittedPanelHeight) <= .5 then
+        and math.abs(panelWidth - panel.fittedPanelWidth) <= .5
+        and math.abs(panelHeight - panel.fittedPanelHeight) <= .5 then
         timed("refit part: size check (unchanged)", start)
         return
     end
@@ -96,7 +102,6 @@ local function fitNative(tooltip, panel)
         local currentRight, currentBottom = tooltip:GetPadding()
         if isSecret(currentRight) or isSecret(currentBottom) then return end
         if type(currentRight) == "number" and type(currentBottom) == "number" then
-            local panelWidth, panelHeight = panel:GetWidth(), panel:GetHeight()
             local naturalWidth = width - (currentRight - base.right)
             local naturalHeight = height - (currentBottom - base.bottom)
             -- Right after Show the game can report the size before it has laid
@@ -130,14 +135,14 @@ local function fitNative(tooltip, panel)
     tooltip:Show()
     width, height = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
     if not (width and height) then return end
-    local right = base.right + math.max(0, panel:GetWidth() - width)
-    local bottom = base.bottom + math.max(0, panel:GetHeight() - height)
+    local right = base.right + math.max(0, panelWidth - width)
+    local bottom = base.bottom + math.max(0, panelHeight - height)
     if right ~= base.right or bottom ~= base.bottom then
         tooltip:SetPadding(right, bottom, base.left, base.top)
         tooltip:Show()
     end
     panel.fittedWidth, panel.fittedHeight = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
-    panel.fittedPanelWidth, panel.fittedPanelHeight = panel:GetWidth(), panel:GetHeight()
+    panel.fittedPanelWidth, panel.fittedPanelHeight = panelWidth, panelHeight
     timed("refit part: fallback", start)
 end
 
@@ -194,28 +199,20 @@ local function releaseNative(tooltip, panel)
 end
 
 -- A world unit's tooltip fades out once the mouse leaves the unit, the game
--- setting its alpha every frame, past the SetAlpha hook (seen with /ptip
--- trace); it is moved off the screen instead, and the panel fades in its place.
-local FADE_TIME = .5
-
-local function stopFade(panel)
-    panel.fadePending = false
-    if not panel.fade then return end
-    panel.fade:Stop()
-    panel:SetAlpha(1)
-end
+-- setting its alpha every frame, past the SetAlpha hook. Move it off screen
+-- while it fades, and hide our panel immediately.
 
 -- Off the screen, where a fading tooltip goes so its alpha no longer matters.
 local PARKED = -10000
 
--- Moves a fading tooltip off the screen, its panel pinned where it stands.
+-- Moves a fading tooltip off the screen, saving its anchors for reuse.
 -- Hiding the tooltip instead would run its OnHide under the addon's taint.
--- False when where either stands cannot be read.
 local function park(tooltip, panel)
     if panel.parked then return true end
     local clamped = util.call(tooltip.IsClampedToScreen, tooltip)
-    if type(clamped) ~= "boolean" or not ui.pinPanel(panel) then return false end
-    panel.parked = { clamped = clamped }
+    local points = util.framePoints(tooltip)
+    if type(clamped) ~= "boolean" or not points or #points == 0 then return false end
+    panel.parked = { clamped = clamped, points = points }
     return pcall(function()
         if clamped then tooltip:SetClampedToScreen(false) end
         tooltip:ClearAllPoints()
@@ -223,14 +220,24 @@ local function park(tooltip, panel)
     end)
 end
 
--- Once the tooltip is hidden or given new content, which the game anchors
--- afresh. Follow cursor clamps the tooltip again itself when it unclamped it.
+-- An owner or content refresh can reuse the parked anchor. Restore ours only
+-- while it is still parked; the game or another addon may already have moved it.
 local function unpark(tooltip)
     local panel = panels[tooltip]
     local parked = panel and panel.parked
-    if not parked then return end
+    if not parked or not util.canModify(tooltip) then return end
+    local points = util.framePoints(tooltip)
+    if not points then return end
+    local point = points[1]
+    if #points == 1 and point[1] == "TOPRIGHT" and point[2] == UIParent
+        and point[3] == "BOTTOMLEFT" and point[4] == PARKED and point[5] == PARKED then
+        local restored = pcall(function()
+            tooltip:ClearAllPoints()
+            for _, anchor in ipairs(parked.points) do tooltip:SetPoint(unpack(anchor)) end
+        end)
+        if not restored then return end
+    end
     panel.parked = nil
-    if not util.canModify(tooltip) then return end
     if parked.clamped then pcall(tooltip.SetClampedToScreen, tooltip, true) end
     pcall(ui.alignPanel, panel, tooltip)
 end
@@ -241,30 +248,10 @@ local function fadeOut(tooltip)
     if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
     -- The game sets a fading tooltip's alpha itself, past the SetAlpha hook,
     -- so it would show through the panel.
-    if not park(tooltip, panel) then return end
-    if not panel.fade then
-        local fade = panel:CreateAnimationGroup()
-        local alpha = fade:CreateAnimation("Alpha")
-        alpha:SetFromAlpha(1)
-        alpha:SetToAlpha(0)
-        alpha:SetDuration(FADE_TIME)
-        fade:SetToFinalAlpha(true)
-        fade:SetScript("OnFinished", function()
-            panel.fadePending = false
-            panel:Hide()
-            panel:SetAlpha(1)
-        end)
-        panel.fade = fade
-    end
-    panel.fade:Play()
-    -- The restore the game's hide schedules leaves the panel to its fade.
-    panel.fadePending = true
+    panel:Hide()
+    park(tooltip, panel)
 end
 fadeOut = probe("fade out", fadeOut)
-
-local function isFading(panel)
-    return panel.fade and panel.fade:IsPlaying() or false
-end
 
 local function restoreNative(tooltip)
     if isSecret(tooltip) or not tooltip then return end
@@ -272,14 +259,7 @@ local function restoreNative(tooltip)
     if not panel then return end
     panel.restorePending = false
     pcall(releaseNative, tooltip, panel)
-    -- After its fade the game leaves the tooltip shown, off the screen, so a
-    -- later hide must not wait for a fade that has ended.
-    if panel.fadePending and isFading(panel) then
-        panel.fadePending = false
-    else
-        stopFade(panel)
-        panel:Hide()
-    end
+    panel:Hide()
     panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil
     if panel.nativeAlpha and util.canModify(tooltip) then
         tooltip:SetAlpha(panel.nativeAlpha)
@@ -304,6 +284,4 @@ native.isParked = function(tooltip)
     local panel = panels[tooltip]
     return panel ~= nil and panel.parked ~= nil
 end
-native.isFading = isFading
-native.stopFade = stopFade
 native.showsDataType = showsDataType
