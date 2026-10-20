@@ -1,5 +1,6 @@
 -- The retail .toc loads every file Forever's does but the Classic-only data,
--- and what is drawn from that data stays off.
+-- and what is drawn from that data stays off. Spell schools come from retail's
+-- own table.
 return function(test)
     local capture = {
         enums = { TooltipDataType = { Item = 0, Spell = 1, Unit = 2, Object = 3 },
@@ -11,6 +12,8 @@ return function(test)
         ["Data/NodeNames.lua"] = true, ["Data/Skinning.lua"] = true, ["Data/SpellRanks.lua"] = true,
         ["Data/Coefficients.lua"] = true,
     }
+    -- Retail's own files.
+    local RETAIL_ONLY = { ["Core/Retail.lua"] = true, ["Data/SchoolsRetail.lua"] = true }
     local inRetail = {}
     for _, file in ipairs(test.tocs.retail) do inRetail[file] = true end
     local expected, missing = {}, {}
@@ -22,7 +25,7 @@ return function(test)
     test.check("retail loads every file Forever does but the Classic-only data", missing, {})
     local shared = {}
     for _, file in ipairs(test.tocs.retail) do
-        if file ~= "Core/Retail.lua" then shared[#shared + 1] = file end
+        if not RETAIL_ONLY[file] then shared[#shared + 1] = file end
     end
     test.check("retail loads them in Forever's order", shared, expected)
 
@@ -38,7 +41,11 @@ return function(test)
     test.check("retail starts the addon", #world.postCalls[0] > 0, true)
     test.check("retail has no disenchant tables", ns.disenchantFor, nil)
     test.check("retail has no spell power coefficients", ns.spellPowerRows, nil)
-    test.check("retail has no spell schools by name", ns.spellSchool, nil)
+    -- Retail's IDs and names, not Forever's: Frostbolt is 116 on retail, a rank
+    -- of it on Forever is 7322; Chaos Bolt, of every school, has none.
+    test.check("retail's spell schools", { ns.spellSchool(nil, 116), ns.spellSchool(nil, 7322),
+        ns.spellSchool("Starsurge"), ns.spellSchool("Demonbolt"), ns.spellSchool("Frostfire Bolt"),
+        ns.spellSchool("Chaos Bolt") }, { "Frost", nil, "Arcane", "Shadow", "Frostfire", nil })
     test.check("retail has no Classic node names", ns.nodeNames, nil)
     test.check("retail has no spell ranks", ns.spellRanks, nil)
     test.check("retail has no skinning loot", ns.skinningLoot, nil)
@@ -50,6 +57,7 @@ return function(test)
     ns = start(test.tocs.forever)
     test.check("Forever is not flagged", ns.retail, nil)
     test.check("Forever has disenchant tables", type(ns.disenchantFor), "function")
+    test.check("Forever's spell schools", { ns.spellSchool(nil, 7322), ns.spellSchool(nil, 116) }, { "Frost", "Frost" })
     test.check("Forever knows Classic nodes", ns.gatheringNode("Copper Vein"), { level = 1, skill = "Mining" })
 
     local classic = {}

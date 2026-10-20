@@ -4,7 +4,7 @@ A full reskin of tooltips for WoW Forever and retail World of Warcraft. PrettyTo
 
 ## Forever and retail
 
-One download serves both games: retail loads `PrettyTooltip_Mainline.toc`, every other client `PrettyTooltip.toc`. Retail leaves out what comes from Classic's data, as no retail source exists for it: disenchant results, spell power coefficients and rates, spell schools by name, and herb, ore, and skinning loot. Their settings are hidden there.
+One download serves both games: retail loads `PrettyTooltip_Mainline.toc`, every other client `PrettyTooltip.toc`. Retail leaves out what comes from Classic's data, as no retail source exists for it: disenchant results, spell power coefficients and rates, and herb, ore, and skinning loot. Their settings are hidden there. Spell schools come from retail's own spell tables.
 
 ## Item tooltips
 
