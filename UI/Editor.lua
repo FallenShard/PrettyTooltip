@@ -875,7 +875,12 @@ local function section(title, shown, first)
     rule:SetPoint("TOPLEFT", 0, -top - 16)
     rule:SetSize(CONTROLS_WIDTH, 1)
     controls[#controls + 1] = {
-        refresh = function() label:SetText(L[type(title) == "function" and title() or title]) end,
+        refresh = function()
+            -- Hidden sections still refresh, and a title function can return nil.
+            local name = title
+            if type(title) == "function" then name = title() end
+            label:SetText(name and L[name] or "")
+        end,
     }
 end
 
