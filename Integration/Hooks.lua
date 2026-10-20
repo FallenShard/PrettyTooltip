@@ -60,7 +60,7 @@ local function keyOf(tooltipType, tooltip, data)
 end
 
 local function update(tooltip, data)
-    if not util.canModify(tooltip) then return end
+    if not util.canModify(tooltip) or native.isParked(tooltip) then return end
     local panel = getPanel(tooltip)
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
@@ -108,12 +108,8 @@ local function onTooltipData(dataType, tooltip, data)
     end
     -- The editor reads this one itself.
     if tooltip.prettyTooltipScanner then return end
+    native.unpark(tooltip)
     local panel = getPanel(tooltip)
-    -- New content over a panel still fading out, even the same unit's, starts afresh.
-    if native.isFading(panel) then
-        native.stopFade(panel)
-        panel:Hide()
-    end
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)
     if not valid then restoreNative(tooltip); return end

@@ -102,11 +102,11 @@ function ns.Cursor.register()
     end
     -- A fading tooltip moved off the screen (Integration/Native.lua) stays
     -- there, shown, after its fade; moving or clamping it would bring it back
-    -- into view. Its next owner anchors it afresh.
+    -- into view. Native restores its saved anchors when it is reused.
     local function parked()
         return ns.Native ~= nil and ns.Native.isParked(GameTooltip)
     end
-    local function restoreAnchor()
+    local function restoreAnchor(keepPanel)
         follower:Hide()
         forgetPlacement()
         if not util.canModify(GameTooltip) then return end
@@ -120,7 +120,7 @@ function ns.Cursor.register()
         -- stands rather than following the tooltip back to its own anchor.
         local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
         local hiding = not util.call(GameTooltip.IsShown, GameTooltip)
-        if panel and hiding then pcall(ns.ui.pinPanel, panel) end
+        if panel and (hiding or keepPanel) then pcall(ns.ui.pinPanel, panel) end
         -- Restore without SetOwner, which can clear the tooltip's content.
         local points = originalPoints
         local ok = pcall(function()
@@ -129,7 +129,7 @@ function ns.Cursor.register()
         end)
         if not ok then return end
         originalPoints = nil
-        if panel and not hiding then pcall(ns.ui.alignPanel, panel, GameTooltip) end
+        if panel and not hiding and not keepPanel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
     end
     local function refresh(allowHidden)
         if not util.canModify(GameTooltip) or parked() then follower:Hide(); return end
@@ -170,11 +170,11 @@ function ns.Cursor.register()
         end
     end)
 
-    -- A world unit's tooltip fades out where it stands, rather than trailing
-    -- the cursor; its panel fades in its place.
+    -- Return to the real anchor before Native saves it for parking. Saving
+    -- our tracker instead would lose the default position on the next hover.
     if GameTooltip.FadeOut then
         hooksecurefunc(GameTooltip, "FadeOut", function(self)
-            if util.canModify(self) and follower:IsShown() then follower:Hide() end
+            if util.canModify(self) and follower:IsShown() then restoreAnchor(true) end
         end)
     end
 

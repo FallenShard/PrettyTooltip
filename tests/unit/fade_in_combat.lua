@@ -1,8 +1,5 @@
--- A world unit's tooltip that starts fading: the game sets its alpha every
--- frame past the SetAlpha hook, so in combat and out the addon moves it off
--- the screen and fades the panel where it stands. It never hides the game's
--- tooltip, as that would run its OnHide under the addon's taint. New content,
--- or the game's own hide, gives the tooltip its clamping back.
+-- Fading hides only our panel; the native tooltip stays off screen until
+-- reuse, which must restore its anchors without overriding a fresh position.
 return function(test)
     local fixture = { enums = { TooltipDataType = { Item = 0, Object = 33, UnitAura = 7 } },
         data = { type = 33, id = 1, lines = { { lineIndex = 1, leftText = "Mailbox" } } },
@@ -10,17 +7,31 @@ return function(test)
     local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
         "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua", "Integration/Native.lua",
-        "Integration/Hooks.lua" }, fixture)
+        "Integration/Hooks.lua", "Integration/Cursor.lua" }, fixture)
     local tooltip = world.main
     local combat = false
     InCombatLockdown = function() return combat end
+    local pending = {}
+    C_Timer.After = function(_, callback) pending[#pending + 1] = callback end
+    local function flush()
+        local callbacks = pending
+        pending = {}
+        for _, callback in ipairs(callbacks) do callback() end
+    end
     ns.Hooks.install()
     local callback = world.postCalls[33][1]
+    GameTooltip_SetDefaultAnchor = function(frame)
+        frame:SetOwner(UIParent, "ANCHOR_NONE")
+        frame:ClearAllPoints()
+        frame:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 30)
+    end
+    GetCursorPosition = function() return 500, 400 end
+    ns.Cursor.register()
+    local follower = world.objects[#world.objects]
+    ns.setOption("cursorObjects", false)
     local function show()
-        tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        GameTooltip_SetDefaultAnchor(tooltip)
         tooltip:SetClampedToScreen(true)
-        tooltip:ClearAllPoints()
-        tooltip:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 30)
         tooltip:Show()
         tooltip:SetAlpha(1)
         callback(tooltip, fixture.data)
@@ -30,45 +41,96 @@ return function(test)
         local point, relativeTo, relativePoint, x, y = frame:GetPoint(1)
         return { point, relativeTo == UIParent, relativePoint, x, y }
     end
+    local default = { "BOTTOMRIGHT", true, "BOTTOMRIGHT", -20, 30 }
+    local parked = { "TOPRIGHT", true, "BOTTOMLEFT", -10000, -10000 }
 
     for _, inCombat in ipairs({ true, false }) do
         local label = inCombat and "in combat" or "out of combat"
         combat = inCombat
         local panel = show()
-        test.check(label .. ": the panel starts on its tooltip", panel:GetPoint(1) ~= nil
-            and select(2, panel:GetPoint(1)) == tooltip, true)
         tooltip:FadeOut()
-        test.check(label .. ": the game's tooltip is not hidden", tooltip:IsShown(), true)
-        test.check(label .. ": it goes off the screen, unclamped",
-            { anchor(tooltip), tooltip:IsClampedToScreen() }, { { "TOPRIGHT", true, "BOTTOMLEFT", -10000, -10000 }, false })
-        test.check(label .. ": the panel stays where it stood and fades",
-            { select(2, panel:GetPoint(1)) == UIParent, panel.fadePending, panel:IsShown() }, { true, true, true })
-        ns.ui.alignPanel(panel, tooltip)
-        test.check(label .. ": and is not pulled after it", select(2, panel:GetPoint(1)) == UIParent, true)
-        if inCombat then
-            -- The mouse comes back to the unit: new content, anchored afresh.
-            tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-            test.check("new content gives the clamping back", tooltip:IsClampedToScreen(), true)
-            callback(tooltip, fixture.data)
-            test.check("and the panel follows its tooltip again", select(2, panel:GetPoint(1)) == tooltip, true)
-        else
-            tooltip:Hide()
-            tooltip:GetScript("OnHide")(tooltip)
-            test.check("the game's own hide gives the clamping back", tooltip:IsClampedToScreen(), true)
-        end
-        ns.Native.restoreNative(tooltip)
+        test.check(label .. ": only the panel disappears immediately",
+            { tooltip:IsShown(), panel:IsShown() }, { true, false })
+        test.check(label .. ": the native tooltip stays off screen, unclamped",
+            { anchor(tooltip), tooltip:IsClampedToScreen() }, { parked, false })
+        flush()
+        test.check(label .. ": queued renders cannot revive the old panel", panel:IsShown(), false)
+        tooltip:FadeOut()
+        tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        test.check(label .. ": reuse restores the original anchor and clamping",
+            { anchor(tooltip), tooltip:IsClampedToScreen(), ns.Native.isParked(tooltip) }, { default, true, false })
+        callback(tooltip, fixture.data)
+        test.check(label .. ": new content shows the panel at its tooltip",
+            { panel:IsShown(), select(2, panel:GetPoint(1)) == tooltip }, { true, true })
     end
 
-    -- After its fade the game leaves the tooltip shown, off the screen. New
-    -- content then shows the panel again; when another addon hides the
-    -- tooltip, the panel goes with it rather than waiting for the old fade.
     local panel = show()
     tooltip:FadeOut()
-    panel.fade:GetScript("OnFinished")()
-    test.check("the panel is gone once its fade ends", panel:IsShown(), false)
-    panel = show()
-    test.check("new content shows it again", panel:IsShown(), true)
+    callback(tooltip, fixture.data)
+    test.check("a same-owner data handover also restores the position",
+        { anchor(tooltip), tooltip:IsClampedToScreen(), panel:IsShown() }, { default, true, true })
+
+    tooltip:FadeOut()
+    tooltip:ClearAllPoints()
+    tooltip:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 40, -60)
+    callback(tooltip, fixture.data)
+    test.check("a fresh anchor from the game or another addon is preserved", anchor(tooltip),
+        { "TOPLEFT", true, "TOPLEFT", 40, -60 })
+
+    show()
+    tooltip:SetClampedToScreen(false)
+    tooltip:FadeOut()
+    callback(tooltip, fixture.data)
+    test.check("reuse preserves an originally unclamped tooltip",
+        { anchor(tooltip), tooltip:IsClampedToScreen() }, { default, false })
+
+    show()
+    tooltip:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 10, -10)
+    local points = ns.util.framePoints(tooltip)
+    tooltip:FadeOut()
+    tooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    test.check("all saved anchor points are restored", ns.util.framePoints(tooltip), points)
+
+    show()
+    tooltip:FadeOut()
     tooltip:Hide()
-    ns.Native.restoreNative(tooltip)
-    test.check("and a later hide takes it away", panel:IsShown(), false)
+    tooltip:GetScript("OnHide")(tooltip)
+    flush()
+    test.check("the game's own hide releases the parked position",
+        { anchor(tooltip), tooltip:IsClampedToScreen(), panel:IsShown() }, { default, true, false })
+
+    show()
+    local getPoint = tooltip.GetPoint
+    tooltip.GetPoint = function() return "TOPLEFT", UIParent, "TOPLEFT", world.secret, 0 end
+    tooltip:FadeOut()
+    tooltip.GetPoint = getPoint
+    test.check("unreadable anchors are not parked, and the panel still disappears",
+        { anchor(tooltip), ns.Native.isParked(tooltip), panel:IsShown() }, { default, false, false })
+
+    -- Follow cursor must save the actual default anchor before parking, and
+    -- resume on a same-owner handover even after a clear or combat transition.
+    ns.setOption("cursorObjects", true)
+    ns.setOption("cursorDisableInCombat", true)
+    combat = false
+    show()
+    test.check("the integrated tooltip starts following",
+        { select(2, tooltip:GetPoint(1)) == follower, follower:IsShown() }, { true, true })
+    tooltip:FadeOut()
+    test.check("fading hides the panel and stops following",
+        { panel:IsShown(), follower:IsShown(), anchor(tooltip) }, { false, false, parked })
+    tooltip:GetScript("OnTooltipCleared")(tooltip)
+    flush()
+    combat = true
+    world.fireEvent("PLAYER_REGEN_DISABLED")
+    combat = false
+    world.fireEvent("PLAYER_REGEN_ENABLED")
+    test.check("clearing and combat transitions leave the old tooltip parked",
+        { panel:IsShown(), follower:IsShown(), anchor(tooltip) }, { false, false, parked })
+    callback(tooltip, fixture.data)
+    test.check("same-owner content resumes following",
+        { panel:IsShown(), follower:IsShown(), select(2, tooltip:GetPoint(1)) == follower }, { true, true, true })
+    combat = true
+    world.fireEvent("PLAYER_REGEN_DISABLED")
+    test.check("combat still restores the real default anchor after reuse",
+        { anchor(tooltip), tooltip:IsClampedToScreen() }, { default, true })
 end
