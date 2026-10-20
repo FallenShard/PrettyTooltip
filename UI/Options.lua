@@ -182,6 +182,42 @@ function ns.Options.register()
         if ns.refreshEditorStyle then ns.refreshEditorStyle() end
     end)
 
+    section(rightColumn, "Global scale")
+    local scaleSlider = CreateFrame("Slider", nil, page, "MinimalSliderTemplate")
+    scaleSlider:SetOrientation("HORIZONTAL")
+    scaleSlider:SetPoint("TOPLEFT", rightColumn.x + 12, rightColumn.y)
+    scaleSlider:SetSize(220, 16)
+    scaleSlider:SetMinMaxValues(50, 150)
+    scaleSlider:SetValueStep(1)
+    if scaleSlider.SetObeyStepOnDrag then scaleSlider:SetObeyStepOnDrag(true) end
+    local scaleTrack = scaleSlider:CreateTexture(nil, "BACKGROUND")
+    scaleTrack:SetColorTexture(.3, .3, .3, 1)
+    scaleTrack:SetPoint("LEFT")
+    scaleTrack:SetPoint("RIGHT")
+    scaleTrack:SetHeight(4)
+    scaleSlider:SetThumbTexture("Interface\\Buttons\\WHITE8X8")
+    local scaleThumb = scaleSlider:GetThumbTexture()
+    scaleThumb:SetSize(8, 16)
+    scaleThumb:SetVertexColor(.85, .7, .4, 1)
+    local scaleValue = scaleSlider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    scaleValue:SetPoint("LEFT", scaleSlider, "RIGHT", 12, 0)
+    scaleSlider:SetScript("OnValueChanged", function(self, percent)
+        if self.updating then return end
+        percent = math.floor(percent + .5)
+        setOption("tooltipScale", percent ~= 100 and percent / 100 or nil)
+        scaleValue:SetText(percent .. "%")
+    end)
+    scaleSlider.refresh = function()
+        scaleSlider.updating = true
+        local percent = math.floor(ns.tooltipScale() * 100 + .5)
+        scaleSlider:SetValue(percent)
+        scaleValue:SetText(percent .. "%")
+        scaleSlider.updating = false
+    end
+    controls[#controls + 1] = scaleSlider
+    explain(scaleSlider, "Global scale", "Scales every PrettyTooltip panel, including text, icons, spacing, and bars. "
+        .. "100% is the default. Individual text settings are preserved.")
+
     page:SetScript("OnShow", refreshControls)
     -- Hooks the settings window calls on canvas pages: when it shows them, and
     -- from its Defaults button.

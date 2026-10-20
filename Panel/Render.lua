@@ -183,6 +183,8 @@ local DRAW = {
 local function renderView(panel, tooltip, view)
     -- Whatever a tooltip type lent the panel goes back before anything is drawn.
     if panel.release then panel.release(panel) end
+    local scale = ns.tooltipScale()
+    if panel:GetScale() ~= scale then panel:SetScale(scale) end
     panel:Show()
     ui.clearPool(panel)
     live[panel] = nil

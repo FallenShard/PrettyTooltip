@@ -78,12 +78,18 @@ local function fitNative(tooltip, panel)
     if not util.call(tooltip.IsShown, tooltip) then return end
     local width, height = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
     if not (width and height) then return end
+    -- Padding uses the native tooltip's units; the panel can have its own scale.
+    local panelScale = util.number(panel:GetEffectiveScale())
+    local nativeScale = util.number(tooltip:GetEffectiveScale())
+    if not (panelScale and nativeScale and panelScale > 0 and nativeScale > 0) then return end
+    local ratio = panelScale / nativeScale
+    local panelWidth, panelHeight = panel:GetWidth() * ratio, panel:GetHeight() * ratio
     -- A refresh asks for several refits; only a changed size needs one.
     local start = perf.on and debugprofilestop()
     if panel.fittedWidth and math.abs(width - panel.fittedWidth) <= .5
         and math.abs(height - panel.fittedHeight) <= .5
-        and math.abs(panel:GetWidth() - panel.fittedPanelWidth) <= .5
-        and math.abs(panel:GetHeight() - panel.fittedPanelHeight) <= .5 then
+        and math.abs(panelWidth - panel.fittedPanelWidth) <= .5
+        and math.abs(panelHeight - panel.fittedPanelHeight) <= .5 then
         timed("refit part: size check (unchanged)", start)
         return
     end
@@ -96,7 +102,6 @@ local function fitNative(tooltip, panel)
         local currentRight, currentBottom = tooltip:GetPadding()
         if isSecret(currentRight) or isSecret(currentBottom) then return end
         if type(currentRight) == "number" and type(currentBottom) == "number" then
-            local panelWidth, panelHeight = panel:GetWidth(), panel:GetHeight()
             local naturalWidth = width - (currentRight - base.right)
             local naturalHeight = height - (currentBottom - base.bottom)
             -- Right after Show the game can report the size before it has laid
@@ -130,14 +135,14 @@ local function fitNative(tooltip, panel)
     tooltip:Show()
     width, height = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
     if not (width and height) then return end
-    local right = base.right + math.max(0, panel:GetWidth() - width)
-    local bottom = base.bottom + math.max(0, panel:GetHeight() - height)
+    local right = base.right + math.max(0, panelWidth - width)
+    local bottom = base.bottom + math.max(0, panelHeight - height)
     if right ~= base.right or bottom ~= base.bottom then
         tooltip:SetPadding(right, bottom, base.left, base.top)
         tooltip:Show()
     end
     panel.fittedWidth, panel.fittedHeight = util.number(tooltip:GetWidth()), util.number(tooltip:GetHeight())
-    panel.fittedPanelWidth, panel.fittedPanelHeight = panel:GetWidth(), panel:GetHeight()
+    panel.fittedPanelWidth, panel.fittedPanelHeight = panelWidth, panelHeight
     timed("refit part: fallback", start)
 end
 

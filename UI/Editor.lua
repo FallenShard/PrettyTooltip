@@ -268,12 +268,26 @@ scrollThumbTexture:SetWidth(8)
 scrollThumbTexture:SetVertexColor(GOLD[1], GOLD[2], GOLD[3], .7)
 scrollBar:Hide()
 local scrolledFor
+local horizontalBar = CreateFrame("Slider", nil, host)
+horizontalBar:SetOrientation("HORIZONTAL")
+horizontalBar:SetPoint("BOTTOMLEFT", 8, 4)
+horizontalBar:SetPoint("BOTTOMRIGHT", -20, 4)
+horizontalBar:SetHeight(8)
+horizontalBar:SetValueStep(1)
+local horizontalTrack = fill(horizontalBar, "BACKGROUND", LINE, .6)
+horizontalTrack:SetAllPoints()
+horizontalBar:SetThumbTexture(WHITE)
+local horizontalThumb = horizontalBar:GetThumbTexture()
+horizontalThumb:SetHeight(8)
+horizontalThumb:SetVertexColor(GOLD[1], GOLD[2], GOLD[3], .7)
+horizontalBar:Hide()
 
 local function scrollTo(offset)
     anchor:ClearAllPoints()
-    anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN + offset)
+    anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN - horizontalBar:GetValue(), -PREVIEW_MARGIN + offset)
 end
 scrollBar:SetScript("OnValueChanged", function(_, offset) scrollTo(math.floor(offset + .5)) end)
+horizontalBar:SetScript("OnValueChanged", function() scrollTo(scrollBar:GetValue()) end)
 skin:scrollbar(scrollBar, scrollTrack, 8, SCROLL_STEP)
 skin:bind(function(native)
     scrollBar:ClearAllPoints()
@@ -282,7 +296,11 @@ skin:bind(function(native)
 end)
 overlay:EnableMouseWheel(true)
 overlay:SetScript("OnMouseWheel", function(_, delta)
-    if scrollBar:IsShown() then scrollBar:SetValue(scrollBar:GetValue() - delta * SCROLL_STEP) end
+    if IsShiftKeyDown() and horizontalBar:IsShown() then
+        horizontalBar:SetValue(horizontalBar:GetValue() - delta * SCROLL_STEP)
+    elseif scrollBar:IsShown() then
+        scrollBar:SetValue(scrollBar:GetValue() - delta * SCROLL_STEP)
+    end
 end)
 local highlights = {}
 local hovered
@@ -303,14 +321,14 @@ local function partAtCursor()
     local panel = preview()
     if not (panel and panel:IsShown() and panel.hits) then return end
     local x, y = GetCursorPosition()
-    local scale = overlay:GetEffectiveScale()
-    x, y = x / scale, y / scale
     for _, hit in ipairs(panel.hits) do
         local region = hit.region
+        local scale = region:GetEffectiveScale()
+        local cursorX, cursorY = x / scale, y / scale
         local left, right = region:GetLeft(), region:GetRight()
         local top, bottom = region:GetTop(), region:GetBottom()
-        if left and region:IsShown() and x >= left - 2 and x <= right + 2
-            and y <= top + 1 and y >= bottom - 1 then
+        if left and region:IsShown() and cursorX >= left - 2 and cursorX <= right + 2
+            and cursorY <= top + 1 and cursorY >= bottom - 1 then
             return hit.key
         end
     end
@@ -407,11 +425,23 @@ local function drawSample()
         shown:SetShown(problem == nil)
         overlay:SetFrameLevel(shown:GetFrameLevel() + 20)
         scrollBar:SetFrameLevel(overlay:GetFrameLevel() + 5)
+        horizontalBar:SetFrameLevel(overlay:GetFrameLevel() + 5)
     end
     local showing = state.tooltipType .. ":" .. state.sample .. ":" .. tostring(state.lookup)
     local offset = showing == scrolledFor and scrollBar:GetValue() or 0
+    local horizontalOffset = showing == scrolledFor and horizontalBar:GetValue() or 0
     scrolledFor = showing
-    local sampleHeight = (shown and shown:IsShown()) and shown:GetHeight() + 2 * PREVIEW_MARGIN or 0
+    local sampleWidth = (shown and shown:IsShown())
+        and shown:GetWidth() * shown:GetEffectiveScale() / host:GetEffectiveScale() + 2 * PREVIEW_MARGIN or 0
+    local horizontalRange = math.max(0, math.ceil(sampleWidth - host:GetWidth()))
+    horizontalBar:SetMinMaxValues(0, horizontalRange)
+    horizontalBar:SetShown(horizontalRange > 0)
+    if horizontalRange > 0 then
+        horizontalThumb:SetWidth(math.max(24, horizontalBar:GetWidth() * host:GetWidth() / sampleWidth))
+    end
+    horizontalBar:SetValue(math.min(horizontalOffset, horizontalRange))
+    local sampleHeight = (shown and shown:IsShown())
+        and shown:GetHeight() * shown:GetEffectiveScale() / host:GetEffectiveScale() + 2 * PREVIEW_MARGIN or 0
     local range = math.max(0, math.ceil(sampleHeight - host:GetHeight()))
     scrollBar:SetMinMaxValues(0, range)
     scrollBar:SetShown(range > 0)
@@ -1073,6 +1103,11 @@ end
 -- Every tooltip ------------------------------------------------------------------
 
 section("All Tooltips")
+row("Global scale", slider(FIELD_WIDTH, function()
+    return math.floor(ns.tooltipScale() * 100 + .5)
+end, function(percent)
+    ns.setOption("tooltipScale", percent ~= 100 and percent / 100 or nil)
+end, 50, 150, "%"), optionSetting("tooltipScale"))
 row("Text font", dropdown(FIELD_WIDTH, function()
     return fontItems("Game default")
 end, function() return ns.option("bodyFont") end, function(name)

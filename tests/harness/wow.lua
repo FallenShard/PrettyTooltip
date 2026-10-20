@@ -220,8 +220,11 @@ return function(fixture, enums, report, strings)
     function Object:GetRight() return self:GetWidth() end
     function Object:GetTop() return 0 end
     function Object:GetBottom() return -self:GetHeight() end
-    function Object:GetEffectiveScale() return 1 end
-    function Object:GetScale() return 1 end
+    function Object:SetScale(scale) self._scale = scale end
+    function Object:GetEffectiveScale()
+        return self:GetScale() * (self._parent and self._parent:GetEffectiveScale() or 1)
+    end
+    function Object:GetScale() return self._scale or 1 end
     function Object:SetAlpha(alpha) self._alpha = alpha end
     function Object:GetAlpha() return self._alpha end
     function Object:SetFrameLevel(level) self._level = level end

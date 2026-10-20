@@ -69,6 +69,7 @@ local DEFAULTS = {
     -- The panels' inner padding, and the width a panel is at least.
     -- Every part's text size is multiplied by this.
     fontScale = 1,
+    tooltipScale = 1,
     padding = 19,
     minWidth = 260,
     headerTopAlpha = nil,
@@ -79,6 +80,12 @@ function ns.option(key)
     local db = PrettyTooltipDB
     if type(db) == "table" and db[key] ~= nil then return db[key] end
     return DEFAULTS[key]
+end
+
+function ns.tooltipScale()
+    local scale = ns.util.number(ns.option("tooltipScale"))
+    if not scale or scale ~= scale then return 1 end
+    return math.max(.5, math.min(1.5, scale))
 end
 
 -- Whether a type whose panel the setting `option` turns on draws it.
