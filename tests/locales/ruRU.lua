@@ -334,6 +334,7 @@ return {
     ["RUNIC_POWER"] = "Сила рун",
     ["RUNIC_POWER_COST"] = "%s |4единица:единицы:единиц; силы рун",
     ["SELL_PRICE"] = "Цена продажи",
+    ["SHIELD_BLOCK_TEMPLATE"] = "Вероятность блока: %s",
     ["SLASH_CAST1"] = "/закл",
     ["SLASH_CAST2"] = "/заклинание",
     ["SLASH_CAST3"] = "/cast",

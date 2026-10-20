@@ -268,12 +268,26 @@ scrollThumbTexture:SetWidth(8)
 scrollThumbTexture:SetVertexColor(GOLD[1], GOLD[2], GOLD[3], .7)
 scrollBar:Hide()
 local scrolledFor
+local horizontalBar = CreateFrame("Slider", nil, host)
+horizontalBar:SetOrientation("HORIZONTAL")
+horizontalBar:SetPoint("BOTTOMLEFT", 8, 4)
+horizontalBar:SetPoint("BOTTOMRIGHT", -20, 4)
+horizontalBar:SetHeight(8)
+horizontalBar:SetValueStep(1)
+local horizontalTrack = fill(horizontalBar, "BACKGROUND", LINE, .6)
+horizontalTrack:SetAllPoints()
+horizontalBar:SetThumbTexture(WHITE)
+local horizontalThumb = horizontalBar:GetThumbTexture()
+horizontalThumb:SetHeight(8)
+horizontalThumb:SetVertexColor(GOLD[1], GOLD[2], GOLD[3], .7)
+horizontalBar:Hide()
 
 local function scrollTo(offset)
     anchor:ClearAllPoints()
-    anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN, -PREVIEW_MARGIN + offset)
+    anchor:SetPoint("TOPLEFT", PREVIEW_MARGIN - horizontalBar:GetValue(), -PREVIEW_MARGIN + offset)
 end
 scrollBar:SetScript("OnValueChanged", function(_, offset) scrollTo(math.floor(offset + .5)) end)
+horizontalBar:SetScript("OnValueChanged", function() scrollTo(scrollBar:GetValue()) end)
 skin:scrollbar(scrollBar, scrollTrack, 8, SCROLL_STEP)
 skin:bind(function(native)
     scrollBar:ClearAllPoints()
@@ -282,7 +296,11 @@ skin:bind(function(native)
 end)
 overlay:EnableMouseWheel(true)
 overlay:SetScript("OnMouseWheel", function(_, delta)
-    if scrollBar:IsShown() then scrollBar:SetValue(scrollBar:GetValue() - delta * SCROLL_STEP) end
+    if IsShiftKeyDown() and horizontalBar:IsShown() then
+        horizontalBar:SetValue(horizontalBar:GetValue() - delta * SCROLL_STEP)
+    elseif scrollBar:IsShown() then
+        scrollBar:SetValue(scrollBar:GetValue() - delta * SCROLL_STEP)
+    end
 end)
 local highlights = {}
 local hovered
@@ -303,14 +321,14 @@ local function partAtCursor()
     local panel = preview()
     if not (panel and panel:IsShown() and panel.hits) then return end
     local x, y = GetCursorPosition()
-    local scale = overlay:GetEffectiveScale()
-    x, y = x / scale, y / scale
     for _, hit in ipairs(panel.hits) do
         local region = hit.region
+        local scale = region:GetEffectiveScale()
+        local cursorX, cursorY = x / scale, y / scale
         local left, right = region:GetLeft(), region:GetRight()
         local top, bottom = region:GetTop(), region:GetBottom()
-        if left and region:IsShown() and x >= left - 2 and x <= right + 2
-            and y <= top + 1 and y >= bottom - 1 then
+        if left and region:IsShown() and cursorX >= left - 2 and cursorX <= right + 2
+            and cursorY <= top + 1 and cursorY >= bottom - 1 then
             return hit.key
         end
     end
@@ -407,11 +425,23 @@ local function drawSample()
         shown:SetShown(problem == nil)
         overlay:SetFrameLevel(shown:GetFrameLevel() + 20)
         scrollBar:SetFrameLevel(overlay:GetFrameLevel() + 5)
+        horizontalBar:SetFrameLevel(overlay:GetFrameLevel() + 5)
     end
     local showing = state.tooltipType .. ":" .. state.sample .. ":" .. tostring(state.lookup)
     local offset = showing == scrolledFor and scrollBar:GetValue() or 0
+    local horizontalOffset = showing == scrolledFor and horizontalBar:GetValue() or 0
     scrolledFor = showing
-    local sampleHeight = (shown and shown:IsShown()) and shown:GetHeight() + 2 * PREVIEW_MARGIN or 0
+    local sampleWidth = (shown and shown:IsShown())
+        and shown:GetWidth() * shown:GetEffectiveScale() / host:GetEffectiveScale() + 2 * PREVIEW_MARGIN or 0
+    local horizontalRange = math.max(0, math.ceil(sampleWidth - host:GetWidth()))
+    horizontalBar:SetMinMaxValues(0, horizontalRange)
+    horizontalBar:SetShown(horizontalRange > 0)
+    if horizontalRange > 0 then
+        horizontalThumb:SetWidth(math.max(24, horizontalBar:GetWidth() * host:GetWidth() / sampleWidth))
+    end
+    horizontalBar:SetValue(math.min(horizontalOffset, horizontalRange))
+    local sampleHeight = (shown and shown:IsShown())
+        and shown:GetHeight() * shown:GetEffectiveScale() / host:GetEffectiveScale() + 2 * PREVIEW_MARGIN or 0
     local range = math.max(0, math.ceil(sampleHeight - host:GetHeight()))
     scrollBar:SetMinMaxValues(0, range)
     scrollBar:SetShown(range > 0)
@@ -1013,7 +1043,8 @@ local function hexColor(hex)
     return { tonumber(hex:sub(1, 2), 16) / 255, tonumber(hex:sub(3, 4), 16) / 255, tonumber(hex:sub(5, 6), 16) / 255 }
 end
 
-local function colorSwatches(list, prefix, colorOf)
+-- note, if given, says why the colors shown may not be the ones chosen.
+local function colorSwatches(list, prefix, colorOf, note)
     local holder = CreateFrame("Frame", nil, content)
     holder:SetSize(CONTROLS_WIDTH, 22)
     local chips = {}
@@ -1042,6 +1073,8 @@ local function colorSwatches(list, prefix, colorOf)
             GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
             GameTooltip:SetText(L[choice.label], 1, 1, 1)
             GameTooltip:AddLine(L["Click to choose its color; right-click for the default."], nil, nil, nil, true)
+            local why = note and note()
+            if why then GameTooltip:AddLine(why, 1, .82, 0, true) end
             GameTooltip:Show()
         end)
         swatch:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -1073,6 +1106,11 @@ end
 -- Every tooltip ------------------------------------------------------------------
 
 section("All Tooltips")
+row("Global scale", slider(FIELD_WIDTH, function()
+    return math.floor(ns.tooltipScale() * 100 + .5)
+end, function(percent)
+    ns.setOption("tooltipScale", percent ~= 100 and percent / 100 or nil)
+end, 50, 150, "%"), optionSetting("tooltipScale"))
 row("Text font", dropdown(FIELD_WIDTH, function()
     return fontItems("Game default")
 end, function() return ns.option("bodyFont") end, function(name)
@@ -1192,6 +1230,8 @@ toggles({
         .. "items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's "
         .. "colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default "
         .. "tooltip modifier for the full wording.", items },
+    { "Swap Damage Stats", "swapDamage", "A weapon's damage on the large line, with its speed and damage per "
+        .. "second on the small one under it.", items },
     { "Disenchant", "disenchant", "Green, blue, and purple armor and weapons list what they disenchant into, "
         .. "with each result's chance and the Enchanting it needs; with Auctionator, the expected value.", items },
     { "Sell price", "sellPrice", "The vendor price in the footer; for a stack, the price of one and of the "
@@ -1217,7 +1257,11 @@ toggles({
 row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)
     return hexColor((ns.Stats.categoryColors(key)))
 end), colorGroupSetting(ns.Stats.CATEGORIES, "statColor"), items, true)
-row("Class colors", colorSwatches(ns.Palette.CLASSES, "classColor", ns.Palette.classColor),
+row("Class colors", colorSwatches(ns.Palette.CLASSES, "classColor", ns.Palette.classColor, function()
+    if ns.Palette.addonClassColors() then
+        return L["Your class colors addon sets these; the colors chosen here apply without it."]
+    end
+end),
     colorGroupSetting(ns.Palette.CLASSES, "classColor"), units, true)
 
 -- Lays out the entries shown, top to bottom, and sizes the scroll to them.

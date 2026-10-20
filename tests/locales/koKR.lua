@@ -334,6 +334,7 @@ return {
     ["RUNIC_POWER"] = "룬 마력",
     ["RUNIC_POWER_COST"] = "룬 마력 %s",
     ["SELL_PRICE"] = "판매 가격",
+    ["SHIELD_BLOCK_TEMPLATE"] = "방패 막기 %s",
     ["SLASH_CAST1"] = "/시전",
     ["SLASH_CAST2"] = "/spell",
     ["SLASH_CAST3"] = "/cast",

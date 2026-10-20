@@ -31,6 +31,8 @@ local DEFAULTS = {
     statColors = true,
     qualityTint = true,
     statMarkers = true,
+    -- A weapon's damage on the large line, its DPS and speed under it.
+    swapDamage = false,
     itemLevelBadge = true,
     unitLevelBadge = true,
     separators = true,
@@ -67,6 +69,7 @@ local DEFAULTS = {
     -- The panels' inner padding, and the width a panel is at least.
     -- Every part's text size is multiplied by this.
     fontScale = 1,
+    tooltipScale = 1,
     padding = 19,
     minWidth = 260,
     headerTopAlpha = nil,
@@ -77,6 +80,12 @@ function ns.option(key)
     local db = PrettyTooltipDB
     if type(db) == "table" and db[key] ~= nil then return db[key] end
     return DEFAULTS[key]
+end
+
+function ns.tooltipScale()
+    local scale = ns.util.number(ns.option("tooltipScale"))
+    if not scale or scale ~= scale then return 1 end
+    return math.max(.5, math.min(1.5, scale))
 end
 
 -- Whether a type whose panel the setting `option` turns on draws it.
@@ -130,9 +139,9 @@ ns.ELEMENTS = {
         note = "Half the quality color, red for a type you cannot use." },
     { key = "header", label = "Binding and level", size = 12, color = { .78, .72, .63 },
         note = "The required level is red while you are below it." },
-    { key = "dps", label = "Damage per second", size = 18, color = { .95, .91, .84 } },
-    { key = "damage", label = "Damage and speed", size = 12, color = { .71, .72, .73 } },
-    { key = "armor", label = "Armor", size = 16, color = { .95, .91, .84 } },
+    { key = "dps", label = "Damage per second", size = 18, color = { .90, .93, .95 } },
+    { key = "damage", label = "Damage and speed", size = 12, color = { .62, .65, .70 } },
+    { key = "armor", label = "Armor", size = 16, color = { .90, .93, .95 } },
     { key = "stats", label = "Stats", size = 13, color = { .90, .85, .74 },
         note = "Colored by category unless set." },
     { key = "equipEffects", label = "Equip effects", size = 13, color = { .48, .88, .48 },

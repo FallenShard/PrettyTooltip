@@ -334,6 +334,7 @@ return {
     ["RUNIC_POWER"] = "P. runique",
     ["RUNIC_POWER_COST"] = "%s puissance runique",
     ["SELL_PRICE"] = "Prix de vente\32",
+    ["SHIELD_BLOCK_TEMPLATE"] = "Bloquer : %s",
     ["SLASH_CAST1"] = "/lancer",
     ["SLASH_CAST2"] = "/sort",
     ["SLASH_CAST3"] = "/cast",

@@ -220,8 +220,11 @@ return function(fixture, enums, report, strings)
     function Object:GetRight() return self:GetWidth() end
     function Object:GetTop() return 0 end
     function Object:GetBottom() return -self:GetHeight() end
-    function Object:GetEffectiveScale() return 1 end
-    function Object:GetScale() return 1 end
+    function Object:SetScale(scale) self._scale = scale end
+    function Object:GetEffectiveScale()
+        return self:GetScale() * (self._parent and self._parent:GetEffectiveScale() or 1)
+    end
+    function Object:GetScale() return self._scale or 1 end
     function Object:SetAlpha(alpha) self._alpha = alpha end
     function Object:GetAlpha() return self._alpha end
     function Object:SetFrameLevel(level) self._level = level end
@@ -506,6 +509,7 @@ return function(fixture, enums, report, strings)
     UISpecialFrames = {}
     PrettyTooltipDB = nil
     RAID_CLASS_COLORS = {}
+    CUSTOM_CLASS_COLORS = nil
     for class, color in pairs({
         WARRIOR = { .78, .61, .43 }, PALADIN = { .96, .55, .73 }, HUNTER = { .67, .83, .45 },
         ROGUE = { 1, .96, .41 }, PRIEST = { 1, 1, 1 }, SHAMAN = { 0, .44, .87 }, MAGE = { .25, .78, .92 },

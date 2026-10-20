@@ -298,6 +298,9 @@ L["Green, blue, and purple armor and weapons list what they disenchant into, wit
 L["Sell price"] = "Precio de venta"
 L["The vendor price in the footer; for a stack, the price of one and of the whole stack."] =
     "El precio del vendedor en el pie; para un montón, el precio de una unidad y del montón entero."
+L["Swap Damage Stats"] = "Intercambiar daño"
+L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
+    "El daño de un arma en la línea grande, con su velocidad y su daño por segundo en la pequeña debajo."
 L["Spell power"] = "Poder con hechizos"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "Bajo la descripción, el coeficiente de poder con hechizos de cada cantidad y su reparto entre la base y el poder con hechizos. Ninguna API del juego da coeficientes: vienen de los datos del cliente de Forever, y los marcados con ~ son estimaciones."
