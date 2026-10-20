@@ -1191,7 +1191,6 @@ local function drawStats(panel, model, styles, y)
         y = divider(panel, y, GOLD_RULE, DIVIDER_AFTER)
     end
     y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
-    y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     y = drawMarked(panel, fittedRows(model.enchants, styles.enchants), y, styles.enchants, { .90, .85, .74 },
         ENCHANT_MARKER)
     -- Temporary enchants under the permanent ones.
@@ -1199,7 +1198,10 @@ local function drawStats(panel, model, styles, y)
     if model.sockets and #model.sockets > 0 then
         if y > top then y = y + 4 end
         y = drawSockets(panel, model.sockets, y, styles.gems)
+        if #model.equipEffects > 0 then y = y + 4 end
     end
+    -- Equip effects after what is added to the item: its enchants and gems.
+    y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     -- Use effects and flavor stand apart from the stats above them; first under
     -- the divider, they start where anything would.
     if #model.effects > 0 and y > top then y = y + 5 end
