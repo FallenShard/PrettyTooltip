@@ -488,7 +488,8 @@ L["Use the game's settings frame borders and controls."] = "게임 설정 창의
 L["Use the flat editor appearance."] = "단색 편집기 모양을 사용합니다."
 L["PrettyTooltip: hover something first; there is no tooltip to dump."] = "PrettyTooltip: 먼저 대상에 커서를 올리세요. 출력할 툴팁이 없습니다."
 L["PrettyTooltip: this tooltip cannot be read right now (%s)."] = "PrettyTooltip: 지금은 이 툴팁을 읽을 수 없습니다 (%s)."
-L["PrettyTooltip: its options are in %s > %s > PrettyTooltip."] = "PrettyTooltip: 설정은 %s > %s > PrettyTooltip에 있습니다."
+L["PrettyTooltip: the options cannot open during combat. Try again once it ends."] =
+    "PrettyTooltip: 전투 중에는 설정을 열 수 없습니다. 전투가 끝난 후 다시 시도하세요."
 L["Press Ctrl+C to copy the selected text, and paste it into your bug report."] = "Ctrl+C로 선택한 내용을 복사한 뒤 오류 보고서에 붙여 넣으세요."
 L["Select all"] = "모두 선택"
 

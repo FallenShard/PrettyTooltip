@@ -1256,7 +1256,9 @@ local resetAll = editorButton(editor, "Reset all fonts and colors", 170, functio
     refresh()
 end)
 resetAll:SetPoint("BOTTOMLEFT", editor, "BOTTOMLEFT", CONTROLS_X, 16)
-local moreOptions = editorButton(editor, "More options", 100, function() ns.showOptionsPath() end)
+local moreOptions = editorButton(editor, "More options", 100, function()
+    if ns.openSettings() then editor:Hide() end
+end)
 moreOptions:SetPoint("BOTTOMRIGHT", editor, "BOTTOMRIGHT", -18, 16)
 
 -- Wiring ---------------------------------------------------------------------

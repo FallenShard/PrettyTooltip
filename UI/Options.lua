@@ -3,7 +3,7 @@ local _, ns = ...
 local setOption = ns.setOption
 local L = ns.L
 
-local page
+local page, category
 ns.Options = {}
 
 -- Called by the entry file after saved settings arrive.
@@ -193,7 +193,7 @@ function ns.Options.register()
     end
 
     if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
-        local category = Settings.RegisterCanvasLayoutCategory(page, page.name)
+        category = Settings.RegisterCanvasLayoutCategory(page, page.name)
         Settings.RegisterAddOnCategory(category)
     elseif InterfaceOptions_AddCategory then
         InterfaceOptions_AddCategory(page)
@@ -201,10 +201,17 @@ function ns.Options.register()
     refreshControls()
 end
 
--- Where the options page is. The addon does not open the game's settings
--- window itself: that runs the window's code under the addon's taint, which
--- stays with it after.
-function ns.showOptionsPath()
-    print(ns.util.fill(L["PrettyTooltip: its options are in %s > %s > PrettyTooltip."],
-        GAMEMENU_OPTIONS or "Options", ADDONS or "AddOns"))
+-- The game's settings window does not open in combat; the player is told so
+-- instead of nothing happening. True when it opened.
+function ns.openSettings()
+    if InCombatLockdown() then
+        print(L["PrettyTooltip: the options cannot open during combat. Try again once it ends."])
+        return false
+    end
+    if category and Settings.OpenToCategory then
+        Settings.OpenToCategory(category:GetID())
+    elseif InterfaceOptionsFrame_OpenToCategory then
+        InterfaceOptionsFrame_OpenToCategory(page)
+    end
+    return true
 end

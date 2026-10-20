@@ -472,8 +472,8 @@ L["Use the flat editor appearance."] = "Использовать плоское 
 -- Commands and reports -----------------------------------
 L["PrettyTooltip: hover something first; there is no tooltip to dump."] = "PrettyTooltip: сначала наведите курсор на что-нибудь; подсказки для выгрузки нет."
 L["PrettyTooltip: this tooltip cannot be read right now (%s)."] = "PrettyTooltip: сейчас эту подсказку нельзя прочитать (%s)."
-L["PrettyTooltip: its options are in %s > %s > PrettyTooltip."] =
-    "PrettyTooltip: настройки находятся в разделе %s > %s > PrettyTooltip."
+L["PrettyTooltip: the options cannot open during combat. Try again once it ends."] =
+    "PrettyTooltip: настройки нельзя открыть в бою. Попробуйте снова, когда бой закончится."
 L["Press Ctrl+C to copy the selected text, and paste it into your bug report."] = "Нажмите Ctrl+C, чтобы скопировать выделенный текст, и вставьте его в отчет об ошибке."
 L["Select all"] = "Выбрать все"
 

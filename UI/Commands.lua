@@ -117,7 +117,7 @@ local function handleCommand(message)
     if wanted ~= "options" and ns.openEditor then
         ns.openEditor()
     else
-        ns.showOptionsPath()
+        ns.openSettings()
     end
 end
 

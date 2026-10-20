@@ -1,9 +1,9 @@
--- The addon never opens or closes the game's settings window, which would run
--- its code under the addon's taint: /ptip options and the editor's More
--- options say where the page is, in combat as out of it, and the page's
--- editor button opens the editor over the window.
+-- The game's settings window does not open in combat: /ptip options and the
+-- editor's More options say so instead of doing nothing, and open it otherwise.
+-- The page's editor button opens the editor over the window, which stays open.
 return function(test)
-    local opened, hidden, printed, page = 0, 0, {}, nil
+    local opened, printed, combat, page, hidden = 0, {}, false, nil, 0
+    HideUIPanel = function() hidden = hidden + 1 end
     Settings = {
         RegisterCanvasLayoutCategory = function(canvas)
             page = canvas
@@ -12,23 +12,21 @@ return function(test)
         RegisterAddOnCategory = function() end,
         OpenToCategory = function() opened = opened + 1 end,
     }
-    HideUIPanel = function() hidden = hidden + 1 end
-    GAMEMENU_OPTIONS, ADDONS = "Options", "AddOns"
     local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
         "Locale/English.lua", "UI/Options.lua" }, {})
     ns.Options.register()
-    SettingsPanel = CreateFrame("Frame")
-    SettingsPanel:Show()
+    InCombatLockdown = function() return combat end
     print = function(text) printed[#printed + 1] = text end
 
-    local path = "PrettyTooltip: its options are in Options > AddOns > PrettyTooltip."
-    InCombatLockdown = function() return true end
-    ns.showOptionsPath()
-    InCombatLockdown = function() return false end
-    ns.showOptionsPath()
-    test.check("the path is told, in combat and out", printed, { path, path })
-    test.check("and the window is never opened", opened, 0)
+    combat = true
+    test.check("in combat the window stays shut and the player is told",
+        { ns.openSettings(), opened, printed[1] },
+        { false, 0, "PrettyTooltip: the options cannot open during combat. Try again once it ends." })
+    combat = false
+    test.check("out of combat it opens", { ns.openSettings(), opened, #printed }, { true, 1, 1 })
 
+    SettingsPanel = CreateFrame("Frame")
+    SettingsPanel:Show()
     local editorOpened = 0
     ns.openEditor = function() editorOpened = editorOpened + 1 end
     local editorButton

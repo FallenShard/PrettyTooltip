@@ -525,8 +525,8 @@ L["PrettyTooltip: hover something first; there is no tooltip to dump."] =
     "PrettyTooltip : survolez d'abord quelque chose ; il n'y a pas d'infobulle à afficher."
 L["PrettyTooltip: this tooltip cannot be read right now (%s)."] =
     "PrettyTooltip : cette infobulle ne peut pas être lue pour l'instant (%s)."
-L["PrettyTooltip: its options are in %s > %s > PrettyTooltip."] =
-    "PrettyTooltip : ses options se trouvent dans %s > %s > PrettyTooltip."
+L["PrettyTooltip: the options cannot open during combat. Try again once it ends."] =
+    "PrettyTooltip : les options ne peuvent pas s'ouvrir en combat. Réessayez une fois le combat terminé."
 L["Press Ctrl+C to copy the selected text, and paste it into your bug report."] =
     "Appuyez sur Ctrl+C pour copier le texte sélectionné, et collez-le dans votre rapport de bug."
 L["Select all"] = "Tout sélectionner"

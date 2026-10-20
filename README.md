@@ -117,7 +117,7 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 
 ## Options
 
-Open the game's options, then **AddOns > PrettyTooltip**; `/ptip options` prints where it is. The page opens the style editor, which has every setting about the look and each kind's details, and holds the rest; hover a setting for what it does.
+Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor, which has every setting about the look and each kind's details, and holds the rest; hover a setting for what it does.
 
 - **Layout Style**: **PrettyTooltip** (the default) draws the panel for each kind turned on under **Restyled Tooltips**; **Blizzard** keeps the game's own tooltips everywhere, as described in *The Blizzard layout* above, and greys out the **Restyle** column.
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
