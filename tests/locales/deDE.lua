@@ -3,6 +3,7 @@
 return {
     ["ARMOR"] = "Rüstung",
     ["ARMOR_TEMPLATE"] = "%s Rüstung",
+    ["BLOCK"] = "Blocken",
     ["BOSS"] = "Boss",
     ["CLOSE"] = "Schließen",
     ["CONTAINER_SLOTS"] = "%1$d Platz %2$s",
@@ -47,6 +48,10 @@ return {
     ["ITEM_COOLDOWN_TOTAL_MIN"] = "(%d Min. Abklingzeit)",
     ["ITEM_CREATED_BY"] = "|cff00ff00<Hergestellt von %s>|r",
     ["ITEM_DELTA_DESCRIPTION"] = "Wenn Ihr diesen Gegenstand ersetzt, werden sich folgende Werte ändern:",
+    ["ITEM_ENCHANT_TIME_LEFT_DAYS"] = "%s (%d |4Tag:Tage;)",
+    ["ITEM_ENCHANT_TIME_LEFT_HOURS"] = "%s (%d |4Stunde:Stunden;)",
+    ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%1$s (%2$d Min.)",
+    ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%1$s (%2$d Sek.)",
     ["ITEM_HEROIC"] = "Heroisch",
     ["ITEM_LEVEL"] = "Gegenstandsstufe %d",
     ["ITEM_LIMIT_CATEGORY"] = "Einzigartig: %s (%d)",

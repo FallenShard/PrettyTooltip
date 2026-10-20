@@ -3,6 +3,7 @@
 return {
     ["ARMOR"] = "護甲",
     ["ARMOR_TEMPLATE"] = "%s點護甲",
+    ["BLOCK"] = "格擋",
     ["BOSS"] = "首領",
     ["CLOSE"] = "關閉",
     ["CONTAINER_SLOTS"] = "%d格%s",
@@ -47,6 +48,10 @@ return {
     ["ITEM_COOLDOWN_TOTAL_MIN"] = "（%d分鐘冷卻時間）",
     ["ITEM_CREATED_BY"] = "|cff00ff00<由%s製造>|r",
     ["ITEM_DELTA_DESCRIPTION"] = "若你更換此裝備，下列屬性將會改變：",
+    ["ITEM_ENCHANT_TIME_LEFT_DAYS"] = "%s（%d天）",
+    ["ITEM_ENCHANT_TIME_LEFT_HOURS"] = "%s （%d小時）",
+    ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s（%d分鐘）",
+    ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s（%d秒）",
     ["ITEM_HEROIC"] = "英雄模式",
     ["ITEM_LEVEL"] = "物品等級%d",
     ["ITEM_LIMIT_CATEGORY"] = "唯一：%s（%d）",

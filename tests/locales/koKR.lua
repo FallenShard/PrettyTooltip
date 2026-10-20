@@ -3,6 +3,7 @@
 return {
     ["ARMOR"] = "방어도",
     ["ARMOR_TEMPLATE"] = "방어도 %s",
+    ["BLOCK"] = "방어함",
     ["BOSS"] = "우두머리",
     ["CLOSE"] = "닫기",
     ["CONTAINER_SLOTS"] = "%d칸 %s",
@@ -47,6 +48,10 @@ return {
     ["ITEM_COOLDOWN_TOTAL_MIN"] = "(재사용 대기시간: %d분)",
     ["ITEM_CREATED_BY"] = "|cff00ff00<제작자: %s>|r",
     ["ITEM_DELTA_DESCRIPTION"] = "아이템 교체 시 나타나는 변화:",
+    ["ITEM_ENCHANT_TIME_LEFT_DAYS"] = "%s (%d일)",
+    ["ITEM_ENCHANT_TIME_LEFT_HOURS"] = "%s (%d시간)",
+    ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s (%d분)",
+    ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s (%d초)",
     ["ITEM_HEROIC"] = "상급",
     ["ITEM_LEVEL"] = "아이템 레벨 %d",
     ["ITEM_LIMIT_CATEGORY"] = "고유 아이템: %s (%d)",

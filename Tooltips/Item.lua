@@ -56,6 +56,36 @@ local function upgradeOf(text)
     if tonumber(level) and tonumber(most) then return util.fill(ITEM_UPGRADE_DROPDOWN_LEVEL_FORMAT, level, most) end
 end
 
+-- The line naming a weapon's temporary enchant and its time left.
+local IMBUE_LINES = { ITEM_ENCHANT_TIME_LEFT_SEC, ITEM_ENCHANT_TIME_LEFT_MIN, ITEM_ENCHANT_TIME_LEFT_HOURS,
+    ITEM_ENCHANT_TIME_LEFT_DAYS }
+local function imbueLine(text)
+    for _, format in pairs(IMBUE_LINES) do
+        local name, left = unformat(text, format)
+        if name and name ~= "" and tonumber(left) then return true end
+    end
+    return false
+end
+
+-- Retail sends its quality icons at 20 px; a line's icon is its text's height.
+local function fitAtlases(text, size)
+    if type(text) ~= "string" then return text end
+    size = math.floor((size or 12) + .5)
+    return (text:gsub("|A:([^:|]+)[^|]*|a", function(atlas)
+        return "|A:" .. atlas .. ":" .. size .. ":" .. size .. ":0:0|a"
+    end))
+end
+local function fittedRows(rows, style)
+    local fitted = {}
+    for index, row in ipairs(rows or {}) do
+        local copy = {}
+        for key, value in pairs(row) do copy[key] = value end
+        copy.left = fitAtlases(row.left, style.size)
+        fitted[index] = copy
+    end
+    return fitted
+end
+
 -- Retail writes some colors with spaces for zeros, as "|cFF 0FF 0Mythic+":
 -- read as the color it means, not as text.
 local function repairedColors(text)
@@ -526,6 +556,10 @@ local function readModel(tooltip, data, game)
                 add(m.sockets, left, "")
                 m.sockets[#m.sockets].color = colorOf(line.leftColor)
             end
+        elseif right == "" and imbueLine(plainText(trimmed)) then
+            -- A weapon's temporary enchant, "Windfury Weapon (59 min)", under its enchants.
+            m.imbues = m.imbues or {}
+            for _, row in ipairs(enchantRows(util.trim(plainText(trimmed)))) do add(m.imbues, row, "") end
         elseif right == "" and unformat(plainText(trimmed), ITEM_SOCKET_BONUS) then
             -- Green while every socket matches, grey before.
             m.sockets = m.sockets or {}
@@ -984,7 +1018,7 @@ end
 local function hasStats(model)
     return model.weaponDps or model.weaponDamage or #model.weaponBonus > 0 or #model.armor > 0
         or #model.primary > 0 or #model.secondary > 0 or #model.equipEffects > 0 or #model.enchants > 0
-        or #model.effects > 0 or #model.flavor > 0 or (model.sockets and #model.sockets > 0)
+        or #model.effects > 0 or #model.flavor > 0 or (model.sockets and #model.sockets > 0) or model.imbues ~= nil
 end
 
 -- A socket's row with its icon before the text, the icon the text's height.
@@ -1007,7 +1041,8 @@ local function statsWidth(panel, model, styles)
         listWidth(panel, model.armor, styles.armor, 0),
         listWidth(panel, model.primary, styles.stats, 0),
         listWidth(panel, model.secondary, secondaryStyle(styles), 0),
-        listWidth(panel, model.enchants, styles.enchants, markerIndent(panel, styles.enchants)),
+        listWidth(panel, fittedRows(model.enchants, styles.enchants), styles.enchants, markerIndent(panel, styles.enchants)),
+        listWidth(panel, model.imbues or {}, styles.enchants, markerIndent(panel, styles.enchants)),
         listWidth(panel, model.flavor, styles.flavor, 0, true))
     for _, row in ipairs(model.sockets or {}) do
         need = math.max(need, listWidth(panel, { socketRow(row, styles.gems) }, styles.gems, row.indent or 0))
@@ -1137,7 +1172,10 @@ local function drawStats(panel, model, styles, y)
     end
     y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
     y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
-    y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
+    y = drawMarked(panel, fittedRows(model.enchants, styles.enchants), y, styles.enchants, { .90, .85, .74 },
+        ENCHANT_MARKER)
+    -- Temporary enchants under the permanent ones.
+    if model.imbues then y = drawMarked(panel, model.imbues, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER) end
     if model.sockets and #model.sockets > 0 then
         if y > top then y = y + 4 end
         y = drawSockets(panel, model.sockets, y, styles.gems)
@@ -1283,7 +1321,8 @@ local function itemView(panel, model)
         header[#header + 1] = { text = model.upgrade, style = styles.itemUpgrade, color = UPGRADE_COLOR, gap = 4 }
     end
     if model.craftingQuality then
-        header[#header + 1] = { text = model.craftingQuality, style = styles.craftingQuality, color = CRAFTED_COLOR,
+        header[#header + 1] = { text = fitAtlases(model.craftingQuality, styles.craftingQuality.size),
+            style = styles.craftingQuality, color = CRAFTED_COLOR,
             gap = 4 }
     end
     header[#header + 1] = { rows = model.header, style = styles.header, color = { .78, .72, .63 }, gap = 3 }

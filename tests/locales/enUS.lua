@@ -3,6 +3,7 @@
 return {
     ["ARMOR"] = "Armor",
     ["ARMOR_TEMPLATE"] = "%s Armor",
+    ["BLOCK"] = "Block",
     ["BOSS"] = "Boss",
     ["CLOSE"] = "Close",
     ["CONTAINER_SLOTS"] = "%d Slot %s",
@@ -47,6 +48,10 @@ return {
     ["ITEM_COOLDOWN_TOTAL_MIN"] = "(%d Min Cooldown)",
     ["ITEM_CREATED_BY"] = "|cff00ff00<Made by %s>|r",
     ["ITEM_DELTA_DESCRIPTION"] = "If you replace this item, the following stat changes will occur:",
+    ["ITEM_ENCHANT_TIME_LEFT_DAYS"] = "%s (%d |4day:days;)",
+    ["ITEM_ENCHANT_TIME_LEFT_HOURS"] = "%s (%d |4hour:hours;)",
+    ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s (%d min)",
+    ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s (%d sec)",
     ["ITEM_HEROIC"] = "Heroic",
     ["ITEM_LEVEL"] = "Item Level %d",
     ["ITEM_LIMIT_CATEGORY"] = "Unique: %s (%d)",

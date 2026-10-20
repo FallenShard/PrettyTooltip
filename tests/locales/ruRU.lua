@@ -3,6 +3,7 @@
 return {
     ["ARMOR"] = "Броня",
     ["ARMOR_TEMPLATE"] = "Броня: %s",
+    ["BLOCK"] = "Блок",
     ["BOSS"] = "босс",
     ["CLOSE"] = "Закрыть",
     ["CONTAINER_SLOTS"] = "%2$s (%1$d |4ячейка:ячейки:ячеек;)",
@@ -47,6 +48,10 @@ return {
     ["ITEM_COOLDOWN_TOTAL_MIN"] = "(Восстановление: %d мин.)",
     ["ITEM_CREATED_BY"] = "|cff00ff00<Изготовитель: %s>|r",
     ["ITEM_DELTA_DESCRIPTION"] = "Если вы замените этот предмет, произойдут следующие изменения:",
+    ["ITEM_ENCHANT_TIME_LEFT_DAYS"] = "%s (%d |4день:дня:дней;)",
+    ["ITEM_ENCHANT_TIME_LEFT_HOURS"] = "%s (%d |4час:часа:часов;)",
+    ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s (%d мин.)",
+    ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s (%d сек.)",
     ["ITEM_HEROIC"] = "Героический",
     ["ITEM_LEVEL"] = "Уровень предмета: %d",
     ["ITEM_LIMIT_CATEGORY"] = "Уникальный: %s (%d)",

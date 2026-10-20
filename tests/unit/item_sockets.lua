@@ -57,7 +57,10 @@ return function(test)
         if font._shown and font._text then
             if font._text:find("|T4555555:20:20", 1, true) then found.gem = select(2, font:GetFont()) end
             if font._text:find("UI-EmptySocket-Prismatic:20:20", 1, true) then found.empty = true end
-            if font._text:find(QUALITY, 1, true) then found.quality = select(2, font:GetFont()) end
+            -- The quality icon at the line's size, not the game's 20 px.
+            if font._text:find("Quality: |A:Professions-ChatIcon-Quality-Tier5:15:15:0:0|a", 1, true) then
+                found.quality = select(2, font:GetFont())
+            end
         end
     end
     test.check("drawn in their own parts", found, { gem = 16, empty = true, quality = 15 })

@@ -236,7 +236,7 @@ text at 72,141 w=317 size=12 rgb=1,0.5,1 "Transmogrified to: Eternal Epaulets of
 texture at 19,169 176x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-169 176x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-164 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
-text at 19,182 w=370 size=16 rgb=0.93,0.87,0.75 "|cffF2E8D5182|r |cffA89F8EArmor|r"
+text at 19,182 w=370 size=16 rgb=0.9,0.93,0.95 "|cffE6ECF2182|r |cffAEB9C7Armor|r"
 text at 19,208 w=370 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+125|r |cffEEE7DAIntellect|r"
 text at 19,226 w=370 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+2527|r |cffEEE7DAStamina|r"
 text at 19,244 w=370 size=13 rgb=0.5,0.5,0.5 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2:32:32:0:32:0:32:128:128:128|t  +125 Agility"
@@ -246,7 +246,7 @@ texture TOP panel TOP 0,-265 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,283 w=370 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffF2D57C+90|r |cffF3E2B0Haste|r"
 text at 19,301 w=370 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff86D4CC+53|r |cffBDE6E1Versatility|r"
 text at 19,319 w=22 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sparkle:11:11:-1:-2:32:32:0:32:0:32:90:230:60|t"
-text at 41,319 w=348 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Shoulders - Silvermoon's Mending |A:Professions-ChatIcon-Quality-12-Tier2:20:20|a|r"
+text at 41,319 w=348 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Shoulders - Silvermoon's Mending |A:Professions-ChatIcon-Quality-12-Tier2:13:13:0:0|a|r"
 texture at 19,345 176x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-345 176x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-340 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
