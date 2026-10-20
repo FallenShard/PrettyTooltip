@@ -558,8 +558,10 @@ local function powerRows(part, numberCode, panel)
 end
 
 -- What the panel shows, for Panel/Render.lua to draw. Each spell's body,
--- its own and a nested one's, is drawn here as one custom section.
-local function spellView(panel, model)
+-- its own and a nested one's, is drawn here as one custom section. more,
+-- when given, adds sections of another type's (sections, color) before the
+-- other addons' rows: an imbue's time left.
+local function spellView(panel, model, more)
     local styles = {}
     for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
     local school = ns.Palette.detectSchool(model.description, model.name, model.spellID)
@@ -612,6 +614,7 @@ local function spellView(panel, model)
                 kind = "rows", rows = rows, style = styles.spellDetails, color = DETAIL_COLOR, gap = 2 }
         end
     end
+    if more then more(sections, color) end
     local extras = ui.withID(panel, model.extras, L["Spell ID: %s"], model.spellID)
     if #extras > 0 then
         sections[#sections + 1] = { separator = #sections > 0 and { rule = EXTRAS_RULE } or { space = 12 },
@@ -637,6 +640,7 @@ end
 local function renderSpell(panel, tooltip, model)
     ui.renderView(panel, tooltip, spellView(panel, model))
 end
+ui.spellView = spellView
 
 -- A spell model from given fields: the editor's samples.
 ui.spellModel = function(fields)

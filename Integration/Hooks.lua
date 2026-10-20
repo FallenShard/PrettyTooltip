@@ -59,6 +59,18 @@ local function keyOf(tooltipType, tooltip, data)
     if ok and not isSecret(key) then return key, true end
 end
 
+-- The type that draws this tooltip in its data type's place, while it is
+-- restyled: an imbue's, for the weapon tooltip its buff button shows.
+local function claimantOf(dataType, tooltip, data)
+    for claimant, tooltipType in pairs(TooltipTypes) do
+        if tooltipType.claims == dataType and ns.restyles(tooltipType.option) then
+            local ok, claimed = pcall(tooltipType.claim, tooltip, data)
+            if ok and claimed then return claimant end
+        end
+    end
+    return dataType
+end
+
 local function update(tooltip, data)
     if not util.canModify(tooltip) then return end
     local panel = getPanel(tooltip)
@@ -108,6 +120,7 @@ local function onTooltipData(dataType, tooltip, data)
     end
     -- The editor reads this one itself.
     if tooltip.prettyTooltipScanner then return end
+    dataType = claimantOf(dataType, tooltip, data)
     local panel = getPanel(tooltip)
     -- New content over a panel still fading out, even the same unit's, starts afresh.
     if native.isFading(panel) then

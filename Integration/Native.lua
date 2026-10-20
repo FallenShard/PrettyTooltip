@@ -170,12 +170,15 @@ local function refitUnlessPartial(tooltip, panel)
 end
 
 -- Panels drawn from another addon's lines have no data type; their lines
--- last until the tooltip is cleared.
+-- last until the tooltip is cleared. A type drawn in another's place (an
+-- imbue's, in its weapon's) shows while the tooltip is of that other type.
 local function showsDataType(tooltip, panel)
     if not util.canModify(tooltip) then return false end
     if not panel.dataType then return false end
     if panel.data and panel.data.fromLines then return true end
-    return util.call(tooltip.IsTooltipType, tooltip, panel.dataType) == true
+    local tooltipType = ns.TooltipTypes[panel.dataType]
+    local dataType = tooltipType and tooltipType.claims or panel.dataType
+    return util.call(tooltip.IsTooltipType, tooltip, dataType) == true
 end
 
 local function releaseNative(tooltip, panel)

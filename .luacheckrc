@@ -63,10 +63,13 @@ read_globals = {
     "QUEST_CLASSIFICATION_RECURRING", "TARGET", "YOU", "CLOSE",
     "INVTYPE_2HWEAPON", "INVTYPE_CHEST", "INVTYPE_HAND", "ITEM_REQ_REPUTATION", "FACTION_STANDING_LABEL7",
     "ITEM_COOLDOWN_TOTAL_MIN", "ITEM_COOLDOWN_TIME_SEC", "ITEM_LEVEL",
+    "INVTYPE_WEAPONMAINHAND", "INVTYPE_WEAPONOFFHAND", "INVTYPE_RANGED", "ITEM_SPELL_CHARGES",
+    "ITEM_ENCHANT_TIME_LEFT_DAYS", "ITEM_ENCHANT_TIME_LEFT_HOURS", "ITEM_ENCHANT_TIME_LEFT_MIN", "ITEM_ENCHANT_TIME_LEFT_SEC",
     -- Tooltip data
     "TooltipDataProcessor", "Enum",
     -- Game state
     "C_Item", "C_Spell", "C_Texture", "C_AddOns", "C_QuestLog", "C_UnitAuras", "C_Timer", "C_CurrencyInfo",
+    "C_PaperDollInfo", "GetWeaponEnchantInfo", "GetInventoryItemTexture", "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE",
     "GetLocale", "GetBuildInfo", "GetAddOnMetadata", "GetTime", "IsAltKeyDown", "IsControlKeyDown", "IsShiftKeyDown", "InCombatLockdown",
     "GetSpellInfo", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
     "GetNumMacros", "GetMacroSpell", "GetMacroItem", "MAX_ACCOUNT_MACROS", "GetPetActionInfo",

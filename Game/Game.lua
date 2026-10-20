@@ -115,6 +115,57 @@ function game.localSpellName(spellID, english)
     return game.spellName(spellID) or english
 end
 
+-- A spell's own tooltip, filled in a hidden tooltip no panel covers: the
+-- tooltip and its data, for the spell reader. Nil where the game hides it.
+local scanner
+function game.spellTooltip(spellID)
+    if isSecret(spellID) or type(spellID) ~= "number" then return end
+    if not scanner then
+        scanner = CreateFrame("GameTooltip", "PrettyTooltipSpellScanner", UIParent, "GameTooltipTemplate")
+        scanner.prettyTooltipScanner = true
+    end
+    local ok, data = pcall(function()
+        scanner:SetOwner(UIParent, "ANCHOR_NONE")
+        scanner:SetSpellByID(spellID)
+        return scanner:GetTooltipData()
+    end)
+    if ok and not isSecret(data) and type(data) == "table" then return scanner, data end
+end
+
+-- Weapons ---------------------------------------------------------------------
+
+-- The weapon slots a temporary enchant can be on, in GetWeaponEnchantInfo's order.
+local WEAPON_SLOTS = { [16] = 1, [17] = 2, [18] = 3 }
+
+-- A weapon slot's temporary enchant, an imbue: its enchant ID, the seconds it
+-- has left, and its charges; nil without one.
+function game.weaponImbue(slot)
+    if isSecret(slot) or not WEAPON_SLOTS[slot] then return end
+    local id, left, charges
+    if C_PaperDollInfo and C_PaperDollInfo.GetTemporaryEnchantmentInfo then
+        local ok, info = pcall(C_PaperDollInfo.GetTemporaryEnchantmentInfo, slot)
+        if not ok or isSecret(info) or type(info) ~= "table" then return end
+        id, left, charges = number(info.enchantID), number(info.remainingTimeMs), number(info.chargesRemaining)
+    elseif GetWeaponEnchantInfo then
+        local values = util.pack(pcall(GetWeaponEnchantInfo))
+        if not values[1] then return end
+        -- Four values a weapon, after pcall's own: whether it has one, the time
+        -- left in milliseconds, the charges, and the enchant ID.
+        local first = 2 + (WEAPON_SLOTS[slot] - 1) * 4
+        if not readable(values[first]) then return end
+        left, charges, id = number(values[first + 1]), number(values[first + 2]), number(values[first + 3])
+    end
+    if not id then return end
+    return { enchantID = id, remaining = left and left / 1000, charges = charges }
+end
+
+-- The icon of the item in one of the player's slots.
+function game.slotIcon(slot)
+    if isSecret(slot) or not GetInventoryItemTexture then return end
+    local ok, icon = pcall(GetInventoryItemTexture, "player", slot)
+    if ok and not isSecret(icon) and icon then return icon end
+end
+
 -- Macros ----------------------------------------------------------------------
 
 function game.macro(name)
