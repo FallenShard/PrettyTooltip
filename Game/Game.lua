@@ -190,6 +190,21 @@ function game.spellHealing()
     return number((call(GetSpellBonusHealing)))
 end
 
+-- The mana a spell costs the player, worked out by the game: retail's
+-- tooltips give a share of base mana, which is fixed by level.
+function game.spellManaCost(spellID)
+    if isSecret(spellID) or type(spellID) ~= "number" then return end
+    local getter = C_Spell and C_Spell.GetSpellPowerCost or GetSpellPowerCost
+    if not getter then return end
+    local ok, costs = pcall(getter, spellID)
+    if not ok or isSecret(costs) or type(costs) ~= "table" then return end
+    for _, cost in ipairs(costs) do
+        if not isSecret(cost) and type(cost) == "table" and readable(cost.type) == 0 then
+            return number(cost.cost)
+        end
+    end
+end
+
 -- The seconds an instant cast holds the player's other spells. Forever's is
 -- 1.5 sec. Retail's shrinks with haste, to 0.75 sec at the least; an energy
 -- user's (a rogue, a druid in cat form, a Brewmaster or Windwalker) is 1 sec

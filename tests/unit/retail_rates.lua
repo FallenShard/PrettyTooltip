@@ -41,6 +41,22 @@ return function(test)
     test.check("damage over time over its duration", rates("Instant", { "300", "Mana" },
         "A word of darkness that causes 4,800 Shadow damage over 16 sec."),
         "Damage per Second | 300.0\nDamage per Mana | 16.00")
+    -- Retail's share of base mana, as the game works it out for the player.
+    game.spellManaCost = function(spellID) return spellID == 133 and 1000 or nil end
+    local found = ns.SpellAmounts.rateRowsOf({ spellID = 133, cast = { "2.25 sec", "Cast" },
+        cost = { "2%", ns.L["Base Mana"] }, description = { "Throws a fiery ball that causes 12,340 Fire damage." } },
+        game)
+    test.check("a share of base mana, by the game's cost", found and found[2] and found[2].right, "12.34")
+    found = ns.SpellAmounts.rateRowsOf({ spellID = 1, cast = { "2.25 sec", "Cast" },
+        cost = { "2%", ns.L["Base Mana"] }, description = { "Throws a fiery ball that causes 12,340 Fire damage." } },
+        game)
+    test.check("without the game's cost, no per mana", #found, 1)
+    local spellAPI = C_Spell
+    C_Spell = { GetSpellPowerCost = function(spellID)
+        if spellID == 133 then return { { type = 3, cost = 30 }, { type = 0, cost = 1000 } } end
+    end }
+    test.check("the game's cost is the mana one", { ns.Game.spellManaCost(133), ns.Game.spellManaCost(2) }, { 1000, nil })
+    C_Spell = spellAPI
     test.check("another power has no per mana", rates("Instant", { "30", "Energy" },
         "Blasts the enemy for 6,000 Fire damage."), "Damage per Second | 5000.0")
     test.check("a physical ability has no rates", rates("Instant", { "30", "Rage" },
