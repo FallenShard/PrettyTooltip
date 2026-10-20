@@ -4,14 +4,15 @@
 -- quality follow. Each is drawn in a style part of its own.
 return function(test)
     local ITEM = 0
-    local LINE = { None = 0, GemSocket = 3, ProfessionCraftingQuality = 12, ItemName = 22, GemSocketEnchantment = 30,
-        ItemLevel = 31 }
+    local LINE = { None = 0, GemSocket = 3, ProfessionCraftingQuality = 12, EquipSlot = 21, ItemName = 22,
+        GemSocketEnchantment = 30, ItemLevel = 31 }
     local GREY, GREEN = { r = .5, g = .5, b = .5 }, { r = 0, g = 1, b = 0 }
     local QUALITY = "Quality: |A:Professions-ChatIcon-Quality-Tier5:17:17|a"
     local lines = {
         { leftText = "Crafted Gauntlets", type = LINE.ItemName },
         { leftText = "Item Level 639", type = LINE.ItemLevel },
         { leftText = QUALITY, type = LINE.ProfessionCraftingQuality },
+        { leftText = "Hands", rightText = "Leather", type = LINE.EquipSlot },
         { leftText = "+120 Intellect", type = LINE.None },
         { leftText = "+70 Haste", type = LINE.GemSocket, gemIcon = 4555555, leftColor = { r = 1, g = 1, b = 1 } },
         { leftText = "Your spells sometimes burn the target.", type = LINE.GemSocketEnchantment },
@@ -75,8 +76,19 @@ return function(test)
     test.check("the socket hint hidden", { #model.sockets, model.sockets[4].left, #model.extras, #model.effects },
         { 4, "Socket Bonus: +8 Stamina", 0, 0 })
     ns.setOption("socketHint", nil)
+    -- A reagent's quality icon is larger than gear's, which keeps the line's size.
+    local reagent = ns.ui.itemModel({ name = "Dazzling Thorium", quality = 3, craftingQuality = QUALITY,
+        kinds = { reagent = "Crafting Reagent" } })
+    panel = ns.ui.renderPreview(anchor, reagent, ITEM)
+    local reagentIcon
+    for _, font in ipairs(panel.pool or {}) do
+        if font._shown and font._text and font._text:find("Quality:", 1, true) then
+            reagentIcon = font._text:match("Tier5:(%d+):")
+        end
+    end
+    test.check("a reagent's quality icon larger, gear's as it was", { reagentIcon, found.quality }, { "24", 15 })
     -- An active bonus keeps the game's green.
-    lines[8].leftColor = GREEN
+    lines[9].leftColor = GREEN
     model = ns.TooltipTypes[ITEM].read(world.main, capture.data, ns.Game)
     test.check("an active bonus green", model.sockets[4].color, ns.TooltipData.colorOf(GREEN))
 end

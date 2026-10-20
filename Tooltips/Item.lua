@@ -45,6 +45,8 @@ local SOURCE_COLOR = { .12, 1, .12 }
 local UPGRADE_COLOR = { .90, .80, .55 }
 local TRANSMOG_COLOR = { 1, .50, 1 }
 local CRAFTED_COLOR = { .90, .85, .74 }
+-- A crafting reagent's quality icon, against its line's text.
+local REAGENT_QUALITY_SCALE = 1.6
 
 -- "Upgrade Level: Myth 2/6" as "Myth 2/6", in the game's own short wording.
 local function upgradeOf(text)
@@ -1339,7 +1341,10 @@ local function itemView(panel, model)
         header[#header + 1] = { text = model.upgrade, style = styles.itemUpgrade, color = UPGRADE_COLOR, gap = 4 }
     end
     if model.craftingQuality then
-        header[#header + 1] = { text = fitAtlases(model.craftingQuality, styles.craftingQuality.size),
+        -- Gear's icon sits in its line at the text's height; a reagent's
+        -- quality is what its line is for, so its icon is larger.
+        local size = styles.craftingQuality.size * (model.equippable and 1 or REAGENT_QUALITY_SCALE)
+        header[#header + 1] = { text = fitAtlases(model.craftingQuality, size),
             style = styles.craftingQuality, color = CRAFTED_COLOR,
             gap = 4 }
     end
