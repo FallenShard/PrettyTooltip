@@ -183,8 +183,8 @@ text at 72,66 w=239 size=12 rgb=0.78,0.72,0.63 "Vinculado"
 texture at 19,100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOPRIGHT panel TOPRIGHT -19,-100 137x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
 texture TOP panel TOP 0,-95 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
-text at 19,113 w=292 size=18 rgb=0.93,0.87,0.75 "|cffF2E8D525,6|r |cffA89F8EDano por Segundo|r"
-text at 26,139 w=285 size=12 rgb=0.71,0.72,0.73 "65 - 99 de dano  ·  Velocidade 3,20"
+text at 19,113 w=292 size=18 rgb=0.9,0.93,0.95 "|cffE6ECF225,6|r |cffAEB9C7Dano por Segundo|r"
+text at 26,139 w=285 size=12 rgb=0.62,0.65,0.7 "65 - 99 de dano  ·  Velocidade 3,20"
 text at 19,160 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+6|r |cffEEE7DAIntelecto|r"
 text at 19,178 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+5|r |cffEEE7DAVigor|r"
 text at 19,196 w=292 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffE9DDC4+10|r |cffEEE7DAEspírito|r"

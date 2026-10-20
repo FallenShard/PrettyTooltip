@@ -50,7 +50,7 @@ return function(test)
     test.check("on: damage leads, DPS and speed under it", drawn(),
         { { "41 - 77 Damage", 18 }, { "22.7 Damage per Second" .. DOT .. "Speed 2.60", 12 } })
     test.check("on: the numbers bright and words dim on both lines", drawn(true),
-        { "|cffF2E8D541 - 77|r |cffA89F8EDamage|r", "|cffD9DADB22.7|r Damage per Second" .. DOT .. "Speed |cffD9DADB2.60|r" })
+        { "|cffE6ECF241 - 77|r |cffAEB9C7Damage|r", "|cffBBC2CB22.7|r Damage per Second" .. DOT .. "Speed |cffBBC2CB2.60|r" })
 
     -- A weapon without a DPS line keeps its damage where it was.
     model.weaponDps = nil
@@ -61,15 +61,15 @@ return function(test)
         "(61.3 damage per second)" })
     wandNs.setOption("swapDamage", true)
     test.check("on: a school's damage keeps its stat colors", wand(true),
-        { "|cffC174FF64 - 120|r |cffC9A2EEShadow Damage|r", "|cffD9DADB61.3|r Damage per Second" .. DOT .. "Speed |cffD9DADB1.50|r" })
+        { "|cffC174FF64 - 120|r |cffC9A2EEShadow Damage|r", "|cffBBC2CB61.3|r Damage per Second" .. DOT .. "Speed |cffBBC2CB1.50|r" })
     wandNs.setOption("statColors", false)
     test.check("on, stat colors off: a school's damage reads as the sword's", wand(true),
-        { "|cffF2E8D564 - 120|r |cffA89F8EShadow Damage|r", "|cffD9DADB61.3|r Damage per Second" .. DOT .. "Speed |cffD9DADB1.50|r" })
+        { "|cffE6ECF264 - 120|r |cffAEB9C7Shadow Damage|r", "|cffBBC2CB61.3|r Damage per Second" .. DOT .. "Speed |cffBBC2CB1.50|r" })
 
     -- Russian names the damage before its amount.
     local ruNs, _, ru = weapon({ "Боевая перчатка Веригана", { "Урон: 153-256", "Скорость 3,80" },
         "(53,8 ед. урона в секунду)" }, "ruRU", "Урон")
     ruNs.setOption("swapDamage", true)
     test.check("ruRU, on: words before the amount are dim too", ru(true)[1],
-        "|cffA89F8EУрон:|r |cffF2E8D5153-256|r")
+        "|cffAEB9C7Урон:|r |cffE6ECF2153-256|r")
 end

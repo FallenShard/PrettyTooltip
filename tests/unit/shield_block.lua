@@ -53,14 +53,14 @@ return function(test)
     test.check("enUS: the block is read beside the armor", { model.block, model.blockValue }, { "11 Block", "11" })
     test.check("enUS: not a stat, nor a row at the bottom", { #model.primary, blockExtras(model, "11 Block") }, { 1, 0 })
     test.check("enUS: one line, the armor and then the block, in the armor's colors", drawn(ns, model, { "11 Block" }),
-        { { "|cffF2E8D5547|r |cffA89F8EArmor|r  \194\183  |cffF2E8D511|r |cffA89F8EBlock|r", 16 } })
+        { { "|cffE6ECF2547|r |cffAEB9C7Armor|r  \194\183  |cffE6ECF211|r |cffAEB9C7Block|r", 16 } })
 
     -- French puts the word first, with a no-break space before its colon.
     local french, frNs = shield("frFR", { "Bouclier", { "Main gauche", "Bouclier" }, "Armure : 547",
         "Bloquer\194\160: 11" })
     local frLines = drawn(frNs, french, { "Bloquer" })
     test.check("frFR: the game's wording, its words dim before its number", frLines[1] and frLines[1][1],
-        "|cffF2E8D5547|r |cffA89F8EArmure|r  \194\183  |cffA89F8EBloquer\194\160:|r |cffF2E8D511|r")
+        "|cffE6ECF2547|r |cffAEB9C7Armure|r  \194\183  |cffAEB9C7Bloquer\194\160:|r |cffE6ECF211|r")
     local alone = shield(nil, { "Odd Shield", "11 Block" })
     test.check("without armor, the block takes the armor's line",
         { #alone.armor, alone.armor[1] and alone.armor[1].left, alone.block }, { 1, "11 Block", nil })
