@@ -35,6 +35,8 @@ local DEFAULTS = {
     swapDamage = false,
     itemLevelBadge = true,
     unitLevelBadge = true,
+    -- A guild's realm beside its name, when it is another realm's.
+    unitRealm = true,
     separators = true,
     spellPanels = true,
     disenchant = true,
@@ -199,6 +201,8 @@ ns.ELEMENTS = {
     { key = "unitName", label = "Name", size = 17, title = true, color = { 1, 1, 1 },
         tooltipType = "unit", note = "Class color for players, reaction color for NPCs, unless set." },
     { key = "unitGuild", label = "Guild or role", size = 12, color = { .9, .9, .9 }, tooltipType = "unit" },
+    { key = "unitRealm", label = "Guild realm", size = 11, color = colors.detail, tooltipType = "unit",
+        note = "Beside the guild, for a guild from another realm. Turned off by Guild realm in the options." },
     { key = "unitInfo", label = "Level, race, and class", size = 12, color = colors.detail,
         tooltipType = "unit", note = "The level in its difficulty color, unless set." },
     { key = "unitBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "unit",
