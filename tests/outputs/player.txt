@@ -13,6 +13,7 @@ faction: "Alliance"
 guid: "Player-4613-00A721BF"
 isPlayer: true
 level: 12
+levelIndex: 2
 levelLine: "Level 12 Night Elf"
 lineIndices:
   1: true

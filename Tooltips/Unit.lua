@@ -181,6 +181,17 @@ local function completeModel(model, unit, game)
             model.targetColor = unitColor(target, game)
         end
     end
+    -- An NPC's title, as "Herbalism Supplier", is the untyped line between its
+    -- name and its level; Forever leaves out the brackets around it.
+    if not model.isPlayer and not model.tag and model.levelIndex then
+        for index, row in ipairs(model.extras) do
+            if row.lineIndex and row.lineIndex < model.levelIndex and (row.right or "") == "" then
+                model.tag = trim(row.left)
+                table.remove(model.extras, index)
+                break
+            end
+        end
+    end
     local rank = not model.isPlayer and model.levelLine and RANKS[levelKind(model.levelLine) or ""]
     if rank then model.classification = rank end
     -- Forever puts the guild, unbracketed, and the class on lines of their own;
@@ -194,6 +205,18 @@ local function completeModel(model, unit, game)
         local row = model.extras[index]
         if (row.right or "") == "" and shown[(trim(row.left):gsub("^<(.*)>$", "%1"))] then
             table.remove(model.extras, index)
+        end
+    end
+    -- An NPC's faction, as "Ironforge": the line right after its level. A
+    -- player's class comes there, and the crest shows its faction.
+    if not model.isPlayer and model.levelIndex then
+        for index, row in ipairs(model.extras) do
+            if row.lineIndex == model.levelIndex + 1 and (row.right or "") == ""
+                and not unformat(trim(row.left), ITEM_REQ_SKILL) then
+                model.factionName = trim(row.left)
+                table.remove(model.extras, index)
+                break
+            end
         end
     end
     model.skinning = model.skinning or skinning(model, game)
@@ -230,7 +253,7 @@ local function readUnit(tooltip, data, game)
                 if unformat(text, TOOLTIP_UNIT_LEVEL) then
                     -- The panel names a player as one by its colors and badges.
                     local kind, level, race = levelKind(text)
-                    model.levelLine = text
+                    model.levelLine, model.levelIndex = text, line.lineIndex
                     if kind == PLAYER then
                         model.levelLine = race and util.fill(TOOLTIP_UNIT_LEVEL_RACE, level, race)
                             or util.fill(TOOLTIP_UNIT_LEVEL, level)
@@ -254,6 +277,7 @@ local function readUnit(tooltip, data, game)
                     tooltipData.add(model.extras, left, right)
                     local row = model.extras[#model.extras]
                     row.color, row.rightColor = tooltipData.colorOf(line.leftColor), tooltipData.colorOf(line.rightColor)
+                    row.lineIndex = line.lineIndex
                 end
             end
         end
@@ -275,19 +299,25 @@ local function levelBadge(model, hasIcon)
     return model.level == -1 and "??" or tostring(model.level)
 end
 
+-- The level and kind, then an NPC's title after a dot: "Humanoid · Herbalism Supplier".
 local function infoText(model, plated)
     local what = model.isPlayer and table.concat({ model.race or "", model.className or "" }, " ")
         or (model.creature or "")
+    local info
     if plated then
-        what = trim(what)
-        return what ~= "" and what or nil
+        info = trim(what)
+    elseif not model.level then
+        info = model.levelLine or ""
+    else
+        local level = model.level
+        local levelText = level == -1 and "??" or tostring(level)
+        local color = levelColor(level)
+        if color then levelText = "|cff" .. hex(color) .. levelText .. "|r" end
+        info = trim(util.fill(TOOLTIP_UNIT_LEVEL_RACE, levelText, what))
     end
-    local level = model.level
-    if not level then return model.levelLine end
-    local levelText = level == -1 and "??" or tostring(level)
-    local color = levelColor(level)
-    if color then levelText = "|cff" .. hex(color) .. levelText .. "|r" end
-    return trim(util.fill(TOOLTIP_UNIT_LEVEL_RACE, levelText, what))
+    local tag = not model.isPlayer and model.tag and model.tag:gsub("^<(.*)>$", "%1")
+    if tag and tag ~= "" then info = info ~= "" and (info .. " \194\183 " .. tag) or tag end
+    return info ~= "" and info or nil
 end
 
 local function badges(model)
@@ -302,9 +332,10 @@ local function badges(model)
     return list
 end
 
+-- A player's guild; a bracketed line names it when the game does not.
 local function guildText(model)
     if model.guild then return "<" .. model.guild .. ">" end
-    return model.tag
+    if model.isPlayer then return model.tag end
 end
 
 local function detailRows(model)
@@ -396,6 +427,9 @@ local function unitView(panel, model, healthBar)
     end
     local info = infoText(model, plate ~= nil)
     if info then header[#header + 1] = { text = info, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 } end
+    if model.factionName then
+        header[#header + 1] = { text = model.factionName, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
+    end
     header[#header + 1] = { badges = badges(model), style = styles.unitBadges, before = 1, gap = 4 }
 
     local sections = {}
