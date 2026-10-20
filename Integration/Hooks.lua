@@ -59,12 +59,13 @@ local function keyOf(tooltipType, tooltip, data)
     if ok and not isSecret(key) then return key, true end
 end
 
-local function update(tooltip, data)
+local function update(tooltip, data, model)
     if not util.canModify(tooltip) or native.isParked(tooltip) then return end
     local panel = getPanel(tooltip)
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
-    local ok, model = pcall(tooltipType.read, tooltip, data, ns.Game)
+    local ok = true
+    if not model then ok, model = pcall(tooltipType.read, tooltip, data, ns.Game) end
     if not ok or not model then restoreNative(tooltip); return end
     if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
     if not panel.nativeAlpha then restoreNative(tooltip); return end
@@ -77,18 +78,25 @@ local function update(tooltip, data)
     if not valid then restoreNative(tooltip); return end
     if key ~= panel.key then panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil end
     panel.key = key
+    if panel.dataType == Enum.TooltipDataType.Item then
+        panel.model, panel.modelDataType = model, panel.dataType
+        panel.modelVersion, panel.modelDetails = ns.settingsVersion or 0, ns.detailsKeyDown()
+    else
+        panel.model = nil
+    end
     panel.lineCount = tooltip:NumLines()
     panel.fingerprint = not tooltipType.alwaysRedraw and fingerprint(tooltip, data) or nil
     tooltip:SetAlpha(0)
 end
 update = probe("update", update)
 
--- Some tooltip owners clear or briefly hide the tooltip while refreshing the
--- same item. Keep the previous panel for that frame, and only tear it down if
--- no new item post-call replaces it.
+-- Keep the previous panel across a clear while its native tooltip is still
+-- shown. Hides dismiss the panel immediately; native cleanup waits until no
+-- new item post-call replaces it in that frame.
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
     if not panel then return end
+    native.beginRefresh(tooltip)
     if panel.data and panel.data.fromLines then panel.data = nil end
     panel.restorePending = true
     panel.refreshToken = (panel.refreshToken or 0) + 1
@@ -119,13 +127,23 @@ local function onTooltipData(dataType, tooltip, data)
     local token = panel.refreshToken
     panel.restorePending = false
     if not panel.hooked then
-        tooltip:HookScript("OnHide", scheduleRestore)
+        tooltip:HookScript("OnHide", function(hidden)
+            -- Keep native cleanup deferred, but never draw the old panel at
+            -- an anchor reset by an action button's hide/clear sequence.
+            panel.refreshPending = nil
+            panel:Hide()
+            scheduleRestore(hidden)
+        end)
         tooltip:HookScript("OnTooltipCleared", scheduleRestore)
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
         local function onNativeShown(shown, source)
             if not util.canModify(shown) then return end
             tally(isComparison(shown) and "show hook (comparison)" or "show hook")
+            if panel.refreshPending or panel.restorePending then
+                if panel.nativeAlpha then shown:SetAlpha(0) end
+                return
+            end
             if not (panel.nativeSize and panel:IsShown()) then return end
             tally("refit from " .. source)
             refitUnlessPartial(shown, panel)
@@ -173,7 +191,10 @@ local function onTooltipData(dataType, tooltip, data)
         end)
         -- Hooked after follow cursor's, which stops following first.
         if tooltip.FadeOut then hooksecurefunc(tooltip, "FadeOut", native.fadeOut) end
-        hooksecurefunc(tooltip, "SetOwner", native.unpark)
+        hooksecurefunc(tooltip, "SetOwner", function(owned)
+            native.unpark(owned)
+            native.beginRefresh(owned)
+        end)
         tooltip:HookScript("OnHide", native.unpark)
         panel.hooked = true
         panel:SetScript("OnUpdate", function(self, elapsed)
@@ -255,7 +276,31 @@ function hooks.install()
                 if showsOriginal(panel) then
                     restoreNative(tooltip)
                 elseif panel.data then
-                    update(tooltip, panel.data)
+                    local model
+                    -- Other addons' Alt-only rows remain until the next
+                    -- native refill. Resume our last item model immediately;
+                    -- the normal data/line hooks still read fresh models.
+                    if ns.isOriginalKey(key) and panel.dataType == Enum.TooltipDataType.Item
+                        and panel.model and panel.modelDataType == panel.dataType
+                        and panel.modelVersion == (ns.settingsVersion or 0)
+                        and panel.modelDetails == ns.detailsKeyDown() then
+                        local currentKey, valid = keyOf(TooltipTypes[panel.dataType], tooltip, panel.data)
+                        if valid and currentKey and currentKey == panel.key
+                            and util.call(fingerprint, tooltip, panel.data) then
+                            model = panel.model
+                        end
+                    end
+                    update(tooltip, panel.data, model)
+                end
+            end
+        end
+        if ns.isOriginalKey(key) and not ns.originalKeyDown() then
+            -- Restore the whole pair in this event. The native tooltip can be
+            -- wider than its panel, so waiting for the manager leaves a gap.
+            for tooltip, panel in pairs(panels) do
+                if util.canModify(tooltip) and tooltip:IsShown() and panel:IsShown() and isComparison(tooltip) then
+                    pcall(anchorToPanels, tooltip)
+                    pcall(alignPanel, panel, tooltip)
                 end
             end
         end

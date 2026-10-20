@@ -157,6 +157,7 @@ local function stateOf(frame, isTooltip)
     parts[#parts + 1] = "alpha " .. shown(frame:GetAlpha())
     if frame.GetEffectiveAlpha then parts[#parts + 1] = "eff " .. shown(frame:GetEffectiveAlpha()) end
     parts[#parts + 1] = "size " .. shown(frame:GetWidth()) .. "x" .. shown(frame:GetHeight())
+    parts[#parts + 1] = "pos " .. shown(frame:GetLeft()) .. "," .. shown(frame:GetTop())
     parts[#parts + 1] = "scale " .. shown(frame:GetScale())
     if isTooltip and frame.GetPadding then
         local right, bottom, left, top = frame:GetPadding()

@@ -148,6 +148,7 @@ end
 
 function refitNative(tooltip, panel)
     if not util.canModify(tooltip) then return end
+    if panel.refreshPending then return end
     if panel.fitting then return end
     panel.fitting = true
     pcall(fitNative, tooltip, panel)
@@ -157,12 +158,38 @@ function refitNative(tooltip, panel)
 end
 refitNative = probe("refit hidden tooltip", refitNative)
 
+-- SetOwner/ClearLines can trigger Show before the item post-call (notably
+-- Blizzard_PTRFeedback). Keep the old fit until that whole refill finishes.
+local function beginRefresh(tooltip)
+    if not util.canModify(tooltip) or isComparison(tooltip) then return end
+    if not util.call(tooltip.IsShown, tooltip) then return end
+    local panel = panels[tooltip]
+    if not (panel and panel.dataType == Enum.TooltipDataType.Item
+        and panel:IsShown() and panel.nativeAlpha and panel.fittedHeight)
+        or panel.parked or panel.refreshPending then return end
+    if not util.call(ui.holdPanel, panel, tooltip) then return end
+    -- A restore can cancel this hold and start another before the timer runs.
+    local token = {}
+    panel.refreshPending = token
+    C_Timer.After(0, function()
+        if panel.refreshPending ~= token then return end
+        panel.refreshPending = nil
+        if panel:IsShown() and not panel.restorePending and not panel.parked
+            and util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip) then
+            panel.forceFit = true
+            refitNative(tooltip, panel)
+            panel.forceFit = false
+        end
+    end)
+end
+
 -- Each refresh re-sets a shown tooltip with the item's lines, then adds the
 -- comparison lines; fitting the shorter step would set the padding twice, a
 -- full layout each. A tooltip shorter than the most lines it has shown for this
 -- item keeps its padding, and is checked next frame in case the lines never come.
 local function refitUnlessPartial(tooltip, panel)
     if not util.canModify(tooltip) then return end
+    if panel.refreshPending then return end
     local lines = util.number((util.call(tooltip.NumLines, tooltip)))
     if not lines then return end
     panel.fullLines = math.max(panel.fullLines or 0, lines)
@@ -266,6 +293,7 @@ local function restoreNative(tooltip)
     if isSecret(tooltip) or not tooltip then return end
     local panel = panels[tooltip]
     if not panel then return end
+    panel.refreshPending = nil
     panel.restorePending = false
     pcall(releaseNative, tooltip, panel)
     panel:Hide()
@@ -285,6 +313,7 @@ end
 
 native.anchorToPanels = anchorToPanels
 native.refitNative = refitNative
+native.beginRefresh = beginRefresh
 native.refitUnlessPartial = refitUnlessPartial
 native.restoreNative = restoreNative
 native.fadeOut = fadeOut
