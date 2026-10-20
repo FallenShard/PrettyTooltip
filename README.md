@@ -4,7 +4,7 @@ A full reskin of tooltips for WoW Forever and retail World of Warcraft. PrettyTo
 
 ## Forever and retail
 
-One download serves both games: retail loads `PrettyTooltip_Mainline.toc`, every other client `PrettyTooltip.toc`. Retail leaves out what comes from Classic's data, as no retail source exists for it: disenchant results, spell power coefficients and rates, and herb, ore, and skinning loot. Their settings are hidden there. Spell schools come from retail's own spell tables.
+One download serves both games: retail loads `PrettyTooltip_Mainline.toc`, every other client `PrettyTooltip.toc`. Retail leaves out what comes from Classic's data, as no retail source exists for it: disenchant results, spell power coefficients, and herb, ore, and skinning loot. Their settings are hidden there. Spell schools come from retail's own spell tables, and damage and healing rates from the description alone, with the global cooldown after haste.
 
 ## Item tooltips
 
@@ -113,7 +113,7 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 - **Items Panel**, **Spells Panel**, and so on, for the kind shown: **Show icon**, and the opacity of the header band at its top and bottom edges, of the panel's body (**Backdrop**), and of the soft rarity **Glow** around it.
 - The kind's own details:
   - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Abbreviated Equip Effects** (see *The Blizzard layout* above), the disenchant section, and the sell price.
-  - **Spell Details**: the spell power breakdown and the damage and healing rates under it.
+  - **Spell Details**: the spell power breakdown and the damage and healing rates under it; on retail, the rates alone.
   - **Unit Details**: the level badge (off, the level stays in the info line), the health bar, what a skinnable creature gives, and the nine **Class colors** swatches. Hover a swatch for its class name.
   - **Object Details**: what herbs and ore give: a node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap.
 

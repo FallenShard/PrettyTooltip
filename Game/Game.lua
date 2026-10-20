@@ -190,6 +190,18 @@ function game.spellHealing()
     return number((call(GetSpellBonusHealing)))
 end
 
+-- The seconds an instant cast holds the player's other spells. Forever's is
+-- 1.5 sec. Retail's shrinks with haste, to 0.75 sec at the least; an energy
+-- user's (a rogue, a druid in cat form, a Brewmaster or Windwalker) is 1 sec
+-- and does not.
+function game.globalCooldown()
+    if not ns.retail then return 1.5 end
+    local _, power = call(UnitPowerType, "player")
+    if readable(power) == "ENERGY" then return 1 end
+    local haste = number((call(UnitSpellHaste, "player"))) or 0
+    return math.max(.75, 1.5 / (1 + haste / 100))
+end
+
 -- The player's rank in a skill or profession, by the addon's name for it
 -- ("Skinning"), which the client knows by its own (ns.Locale.skills). Older
 -- clients list skills; newer ones, like Forever's, only list professions.

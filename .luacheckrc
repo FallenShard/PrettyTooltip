@@ -80,6 +80,8 @@ read_globals = {
     "UnitClass", "UnitRace", "UnitFactionGroup", "UnitReaction", "UnitIsUnit", "UnitIsPlayer",
     "UnitHealth", "UnitHealthMax", "UnitIsTapDenied", "UnitIsPVP", "UnitIsDeadOrGhost", "UnitIsDND",
     "UnitIsAFK", "UnitCreatureType", "UnitClassification",
+    -- The global cooldown on retail, for a spell's rates
+    "UnitPowerType", "UnitSpellHaste",
     -- A class's specializations, whose names retail's player tooltips show
     "C_SpecializationInfo", "GetNumSpecializationsForClassID", "GetSpecializationInfoForClassID",
     -- Other addons, used when installed

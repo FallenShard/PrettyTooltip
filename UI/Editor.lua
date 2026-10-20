@@ -1246,10 +1246,10 @@ toggles({
     { "Spell power", "spellPower", "Under the description, each amount's spell power coefficient and its "
         .. "split into base and spell power. No game API has coefficients: they come from Forever's client "
         .. "data, and ones marked ~ are estimates.", classicOnly(spells), coefficients },
-    { "Rates", "spellRates", "Under the spell power breakdown, the average a cast deals or heals per second "
-        .. "and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec "
-        .. "global cooldown) and what comes over time over its duration. Crits and talents do not count.",
-        classicOnly(spells), coefficients },
+    { "Rates", "spellRates", "Under the spell power breakdown (on retail, the description), the average a cast "
+        .. "deals or heals per second and per mana. Per second, what lands at once counts over the cast time "
+        .. "(instants as the global cooldown: 1.5 sec, or on retail after haste) and what comes over time over "
+        .. "its duration. Crits do not count, nor on Forever do talents.", spells, coefficients },
     { "Health bar", "unitHealthBar", "The game's own health bar at the bottom of player and NPC panels. The "
         .. "game fills it, so it stays live without the addon reading health, which WoW Forever keeps from "
         .. "addons.", units },

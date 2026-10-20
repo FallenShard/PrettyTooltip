@@ -548,10 +548,14 @@ end
 -- The spell power breakdown and the rates under it, each by its option.
 local function powerRows(part, numberCode, panel)
     local showPower, showRates = ns.showsDetail("spellPower", panel), ns.showsDetail("spellRates", panel)
-    if not (showPower or showRates) or not ns.spellPowerRows or not ns.Locale.features.coefficients then
-        return
+    if not (showPower or showRates) or not ns.Locale.features.coefficients then return end
+    local rows, rates
+    if ns.spellPowerRows then
+        rows, rates = ns.spellPowerRows(part, numberCode, ns.Game)
+    elseif showRates and ns.SpellAmounts then
+        -- Retail has no coefficients; its rates come from the text alone.
+        rates = ns.SpellAmounts.rateRowsOf(part, ns.Game)
     end
-    local rows, rates = ns.spellPowerRows(part, numberCode, ns.Game)
     local list = showPower and rows or {}
     for _, row in ipairs(showRates and rates or {}) do list[#list + 1] = row end
     if #list > 0 then return list end
