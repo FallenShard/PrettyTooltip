@@ -493,6 +493,13 @@ local function readModel(tooltip, data, game)
             elseif amount(unformat(trimmed, ARMOR_TEMPLATE)) then
                 add(m.armor, left, right)
                 m.armor[#m.armor].value = (unformat(trimmed, ARMOR_TEMPLATE):gsub("%D", ""))
+            elseif SHIELD_BLOCK_TEMPLATE and amount(unformat(trimmed, SHIELD_BLOCK_TEMPLATE)) then
+                -- A shield's block joins its armor's line, or stands for it without one.
+                if #m.armor > 0 then
+                    m.block, m.blockValue = trimmed, unformat(trimmed, SHIELD_BLOCK_TEMPLATE)
+                else
+                    add(m.armor, left, right)
+                end
             elseif ((LINE.ItemSpellTriggerOnProc and lineType == LINE.ItemSpellTriggerOnProc)
                 or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONPROC)) and right == "" then
                 -- Rewritten proc text stays an effect, rather than a stat.
@@ -754,6 +761,15 @@ local function rateText(model)
     return text .. "  \194\183  " .. brightened(model.weaponSpeed, unformat(model.weaponSpeed, formats.weaponSpeed))
 end
 
+-- A shield's block follows its armor on the same line: "547 Armor · 11 Block".
+local function armorText(model, row, index)
+    local text = row.value and valueLabel(row.value, ARMOR) or row.left
+    if index ~= 1 or not model.block then return text end
+    local first, last = model.block:find(model.blockValue, 1, true)
+    local block = first and valueWords(model.block, first, last) or model.block
+    return text .. "  \194\183  " .. block
+end
+
 local function setCountStyle(setName)
     local style = {}
     for field, value in pairs(setName) do style[field] = value end
@@ -870,6 +886,7 @@ local function statsWidth(panel, model, styles)
     for _, bonus in ipairs(model.weaponBonus) do
         need = math.max(need, measureStyled(panel, damageText(bonus), styles.damage) + 7)
     end
+    if model.block then need = math.max(need, measureStyled(panel, armorText(model, model.armor[1], 1), styles.armor)) end
     return need
 end
 
@@ -953,9 +970,9 @@ local function drawStats(panel, model, styles, y)
         end
         y = y + 7
     end
-    for _, row in ipairs(model.armor) do
+    for index, row in ipairs(model.armor) do
         y = drawRow(panel, {
-            left = row.value and valueLabel(row.value, ARMOR) or row.left,
+            left = armorText(model, row, index),
             right = row.right, rightColor = row.rightColor,
         }, y, styles.armor, { .93, .87, .75 })
     end

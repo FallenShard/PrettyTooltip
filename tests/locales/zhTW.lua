@@ -334,6 +334,7 @@ return {
     ["RUNIC_POWER"] = "符能",
     ["RUNIC_POWER_COST"] = "%s點符能",
     ["SELL_PRICE"] = "售價",
+    ["SHIELD_BLOCK_TEMPLATE"] = "%s格擋",
     ["SLASH_CAST1"] = "/施放",
     ["SLASH_CAST2"] = "/spell",
     ["SLASH_CAST3"] = "/cast",
