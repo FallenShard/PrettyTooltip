@@ -39,6 +39,8 @@ local QUALITY = {
     [4] = { .72, .40, .94 },
     [5] = { 1.00, .57, .22 },
 }
+-- A primary stat another specialization uses, as retail's tooltip greys it.
+local INACTIVE_STAT_COLOR = { .50, .50, .50 }
 local PRIMARY_STATS = { STRENGTH = true, AGILITY = true, STAMINA = true, INTELLECT = true, SPIRIT = true,
     ALL_STATS = true }
 local lineParts = ns.Stats.lineParts
@@ -511,10 +513,18 @@ local function readModel(tooltip, data, game)
                 add(m.equipEffects, withoutLabel(text, ITEM_SPELL_TRIGGER_ONPROC), "")
                 m.equipEffects[#m.equipEffects].onHit = true
             elseif original or lineParts(trimmed) == "+" then
+                -- Retail greys the primary stats another specialization uses.
+                local inactive = isActive(line.leftColor) == false
                 -- Combined bonuses arrive as one line; each stat needs its own row.
                 for piece in (displayed .. "|n"):gmatch("(.-)|n") do
                     local stat = ns.Stats.read(plainText(piece))
-                    add(stat and PRIMARY_STATS[stat.key] and m.primary or m.secondary, piece, right)
+                    local primary = stat and PRIMARY_STATS[stat.key]
+                    if primary and inactive then
+                        add(m.primary, ns.Stats.inactiveStat(piece, ns.option("statMarkers")), right)
+                        m.primary[#m.primary].color, m.primary[#m.primary].inactive = INACTIVE_STAT_COLOR, true
+                    else
+                        add(primary and m.primary or m.secondary, piece, right)
+                    end
                     right = ""
                 end
             elseif isType(lineType, "FlavorText") or trimmed:match('^".+"$') then
@@ -982,7 +992,11 @@ local function drawStats(panel, model, styles, y)
         }, y, styles.armor, LARGE_COLOR)
     end
     if #model.armor > 0 then y = y + 5 end
-    y = drawGroup(panel, model.primary, y, styles.stats, { .90, .85, .74 })
+    -- An inactive stat stays grey under a stats color set in the editor.
+    local inactiveStyle = setmetatable({ color = false }, { __index = styles.stats })
+    for _, row in ipairs(model.primary) do
+        y = drawRow(panel, row, y, row.inactive and inactiveStyle or styles.stats, { .90, .85, .74 })
+    end
     -- The rest of the stats sit under a divider, whatever comes above them:
     -- a wand often has its damage and no primary stats.
     local above = #model.primary > 0 or #model.armor > 0 or model.weaponDps or model.weaponDamage

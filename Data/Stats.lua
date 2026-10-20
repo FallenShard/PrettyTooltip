@@ -252,6 +252,16 @@ function stats.styleStat(text, colors, markers)
     return (markers and STAT_MARKER or "") .. colored, colored
 end
 
+-- The marker greyed, as the 32 px art tinted.
+local INACTIVE_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2:32:32:0:32:0:32:128:128:128|t  "
+
+-- A stat that does not count, as retail's primary stats for another
+-- specialization: without its colors, under a grey marker where stats have one.
+function stats.inactiveStat(text, markers)
+    local plain = util.uncolored(text):gsub("^|T.-|t%s*", "")
+    return (markers and INACTIVE_MARKER or "") .. plain
+end
+
 -- Weapon damage of a school in that school's stat colors: a wand's
 -- "64 - 120 Shadow Damage", or a bonus "+5 - 7 Fire Damage".
 function stats.styleDamage(text, colors)
