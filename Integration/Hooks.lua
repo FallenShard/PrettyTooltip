@@ -114,6 +114,8 @@ local function onTooltipData(dataType, tooltip, data)
         native.stopFade(panel)
         panel:Hide()
     end
+    -- New content with no new owner keeps the anchor it had.
+    native.unpark(tooltip, true)
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)
     if not valid then restoreNative(tooltip); return end
@@ -177,8 +179,9 @@ local function onTooltipData(dataType, tooltip, data)
         end)
         -- Hooked after follow cursor's, which stops following first.
         if tooltip.FadeOut then hooksecurefunc(tooltip, "FadeOut", native.fadeOut) end
-        hooksecurefunc(tooltip, "SetOwner", native.unpark)
-        tooltip:HookScript("OnHide", native.unpark)
+        hooksecurefunc(tooltip, "SetOwner", function(owned) native.unpark(owned) end)
+        hooksecurefunc(tooltip, "SetPoint", native.moved)
+        tooltip:HookScript("OnHide", function(hidden) native.unpark(hidden, true) end)
         panel.hooked = true
         panel:SetScript("OnUpdate", function(self, elapsed)
             if not util.canModify(tooltip) then self:Hide(); return end

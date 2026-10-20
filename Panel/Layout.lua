@@ -915,8 +915,8 @@ end
 -- the tooltip itself is anchored by, so the difference faces away from
 -- whatever it is attached to.
 local function alignPanel(panel, tooltip)
-    -- Pinned while its fading tooltip is off the screen.
-    if panel.parked then return end
+    -- Pinned while it fades where its tooltip stood.
+    if panel.parked or (panel.fade and panel.fade:IsPlaying()) then return end
     local side = anchoredSide(tooltip)
     local dx, dy = gridOffset(panel, tooltip, side)
     if panel.side == side and panel:GetNumPoints() > 0

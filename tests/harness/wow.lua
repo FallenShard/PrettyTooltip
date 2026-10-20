@@ -248,6 +248,10 @@ return function(fixture, enums, report, strings)
     function Object:CreateTexture(name) return new("Texture", name, self) end
     function Object:CreateMaskTexture(name) return new("MaskTexture", name, self) end
     function Object:CreateAnimationGroup(name) return new("AnimationGroup", name, self) end
+    -- An animation plays until stopped; a test finishes it by calling its OnFinished.
+    function Object:Play() self._playing = true end
+    function Object:Stop() self._playing = false end
+    function Object:IsPlaying() return self._playing or false end
     function Object:CreateAnimation(_, name) return new("Animation", name, self) end
 
     -- Text, on font strings and the buttons that carry one.

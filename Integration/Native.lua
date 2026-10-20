@@ -205,29 +205,55 @@ end
 -- Off the screen, where a fading tooltip goes so its alpha no longer matters.
 local PARKED = -10000
 
+local parking = false
 -- Moves a fading tooltip off the screen, its panel pinned where it stands.
 -- Hiding the tooltip instead would run its OnHide under the addon's taint.
 -- False when where either stands cannot be read.
 local function park(tooltip, panel)
     if panel.parked then return true end
     local clamped = util.call(tooltip.IsClampedToScreen, tooltip)
-    if type(clamped) ~= "boolean" or not ui.pinPanel(panel) then return false end
-    panel.parked = { clamped = clamped }
-    return pcall(function()
+    -- Where it stood, to go back to when no one anchors it afresh.
+    local points = util.framePoints(tooltip)
+    if type(clamped) ~= "boolean" or not points or #points == 0 or not ui.pinPanel(panel) then return false end
+    panel.parked = { clamped = clamped, points = points }
+    parking = true
+    local ok = pcall(function()
         if clamped then tooltip:SetClampedToScreen(false) end
         tooltip:ClearAllPoints()
         tooltip:SetPoint("TOPRIGHT", UIParent, "BOTTOMLEFT", PARKED, PARKED)
     end)
+    parking = false
+    return ok
 end
 
--- Once the tooltip is hidden or given new content, which the game anchors
--- afresh. Follow cursor clamps the tooltip again itself when it unclamped it.
-local function unpark(tooltip)
+-- Anchored by someone else while off the screen: that anchor stays.
+local function moved(tooltip)
+    local panel = panels[tooltip]
+    if panel and panel.parked and not parking then panel.parked.moved = true end
+end
+
+-- Once the tooltip is hidden, given a new owner, or given new content. Left
+-- with the off-screen anchor, it would show in the screen's lower left corner,
+-- clamped there: retail adds a new owner's anchor to it without clearing it,
+-- the tooltip stretched between the two. A new owner anchors it next, so the
+-- off-screen anchor just goes; otherwise it goes back where it stood. Follow
+-- cursor clamps the tooltip again itself when it unclamped it.
+local function unpark(tooltip, putBack)
     local panel = panels[tooltip]
     local parked = panel and panel.parked
     if not parked then return end
     panel.parked = nil
     if not util.canModify(tooltip) then return end
+    if not (putBack and parked.moved) then
+        pcall(function()
+            tooltip:ClearAllPoints()
+            if putBack then
+                for _, anchor in ipairs(parked.points) do
+                    tooltip:SetPoint(anchor[1], anchor[2], anchor[3], anchor[4], anchor[5])
+                end
+            end
+        end)
+    end
     if parked.clamped then pcall(tooltip.SetClampedToScreen, tooltip, true) end
     pcall(ui.alignPanel, panel, tooltip)
 end
@@ -297,6 +323,7 @@ native.refitUnlessPartial = refitUnlessPartial
 native.restoreNative = restoreNative
 native.fadeOut = fadeOut
 native.unpark = unpark
+native.moved = moved
 native.isParked = function(tooltip)
     local panel = panels[tooltip]
     return panel ~= nil and panel.parked ~= nil

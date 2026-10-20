@@ -30,6 +30,7 @@ return function(test)
         local point, relativeTo, relativePoint, x, y = frame:GetPoint(1)
         return { point, relativeTo == UIParent, relativePoint, x, y }
     end
+    local home = { "BOTTOMRIGHT", true, "BOTTOMRIGHT", -20, 30 }
 
     for _, inCombat in ipairs({ true, false }) do
         local label = inCombat and "in combat" or "out of combat"
@@ -46,24 +47,55 @@ return function(test)
         ns.ui.alignPanel(panel, tooltip)
         test.check(label .. ": and is not pulled after it", select(2, panel:GetPoint(1)) == UIParent, true)
         if inCombat then
-            -- The mouse comes back to the unit: new content, anchored afresh.
+            -- The next world unit, as retail anchors it: a new owner, then its
+            -- anchor added to whatever the tooltip had, without clearing it.
             tooltip:SetOwner(UIParent, "ANCHOR_NONE")
-            test.check("new content gives the clamping back", tooltip:IsClampedToScreen(), true)
+            test.check("a new owner gives the clamping back", tooltip:IsClampedToScreen(), true)
+            tooltip:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 30)
+            test.check("and the owner's anchor is its only one, not added to the off-screen one",
+                { tooltip:GetNumPoints(), anchor(tooltip) }, { 1, home })
+            test.check("the fading panel stays where it stood", select(2, panel:GetPoint(1)) == UIParent, true)
             callback(tooltip, fixture.data)
             test.check("and the panel follows its tooltip again", select(2, panel:GetPoint(1)) == tooltip, true)
         else
             tooltip:Hide()
             tooltip:GetScript("OnHide")(tooltip)
             test.check("the game's own hide gives the clamping back", tooltip:IsClampedToScreen(), true)
+            test.check("and its own anchor", { tooltip:GetNumPoints(), anchor(tooltip) }, { 1, home })
+            test.check("and the fading panel stays where it stood", select(2, panel:GetPoint(1)) == UIParent, true)
         end
         ns.Native.restoreNative(tooltip)
     end
 
+    -- New content with no new owner or anchor goes back where it stood.
+    local panel = show()
+    tooltip:FadeOut()
+    callback(tooltip, fixture.data)
+    test.check("new content alone puts the tooltip back at its anchor, clamped",
+        { tooltip:GetNumPoints(), anchor(tooltip), tooltip:IsClampedToScreen() }, { 1, home, true })
+    test.check("its panel on it, shown", { select(2, panel:GetPoint(1)) == tooltip, panel:IsShown() }, { true, true })
+    test.check("and fading again parks it again", (tooltip:FadeOut() or anchor(tooltip))[4], -10000)
+    tooltip:Hide()
+    tooltip:GetScript("OnHide")(tooltip)
+    ns.Native.restoreNative(tooltip)
+
+    -- Anchored by someone else while off the screen, it keeps that anchor.
+    panel = show()
+    tooltip:FadeOut()
+    tooltip:ClearAllPoints()
+    tooltip:SetPoint("CENTER", UIParent, "CENTER", 5, 5)
+    tooltip:Hide()
+    tooltip:GetScript("OnHide")(tooltip)
+    test.check("an anchor set by someone else while off the screen stays",
+        { tooltip:GetNumPoints(), anchor(tooltip) }, { 1, { "CENTER", true, "CENTER", 5, 5 } })
+    ns.Native.restoreNative(tooltip)
+
     -- After its fade the game leaves the tooltip shown, off the screen. New
     -- content then shows the panel again; when another addon hides the
     -- tooltip, the panel goes with it rather than waiting for the old fade.
-    local panel = show()
+    panel = show()
     tooltip:FadeOut()
+    panel.fade:Stop()
     panel.fade:GetScript("OnFinished")()
     test.check("the panel is gone once its fade ends", panel:IsShown(), false)
     panel = show()
