@@ -69,6 +69,7 @@ local function update(tooltip, data, model)
     if not ok or not model then restoreNative(tooltip); return end
     if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
     if not panel.nativeAlpha then restoreNative(tooltip); return end
+    local wasShown = panel:IsShown()
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
     tally("refit from render")
@@ -76,7 +77,11 @@ local function update(tooltip, data, model)
     panel.data = data
     local key, valid = keyOf(tooltipType, tooltip, data)
     if not valid then restoreNative(tooltip); return end
-    if key ~= panel.key then panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil end
+    -- A fresh render was fitted to whatever the tooltip measured mid-fill (an
+    -- early Show can be taller); the final Show must not wait as "smaller".
+    if key ~= panel.key or not wasShown then
+        panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil
+    end
     panel.key = key
     if panel.dataType == Enum.TooltipDataType.Item then
         panel.model, panel.modelDataType = model, panel.dataType
