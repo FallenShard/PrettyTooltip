@@ -26,6 +26,8 @@ local rowWidth, drawRow, acquireTexture, divider, drawGroup = ui.rowWidth, ui.dr
 local QUEST_CLASS = Enum.ItemClass and Enum.ItemClass.Questitem or 12
 local CONSUMABLE_CLASS = Enum.ItemClass and Enum.ItemClass.Consumable or 0
 local DURABILITY_BAR = 54
+-- Added to a row's own gap of 3: enchants and gems are 8 from the rows around them.
+local APART_SPACE = 5
 local EXTRAS_RULE = { .50, .50, .54 }
 -- The space a divider or the rule over other addons' rows adds after rows,
 -- which end with their own gap: a divider then shows as much space above its
@@ -1041,17 +1043,33 @@ local function hasStats(model)
         or #model.effects > 0 or #model.flavor > 0 or (model.sockets and #model.sockets > 0) or model.imbues ~= nil
 end
 
--- A socket's row with its icon before the text, the icon the text's height.
-local function socketRow(row, style)
-    if not row.icon then return row end
-    local size = math.floor((style.size or 12) * 1.25 + .5)
-    return { left = "|T" .. row.icon .. ":" .. size .. ":" .. size .. ":0:0|t " .. row.left, right = row.right,
-        color = row.color, rightColor = row.rightColor }
+-- A socket's icon is a little larger than its text, and drawn apart from it:
+-- an icon in the text sits on its baseline and hangs below, leaving the text
+-- high. Apart, it is centered on the line, and the text starts after it.
+local SOCKET_ICON_GAP = 4
+
+local function socketIconSize(style)
+    return math.floor((style.size or 12) * 1.25 + .5)
+end
+
+-- Where a socket's text starts: past its icon, when it has one.
+local function socketIndent(row, style)
+    local indent = row.indent or 0
+    if row.icon then indent = indent + socketIconSize(style) + SOCKET_ICON_GAP end
+    return indent
 end
 
 local function drawSockets(panel, sockets, y, style)
     for _, row in ipairs(sockets) do
-        y = drawRow(panel, socketRow(row, style), y, style, GEM_COLOR, row.indent or 0, 3)
+        if row.icon then
+            local size = socketIconSize(style)
+            -- The line is the text's size and 2 tall (Panel/Layout.lua's textAt).
+            local top = y + (style.size + 2 - size) / 2
+            local icon = acquireTexture(panel, row.icon, 1)
+            icon:SetPoint("TOPLEFT", panel, "TOPLEFT", pad() + (row.indent or 0), -ui.snap(panel, top))
+            icon:SetSize(size, size)
+        end
+        y = drawRow(panel, row, y, style, GEM_COLOR, socketIndent(row, style), 3)
     end
     return y
 end
@@ -1065,7 +1083,7 @@ local function statsWidth(panel, model, styles)
         listWidth(panel, model.imbues or {}, styles.enchants, markerIndent(panel, styles.enchants)),
         listWidth(panel, model.flavor, styles.flavor, 0, true))
     for _, row in ipairs(model.sockets or {}) do
-        need = math.max(need, listWidth(panel, { socketRow(row, styles.gems) }, styles.gems, row.indent or 0))
+        need = math.max(need, listWidth(panel, { row }, styles.gems, socketIndent(row, styles.gems)))
     end
     for _, row in ipairs(model.equipEffects) do
         need = math.max(need, math.min(measureStyled(panel, row.left, styles.equipEffects), PROSE_WIDTH)
@@ -1187,16 +1205,35 @@ local function drawStats(panel, model, styles, y)
     -- a wand often has its damage and no primary stats.
     local above = #model.primary > 0 or #model.armor > 0 or model.weaponDps or model.weaponDamage
         or #model.weaponBonus > 0
+    local underDivider
     if (#model.secondary > 0 or #model.equipEffects > 0) and above then
         y = divider(panel, y, GOLD_RULE, DIVIDER_AFTER)
+        underDivider = y
     end
     y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
+    -- Enchants and gems stand apart from the rows around them, once between
+    -- two of them; first under the divider, they start where anything would.
+    local apartAt
+    local function standApart()
+        if y > top and y ~= underDivider and y ~= apartAt then
+            y = y + APART_SPACE
+            apartAt = y
+        end
+    end
+    local enchanted = #model.enchants > 0 or (model.imbues ~= nil and #model.imbues > 0)
+    local socketed = model.sockets ~= nil and #model.sockets > 0
+    if enchanted then standApart() end
     y = drawMarked(panel, fittedRows(model.enchants, styles.enchants), y, styles.enchants, { .90, .85, .74 },
         ENCHANT_MARKER)
     -- Temporary enchants under the permanent ones.
     if model.imbues then y = drawMarked(panel, model.imbues, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER) end
-    -- Spaced as the stats, enchants, and equip effects around them.
-    if model.sockets then y = drawSockets(panel, model.sockets, y, styles.gems) end
+    -- Use effects and flavor add their own space after them.
+    if enchanted and (socketed or #model.equipEffects > 0) then standApart() end
+    if socketed then
+        standApart()
+        y = drawSockets(panel, model.sockets, y, styles.gems)
+        if #model.equipEffects > 0 then standApart() end
+    end
     -- Equip effects after what is added to the item: its enchants and gems.
     y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     -- Use effects and flavor stand apart from the stats above them; first under
