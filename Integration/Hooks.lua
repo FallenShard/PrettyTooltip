@@ -157,14 +157,34 @@ local function finishComparisonAnchor(tooltip, panel)
     pcall(alignPanel, panel, tooltip)
 end
 
-local function scheduleComparisonAnchor(tooltip, panel)
+-- One comparison can be attached to the other; place that one first. Measured
+-- against a panel with no position yet, as on the first comparison, a panel
+-- stays unplaced until the next refresh.
+local function finishComparisonAnchors()
+    local pending = {}
+    for tooltip, panel in pairs(panels) do
+        if panel.comparisonAnchorPending and util.canModify(tooltip) and isComparison(tooltip) then
+            pending[tooltip] = panel
+        end
+    end
+    local function finish(tooltip)
+        local panel = pending[tooltip]
+        if not panel then return end
+        pending[tooltip] = nil
+        for _, point in ipairs(util.framePoints(tooltip) or {}) do finish(point[2]) end
+        finishComparisonAnchor(tooltip, panel)
+    end
+    for tooltip in pairs(pending) do finish(tooltip) end
+end
+
+local function scheduleComparisonAnchor(panel)
     panel.comparisonAnchorPending = true
     if panel.comparisonAnchorQueued then return end
     panel.comparisonAnchorQueued = true
     -- Also handles comparisons anchored by an addon outside the manager.
     C_Timer.After(0, function()
         panel.comparisonAnchorQueued = nil
-        if panel.comparisonAnchorPending then finishComparisonAnchor(tooltip, panel) end
+        finishComparisonAnchors()
     end)
 end
 
@@ -189,13 +209,7 @@ local function installComparisonHooks()
         if panel then finishComparison(tooltip, panel, true) end
     end)
     -- Retarget after all points, including the neighbour and side, are set.
-    hooksecurefunc(manager, "AnchorShoppingTooltips", function()
-        for tooltip, panel in pairs(panels) do
-            if panel.comparisonAnchorPending and util.canModify(tooltip) and isComparison(tooltip) then
-                finishComparisonAnchor(tooltip, panel)
-            end
-        end
-    end)
+    hooksecurefunc(manager, "AnchorShoppingTooltips", finishComparisonAnchors)
 end
 
 function hooks.comparisonsBatched() return batchComparisons end
@@ -286,7 +300,7 @@ local function onTooltipData(dataType, tooltip, data)
             end
             -- Comparisons are anchored after they are shown, so align here.
             if batchComparisons and isComparison(shown) then
-                scheduleComparisonAnchor(shown, panel)
+                scheduleComparisonAnchor(panel)
             else
                 pcall(alignPanel, panel, shown)
                 if isComparison(shown) then pcall(anchorToPanels, shown) end
@@ -313,7 +327,7 @@ local function onTooltipData(dataType, tooltip, data)
             if panel.nativeOnly or native.anchoring then return end
             if not util.canModify(moved) then return end
             if panel:IsShown() and isComparison(moved) then
-                if batchComparisons then scheduleComparisonAnchor(moved, panel); return end
+                if batchComparisons then scheduleComparisonAnchor(panel); return end
                 tally("re-anchor after SetPoint")
                 anchorToPanels(moved)
                 pcall(alignPanel, panel, moved)
@@ -396,7 +410,8 @@ local function onTooltipData(dataType, tooltip, data)
                     and panel.fingerprint and panel.fingerprint ~= util.call(fingerprint, tooltip, panel.data)) then
                     panel.comparisonPending = true
                     finishComparison(tooltip, panel)
-                    finishComparisonAnchor(tooltip, panel)
+                    panel.comparisonAnchorPending = true
+                    finishComparisonAnchors()
                 end
             end)
         end
@@ -477,10 +492,10 @@ function hooks.install()
             -- wider than its panel, so waiting for the manager leaves a gap.
             for tooltip, panel in pairs(panels) do
                 if util.canModify(tooltip) and tooltip:IsShown() and panel:IsShown() and isComparison(tooltip) then
-                    pcall(anchorToPanels, tooltip)
-                    pcall(alignPanel, panel, tooltip)
+                    panel.comparisonAnchorPending = true
                 end
             end
+            finishComparisonAnchors()
         end
     end)
 end
