@@ -29,6 +29,8 @@ local COSMETIC_COLOR = { 1, .50, 1 }
 local KNOWN_COLOR = { 1, .125, .125 }
 -- A Warbound item's binding, in the game's light blue when it sends none.
 local WARBOUND_COLOR = { 0, .80, 1 }
+-- A reagent's "Usable with:", in the game's gold.
+local USABLE_WITH_COLOR = { 1, .82, 0 }
 -- How the game binds an item (its TooltipDataItemBinding enum, as documented,
 -- where the client has none): the kinds that bind to the Warband.
 local BINDING = Enum and Enum.TooltipDataItemBinding or { Account = 1, BnetAccount = 2, BindToAccount = 4,
@@ -40,6 +42,9 @@ for _, name in ipairs({ "Account", "BnetAccount", "BindToAccount", "BindToBnetAc
 end
 
 -- Reading ----------------------------------------------------------------------
+
+-- Defined with the drawing, below.
+local fitAtlases
 
 -- A line's color as the game sends it, exactly, or fallback.
 local function gameColor(color, fallback)
@@ -60,6 +65,65 @@ local function isString(text, ...)
         if type(wording) == "string" and text == util.trim(wording):lower() then return true end
     end
     return false
+end
+
+-- Retail's reagent kinds, named on a line of their own, as Tooltips/Item.lua
+-- names "Crafting Reagent": they join the item's slot under its name.
+function item.kinds()
+    local list = {}
+    for _, kind in pairs({ PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING, PROFESSIONS_MODIFIED_CRAFTING_REAGENT }) do
+        if type(kind) == "string" then list[#list + 1] = kind end
+    end
+    return list
+end
+
+-- The kind a reagent's line names with an expansion's name added, as
+-- "Zandalari Crafting Reagent": the longest kind in it, on a short label line
+-- (no colon or closing period, as an effect's sentence has). Nil otherwise.
+function item.kindWithin(name, kinds)
+    if name == "" or name:find(":", 1, true) or name:find("：", 1, true) or name:find("[%.。]$") then return end
+    local found
+    for _, kind in ipairs(kinds) do
+        if #name <= #kind + 40 and name:find(kind, 1, true) and (not found or #kind > #found) then found = kind end
+    end
+    return found
+end
+
+-- Decor's placement cost, beside its name: the budget icon and a number.
+function item.readNameRight(model, right)
+    if type(right) == "string" and right:find("|A:", 1, true)
+        and tonumber(util.trim(plainText((right:gsub("|A:.-|a", ""))))) then
+        model.decorCost = util.trim(right)
+    end
+end
+
+-- Decor names its class and subclass on a line of its own, in the game's
+-- blue: "Housing Decor". It joins the item's kinds under its name.
+function item.readClassLine(model, itemType)
+    local housing = Enum and Enum.ItemClass and Enum.ItemClass.Housing
+    if not housing or itemType.classID ~= housing then return end
+    local class, subclass = itemType.className, itemType.subClassName
+    if type(class) ~= "string" or class == "" then return end
+    for index, row in ipairs(model.extras) do
+        local text = util.trim(plainText(row.left))
+        if row.right == "" and text:find(class, 1, true)
+            and (type(subclass) ~= "string" or subclass == "" or text:find(subclass, 1, true)) then
+            table.remove(model.extras, index)
+            local code = row.left:match("|c(%x%x%x%x%x%x%x%x)")
+            model.decorKind = code and ("|c" .. code .. text .. "|r") or text
+            return
+        end
+    end
+end
+
+-- Decor's kind and placement cost, its icon at the slot line's size.
+function item.addKinds(shown, model)
+    local kind = model.decorKind
+    if model.decorCost then
+        local cost = fitAtlases(model.decorCost, ns.style("subtitle").size)
+        kind = kind and (kind .. "  " .. cost) or cost
+    end
+    if kind then shown[#shown + 1] = kind end
 end
 
 -- A Warbound item's binding line: by the game's binding kind, or else its words.
@@ -198,6 +262,15 @@ function item.readLine(m, line, data, lineNumber, left, right, trimmed, original
         if appearance ~= "" then m.transmog = appearance end
     elseif right == "" and unformat(plain, TRANSMOGRIFIED_ENCHANT) then
         m.illusion = util.trim(plain)
+    elseif right == "" and type(PROFESSIONS_FINISHING_CRAFTING_REAGENT_DESCRIPTION) == "string"
+        and unformat(plain, PROFESSIONS_FINISHING_CRAFTING_REAGENT_DESCRIPTION) then
+        -- A finishing reagent's effect, "When crafting: ...", with the item's effects.
+        add(m.effects, trimmed, "")
+    elseif right == "" and type(PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH) == "string"
+        and unformat(plain, util.uncolored(PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH)) then
+        -- The recipes a reagent goes into, under its effect, in the game's colors.
+        add(m.effects, trimmed, "")
+        m.effects[#m.effects].color = gameColor(line.leftColor, USABLE_WITH_COLOR)
     elseif right == "" and isString(plain, ITEM_COSMETIC) then
         -- "Cosmetic", under the name, in the game's pink.
         m.cosmetic, m.cosmeticColor = util.trim(plain), gameColor(line.leftColor, COSMETIC_COLOR)
@@ -234,7 +307,7 @@ end
 -- Drawing ----------------------------------------------------------------------
 
 -- Retail sends its quality icons at 20 px; a line's icon is its text's height.
-local function fitAtlases(text, size)
+fitAtlases = function(text, size)
     if type(text) ~= "string" then return text end
     size = math.floor((size or 12) + .5)
     return (text:gsub("|A:([^:|]+)[^|]*|a", function(atlas)

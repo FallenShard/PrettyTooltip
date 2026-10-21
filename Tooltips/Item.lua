@@ -59,6 +59,10 @@ local QUEST_MARK = "|TInterface\\GossipFrame\\AvailableQuestIcon:0|t "
 -- Kinds of item the game names on a line of their own, as "Crafting Reagent".
 local ITEM_KINDS = {}
 for _, kind in pairs({ PROFESSIONS_USED_IN_COOKING, formats.scarce }) do ITEM_KINDS[#ITEM_KINDS + 1] = kind end
+-- Retail's reagent kinds: "Finishing Crafting Reagent", "Optional Crafting Reagent".
+if ns.IsRetail() then
+    for _, kind in ipairs(ns.Retail.Item.kinds()) do ITEM_KINDS[#ITEM_KINDS + 1] = kind end
+end
 local ITEM_KIND_NAMES = {}
 for _, kind in ipairs(ITEM_KINDS) do ITEM_KIND_NAMES[kind:lower()] = kind end
 
@@ -156,18 +160,22 @@ local PRICE_DETAIL = "9E9485"
 -- Can arrive color coded, or appended outside the tooltip data.
 local function itemKind(left, right, color)
     if right ~= "" then return end
-    local kind = ITEM_KIND_NAMES[plainText(left):match("^%s*(.-)%s*$"):lower()]
+    local name = plainText(left):match("^%s*(.-)%s*$")
+    local kind = ITEM_KIND_NAMES[name:lower()]
+    -- Retail names an expansion's reagents after it: "Zandalari Crafting Reagent".
+    if not kind and ns.IsRetail() then kind = ns.Retail.Item.kindWithin(name, ITEM_KINDS) end
     if not kind then return end
+    local shown = ITEM_KIND_NAMES[name:lower()] and kind or name
     local code = left:match("|c(%x%x%x%x%x%x%x%x)")
-    if code then return kind, "|c" .. code .. kind .. "|r" end
-    if isSecret(color) or type(color) ~= "table" then return kind, kind end
+    if code then return kind, "|c" .. code .. shown .. "|r" end
+    if isSecret(color) or type(color) ~= "table" then return kind, shown end
     local r, g, b = color.r or color[1], color.g or color[2], color.b or color[3]
     if isSecret(r) or isSecret(g) or isSecret(b)
         or type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then
-        return kind, kind
+        return kind, shown
     end
     return kind, string.format("|cff%02X%02X%02X%s|r", math.floor(r * 255 + .5),
-        math.floor(g * 255 + .5), math.floor(b * 255 + .5), kind)
+        math.floor(g * 255 + .5), math.floor(b * 255 + .5), shown)
 end
 
 -- Must match STAT_MARKER in Data/Stats.lua, minus its trailing spaces.
@@ -459,6 +467,8 @@ local function readModel(tooltip, data, game)
         elseif lineType == LINE.ItemName then
             if not model.name then
                 model.name, model.nameColor = left, rgb(line.leftColor)
+                -- Retail's decor names its placement cost beside the name.
+                if ns.IsRetail() then ns.Retail.Item.readNameRight(model, right) end
             elseif not model.created then
                 model.created = newItemModel()
                 -- Its name line starts with a line break.
@@ -641,6 +651,8 @@ local function readModel(tooltip, data, game)
     if itemType then
         classID, className, subClassName = itemType.classID, itemType.className, itemType.subClassName
         equipLoc, itemID = itemType.equipLoc, itemType.id
+        -- Retail's decor names its class, "Housing Decor", on a line of its own.
+        if ns.IsRetail() and not recipe then ns.Retail.Item.readClassLine(model, itemType) end
     end
     if ns.disenchantFor and classID and not recipe then
         local itemLevel = game.itemLevel(itemInfo) or model.level
@@ -679,6 +691,7 @@ local function readModel(tooltip, data, game)
         end
     end
     for _, kind in ipairs(ITEM_KINDS) do shown[#shown + 1] = model.kinds[kind] end
+    if ns.IsRetail() then ns.Retail.Item.addKinds(shown, model) end
     if #shown > 0 then
         local kinds = table.concat(shown, " \194\183 ")
         model.slot = model.slot and model.slot ~= "" and (model.slot .. " \194\183 " .. kinds) or kinds
