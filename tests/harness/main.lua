@@ -287,7 +287,7 @@ function main.unit(testSource, testName, sources, serialize, makeWorld, tocs, en
     end
     -- A list of shared files as retail's .toc loads them: Retail/Retail.lua
     -- first, and each other file in Retail/ just before the file after it in
-    -- that .toc, when the list has that file. Retail/Schools.lua, which
+    -- that .toc, when the list has that file. Retail/Data/Schools.lua, which
     -- replaces Forever's own schools, only when the list names it.
     function test.retail(files)
         local before, waiting = {}, {}
@@ -301,7 +301,7 @@ function main.unit(testSource, testName, sources, serialize, makeWorld, tocs, en
         local list = { "Retail/Retail.lua" }
         for _, file in ipairs(files) do
             for _, retail in ipairs(before[file] or {}) do
-                if retail ~= "Retail/Retail.lua" and retail ~= "Retail/Schools.lua" then list[#list + 1] = retail end
+                if retail ~= "Retail/Retail.lua" and retail ~= "Retail/Data/Schools.lua" then list[#list + 1] = retail end
             end
             list[#list + 1] = file
         end
