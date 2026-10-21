@@ -96,7 +96,12 @@ end
 local function getItemInfo(tooltip, data)
     if tooltip.GetItem then
         local ok, _, link = pcall(tooltip.GetItem, tooltip)
-        if ok and not isSecret(link) and link then return link end
+        -- Only an item link: a keystone's "|Hkeystone:" one is no item to the
+        -- game's item calls, which give it the question mark icon.
+        if ok and not isSecret(link) and type(link) == "string" and (link:find("|Hitem:", 1, true)
+            or not link:find("|H", 1, true)) then
+            return link
+        end
     end
     if not isSecret(data.hyperlink) and data.hyperlink then return data.hyperlink end
     if not isSecret(data.id) then return data.id end
@@ -467,6 +472,8 @@ local function readModel(tooltip, data, game)
         teachesLast = false
         if isStockChange(left) then
             addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
+        elseif ns.IsRetail() and ns.Retail.Item.readKeystone(m, line, lineNumber, left, right, trimmed) then
+            -- A Mythic keystone's name, levels, modifiers, and duration.
         elseif isType(lineType, "ItemSpellTriggerLearn") or unformat(trimmed, formats.recipeTeaches) then
             -- Its type marks it in every language; cooking words it apart from
             -- the other professions ("烹制", not "制作"). The recipe's own lines follow.
@@ -846,7 +853,7 @@ local function drawEffects(panel, list, y, style, color)
         elseif row.inactive then
             y = drawRow(panel, row, y, ns.Retail.Item.inactiveStyle(style), color)
         else
-            y = drawRow(panel, row, y, style, color)
+            y = drawRow(panel, row, y, style, color, row.indent)
         end
     end
     return y

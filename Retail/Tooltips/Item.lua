@@ -29,6 +29,13 @@ local COSMETIC_COLOR = { 1, .50, 1 }
 local KNOWN_COLOR = { 1, .125, .125 }
 -- A Warbound item's binding, in the game's light blue when it sends none.
 local WARBOUND_COLOR = { 0, .80, 1 }
+-- A Mythic keystone's lines, in the game's colors: its levels in gold, its
+-- dungeon's modifiers in green under a gold heading, indented as the game does.
+local KEYSTONE_LEVEL_COLOR = { 1, .82, 0 }
+local KEYSTONE_HEADING_COLOR = { 1, 1, 1 }
+local KEYSTONE_MODIFIER_COLOR = { 0, 1, 0 }
+local KEYSTONE_MODIFIER_INDENT = 12
+local DURATION_LINES = { "ITEM_DURATION_DAYS", "ITEM_DURATION_HOURS", "ITEM_DURATION_MIN", "ITEM_DURATION_SEC" }
 -- "Legacy Item: Effects are inactive", in the game's blue.
 local LEGACY_COLOR = { 0, .80, 1 }
 -- A reagent's "Usable with:", in the game's gold.
@@ -305,6 +312,52 @@ function item.readLine(m, line, data, lineNumber, left, right, trimmed, original
         add(m.effects, util.trim(plain), "")
         m.effects[#m.effects].color, m.effects[#m.effects].inactive = gameColor(line.leftColor, KNOWN_COLOR), true
     else
+        return false
+    end
+    return true
+end
+
+-- A Mythic keystone sends no name line: its first line, "Keystone: Ruby Life
+-- Pools", names the dungeon, which becomes the item's name. Its other lines:
+-- "Mythic Level 15" and "Resilient Level 14" under the name, its "Dungeon
+-- Modifiers:" with the effects, and its duration in the footer. Whether the
+-- line was one.
+function item.readKeystone(m, line, lineNumber, left, right, trimmed)
+    if right ~= "" then return false end
+    local plain = util.trim(plainText(trimmed))
+    if lineNumber == 1 then
+        if m.name or type(CHALLENGE_MODE_KEYSTONE_NAME) ~= "string" then return false end
+        local dungeon = unformat(plain, CHALLENGE_MODE_KEYSTONE_NAME)
+        if type(dungeon) ~= "string" or util.trim(dungeon) == "" then return false end
+        m.name, m.nameColor, m.keystone = util.trim(dungeon), gameColor(line.leftColor), true
+        -- The game's item info has no link to go by; the line has its quality.
+        if not isSecret(line.quality) and type(line.quality) == "number" then m.quality = line.quality end
+        -- Its kind, "Keystone", the line's own word for it.
+        local kind = util.trim((CHALLENGE_MODE_KEYSTONE_NAME:gsub("%%s", "")))
+        kind = util.trim((kind:gsub("^[:：]+", ""):gsub("[:：]+$", "")))
+        if kind ~= "" then m.slot = kind end
+        return true
+    end
+    if not m.keystone or plain == "" then return false end
+    if unformat(plain, CHALLENGE_MODE_ITEM_POWER_LEVEL) or unformat(plain, RESILIENT_KEY_LEVEL) then
+        add(m.header, plain, "")
+        m.header[#m.header].color = gameColor(line.leftColor, KEYSTONE_LEVEL_COLOR)
+    elseif isString(plain, CHALLENGE_MODE_DUNGEON_MODIFIERS) then
+        add(m.effects, plain, "")
+        m.effects[#m.effects].color = gameColor(line.leftColor, KEYSTONE_HEADING_COLOR)
+    elseif left:match("^%s") and #m.effects > 0 then
+        -- A modifier, indented under the heading.
+        add(m.effects, plain, "")
+        local row = m.effects[#m.effects]
+        row.color, row.indent = gameColor(line.leftColor, KEYSTONE_MODIFIER_COLOR), KEYSTONE_MODIFIER_INDENT
+    else
+        for _, name in ipairs(DURATION_LINES) do
+            local format = _G[name]
+            if type(format) == "string" and unformat(plain, format) then
+                add(m.footerLeft, util.resolvePlurals(plain), "")
+                return true
+            end
+        end
         return false
     end
     return true
