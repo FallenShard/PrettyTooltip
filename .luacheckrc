@@ -67,7 +67,7 @@ read_globals = {
     "INVTYPE_WEAPONMAINHAND", "INVTYPE_WEAPONOFFHAND", "INVTYPE_RANGED", "ITEM_SPELL_CHARGES",
     "ITEM_ENCHANT_TIME_LEFT_DAYS", "ITEM_ENCHANT_TIME_LEFT_HOURS", "ITEM_ENCHANT_TIME_LEFT_MIN", "ITEM_ENCHANT_TIME_LEFT_SEC",
     -- Tooltip data
-    "TooltipDataProcessor", "Enum",
+    "TooltipDataProcessor", "TooltipComparisonManager", "Enum",
     -- Game state
     "C_Item", "C_Spell", "C_Texture", "C_AddOns", "C_QuestLog", "C_UnitAuras", "C_Timer", "C_CurrencyInfo",
     "C_PaperDollInfo", "GetWeaponEnchantInfo", "GetInventoryItemTexture", "WOW_PROJECT_ID", "WOW_PROJECT_MAINLINE",
