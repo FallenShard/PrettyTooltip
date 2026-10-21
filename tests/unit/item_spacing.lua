@@ -24,9 +24,9 @@ return function(test)
         capture.data.lines[index] = line
         capture.lines[index] = { left = { text = line.leftText } }
     end
-    local ns, world = test.load({ "Core/Retail.lua", "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+    local ns, world = test.load(test.retail({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
         "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
-        "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Item.lua" }, capture)
+        "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Item.lua" }), capture)
     PrettyTooltipDB = {}
     local model = ns.TooltipTypes[ITEM].read(world.main, capture.data, ns.Game)
     test.check("each part read", { #model.secondary, #model.enchants, #model.sockets, #model.equipEffects },
