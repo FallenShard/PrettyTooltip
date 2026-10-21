@@ -27,6 +27,7 @@ Game\Game.lua
 Game\TooltipData.lua
 Data\Schools.lua
 Data\Stats.lua
+Data\Imbues.lua
 Panel\Layout.lua
 Panel\Render.lua
 Data\Disenchant.lua
@@ -40,6 +41,7 @@ Tooltips\Spell.lua
 Tooltips\Object.lua
 Tooltips\Unit.lua
 Tooltips\Aura.lua
+Tooltips\Imbue.lua
 Tooltips\Quest.lua
 Tooltips\Macro.lua
 Tooltips\PetAction.lua

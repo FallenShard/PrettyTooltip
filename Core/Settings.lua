@@ -14,6 +14,8 @@ local DEFAULTS = {
     objectPanels = true,
     unitPanels = true,
     auraPanels = true,
+    -- A weapon imbue's buff button shows the imbue's panel, not its weapon's tooltip.
+    imbuePanels = true,
     questPanels = true,
     macroPanels = true,
     petPanels = true,
@@ -242,6 +244,7 @@ ns.TOOLTIP_TYPES = {
         types = { "Unit", "Corpse" } },
     { label = "Buffs and debuffs", restyle = "auraPanels", cursor = "cursorAuras",
         types = { "UnitAura" } },
+    { label = "Weapon imbues", restyle = "imbuePanels", types = {} },
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
     { label = "Flight paths", restyle = "taxiPanels", types = {} },

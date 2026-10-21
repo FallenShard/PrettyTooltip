@@ -60,6 +60,18 @@ local function keyOf(tooltipType, tooltip, data)
     if ok and not isSecret(key) then return key, true end
 end
 
+-- The type that draws this tooltip in its data type's place, while it is
+-- restyled: an imbue's, for the weapon tooltip its buff button shows.
+local function claimantOf(dataType, tooltip, data)
+    for claimant, tooltipType in pairs(TooltipTypes) do
+        if tooltipType.claims == dataType and ns.restyles(tooltipType.option) then
+            local ok, claimed = pcall(tooltipType.claim, tooltip, data)
+            if ok and claimed then return claimant end
+        end
+    end
+    return dataType
+end
+
 local function update(tooltip, data, model)
     if not util.canModify(tooltip) or native.isParked(tooltip) then return end
     local panel = getPanel(tooltip)
@@ -215,6 +227,8 @@ local function onTooltipData(dataType, tooltip, data)
     end
     -- The editor reads this one itself.
     if tooltip.prettyTooltipScanner then return end
+    -- A type drawn in this one's place (an imbue's, for its weapon) goes by its own setting.
+    dataType = claimantOf(dataType, tooltip, data)
     -- A native presentation needs no panel, geometry hooks, or restore work.
     -- Existing hooks stay installed across settings changes but become idle.
     if not ns.restyles(TooltipTypes[dataType].option) then
