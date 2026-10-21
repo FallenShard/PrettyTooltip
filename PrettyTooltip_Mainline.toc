@@ -36,6 +36,7 @@ Retail\Locale\zhTW.lua [AllowLoadTextLocale zhTW]
 Locale\zhTW.lua [AllowLoadTextLocale zhTW]
 Retail\Game\Game.lua
 Game\Game.lua
+Retail\Game\TooltipData.lua
 Game\TooltipData.lua
 Game\SpellAmounts.lua
 Retail\Data\Schools.lua

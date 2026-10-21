@@ -130,6 +130,13 @@ local function isActive(color)
     return not (r < .7 and math.abs(r - g) < .06 and math.abs(g - b) < .06)
 end
 
+-- Retail greys or reds an effect the character will not get; the row keeps
+-- that color.
+local function keepInactive(list, line)
+    local color = ns.IsRetail() and ns.Retail.TooltipData.inactiveColor(line.leftColor)
+    if color then list[#list].color, list[#list].inactive = color, true end
+end
+
 local function addExtra(model, left, right, leftColor, rightColor)
     add(model.extras, left, right)
     local row = model.extras[#model.extras]
@@ -547,6 +554,7 @@ local function readModel(tooltip, data, game)
                 local text = original or trimmed
                 add(m.equipEffects, withoutLabel(text, ITEM_SPELL_TRIGGER_ONPROC), "")
                 m.equipEffects[#m.equipEffects].onHit = true
+                keepInactive(m.equipEffects, line)
             elseif original or lineParts(trimmed) == "+" then
                 -- Retail greys the primary stats another specialization uses.
                 local inactive = ns.IsRetail() and isActive(line.leftColor) == false
@@ -575,14 +583,17 @@ local function readModel(tooltip, data, game)
                 and right == "" then
                 -- Unparsed equip effects join the stats; the list implies "Equip:".
                 add(m.equipEffects, withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP), "")
+                keepInactive(m.equipEffects, line)
             elseif (isType(lineType, "ItemSpellTriggerOnUse") or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONUSE))
                 and right == "" then
                 -- Its gear marker stands for the words.
                 add(m.effects, withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONUSE), "")
                 m.effects[#m.effects].use = true
+                keepInactive(m.effects, line)
             elseif isType(lineType, "ItemSpellTriggerOnUse") or isType(lineType, "ItemSpellTriggerOnEquip")
                 or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP) or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONUSE) then
                 add(m.effects, left, right)
+                keepInactive(m.effects, line)
             else
                 addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
             end
@@ -732,16 +743,22 @@ local function drawMarked(panel, list, y, style, color, marker, numbers)
     local hang = markerIndent(panel, style)
     local width = panel.width - 2 * pad() - hang
     for _, row in ipairs(list) do
-        local text = row.left
-        if numbers then text = ns.Stats.styleEffect(text, ns.option("statColors")) end
+        local text, rowStyle, rowColor = row.left, style, color
+        if row.inactive then
+            text, rowStyle, rowColor = util.uncolored(text), ns.Retail.Item.inactiveStyle(style), row.color
+        elseif numbers then
+            text = ns.Stats.styleEffect(text, ns.option("statColors"))
+        end
         local stands = row.onHit and MARKED.onHit or row.use and MARKED.use
         if hang > 0 then
-            styledAt(panel, stands and stands[1] or marker, pad(), y, hang, style, color)
+            local shown = stands and stands[1] or marker
+            if row.inactive then shown = ns.Retail.Item.tintedMarker(shown, row.color) end
+            styledAt(panel, shown, pad(), y, hang, rowStyle, rowColor)
         elseif stands then
             -- Without its marker, the line keeps its words.
             text = (stands[2] or "") .. text
         end
-        y = y + styledAt(panel, text, pad() + hang, y, width, style, color) + 3
+        y = y + styledAt(panel, text, pad() + hang, y, width, rowStyle, rowColor) + 3
     end
     return y
 end
@@ -752,6 +769,8 @@ local function drawEffects(panel, list, y, style, color)
     for _, row in ipairs(list) do
         if row.use then
             y = drawMarked(panel, { row }, y, style, color, nil, true)
+        elseif row.inactive then
+            y = drawRow(panel, row, y, ns.Retail.Item.inactiveStyle(style), color)
         else
             y = drawRow(panel, row, y, style, color)
         end

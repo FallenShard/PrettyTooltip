@@ -198,9 +198,23 @@ function item.fittedRows(rows, style)
     return fitted
 end
 
+-- A style that leaves a row in its own color, the game's grey or red, even
+-- under a color set in the editor.
+function item.inactiveStyle(style)
+    return setmetatable({ color = false }, { __index = style })
+end
+
+-- A marker's art tinted the row's color, as the 32 px art is.
+function item.tintedMarker(marker, color)
+    local opening = marker:match("^(|T[^:|]+:[^:|]+:[^:|]+:[^:|]+:[^:|]+)")
+    if not opening then return marker end
+    local function byte(value) return math.floor(value * 255 + .5) end
+    return string.format("%s:32:32:0:32:0:32:%d:%d:%d|t", opening, byte(color[1]), byte(color[2]), byte(color[3]))
+end
+
 -- The primary stats, an inactive one grey even under a stats color set in the editor.
 function item.drawPrimary(panel, rows, y, style, color)
-    local inactiveStyle = setmetatable({ color = false }, { __index = style })
+    local inactiveStyle = item.inactiveStyle(style)
     for _, row in ipairs(rows) do
         y = ns.ui.drawRow(panel, row, y, row.inactive and inactiveStyle or style, color)
     end
