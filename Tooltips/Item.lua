@@ -400,6 +400,7 @@ local function readModel(tooltip, data, game)
     local inSet, setTotal = false, 0
     local teachesLast = false
     local inStockChanges = false
+    local blankBefore = false
     local function isStockChange(text)
         local trimmed = plainText(text):match("^%s*(.-)%s*$")
         if unformat(trimmed, STOCK_CHANGES) then
@@ -417,6 +418,7 @@ local function readModel(tooltip, data, game)
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then
             return
         end
+        local effects, effectCount = m.effects, #m.effects
         -- The amount is drawn by a money frame, not as text, so take it from the data.
         if LINE.SellPrice and line.type == LINE.SellPrice then
             m.hasSellPrice = true
@@ -611,6 +613,11 @@ local function readModel(tooltip, data, game)
             end
         end
         end
+        -- An effect the game sets apart from the one before with a blank line
+        -- stays apart: "Use:", "When crafting:", "Usable with:".
+        if blankBefore and effectCount > 0 and #effects > effectCount then effects[effectCount + 1].apart = true end
+        local blankLeft, blankRight = safeText(line.leftText), safeText(line.rightText)
+        blankBefore = blankLeft ~= nil and blankLeft:match("^%s*$") ~= nil and (blankRight or "") == ""
     end
 
     if not model.name or model.name == "" then return end
@@ -779,9 +786,12 @@ local function drawMarked(panel, list, y, style, color, marker, numbers)
 end
 
 -- Use effects are led by the gear; the group's other rows, such as
--- "<Right Click to Open>", are drawn as they come.
+-- "<Right Click to Open>", are drawn as they come, with space where the game
+-- left a blank line between them.
 local function drawEffects(panel, list, y, style, color)
-    for _, row in ipairs(list) do
+    for index, row in ipairs(list) do
+        -- Set apart by the game, as enchants and gems are from the rows around them.
+        if row.apart and index > 1 then y = y + APART_SPACE end
         if row.use then
             y = drawMarked(panel, { row }, y, style, color, nil, true)
         elseif row.inactive then

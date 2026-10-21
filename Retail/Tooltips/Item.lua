@@ -67,6 +67,20 @@ local function isString(text, ...)
     return false
 end
 
+-- An optional reagent's "+15 Recipe Difficulty": the game's wording, with a
+-- signed number before or after it, and nothing else.
+local function isDifficulty(plain)
+    local wording = OPTIONAL_REAGENT_TOOLTIP_DIFFICULTY_ADJUST
+    if type(wording) ~= "string" then return false end
+    wording = util.trim(wording):gsub("[:：]$", "")
+    if wording == "" then return false end
+    local text = util.trim(plain)
+    local first, last = text:find(wording, 1, true)
+    if not first then return false end
+    local rest = util.trim(text:sub(1, first - 1) .. " " .. text:sub(last + 1)):gsub("[:：]", "")
+    return util.trim(rest):match("^[+-]%d+$") ~= nil
+end
+
 -- Retail's reagent kinds, named on a line of their own, as Tooltips/Item.lua
 -- names "Crafting Reagent": they join the item's slot under its name.
 function item.kinds()
@@ -265,6 +279,16 @@ function item.readLine(m, line, data, lineNumber, left, right, trimmed, original
     elseif right == "" and type(PROFESSIONS_FINISHING_CRAFTING_REAGENT_DESCRIPTION) == "string"
         and unformat(plain, PROFESSIONS_FINISHING_CRAFTING_REAGENT_DESCRIPTION) then
         -- A finishing reagent's effect, "When crafting: ...", with the item's effects.
+        add(m.effects, trimmed, "")
+    elseif right == "" and type(PROFESSIONS_MODIFIED_CRAFTING_REAGENT_DESCRIPTION) == "string"
+        and unformat(plain, PROFESSIONS_MODIFIED_CRAFTING_REAGENT_DESCRIPTION) then
+        -- An optional reagent's effect, "Provides the following property: ...",
+        -- with the item's effects, worded without the lead-in, as "Use:" is.
+        local effect = unformat(plain, PROFESSIONS_MODIFIED_CRAFTING_REAGENT_DESCRIPTION)
+        effect = util.trim((tostring(effect):gsub("^%s*|n", "")))
+        add(m.effects, effect ~= "" and effect or trimmed, "")
+    elseif right == "" and isDifficulty(plain) then
+        -- "+15 Recipe Difficulty" goes with the reagent's crafting lines, not its stats.
         add(m.effects, trimmed, "")
     elseif right == "" and type(PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH) == "string"
         and unformat(plain, util.uncolored(PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH)) then
