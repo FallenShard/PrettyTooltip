@@ -58,6 +58,7 @@ return {
     ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s（%d分钟）",
     ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s（%d秒）",
     ["ITEM_HEROIC"] = "英雄级别",
+    ["ITEM_LEGACY_INACTIVE_EFFECTS"] = "传承物品：效果未激活",
     ["ITEM_LEVEL"] = "物品等级 %d",
     ["ITEM_LIMIT_CATEGORY"] = "唯一：%s（%d）",
     ["ITEM_LIMIT_CATEGORY_MULTIPLE"] = "装备唯一：%s （%d）",

@@ -29,6 +29,8 @@ local COSMETIC_COLOR = { 1, .50, 1 }
 local KNOWN_COLOR = { 1, .125, .125 }
 -- A Warbound item's binding, in the game's light blue when it sends none.
 local WARBOUND_COLOR = { 0, .80, 1 }
+-- "Legacy Item: Effects are inactive", in the game's blue.
+local LEGACY_COLOR = { 0, .80, 1 }
 -- A reagent's "Usable with:", in the game's gold.
 local USABLE_WITH_COLOR = { 1, .82, 0 }
 -- How the game binds an item (its TooltipDataItemBinding enum, as documented,
@@ -306,6 +308,28 @@ function item.readLine(m, line, data, lineNumber, left, right, trimmed, original
         return false
     end
     return true
+end
+
+-- A note on the item's effects, kept beside them: "Legacy Item: Effects are
+-- inactive" waits for the effect after it, and an error the game reddens
+-- under an effect, "You are in the wrong zone.", follows that one. notes holds
+-- the list the last effect went into and the note waiting. Whether the line
+-- was one.
+function item.readEffectNote(notes, line, right, trimmed)
+    if right ~= "" then return false end
+    local plain = util.trim(plainText(trimmed))
+    if plain == "" then return false end
+    if isString(plain, ITEM_LEGACY_INACTIVE_EFFECTS) then
+        notes.pending = { left = plain, right = "", color = gameColor(line.leftColor, LEGACY_COLOR), note = true }
+        return true
+    end
+    if notes.last and LINE.ErrorLine and line.type == LINE.ErrorLine then
+        add(notes.last, plain, "")
+        local row = notes.last[#notes.last]
+        row.color, row.inactive, row.note = gameColor(line.leftColor, KNOWN_COLOR), true, true
+        return true
+    end
+    return false
 end
 
 -- Retail names where an item comes from between its name and level: Heroic,

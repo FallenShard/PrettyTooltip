@@ -58,6 +58,7 @@ return {
     ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s（%d分鐘）",
     ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s（%d秒）",
     ["ITEM_HEROIC"] = "英雄模式",
+    ["ITEM_LEGACY_INACTIVE_EFFECTS"] = "舊物品：效果已取消",
     ["ITEM_LEVEL"] = "物品等級%d",
     ["ITEM_LIMIT_CATEGORY"] = "唯一：%s（%d）",
     ["ITEM_LIMIT_CATEGORY_MULTIPLE"] = "僅可裝備一件：%s（%d）",

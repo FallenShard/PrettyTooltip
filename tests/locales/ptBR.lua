@@ -58,6 +58,7 @@ return {
     ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s (%d min)",
     ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s (%d s)",
     ["ITEM_HEROIC"] = "Heroico",
+    ["ITEM_LEGACY_INACTIVE_EFFECTS"] = "Itens de Legado: Efeitos inativos",
     ["ITEM_LEVEL"] = "Nível do Item: %d",
     ["ITEM_LIMIT_CATEGORY"] = "Único: %s (%d)",
     ["ITEM_LIMIT_CATEGORY_MULTIPLE"] = "Máximo equipado: %s (%d)",

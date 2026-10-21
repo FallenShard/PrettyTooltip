@@ -58,6 +58,7 @@ return {
     ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s (%d min)",
     ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s (%d sec)",
     ["ITEM_HEROIC"] = "Héroïque",
+    ["ITEM_LEGACY_INACTIVE_EFFECTS"] = "Pièce d’héritage : effets inactifs",
     ["ITEM_LEVEL"] = "Niveau d’objet %d",
     ["ITEM_LIMIT_CATEGORY"] = "Unique : %s (%d)",
     ["ITEM_LIMIT_CATEGORY_MULTIPLE"] = "Unique - Équipé : %s (%d)",

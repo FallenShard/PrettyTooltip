@@ -58,6 +58,7 @@ return {
     ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%1$s (%2$d Min.)",
     ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%1$s (%2$d Sek.)",
     ["ITEM_HEROIC"] = "Heroisch",
+    ["ITEM_LEGACY_INACTIVE_EFFECTS"] = "Alter Gegenstand: Effekte sind nicht aktiv.",
     ["ITEM_LEVEL"] = "Gegenstandsstufe %d",
     ["ITEM_LIMIT_CATEGORY"] = "Einzigartig: %s (%d)",
     ["ITEM_LIMIT_CATEGORY_MULTIPLE"] = "Einzigartig angelegt: %s (%d)",

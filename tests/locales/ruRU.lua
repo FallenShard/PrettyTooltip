@@ -58,6 +58,7 @@ return {
     ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s (%d мин.)",
     ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s (%d сек.)",
     ["ITEM_HEROIC"] = "Героический",
+    ["ITEM_LEGACY_INACTIVE_EFFECTS"] = "Устаревший предмет: эффекты не действуют",
     ["ITEM_LEVEL"] = "Уровень предмета: %d",
     ["ITEM_LIMIT_CATEGORY"] = "Уникальный: %s (%d)",
     ["ITEM_LIMIT_CATEGORY_MULTIPLE"] = "Уникальный использующийся предмет: %s (%d)",

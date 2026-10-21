@@ -58,6 +58,7 @@ return {
     ["ITEM_ENCHANT_TIME_LEFT_MIN"] = "%s (%d분)",
     ["ITEM_ENCHANT_TIME_LEFT_SEC"] = "%s (%d초)",
     ["ITEM_HEROIC"] = "상급",
+    ["ITEM_LEGACY_INACTIVE_EFFECTS"] = "낭만 아이템: 효과 비활성화 됨",
     ["ITEM_LEVEL"] = "아이템 레벨 %d",
     ["ITEM_LIMIT_CATEGORY"] = "고유 아이템: %s (%d)",
     ["ITEM_LIMIT_CATEGORY_MULTIPLE"] = "고유 장착 아이템: %s (%d)",
