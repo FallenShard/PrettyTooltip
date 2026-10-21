@@ -174,7 +174,7 @@ local function onTooltipData(dataType, tooltip, data)
     local tooltipType = TooltipTypes[dataType]
     if ns.restyles(tooltipType.option) or not anyOn(tooltipType) then return end
     if isSecret(data) or type(data) ~= "table" then return end
-    local ok, model = pcall(tooltipType.read, tooltip, data, ns.Game)
+    local ok, model = pcall(tooltipType.readDetails or tooltipType.read, tooltip, data, ns.Game)
     if not ok or not model then return end
     local built, rows = pcall(tooltipType.details, model, ALL)
     if not built or not rows or #rows == 0 then return end

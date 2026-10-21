@@ -70,10 +70,10 @@ return function(test)
     end
     fill()
     test.check("Pretty alone parses the original lines for all three models",
-        { reads, modelParses, nativeParses, writes, wraps }, { 3, 6, 0, 0, 0 })
+        { reads, modelParses, nativeParses, writes, wraps }, { 3, 2, 0, 0, 0 })
     for _ = 1, 5 do fill() end
     test.check("cached Pretty refreshes do not repeat either parsing path",
-        { reads, modelParses, nativeParses, writes, wraps }, { 3, 6, 0, 0, 0 })
+        { reads, modelParses, nativeParses, writes, wraps }, { 3, 2, 0, 0, 0 })
     test.check("Pretty still displays all three panels", {
         ns.ui.shownPanel(world.main) ~= nil, ns.ui.shownPanel(ShoppingTooltip1) ~= nil,
         ns.ui.shownPanel(ShoppingTooltip2) ~= nil }, { true, true, true })
@@ -87,20 +87,20 @@ return function(test)
     IsAltKeyDown = function() return false end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
     test.check("returning from original reuses the model without native rewriting",
-        { reads, modelParses, nativeParses, writes, ns.ui.shownPanel(world.main) ~= nil }, { 3, 6, 0, 0, true })
+        { reads, modelParses, nativeParses, writes, ns.ui.shownPanel(world.main) ~= nil }, { 3, 2, 0, 0, true })
 
     ns.setOption("itemPanels", false)
     fill()
     local lite = transform(combined, false, true, true).lite
     test.check("disabling item panels selects only native lite processing",
         { reads, modelParses, nativeParses, writes, wraps, world.main:GetLeftLine(2):GetText(),
-            ns.ui.shownPanel(world.main) == nil }, { 3, 6, 6, 3, 3, lite, true })
+            ns.ui.shownPanel(world.main) == nil }, { 3, 2, 2, 3, 3, lite, true })
     IsAltKeyDown = function() return true end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 1)
     test.check("native lite still restores the original on the modifier", world.main:GetLeftLine(2):GetText(), combined)
     IsAltKeyDown = function() return false end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
-    test.check("native lite switches back without reparsing", { nativeParses, world.main:GetLeftLine(2):GetText() }, { 6, lite })
+    test.check("native lite switches back without reparsing", { nativeParses, world.main:GetLeftLine(2):GetText() }, { 2, lite })
 
     ns.setOption("itemPanels", true)
     writes, wraps = 0, 0
@@ -108,19 +108,19 @@ return function(test)
     local prettyReads, prettyParses = reads, modelParses
     test.check("switching back to Pretty discards native bindings without rewriting",
         { nativeParses, writes, wraps, world.main:GetLeftLine(2):GetText(), ns.ui.shownPanel(world.main) ~= nil },
-        { 6, 0, 0, combined, true })
+        { 2, 0, 0, combined, true })
     IsAltKeyDown = function() return true end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 1)
     IsAltKeyDown = function() return false end
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
     test.check("old lite bindings cannot rewrite Pretty on later key events",
-        { reads, modelParses, nativeParses, writes }, { prettyReads, prettyParses, 6, 0 })
+        { reads, modelParses, nativeParses, writes }, { prettyReads, prettyParses, 2, 0 })
 
     ns.setOption("layout", "blizzard")
     fill()
     test.check("Blizzard layout selects native wording even with the item flag on",
         { reads, modelParses, nativeParses, world.main:GetLeftLine(2):GetText(), ns.ui.shownPanel(world.main) == nil },
-        { prettyReads, prettyParses, 12, lite, true })
+        { prettyReads, prettyParses, 4, lite, true })
     ns.setOption("layout", "pretty")
     test.check("the Pretty route safely rejects invalid tooltips before touching lines", pcall(post, nil, data), true)
 end

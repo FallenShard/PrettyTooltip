@@ -55,6 +55,8 @@ A fixture is a real tooltip, captured in the game:
 
 Each fixture is run as the game would: the addon's files load in the `.toc`'s order, saved settings arrive and the addon's `ADDON_LOADED` event starts it through `PrettyTooltip.lua`, the post-calls select native item wording or the Pretty model path, the tooltip type's reader turns original data into a model when needed, and the renderer draws it. The expected output holds the model and every string and texture drawn, with where it sits. When a change alters them, the run fails with a diff; if the change is meant, `--update` accepts it.
 
+`unit/item_refresh_reuse.lua` repeats the nine native handovers seen in a three-tooltip refresh. It checks that wording preparation is reused while native font bindings stay fresh, that settings and restricted values cannot reuse stale entries, and that native item details read only identity and disenchant metadata. The wording cache holds at most 512 entries, including unchanged lines; live disenchant metadata and prices are not cached.
+
 A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `UI/Capture.lua` and capture again.
 
 ### Settings variants
