@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<보석을 장착하려면 SHIFT 오른쪽 클릭>",
     ["ITEM_SOCKET_BONUS"] = "보석 장착 보너스: %s",
     ["ITEM_SOULBOUND"] = "귀속 아이템",
+    ["ITEM_SPELL_CHARGES"] = "%d회 사용 가능",
+    ["ITEM_SPELL_CHARGES_NONE"] = "사용 불가",
     ["ITEM_SPELL_KNOWN"] = "이미 배운 조제법",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "착용 효과:",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "발동 효과:",

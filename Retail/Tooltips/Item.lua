@@ -36,6 +36,8 @@ local KEYSTONE_HEADING_COLOR = { 1, 1, 1 }
 local KEYSTONE_MODIFIER_COLOR = { 0, 1, 0 }
 local KEYSTONE_MODIFIER_INDENT = 12
 local DURATION_LINES = { "ITEM_DURATION_DAYS", "ITEM_DURATION_HOURS", "ITEM_DURATION_MIN", "ITEM_DURATION_SEC" }
+-- An effect's charges, "3 Charges", in the game's white.
+local CHARGES_COLOR = { 1, 1, 1 }
 -- "Legacy Item: Effects are inactive", in the game's blue.
 local LEGACY_COLOR = { 0, .80, 1 }
 -- A reagent's "Usable with:", in the game's gold.
@@ -252,6 +254,15 @@ local function levelFollows(lines, index)
         and after.type == LINE.ItemLevel
 end
 
+-- A line the game colors whole in its source green with its own code:
+-- "|cFF19FF19The War Within Season 3|r". "Housing Decor" is blue.
+local function wholeGreen(text)
+    local code, inner = util.trim(text):match("^|c%x%x(%x%x%x%x%x%x)(.-)|r$")
+    if not code or inner == "" or inner:find("|c", 1, true) then return false end
+    local r, g, b = tonumber(code:sub(1, 2), 16), tonumber(code:sub(3, 4), 16), tonumber(code:sub(5, 6), 16)
+    return g > 200 and r < 100 and b < 100
+end
+
 local function addSocket(m, text, right)
     m.sockets = m.sockets or {}
     add(m.sockets, text, right)
@@ -375,8 +386,8 @@ function item.readKeystone(m, line, lineNumber, left, right, trimmed)
 end
 
 -- A note on the item's effects, kept beside them: "Legacy Item: Effects are
--- inactive" waits for the effect after it, and an error the game reddens
--- under an effect, "You are in the wrong zone.", follows that one. notes holds
+-- inactive" waits for the effect after it, and an effect's charges or an error
+-- the game reddens under it, "You are in the wrong zone.", follow that one. notes holds
 -- the list the last effect went into and the note waiting. Whether the line
 -- was one.
 function item.readEffectNote(notes, line, right, trimmed)
@@ -385,6 +396,14 @@ function item.readEffectNote(notes, line, right, trimmed)
     if plain == "" then return false end
     if isString(plain, ITEM_LEGACY_INACTIVE_EFFECTS) then
         notes.pending = { left = plain, right = "", color = gameColor(line.leftColor, LEGACY_COLOR), note = true }
+        return true
+    end
+    if notes.last and (isString(plain, ITEM_SPELL_CHARGES_NONE)
+        or (type(ITEM_SPELL_CHARGES) == "string" and unformat(plain, ITEM_SPELL_CHARGES))) then
+        -- "3 Charges" under the use effect they count, in the game's white.
+        add(notes.last, util.resolvePlurals(plain), "")
+        local row = notes.last[#notes.last]
+        row.color, row.note = gameColor(line.leftColor, CHARGES_COLOR), true
         return true
     end
     if notes.last and LINE.ErrorLine and line.type == LINE.ErrorLine then
@@ -404,7 +423,11 @@ function item.readSource(m, line, data, lineNumber, right, trimmed)
         return false
     end
     local before = lineBefore(data.lines, lineNumber)
-    if not (before and before.type == LINE.ItemName and levelFollows(data.lines, lineNumber)) then return false end
+    -- Before its level, or, on an item with none, all in green: "The War Within Season 3".
+    if not (before and before.type == LINE.ItemName
+        and (levelFollows(data.lines, lineNumber) or wholeGreen(trimmed))) then
+        return false
+    end
     m.source = util.trim(plainText(trimmed))
     m.sourceColor = openingColor(trimmed) or colorOf(line.leftColor)
     return true

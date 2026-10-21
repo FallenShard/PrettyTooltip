@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<Zum Sockeln Umschalt-Rechtsklick>",
     ["ITEM_SOCKET_BONUS"] = "Sockelbonus: %s",
     ["ITEM_SOULBOUND"] = "Seelengebunden",
+    ["ITEM_SPELL_CHARGES"] = "%d |4Aufladung:Aufladungen;",
+    ["ITEM_SPELL_CHARGES_NONE"] = "Keine Aufladungen",
     ["ITEM_SPELL_KNOWN"] = "Bereits bekannt",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Anlegen:",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "Trefferchance:",

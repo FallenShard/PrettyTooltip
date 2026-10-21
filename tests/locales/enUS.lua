@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<Shift Right Click to Socket>",
     ["ITEM_SOCKET_BONUS"] = "Socket Bonus: %s",
     ["ITEM_SOULBOUND"] = "Soulbound",
+    ["ITEM_SPELL_CHARGES"] = "%d |4Charge:Charges;",
+    ["ITEM_SPELL_CHARGES_NONE"] = "No charges",
     ["ITEM_SPELL_KNOWN"] = "Already known",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equip:",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "Chance on hit:",

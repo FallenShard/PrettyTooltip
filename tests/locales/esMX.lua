@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<Mayús clic derecho para insertar>",
     ["ITEM_SOCKET_BONUS"] = "Bonus ranura: %s",
     ["ITEM_SOULBOUND"] = "Ligado",
+    ["ITEM_SPELL_CHARGES"] = "%d |4carga:cargas;",
+    ["ITEM_SPELL_CHARGES_NONE"] = "No hay cargas",
     ["ITEM_SPELL_KNOWN"] = "Ya conocido",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equipar:",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "Probabilidad al acertar:",

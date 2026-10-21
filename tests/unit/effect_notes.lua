@@ -1,7 +1,7 @@
 -- Retail notes why an effect is inactive: "Legacy Item: Effects are inactive"
--- before it, an error in red, "You are in the wrong zone.", under it. Each
--- stays beside its effect; an error under no effect stays where it was, and
--- Forever reads them as before.
+-- before it, an error in red, "You are in the wrong zone.", under it; and an
+-- effect's charges under it. Each stays beside its effect; one under no effect
+-- stays where it was, and Forever reads them as before.
 return function(test)
     local ITEM = 0
     local LINE = { None = 0, ItemName = 1, ErrorLine = 41 }
@@ -40,6 +40,14 @@ return function(test)
     model = read({ { "Fist", WHITE }, { "Legacy Item: Effects are inactive", BLUE } })
     test.check("a legacy note with no effect after it stays with the effects", rows(model.effects),
         { { "Legacy Item: Effects are inactive", true } })
+
+    -- An effect's charges, worded, under it; with no effect before, where they were.
+    model = read({ { "Lens", WHITE }, { "Use: Beam.", GREEN }, { "1 |4Charge:Charges;", WHITE } })
+    test.check("one charge under its use effect", rows(model.effects), { { "Beam.", false }, { "1 Charge", true } })
+    model = read({ { "Lens", WHITE }, { "Use: Beam.", GREEN }, { "No charges", WHITE } })
+    test.check("no charges under its use effect", rows(model.effects), { { "Beam.", false }, { "No charges", true } })
+    model = read({ { "Lens", WHITE }, { "3 |4Charge:Charges;", WHITE } })
+    test.check("charges under no effect stay an extra", { #model.effects, #model.extras }, { 0, 1 })
 
     local forever = {}
     for _, file in ipairs(FILES) do if not file:match("^Retail/") then forever[#forever + 1] = file end end

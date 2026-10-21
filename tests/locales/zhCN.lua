@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<Shift+右键点击打开镶嵌界面>",
     ["ITEM_SOCKET_BONUS"] = "镶孔奖励：%s",
     ["ITEM_SOULBOUND"] = "已绑定",
+    ["ITEM_SPELL_CHARGES"] = "%d次",
+    ["ITEM_SPELL_CHARGES_NONE"] = "耗尽次数",
     ["ITEM_SPELL_KNOWN"] = "已经学会",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "装备：",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "击中时可能：",

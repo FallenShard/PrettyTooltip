@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<Shift + botão direito para engastar>",
     ["ITEM_SOCKET_BONUS"] = "Bônus de engaste: %s",
     ["ITEM_SOULBOUND"] = "Vinculado",
+    ["ITEM_SPELL_CHARGES"] = "%d |4carga:cargas;",
+    ["ITEM_SPELL_CHARGES_NONE"] = "Não há carga",
     ["ITEM_SPELL_KNOWN"] = "Já aprendido",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equipado:",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "Chance ao acertar:",

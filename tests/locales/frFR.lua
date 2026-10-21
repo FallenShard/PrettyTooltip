@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<Maj-clic droit pour sertir>",
     ["ITEM_SOCKET_BONUS"] = "Bonus de sertissage : %s",
     ["ITEM_SOULBOUND"] = "Lié",
+    ["ITEM_SPELL_CHARGES"] = "%d |4charge:charges;",
+    ["ITEM_SPELL_CHARGES_NONE"] = "Pas de charges",
     ["ITEM_SPELL_KNOWN"] = "Déjà connu",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Equipé :",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "Chances quand vous touchez :",

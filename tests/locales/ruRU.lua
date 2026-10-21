@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<Нажмите Shift и щелкните правой кнопкой мыши, чтобы инкрустировать предмет.>",
     ["ITEM_SOCKET_BONUS"] = "При соответствии цвета: %s",
     ["ITEM_SOULBOUND"] = "Персональный предмет",
+    ["ITEM_SPELL_CHARGES"] = "%d |4заряд:заряда:зарядов;",
+    ["ITEM_SPELL_CHARGES_NONE"] = "Нет зарядов",
     ["ITEM_SPELL_KNOWN"] = "Уже известно",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "Если на персонаже:",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "Возможный эффект при попадании:",

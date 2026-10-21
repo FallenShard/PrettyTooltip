@@ -316,6 +316,8 @@ return {
     ["ITEM_SOCKETABLE"] = "<按下Shift+右鍵以插入寶石>",
     ["ITEM_SOCKET_BONUS"] = "插槽加成：%s",
     ["ITEM_SOULBOUND"] = "已綁定",
+    ["ITEM_SPELL_CHARGES"] = "%d次",
+    ["ITEM_SPELL_CHARGES_NONE"] = "無使用次數",
     ["ITEM_SPELL_KNOWN"] = "已經學會",
     ["ITEM_SPELL_TRIGGER_ONEQUIP"] = "裝備：",
     ["ITEM_SPELL_TRIGGER_ONPROC"] = "擊中時可能：",
