@@ -29,9 +29,11 @@ created:
     2:
       left: "Unique-Equipped: Embellished (2)"
       right: ""
+  id: 244679
   kinds: {}
   level: 246
   levelLine: true
+  link: 244679
   name: "Murder Row Fishhook"
   nameColor:
     1: 0.6392

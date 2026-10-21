@@ -393,7 +393,21 @@ finishCreated = function(tooltip, model, game)
                 if loaded then quality = getQuality(itemLink, {}, game) end
             end
         end
+        if not link and created.id then
+            -- Retail names it by its id on the line it is nested under, which
+            -- gives the icon before the item loads.
+            link, icon = created.id, game.itemIcon(created.id)
+            local info = game.itemInfo(created.id)
+            if info and type(info.quality) == "number" then quality = info.quality end
+        end
         created.link, created.icon = link, icon
+        -- Its kinds, "Optional Crafting Reagent", under its name, as the item's own.
+        local kinds = {}
+        for _, kind in ipairs(ITEM_KINDS) do kinds[#kinds + 1] = created.kinds[kind] end
+        if #kinds > 0 then
+            local joined = table.concat(kinds, " \194\183 ")
+            created.slot = created.slot and created.slot ~= "" and (created.slot .. " \194\183 " .. joined) or joined
+        end
         created.quality = type(quality) == "number" and quality or nil
         -- The crafted item's binding usually repeats the recipe's.
         local recipeBinding = model.header[1] and model.header[1].left
@@ -420,6 +434,7 @@ local function readModel(tooltip, data, game)
     local teachesLast = false
     local inStockChanges = false
     local blankBefore = false
+    local nestedID
     -- Retail's notes on effects: the list the last effect went into, and a
     -- note waiting for the effect it comes before.
     local notes = {}
@@ -439,6 +454,11 @@ local function readModel(tooltip, data, game)
     for lineNumber, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then
             return
+        end
+        -- The item a nested block holds, by its id: a recipe's crafted item.
+        if LINE.NestedBlock and line.type == LINE.NestedBlock and not isSecret(line.tooltipType)
+            and line.tooltipType == ITEM then
+            nestedID = number(line.tooltipID)
         end
         local effects, effectCount = m.effects, #m.effects
         local equips, equipCount = m.equipEffects, #m.equipEffects
@@ -501,6 +521,7 @@ local function readModel(tooltip, data, game)
                 model.created = newItemModel()
                 -- Its name line starts with a line break.
                 model.created.name, model.created.nameColor = trimmed, rgb(line.leftColor)
+                model.created.id = nestedID
                 m = model.created
             end
         elseif lineType == LINE.ItemLevel then
