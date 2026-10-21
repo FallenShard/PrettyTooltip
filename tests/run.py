@@ -52,7 +52,7 @@ STRICT = False
 
 
 # The .toc each game loads: Forever's, and retail's, which the game picks by its suffix.
-FOREVER_TOC = "PrettyTooltip.toc"
+FOREVER_TOC = "PrettyTooltip_Camelot.toc"
 RETAIL_TOC = "PrettyTooltip_Mainline.toc"
 
 

@@ -35,7 +35,7 @@ def addon_files():
     """The addon's Lua files, as Forever's .toc and retail's list them, without any load condition after the
     name, and each language's file where a path names the client's language ([TextLocale])."""
     files = []
-    for toc in ("PrettyTooltip.toc", "PrettyTooltip_Mainline.toc"):
+    for toc in ("PrettyTooltip_Camelot.toc", "PrettyTooltip_Mainline.toc"):
         for line in (ROOT / toc).read_text(encoding="utf-8").splitlines():
             line = line.strip().replace("\\", "/")
             if "[TextLocale]" in line:
