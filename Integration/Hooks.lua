@@ -64,6 +64,7 @@ local function update(tooltip, data, model)
     local panel = getPanel(tooltip)
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
+    panel.nativeOnly = nil
     local ok = true
     if not model then ok, model = pcall(tooltipType.read, tooltip, data, ns.Game) end
     if not ok or not model then restoreNative(tooltip); return end
@@ -100,7 +101,7 @@ update = probe("update", update)
 -- new item post-call replaces it in that frame.
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
-    if not panel then return end
+    if not panel or panel.nativeOnly then return end
     native.beginRefresh(tooltip)
     if panel.data and panel.data.fromLines then panel.data = nil end
     panel.restorePending = true
@@ -121,8 +122,24 @@ local function onTooltipData(dataType, tooltip, data)
     end
     -- The editor reads this one itself.
     if tooltip.prettyTooltipScanner then return end
+    -- A native presentation needs no panel, geometry hooks, or restore work.
+    -- Existing hooks stay installed across settings changes but become idle.
+    if not ns.restyles(TooltipTypes[dataType].option) then
+        local panel = panels[tooltip]
+        if panel then
+            if not panel.nativeOnly then
+                panel.nativeOnly = true
+                native.unpark(tooltip)
+                restoreNative(tooltip)
+            end
+            panel.dataType, panel.data = dataType, data
+            panel.refreshToken = (panel.refreshToken or 0) + 1
+        end
+        return
+    end
     native.unpark(tooltip)
     local panel = getPanel(tooltip)
+    panel.nativeOnly = nil
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)
     if not valid then restoreNative(tooltip); return end
@@ -133,6 +150,7 @@ local function onTooltipData(dataType, tooltip, data)
     panel.restorePending = false
     if not panel.hooked then
         tooltip:HookScript("OnHide", function(hidden)
+            if panel.nativeOnly then return end
             -- Keep native cleanup deferred, but never draw the old panel at
             -- an anchor reset by an action button's hide/clear sequence.
             panel.refreshPending = nil
@@ -143,6 +161,7 @@ local function onTooltipData(dataType, tooltip, data)
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
         local function onNativeShown(shown, source)
+            if panel.nativeOnly then return end
             if not util.canModify(shown) then return end
             tally(isComparison(shown) and "show hook (comparison)" or "show hook")
             if panel.refreshPending or panel.restorePending then
@@ -173,6 +192,7 @@ local function onTooltipData(dataType, tooltip, data)
         -- a time; it belongs beside the panels, not the hidden tooltips under
         -- them, and its panel pinned to the edge those points place.
         hooksecurefunc(tooltip, "SetPoint", function(moved)
+            if panel.nativeOnly then return end
             if not util.canModify(moved) then return end
             if not native.anchoring and panel:IsShown() and isComparison(moved) then
                 tally("re-anchor after SetPoint")
@@ -181,6 +201,7 @@ local function onTooltipData(dataType, tooltip, data)
             end
         end)
         hooksecurefunc(tooltip, "SetAlpha", function(faded, alpha)
+            if panel.nativeOnly then return end
             if not util.canModify(faded) then return end
             if isSecret(alpha) or type(alpha) ~= "number" then
                 panel.nativeAlpha = nil
@@ -195,8 +216,13 @@ local function onTooltipData(dataType, tooltip, data)
             panel.settingAlpha = false
         end)
         -- Hooked after follow cursor's, which stops following first.
-        if tooltip.FadeOut then hooksecurefunc(tooltip, "FadeOut", native.fadeOut) end
+        if tooltip.FadeOut then
+            hooksecurefunc(tooltip, "FadeOut", function(faded)
+                if not panel.nativeOnly then native.fadeOut(faded) end
+            end)
+        end
         hooksecurefunc(tooltip, "SetOwner", function(owned)
+            if panel.nativeOnly then return end
             native.unpark(owned)
             native.beginRefresh(owned)
         end)

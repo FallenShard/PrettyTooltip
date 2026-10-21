@@ -57,6 +57,8 @@ Each fixture is run as the game would: the addon's files load in the `.toc`'s or
 
 `unit/item_refresh_reuse.lua` repeats the nine native handovers seen in a three-tooltip refresh. It checks that wording preparation is reused while native font bindings stay fresh, that settings and restricted values cannot reuse stale entries, and that native item details read only identity and disenchant metadata. The wording cache holds at most 512 entries, including unchanged lines; live disenchant metadata and prices are not cached.
 
+`unit/native_idle.lua` checks that Lite refreshes create no Pretty panels or panel cleanup timers, and prepare no hidden details. It covers details appearing in the modifier event from the latest data, canceled or restricted handovers, and switching presentations at runtime.
+
 A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `UI/Capture.lua` and capture again.
 
 ### Settings variants
