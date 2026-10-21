@@ -59,6 +59,8 @@ Each fixture is run as the game would: the addon's files load in the `.toc`'s or
 
 `unit/native_idle.lua` checks that Lite refreshes create no Pretty panels or panel cleanup timers, and prepare no hidden details. It covers details appearing in the modifier event from the latest data, canceled or restricted handovers, and switching presentations at runtime.
 
+`unit/pretty_noop_hooks.lua` counts native layout queries in Pretty callbacks. Zero-alpha writes, internal anchoring, and already pending fits must return without a layout probe; real fits, external changes, protected frames, and secret alpha values retain their access checks and cleanup behavior. Completed refreshes reset the periodic content poll, while tooltips without further handovers still detect in-place text changes.
+
 A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `UI/Capture.lua` and capture again.
 
 ### Settings variants
