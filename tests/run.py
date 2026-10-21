@@ -84,10 +84,11 @@ def addon_files(locale: str = "enUS", toc: str = FOREVER_TOC) -> list[str]:
 
 
 def every_source() -> list[str]:
-    """Every Lua file a test may load: each .toc's, and each language's own file."""
+    """Every Lua file a test may load: each .toc's, and each language's own files, shared and retail's."""
     files = addon_files()
     files += [name for name in addon_files(toc=RETAIL_TOC) if name not in files]
-    files += [path.relative_to(ROOT).as_posix() for path in sorted((ROOT / "Locale").glob("*.lua"))
+    files += [path.relative_to(ROOT).as_posix()
+              for path in sorted((ROOT / "Locale").glob("*.lua")) + sorted((ROOT / "Retail" / "Locale").glob("*.lua"))
               if path.relative_to(ROOT).as_posix() not in files]
     return files
 

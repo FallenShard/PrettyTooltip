@@ -16,14 +16,23 @@ Retail\Core\Settings.lua
 Core\Settings.lua
 Locale\Locale.lua
 Locale\English.lua
+Retail\Locale\deDE.lua [AllowLoadTextLocale deDE]
 Locale\deDE.lua [AllowLoadTextLocale deDE]
+Retail\Locale\esES.lua [AllowLoadTextLocale esES]
 Locale\esES.lua [AllowLoadTextLocale esES]
+Retail\Locale\esMX.lua [AllowLoadTextLocale esMX]
 Locale\esMX.lua [AllowLoadTextLocale esMX]
+Retail\Locale\frFR.lua [AllowLoadTextLocale frFR]
 Locale\frFR.lua [AllowLoadTextLocale frFR]
+Retail\Locale\koKR.lua [AllowLoadTextLocale koKR]
 Locale\koKR.lua [AllowLoadTextLocale koKR]
+Retail\Locale\Portuguese.lua [AllowLoadTextLocale ptBR, ptPT]
 Locale\Portuguese.lua [AllowLoadTextLocale ptBR, ptPT]
+Retail\Locale\ruRU.lua [AllowLoadTextLocale ruRU]
 Locale\ruRU.lua [AllowLoadTextLocale ruRU]
+Retail\Locale\zhCN.lua [AllowLoadTextLocale zhCN]
 Locale\zhCN.lua [AllowLoadTextLocale zhCN]
+Retail\Locale\zhTW.lua [AllowLoadTextLocale zhTW]
 Locale\zhTW.lua [AllowLoadTextLocale zhTW]
 Retail\Game\Game.lua
 Game\Game.lua
