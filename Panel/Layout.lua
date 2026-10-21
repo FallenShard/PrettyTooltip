@@ -920,6 +920,39 @@ local function alignPanel(panel, tooltip, force)
     if panel.parked or ((panel.refreshPending or panel.comparisonAnchorHeld) and not force) then return end
     local side = anchoredSide(tooltip)
     local dx, dy = gridOffset(panel, tooltip, side)
+    if isComparison(tooltip) then
+        -- Follow the completed layout's owners, not the native comparison.
+        -- SetOwner can reset that frame before our post-hook can hold it.
+        local points = util.framePoints(tooltip)
+        local nativeScale, panelScale = scaleOf(tooltip), scaleOf(panel)
+        if not (points and #points > 0 and nativeScale and panelScale) then return end
+        local anchor = points[1]
+        for _, point in ipairs(points) do
+            if point[1]:find(side) then anchor = point; break end
+        end
+        local target = anchor[2]
+        local owner = target and panels[target]
+        if owner and owner:IsShown() then target = owner end
+        if not util.canModify(target) then return end
+        local targetScale = scaleOf(target)
+        local relativeSide = anchor[3]:find("RIGHT") and "RIGHT" or "LEFT"
+        local x = util.number(side == "RIGHT" and tooltip:GetRight() or tooltip:GetLeft())
+        local y = util.number(tooltip:GetTop())
+        local targetX = util.number(relativeSide == "RIGHT" and target:GetRight() or target:GetLeft())
+        local targetY = util.number(target:GetTop())
+        if not (targetScale and x and y and targetX and targetY) then return end
+        x = (x * nativeScale - targetX * targetScale) / panelScale + dx
+        y = (y * nativeScale - targetY * targetScale) / panelScale + dy
+        local own, relative, relativePoint, oldX, oldY = panel:GetPoint(1)
+        local corner, targetCorner = "TOP" .. side, "TOP" .. relativeSide
+        if panel.side == side and panel:GetNumPoints() == 1 and own == corner
+            and relative == target and relativePoint == targetCorner
+            and math.abs(x - oldX) < .001 and math.abs(y - oldY) < .001 then return end
+        panel.side, panel.gridX, panel.gridY = side, dx, dy
+        panel:ClearAllPoints()
+        panel:SetPoint(corner, target, targetCorner, x, y)
+        return
+    end
     if panel.side == side and panel:GetNumPoints() > 0
         and math.abs(dx - (panel.gridX or 0)) < .001 and math.abs(dy - (panel.gridY or 0)) < .001 then
         return

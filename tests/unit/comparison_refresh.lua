@@ -35,7 +35,11 @@ return function(test)
     local primary, secondary = ShoppingTooltip1, ShoppingTooltip2
     local deferNativeLayout = false
     local keepPadding = false
+    local resetOwnerAnchors = false
     for _, tooltip in ipairs({ primary, secondary }) do
+        tooltip.SetOwner = function(self)
+            if resetOwnerAnchors then self:ClearAllPoints() end
+        end
         tooltip._padding = { 0, 0, 0, 0 }
         tooltip.GetPadding = function(self) return unpack(self._padding) end
         tooltip.SetPadding = function(self, right, bottom, left, top)
@@ -288,6 +292,9 @@ return function(test)
         frame.GetRight = function(self) local left = self:GetLeft(); return left and left + self:GetWidth() end
         frame.GetBottom = function(self) local top = self:GetTop(); return top and top - self:GetHeight() end
     end
+    -- Resolve the new anchor offsets using these coordinates before observing.
+    refresh(true)
+    flush()
     local positions = { { first:GetLeft(), first:GetTop() }, { second:GetLeft(), second:GetTop() } }
     local observing, stablePositions = true, true
     local function observe()
@@ -319,7 +326,28 @@ return function(test)
         observe()
     end
     test.check("both equipped panels retain their positions throughout native clear/show/reanchor", stablePositions, true)
+    -- SetOwner is native code: it can invalidate the old anchor before our
+    -- post-hook can pin the panel. A no-op SetOwner hides this dependency.
+    resetOwnerAnchors = true
+    stablePositions = true
+    for _ = 1, 10 do
+        for _, tooltip in ipairs({ primary, secondary }) do
+            tooltip:SetOwner(GameTooltip, "ANCHOR_NONE")
+            tooltip:ClearAllPoints()
+        end
+        TooltipComparisonManager:SetItemTooltip(true)
+        TooltipComparisonManager:SetItemTooltip(false)
+        TooltipComparisonManager:AnchorShoppingTooltips(true)
+        flush()
+        observe()
+    end
+    test.check("native owner resets cannot move either equipped panel before the post-hook", stablePositions, true)
     observing = false
+    fixed(main, 550, 650)
+    test.check("completed equipped panels still follow movement of the hovered panel",
+        { first:GetLeft(), first:GetTop(), second:GetLeft(), second:GetTop() },
+        { positions[1][1] + 50, positions[1][2] + 50, positions[2][1] + 50, positions[2][2] + 50 })
+    fixed(main, 500, 600)
     for _, tooltip in ipairs({ primary, secondary }) do
         tooltip:SetOwner(GameTooltip, "ANCHOR_NONE")
         tooltip:ClearAllPoints()

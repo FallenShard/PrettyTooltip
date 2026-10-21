@@ -29,7 +29,7 @@ read_globals = {
     -- Frames and UI
     "CreateFrame", "CreateColor", "UIParent", "GameTooltip", "GameTooltipStatusBar", "ItemRefTooltip", "GameTooltipText",
     "GameTooltipHeaderText", "QuestScrollFrame", "GameFontHighlightSmall", "UISpecialFrames", "ShowUIPanel", "HideUIPanel",
-    "SetPortraitTexture", "ChatEdit_InsertLink", "GetCursorPosition", "NUM_CHAT_WINDOWS",
+    "SetPortraitTexture", "ChatEdit_InsertLink", "GetCursorPosition", "GetMouseFoci", "GetMouseFocus", "NUM_CHAT_WINDOWS",
     "Settings", "SettingsPanel", "InterfaceOptions_AddCategory", "InterfaceOptionsFrame_OpenToCategory",
     "STANDARD_TEXT_FONT", "RAID_CLASS_COLORS", "CUSTOM_CLASS_COLORS", "LOCALIZED_CLASS_NAMES_MALE", "NineSliceUtil",
     -- The game's strings, in the client's language; tools/make_strings.py gives

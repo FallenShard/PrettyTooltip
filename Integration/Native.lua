@@ -12,6 +12,33 @@ local perf, tally, timed = ui.perf, ui.tally, ui.timed
 local native = {}
 ns.Native = native
 
+-- ItemRefTooltip remains mouse-enabled for comparison hover and dragging.
+-- Its invisible child buttons (such as DungeonJournal's source-line button)
+-- must not intercept mouse input through the replacement panel.
+local function suppressChildMouse(tooltip, panel)
+    if tooltip ~= ItemRefTooltip or not (panel.nativeAlpha and panel:IsShown()) then return end
+    if not util.canModify(tooltip) then return end
+    local ok, children = pcall(function() return { tooltip:GetChildren() } end)
+    if not ok then return end
+    -- The Pretty X forwards Click to this button; it must remain enabled.
+    local close = util.readable(tooltip.CloseButton) or util.readable(_G.ItemRefCloseButton)
+    for _, child in ipairs(children) do
+        if child ~= close and util.canModify(child) and util.call(child.IsMouseEnabled, child) == true
+            and pcall(child.EnableMouse, child, false) then
+            panel.nativeMouse = panel.nativeMouse or {}
+            panel.nativeMouse[child] = true
+        end
+    end
+end
+
+local function restoreChildMouse(panel)
+    local saved = panel.nativeMouse
+    panel.nativeMouse = nil
+    for child in pairs(saved or {}) do
+        if util.canModify(child) then pcall(child.EnableMouse, child, true) end
+    end
+end
+
 local function retarget(tooltip, choose)
     if not util.canModify(tooltip) then return end
     local points, changed = util.framePoints(tooltip), false
@@ -159,14 +186,16 @@ end
 refitNative = probe("refit hidden tooltip", refitNative)
 
 -- Comparison Initialize clears native anchors before refilling either item.
--- Keep the visible panel independent until the manager finishes placing both.
+-- The panels already attach to their owner and neighbour independently.
+-- Keep those anchors until the manager finishes placing both: an absolute
+-- repin can fail after ClearAllPoints and leave a sticky panel unanchored.
 local function holdComparison(tooltip)
     if isSecret(tooltip) then return end
     local panel = panels[tooltip]
     if not (panel and panel:IsShown() and panel.nativeAlpha)
         or panel.parked or panel.comparisonAnchorHeld then return end
     if not util.canModify(tooltip) or not isComparison(tooltip) or not util.call(tooltip.IsShown, tooltip) then return end
-    if util.call(ui.pinPanel, panel) then panel.comparisonAnchorHeld = true end
+    panel.comparisonAnchorHeld = true
 end
 
 -- SetOwner/ClearLines can trigger Show before the item post-call (notably
@@ -317,6 +346,7 @@ local function restoreNative(tooltip)
         tooltip:SetAlpha(panel.nativeAlpha)
         panel.nativeAlpha = nil
     end
+    restoreChildMouse(panel)
     for comparison in pairs(panels) do
         if isComparison(comparison) then
             pcall(retarget, comparison, function(frame)
@@ -327,6 +357,7 @@ local function restoreNative(tooltip)
 end
 
 native.anchorToPanels = anchorToPanels
+native.suppressChildMouse = suppressChildMouse
 native.refitNative = refitNative
 native.beginRefresh = beginRefresh
 native.holdComparison = holdComparison

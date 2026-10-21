@@ -96,6 +96,7 @@ local function update(tooltip, data, model)
     panel.fingerprint = not tooltipType.alwaysRedraw and fingerprint(tooltip, data) or nil
     panel.elapsed = 0
     tooltip:SetAlpha(0)
+    native.suppressChildMouse(tooltip, panel)
 end
 update = probe("update", update)
 
@@ -280,6 +281,7 @@ local function onTooltipData(dataType, tooltip, data)
             if panel.nativeAlpha and alpha and alpha ~= 0 then
                 shown:SetAlpha(0)
             end
+            native.suppressChildMouse(shown, panel)
         end
         hooksecurefunc(tooltip, "Show", function(shown)
             if not panel.fitting then onNativeShown(shown, "Show") end
