@@ -1,5 +1,10 @@
 # PrettyTooltip
 
+> **Architecture sample branch:** start with [the architecture diagrams](ARCHITECTURE.md),
+> then read [the provisional extension contracts](examples/README.md) and
+> [the Retail item example](examples/RetailItemExtension.lua). The example illustrates
+> optional callbacks; it is not loaded by the current TOC and is not a Retail port.
+
 A full reskin of tooltips for WoW Forever. PrettyTooltip replaces the game's tooltip with a compact, ornamented panel: the icon and name up front, the details in short colored rows grouped by kind, and the fine print gathered in a footer. Hold **ALT** (or the key you choose) at any time to see the game's own tooltip.
 
 ## Item tooltips

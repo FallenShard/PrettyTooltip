@@ -7,6 +7,10 @@ if not (ui and ITEM) then
     return
 end
 
+-- Provisional extension example: a client file loaded after this one can set
+-- descriptor.extension. The shared TOC leaves it nil. See examples/README.md.
+local descriptor = {}
+
 local util = ns.util
 local colors = ns.Palette.roles
 local isSecret, safeText, number = util.isSecret, util.safeText, util.number
@@ -258,7 +262,7 @@ local function itemByName(name, game)
 end
 
 local function newItemModel()
-    return {
+    local model = {
         header = {},
         armor = {},
         primary = {},
@@ -275,6 +279,11 @@ local function newItemModel()
         kinds = {},
         weaponBonus = {},
     }
+    -- Runs for outer items, embedded crafted items, and editor sample models.
+    -- A Retail initializer may set model.retail = {}; shared code does not.
+    local extension = descriptor.extension
+    if extension and extension.initModel then extension.initModel(model) end
+    return model
 end
 
 -- An item model from given fields, each list it lacks empty: the editor's samples.
@@ -356,6 +365,10 @@ local function readModel(tooltip, data, game)
     model.icon = game.itemIcon(itemInfo)
     model.level = getLevel(itemInfo, game)
     model.lineIndices = {}
+    local extension = descriptor.extension
+    -- Allocate extension context only when a client has registered callbacks.
+    -- The raw data/line tables remain read-only input, including secret fields.
+    local context = extension and { nativeTooltip = tooltip, data = data, game = game, rootModel = model }
     -- Lines go to the recipe or, inside its embedded tooltip, the crafted item.
     local m = model
     local inSet, setTotal = false, 0
@@ -374,7 +387,7 @@ local function readModel(tooltip, data, game)
         return false
     end
 
-    for _, line in ipairs(data.lines) do
+    for lineNumber, line in ipairs(data.lines) do
         if isSecret(line) or not line or isSecret(line.type) or isSecret(line.lineIndex) then
             return
         end
@@ -387,6 +400,7 @@ local function readModel(tooltip, data, game)
         if line.lineIndex then
         local left, right = safeText(line.leftText), safeText(line.rightText)
         if not left or not right then return end
+        if context then context.originalText = left end
         local lineType = line.type
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
         -- Read as the panel words it, each stat of a combined bonus apart.
@@ -399,6 +413,9 @@ local function readModel(tooltip, data, game)
             m.quest = true
         end
         local displayed = left
+        if context then
+            context.lineNumber, context.text, context.rightText = lineNumber, trimmed, right
+        end
 
         local afterTeaches = teachesLast
         teachesLast = false
@@ -434,6 +451,9 @@ local function readModel(tooltip, data, game)
         elseif lineType == LINE.ItemLevel then
             local level = left:match("(%d+)")
             if level then m.level, m.levelLine = tonumber(level), true end
+        elseif extension and extension.readLine and extension.readLine(m, line, context) == true then
+            -- Client claims this content line instead of shared classification.
+            -- Recipe routing, name/level, and price metadata remain core-owned.
         elseif lineType == LINE.EquipSlot then
             m.equippable = true
             local slot = unusable(left, line.leftColor)
@@ -543,6 +563,9 @@ local function readModel(tooltip, data, game)
                 addExtra(m, left, right, colorOf(line.leftColor), colorOf(line.rightColor))
             end
         end
+        -- Observe/decorate the current item after classification, even when a
+        -- client claimed the line. A recipe's crafted item is passed as m.
+        if extension and extension.afterReadLine then extension.afterReadLine(m, line, context) end
         end
     end
 
@@ -648,6 +671,11 @@ local function readModel(tooltip, data, game)
     model.quest = model.quest or classID == QUEST_CLASS
     model.comparison = isComparison(tooltip)
     model.equippedWith = model.comparison and game.isEquipped(model.link) == false or nil
+    if extension and extension.afterRead then
+        context.lineNumber, context.text, context.rightText, context.originalText = nil, nil, nil, nil
+        if model.created then extension.afterRead(model.created, context) end
+        extension.afterRead(model, context)
+    end
     return model
 end
 readModel = probe("read item", readModel)
@@ -1142,12 +1170,12 @@ local function itemView(panel, model)
         and (model.equippable or model.levelLine) and util.fill(L["iLvl %s"], model.level) or nil
     local quality = QUALITY[model.quality] or QUALITY[1]
     local accent = model.quest and colors.quest or quality
-    local header = { { text = model.name, style = styles.title, color = quality, gap = 4 } }
+    local header = { { id = "title", text = model.name, style = styles.title, color = quality, gap = 4 } }
     if model.slot and model.slot ~= "" then
-        header[#header + 1] = { text = model.slot, style = styles.subtitle,
+        header[#header + 1] = { id = "slot", text = model.slot, style = styles.subtitle,
             color = { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }, gap = 4 }
     end
-    header[#header + 1] = { rows = model.header, style = styles.header, color = { .78, .72, .63 }, gap = 3 }
+    header[#header + 1] = { id = "binding", rows = model.header, style = styles.header, color = { .78, .72, .63 }, gap = 3 }
 
     local sections, sectioned = {}, false
     local function section(entry) sections[#sections + 1] = entry end
@@ -1203,7 +1231,7 @@ local function itemView(panel, model)
             draw = function(p, y) return drawFooter(p, model, footerRight, styles.footer, y) end,
         }
     end
-    return {
+    local view = {
         tooltipType = "item",
         questItem = model.quest,
         color = accent,
@@ -1218,6 +1246,11 @@ local function itemView(panel, model)
         sections = sections,
         footer = footer,
     }
+    -- Compose additions before the shared renderer measures width and height.
+    -- This outer-item seam also runs for previews; it does not draw directly.
+    local extension = descriptor.extension
+    if extension and extension.extendView then extension.extendView(view, model, { panel = panel, styles = styles }) end
+    return view
 end
 
 local function render(panel, tooltip, model)
@@ -1261,5 +1294,6 @@ local function details(model, context)
     return rows
 end
 
-ns.TooltipTypes[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels",
-    readDetails = readDetails, details = details, detailKeys = { "disenchant", "showIDs" } }
+descriptor.read, descriptor.render, descriptor.key, descriptor.option = readModel, render, getItemInfo, "itemPanels"
+descriptor.readDetails, descriptor.details, descriptor.detailKeys = readDetails, details, { "disenchant", "showIDs" }
+ns.TooltipTypes[ITEM] = descriptor

@@ -72,6 +72,9 @@ local function update(tooltip, data, model)
     if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
     if not panel.nativeAlpha then restoreNative(tooltip); return end
     local wasShown = panel:IsShown()
+    -- Content extension callbacks belong inside descriptor.read/render, under
+    -- their existing failure handling. Native alpha, fitting, input, and
+    -- comparison lifecycle remain owned by this integration and ns.Native.
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
     tally("refit from render")
@@ -87,7 +90,7 @@ local function update(tooltip, data, model)
     panel.key = key
     if panel.dataType == Enum.TooltipDataType.Item then
         panel.model, panel.modelDataType = model, panel.dataType
-        panel.modelVersion, panel.modelDetails = ns.settingsVersion or 0, ns.detailsKeyDown()
+        panel.modelVersion, panel.modelDetailsShown = ns.settingsVersion or 0, ns.detailsKeyDown()
     else
         panel.model = nil
     end
@@ -424,6 +427,8 @@ function hooks.install()
     installComparisonHooks()
     -- A type drawn from lines alone has no data for the game to hand over.
     for dataType, tooltipType in pairs(TooltipTypes) do
+        -- Some tooltip types are drawn from lines alone, so no data is
+        -- available for the game to process.
         if not tooltipType.linesOnly then
             ns.Processor.onData("panel", dataType, function(tooltip, data)
                 onTooltipData(dataType, tooltip, data)
@@ -447,7 +452,7 @@ function hooks.install()
                     if ns.isOriginalKey(key) and panel.dataType == Enum.TooltipDataType.Item
                         and panel.model and panel.modelDataType == panel.dataType
                         and panel.modelVersion == (ns.settingsVersion or 0)
-                        and panel.modelDetails == ns.detailsKeyDown() then
+                        and panel.modelDetailsShown == ns.detailsKeyDown() then
                         local currentKey, valid = keyOf(TooltipTypes[panel.dataType], tooltip, panel.data)
                         if valid and currentKey and currentKey == panel.key
                             and util.call(fingerprint, tooltip, panel.data) then

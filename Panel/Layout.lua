@@ -1005,6 +1005,9 @@ end
 -- details(model, context), the detail rows the game's own tooltip gets in its
 -- place (context passed on to ns.showsDetail), with detailKeys, the settings
 -- that turn them on.
+-- Provisional item-only extension callbacks are documented in examples/README.md.
+-- An extension field is optional; it is not automatically dispatched by this
+-- registry. Each reader/view builder must explicitly implement its boundaries.
 local TooltipTypes = {}
 
 -- Records a tooltip type, its reader and renderer profiled; the entry file
