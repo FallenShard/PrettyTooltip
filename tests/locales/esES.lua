@@ -351,6 +351,8 @@ return {
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING"] = "Componente de fabricación final",
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH"] = "Se puede usar con: |cffffffff%s|r",
     ["PROFESSIONS_USED_IN_COOKING"] = "Componente de profesión",
+    ["PROFESSION_ACCESSORY_TOOLTIP_LINE"] = "%s accesorio",
+    ["PROFESSION_TOOL_TOOLTIP_LINE"] = "%s herramienta",
     ["PVP_ENABLED"] = "JcJ",
     ["QUEST_CLASSIFICATION_RECURRING"] = "Repetible",
     ["QUEST_TOOLTIP_ACTIVE"] = "Estás en esta misión",

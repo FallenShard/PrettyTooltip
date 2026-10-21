@@ -351,6 +351,8 @@ return {
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING"] = "Завершающий реагент",
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH"] = "Применяется: |cffffffff%1$s|r",
     ["PROFESSIONS_USED_IN_COOKING"] = "Используется для ремесел",
+    ["PROFESSION_ACCESSORY_TOOLTIP_LINE"] = "Аксессуар для профессии: %1$s",
+    ["PROFESSION_TOOL_TOOLTIP_LINE"] = "Инструмент для профессии: %1$s",
     ["PVP_ENABLED"] = "PvP",
     ["QUEST_CLASSIFICATION_RECURRING"] = "Повторяемое",
     ["QUEST_TOOLTIP_ACTIVE"] = "Выполняется",

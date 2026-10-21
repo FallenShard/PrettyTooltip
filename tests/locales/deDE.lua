@@ -351,6 +351,8 @@ return {
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING"] = "Fertigungshandwerksmaterial",
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH"] = "Benutzbar mit: |cffffffff%s|r",
     ["PROFESSIONS_USED_IN_COOKING"] = "Handwerksmaterial",
+    ["PROFESSION_ACCESSORY_TOOLTIP_LINE"] = "Zubehör für %s",
+    ["PROFESSION_TOOL_TOOLTIP_LINE"] = "Werkzeug für %s",
     ["PVP_ENABLED"] = "PvP",
     ["QUEST_CLASSIFICATION_RECURRING"] = "Wiederholbar",
     ["QUEST_TOOLTIP_ACTIVE"] = "Ihr befindet Euch auf dieser Quest.",

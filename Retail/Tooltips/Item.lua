@@ -90,6 +90,14 @@ local function isDifficulty(plain)
     return util.trim(rest):match("^[+-]%d+$") ~= nil
 end
 
+-- A profession's tool or accessory names itself so: "Alchemy Tool".
+local function isProfessionGear(plain)
+    for _, format in ipairs({ PROFESSION_TOOL_TOOLTIP_LINE, PROFESSION_ACCESSORY_TOOLTIP_LINE }) do
+        if type(format) == "string" and unformat(util.trim(plain), format) then return true end
+    end
+    return false
+end
+
 -- Retail's reagent kinds, named on a line of their own, as Tooltips/Item.lua
 -- names "Crafting Reagent": they join the item's slot under its name.
 function item.kinds()
@@ -304,6 +312,9 @@ function item.readLine(m, line, data, lineNumber, left, right, trimmed, original
         -- The recipes a reagent goes into, under its effect, in the game's colors.
         add(m.effects, trimmed, "")
         m.effects[#m.effects].color = gameColor(line.leftColor, USABLE_WITH_COLOR)
+    elseif right == "" and not m.slot and isProfessionGear(plain) then
+        -- "Alchemy Tool", "Alchemy Accessory": its kind, under the name.
+        m.slot = util.trim(plain)
     elseif right == "" and isString(plain, ITEM_COSMETIC) then
         -- "Cosmetic", under the name, in the game's pink.
         m.cosmetic, m.cosmeticColor = util.trim(plain), gameColor(line.leftColor, COSMETIC_COLOR)

@@ -351,6 +351,8 @@ return {
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING"] = "Composant d’artisanat de finition",
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH"] = "Utilisable avec |cffffffff%s|r",
     ["PROFESSIONS_USED_IN_COOKING"] = "Composant d’artisanat",
+    ["PROFESSION_ACCESSORY_TOOLTIP_LINE"] = "Accessoire – %s",
+    ["PROFESSION_TOOL_TOOLTIP_LINE"] = "Outil – %s",
     ["PVP_ENABLED"] = "JcJ",
     ["QUEST_CLASSIFICATION_RECURRING"] = "Répétable",
     ["QUEST_TOOLTIP_ACTIVE"] = "Vous effectuez cette quête",

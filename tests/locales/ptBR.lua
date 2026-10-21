@@ -351,6 +351,8 @@ return {
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING"] = "Reagente de finalização de criação",
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH"] = "Usável com: |cffffffff%s|r",
     ["PROFESSIONS_USED_IN_COOKING"] = "Reagente de criação",
+    ["PROFESSION_ACCESSORY_TOOLTIP_LINE"] = "Acessório de %s",
+    ["PROFESSION_TOOL_TOOLTIP_LINE"] = "Ferramenta de %s",
     ["PVP_ENABLED"] = "JxJ",
     ["QUEST_CLASSIFICATION_RECURRING"] = "Repetível",
     ["QUEST_TOOLTIP_ACTIVE"] = "Você está participando desta missão",

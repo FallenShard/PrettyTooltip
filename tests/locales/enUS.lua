@@ -351,6 +351,8 @@ return {
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING"] = "Finishing Crafting Reagent",
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH"] = "Usable with: |cffffffff%s|r",
     ["PROFESSIONS_USED_IN_COOKING"] = "Crafting Reagent",
+    ["PROFESSION_ACCESSORY_TOOLTIP_LINE"] = "%s Accessory",
+    ["PROFESSION_TOOL_TOOLTIP_LINE"] = "%s Tool",
     ["PVP_ENABLED"] = "PvP",
     ["QUEST_CLASSIFICATION_RECURRING"] = "Repeatable",
     ["QUEST_TOOLTIP_ACTIVE"] = "You are on this quest",

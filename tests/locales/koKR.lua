@@ -351,6 +351,8 @@ return {
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_FINISHING"] = "마무리 제작 재료",
     ["PROFESSIONS_MODIFIED_CRAFTING_REAGENT_USABLE_WITH"] = "함께 사용 가능: |cffffffff%s|r",
     ["PROFESSIONS_USED_IN_COOKING"] = "제작 재료",
+    ["PROFESSION_ACCESSORY_TOOLTIP_LINE"] = "%s 장신구",
+    ["PROFESSION_TOOL_TOOLTIP_LINE"] = "%s 도구",
     ["PVP_ENABLED"] = "전쟁 참여 중",
     ["QUEST_CLASSIFICATION_RECURRING"] = "반복 가능",
     ["QUEST_TOOLTIP_ACTIVE"] = "해당 퀘스트를 수행 중입니다.",

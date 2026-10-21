@@ -559,6 +559,10 @@ local function readModel(tooltip, data, game)
                 add(m.footerLeft, left, right)
                 if isRed(line.leftColor) then
                     m.footerLeft[#m.footerLeft].color = UNUSABLE_COLOR
+                elseif m ~= model then
+                    -- The item a recipe crafts keeps it under its stats, in the
+                    -- game's color: "You haven't collected this appearance".
+                    m.footerLeft[#m.footerLeft].color = rgb(line.leftColor)
                 end
             -- Retail keeps an active bonus in the set, worded "Set: ...".
             elseif inSet and (unformat(trimmed, ITEM_SET_BONUS_GRAY)
@@ -1277,6 +1281,13 @@ local function drawCreated(panel, created, styles, y)
     local stats = hasStats(created)
     if stats then y = drawStats(panel, created, styles, y) end
     if created.setName then y = drawSet(panel, created, styles, divider(panel, y, GOLD_RULE, stats and 11 or 0)) end
+    -- Its footer's lines, as whose classes may use it or an appearance not yet
+    -- collected, under the rest: the recipe's footer is its own.
+    local footer = {}
+    for _, row in ipairs(created.footerLeft) do
+        if not row.durability then footer[#footer + 1] = row end
+    end
+    if #footer > 0 then y = drawGroup(panel, footer, y + 4, styles.footer, { .82, .78, .71 }) end
     return y
 end
 
