@@ -23,8 +23,57 @@ local GEM_ENCHANT_COLOR = { 1, .82, 0 }
 local GEM_ENCHANT_INDENT = 20
 -- A primary stat another specialization uses, as retail's tooltip greys it.
 local INACTIVE_STAT_COLOR = { .50, .50, .50 }
+-- "Cosmetic" under the name, and "Already Known" on an appearance or spell the
+-- character has, in the game's colors when it sends none.
+local COSMETIC_COLOR = { 1, .50, 1 }
+local KNOWN_COLOR = { 1, .125, .125 }
+-- A Warbound item's binding, in the game's light blue when it sends none.
+local WARBOUND_COLOR = { 0, .80, 1 }
+-- How the game binds an item (its TooltipDataItemBinding enum, as documented,
+-- where the client has none): the kinds that bind to the Warband.
+local BINDING = Enum and Enum.TooltipDataItemBinding or { Account = 1, BnetAccount = 2, BindToAccount = 4,
+    BindToBnetAccount = 5, AccountUntilEquipped = 9, BindToAccountUntilEquipped = 10 }
+local WARBOUND = {}
+for _, name in ipairs({ "Account", "BnetAccount", "BindToAccount", "BindToBnetAccount", "AccountUntilEquipped",
+    "BindToAccountUntilEquipped" }) do
+    if BINDING[name] then WARBOUND[BINDING[name]] = true end
+end
 
 -- Reading ----------------------------------------------------------------------
+
+-- A line's color as the game sends it, exactly, or fallback.
+local function gameColor(color, fallback)
+    if isSecret(color) or type(color) ~= "table" then return fallback end
+    local r, g, b = color.r, color.g, color.b
+    if isSecret(r) or isSecret(g) or isSecret(b)
+        or type(r) ~= "number" or type(g) ~= "number" or type(b) ~= "number" then
+        return fallback
+    end
+    return { r, g, b }
+end
+
+-- Whether text is one of the game's strings, as it words them or in any case.
+local function isString(text, ...)
+    text = util.trim(text):lower()
+    for index = 1, select("#", ...) do
+        local wording = select(index, ...)
+        if type(wording) == "string" and text == util.trim(wording):lower() then return true end
+    end
+    return false
+end
+
+-- A Warbound item's binding line: by the game's binding kind, or else its words.
+function item.isWarbound(line, text)
+    local bonding = line.bonding
+    if not isSecret(bonding) and type(bonding) == "number" then return WARBOUND[bonding] == true end
+    return isString(plainText(text), ITEM_ACCOUNTBOUND, ITEM_BNETACCOUNTBOUND, ITEM_ACCOUNTBOUND_UNTIL_EQUIP,
+        ITEM_BIND_TO_ACCOUNT, ITEM_BIND_TO_BNETACCOUNT, ITEM_BIND_TO_ACCOUNT_UNTIL_EQUIP)
+end
+
+-- A binding row in the game's light blue when it binds to the Warband.
+function item.colorBinding(row, line, text)
+    if item.isWarbound(line, text) then row.color = gameColor(line.leftColor, WARBOUND_COLOR) end
+end
 
 -- Retail writes some colors with spaces for zeros, as "|cFF 0FF 0Mythic+":
 -- read as the color it means, not as text.
@@ -149,6 +198,13 @@ function item.readLine(m, line, data, lineNumber, left, right, trimmed, original
         if appearance ~= "" then m.transmog = appearance end
     elseif right == "" and unformat(plain, TRANSMOGRIFIED_ENCHANT) then
         m.illusion = util.trim(plain)
+    elseif right == "" and isString(plain, ITEM_COSMETIC) then
+        -- "Cosmetic", under the name, in the game's pink.
+        m.cosmetic, m.cosmeticColor = util.trim(plain), gameColor(line.leftColor, COSMETIC_COLOR)
+    elseif right == "" and isString(plain, ERR_COSMETIC_KNOWN, ITEM_SPELL_KNOWN) then
+        -- "Already Known", in the game's red, under the effect it makes moot.
+        add(m.effects, util.trim(plain), "")
+        m.effects[#m.effects].color, m.effects[#m.effects].inactive = gameColor(line.leftColor, KNOWN_COLOR), true
     else
         return false
     end
@@ -261,11 +317,17 @@ function item.drawSockets(panel, sockets, y, style)
     return y
 end
 
--- The header's lines: where the item comes from, under its name.
+-- The header's lines: where the item comes from, and whether it is cosmetic,
+-- under its name.
 function item.addSource(header, model, styles)
-    if not model.source then return end
-    header[#header + 1] = { text = model.source, style = styles.itemSource, color = model.sourceColor or SOURCE_COLOR,
-        gap = 4 }
+    if model.source then
+        header[#header + 1] = { text = model.source, style = styles.itemSource,
+            color = model.sourceColor or SOURCE_COLOR, gap = 4 }
+    end
+    if model.cosmetic then
+        header[#header + 1] = { text = model.cosmetic, style = styles.itemCosmetic,
+            color = model.cosmeticColor or COSMETIC_COLOR, gap = 4 }
+    end
 end
 
 -- Its upgrade level and crafted quality, under its slot.

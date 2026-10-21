@@ -482,6 +482,7 @@ local function readModel(tooltip, data, game)
         elseif lineType == LINE.ItemBinding or isBinding(trimmed) then
             add(m.header, left, right)
             if isRed(line.leftColor) then m.header[#m.header].color = UNUSABLE_COLOR end
+            if ns.IsRetail() then ns.Retail.Item.colorBinding(m.header[#m.header], line, trimmed) end
         elseif right == "" and tonumber((unformat(trimmed, CONTAINER_SLOTS))) then
             local count, kind = unformat(trimmed, CONTAINER_SLOTS)
             m.bag = { count = tonumber(count), kind = kind }
@@ -524,8 +525,9 @@ local function readModel(tooltip, data, game)
                 add(m.setBonuses, left, right)
                 m.setBonuses[#m.setBonuses].active = isActive(line.leftColor)
             -- Set pieces are names alone: letters (of any alphabet), spaces,
-            -- apostrophes, and hyphens.
-            elseif inSet and #m.setItems < setTotal
+            -- apostrophes, and hyphens. Retail's appearance sets can list more
+            -- pieces than they count ("(0/3)" over five), each indented.
+            elseif inSet and (#m.setItems < setTotal or (ns.IsRetail() and left:match("^%s%s%S")))
                 and right == "" and trimmed:gsub("[%a'%- \128-\255]", "") == "" then
                 add(m.setItems, trimmed, right)
                 m.setItems[#m.setItems].active = isActive(line.leftColor)
