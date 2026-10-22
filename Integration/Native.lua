@@ -174,6 +174,7 @@ local function fitNative(tooltip, panel)
 end
 
 function refitNative(tooltip, panel)
+    if ns.Placement and ns.Placement.owns(tooltip) then return ns.Placement.refresh(tooltip) end
     if panel.refreshPending or panel.comparisonPending or panel.comparisonFitPending then return end
     if panel.fitting then return end
     if not util.canModify(tooltip) then return end
@@ -202,6 +203,7 @@ end
 -- Blizzard_PTRFeedback). Keep the old fit until that whole refill finishes.
 local function beginRefresh(tooltip)
     if isSecret(tooltip) then return end
+    if ns.Placement and ns.Placement.owns(tooltip) then return end
     local panel = panels[tooltip]
     if not (panel and panel.dataType == Enum.TooltipDataType.Item
         and panel:IsShown() and panel.nativeAlpha and panel.fittedHeight)
@@ -337,6 +339,7 @@ local function restoreNative(tooltip)
     if isSecret(tooltip) or not tooltip then return end
     local panel = panels[tooltip]
     if not panel then return end
+    if ns.Placement then ns.Placement.release(tooltip, panel) end
     panel.refreshPending = nil
     panel.comparisonPending, panel.comparisonAnchorPending = nil, nil
     panel.comparisonFitPending = nil

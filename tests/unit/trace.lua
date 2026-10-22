@@ -35,6 +35,7 @@ return function(test)
 
     local text = table.concat(report, "\n")
     local function has(fragment) return text:find(fragment, 1, true) ~= nil end
+    test.check("each trace identifies the native placement mode at capture start", has("placement mode: native"), true)
     test.check("each change is written once, a frame with none is not",
         select(2, text:gsub("frame %d+  GameTooltip  ", "")), 4)
     test.check("position changes are reported even when size and anchors stay the same", has("pos 0.0,210.0"), true)
@@ -178,4 +179,13 @@ return function(test)
     test.check("restricted focus objects and tables are redacted", has("restricted") and has("focus restricted"), true)
     test.check("clients with the older mouse focus API still identify the invisible control",
         has("InvisibleStickyControl parent ItemRefTooltip"), true)
+    ns.Placement = { enabled = true }
+    ns.traceTooltips(4)
+    tick()
+    ns.Placement.enabled = false
+    finish()
+    text = table.concat(report, "\n")
+    test.check("the recorded Pretty mode belongs to capture start rather than report time",
+        has("placement mode: pretty"), true)
+    ns.Placement = nil
 end

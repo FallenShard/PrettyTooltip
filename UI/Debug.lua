@@ -42,6 +42,9 @@ function ns.dumpAnchors()
         return
     end
     local lines = {}
+    if ns.Placement then
+        lines[#lines + 1] = "Placement: " .. (ns.Placement.enabled and "Pretty-owned" or "native")
+    end
     for index, entry in ipairs(shown) do
         local tooltip, panel = entry.tooltip, entry.panel
         local line = ("%s: panel %.1f to %.1f (pinned %s), hidden %.1f to %.1f"):format(tooltip:GetName() or "?",
@@ -324,6 +327,7 @@ function ns.traceTooltips(seconds)
         return
     end
     traceLines, traceStart, tracing = {}, debugprofilestop() / 1000, true
+    traceLine("placement mode: " .. (ns.Placement and ns.Placement.enabled and "pretty" or "native"))
     lastAlpha, suppressed = {}, 0
     eventCount, omittedEvents = 0, 0
     local previous, combat, previousMouse = {}, nil, nil

@@ -216,6 +216,8 @@ return function(fixture, enums, report, strings)
     function Object:GetSize() return self:GetWidth(), self:GetHeight() end
     function Object:SetClampedToScreen(clamped) self._clamped = not not clamped end
     function Object:IsClampedToScreen() return self._clamped or false end
+    function Object:SetHitRectInsets(left, right, top, bottom) self._hitRectInsets = { left, right, top, bottom } end
+    function Object:GetHitRectInsets() return unpack(self._hitRectInsets or { 0, 0, 0, 0 }) end
     function Object:GetLeft() return 0 end
     function Object:GetRight() return self:GetWidth() end
     function Object:GetTop() return 0 end

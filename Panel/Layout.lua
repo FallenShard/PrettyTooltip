@@ -918,6 +918,9 @@ local function alignPanel(panel, tooltip, force)
     -- Cursor placement can replace the refresh hold with its new top anchor.
     -- A fading tooltip parked off screen always keeps its panel pinned.
     if panel.parked or ((panel.refreshPending or panel.comparisonAnchorHeld) and not force) then return end
+    if ns.Placement and ns.Placement.owns(tooltip) then
+        return ns.Placement.align(panel, tooltip, force)
+    end
     local side = anchoredSide(tooltip)
     local dx, dy = gridOffset(panel, tooltip, side)
     if isComparison(tooltip) then
