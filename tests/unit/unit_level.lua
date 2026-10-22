@@ -18,7 +18,7 @@ return function(test)
                 if (font._text or ""):find("Orc Shaman", 1, true) then info = font._text end
                 local text = ns.util.plainText(font._text or "")
                 if text == "Target" then targetLabel = text end
-                if text == "-" then targetValue = text end
+                if text == "None" then targetValue = text end
             end
         end
         return { plate = panel.badge._shown and panel.badgeText._text or false, info = info,
@@ -26,7 +26,7 @@ return function(test)
     end
 
     test.check("the level is on the plate and a player always has a target row",
-        drawn(), { plate = "60", info = "Orc Shaman", target = { "Target", "-" } })
+        drawn(), { plate = "60", info = "Orc Shaman", target = { "Target", "None" } })
     local function targetText(unitModel)
         local panel = ns.ui.renderPreview(anchor, unitModel, UNIT)
         local texts = {}
@@ -82,11 +82,11 @@ return function(test)
         { true, true })
     ns.setOption("unitLevelBadge", false)
     test.check("with the plate off, the info line has it", drawn(),
-        { plate = false, info = "Level 60 Orc Shaman", target = { "Target", "-" } })
+        { plate = false, info = "Level 60 Orc Shaman", target = { "Target", "None" } })
     ns.setOption("unitLevelBadge", true)
     ns.setOption("iconUnits", false)
     test.check("without a portrait, the info line has it", drawn(),
-        { plate = false, info = "Level 60 Orc Shaman", target = { "Target", "-" } })
+        { plate = false, info = "Level 60 Orc Shaman", target = { "Target", "None" } })
     ns.setOption("iconUnits", true)
     model.level = -1
     test.check("a skull level shows as ??", drawn().plate, "??")

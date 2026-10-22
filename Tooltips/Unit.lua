@@ -354,7 +354,7 @@ local function detailRows(model)
     elseif model.target or model.isPlayer then
         rows[#rows + 1] = model.targetIsYou
             and { left = TARGET, right = YOU, rightColor = UNMET_COLOR }
-            or { left = TARGET, right = model.target or "-", rightColor = model.targetColor }
+            or { left = TARGET, right = model.target or L["None"], rightColor = model.targetColor }
     end
     return rows
 end

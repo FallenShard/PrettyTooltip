@@ -10,6 +10,7 @@
 ## Performance
 
 - Reduced repeated item reads, rendering, and anchor changes during auction-house and comparison refreshes. Pretty placement no longer inflates hidden native tooltips to match the panels' dimensions.
+- Removed the automatic idle fade and `/ptip fade` command.
 
 ## Bug reports
 

@@ -123,8 +123,6 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 
 Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor, which has every setting about the look and each kind's details, and holds the rest; hover a setting for what it does.
 
-After 30 seconds without mouse or tracked game input, visible tooltips fade out over the configured fade duration. Activity during the fade cancels it.
-
 - **Layout Style**: **PrettyTooltip** (the default) draws the panel for each kind turned on under **Restyled Tooltips**; **Blizzard** keeps the game's own tooltips everywhere, as described in *The Blizzard layout* above, and greys out the **Restyle** column.
 - **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
   - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, with the details added while their modifier is held. The other kinds are greyed out until PrettyTooltip restyles them.
@@ -155,8 +153,6 @@ After 30 seconds without mouse or tracked game input, visible tooltips fade out 
 `python deploy.py` copies the game files into `D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns\PrettyTooltip`; pass `--addons-dir "<path to Interface\AddOns>"` for another installation. After a deploy, `/reload` picks up Lua changes; changes to the `.toc` need a game restart.
 
 `/ptip dump` shows the raw data of the tooltip you are hovering, to see what a kind of tooltip carries, or the lines shown when an addon filled it without data. A link clicked in chat is dumped when nothing is hovered. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes. `/ptip anchors` shows where each shown panel sits, the gaps between them, and how the game's tooltips under them are anchored. `/ptip pixel` shows how lines are snapped to screen pixels at the current UI scale.
-
-`/ptip fade` fades currently visible Pretty panels out over the configured fade duration, or arms the next restyled tooltip to fade out if none is visible.
 
 `/ptip debounce` toggles live unit-cache output in chat; `/ptip debounce on` and `/ptip debounce off` explicitly start or stop it. The monitor prints the cache in oldest-to-newest order as units are added, evicted, or reused.
 

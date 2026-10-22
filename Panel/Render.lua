@@ -66,93 +66,10 @@ end
 
 -- Each shown panel's update, at most one; a redraw clears it.
 local live = setmetatable({}, { __mode = "k" })
-local fading = setmetatable({}, { __mode = "k" })
-local IDLE_FADE_AFTER, IDLE_FADE_DURATION = 30, 3
 
 local ticker = CreateFrame("Frame")
 local elapsedSince = 0
-local idleFor = 0
-local cursorX, cursorY
-local testFadeOutPending = false
-
-function ui.fadeOutDuration()
-    return IDLE_FADE_DURATION
-end
-
-function ui.noteActivity()
-    idleFor = 0
-    for panel, fade in pairs(fading) do
-        if fade.idle then
-            panel:SetAlpha(1)
-            fading[panel] = nil
-        end
-    end
-end
-
-local function startFade(panel, fromAlpha, toAlpha, idle)
-    panel:SetAlpha(fromAlpha)
-    fading[panel] = { elapsed = 0, from = fromAlpha, to = toAlpha, idle = idle }
-end
-
-function ui.fadeOutAfterIdle(panel)
-    if fading[panel] then return end
-    startFade(panel, util.number(panel:GetAlpha()) or 1, 0, true)
-end
-
-function ui.testFadeOut()
-    local count = 0
-    for _, panel in pairs(ui.panels) do
-        if panel:IsShown() then
-            local alpha = util.number(panel:GetAlpha()) or 1
-            startFade(panel, alpha, 0, false)
-            count = count + 1
-        end
-    end
-    if count == 0 then testFadeOutPending = true end
-    return count
-end
-
-function ui.consumeTestFadeOut(panel)
-    if not testFadeOutPending then return false end
-    testFadeOutPending = false
-    startFade(panel, 1, 0, false)
-    return true
-end
-
-function ui.resetFade(panel)
-    fading[panel] = nil
-    panel:SetAlpha(1)
-end
-
-ticker:RegisterEvent("PLAYER_STARTED_MOVING")
-ticker:SetScript("OnEvent", ui.noteActivity)
 ticker:SetScript("OnUpdate", function(_, elapsed)
-    idleFor = idleFor + elapsed
-    local x, y = util.call(GetCursorPosition)
-    x, y = util.number(x), util.number(y)
-    if x and y then
-        if cursorX and (x ~= cursorX or y ~= cursorY) then ui.noteActivity() end
-        cursorX, cursorY = x, y
-    end
-    for panel, fade in pairs(fading) do
-        if not panel:IsShown() then
-            panel:SetAlpha(1)
-            fading[panel] = nil
-        else
-            fade.elapsed = fade.elapsed + elapsed
-            local progress = math.min(fade.elapsed / IDLE_FADE_DURATION, 1)
-            panel:SetAlpha(fade.from + (fade.to - fade.from) * progress)
-            if progress == 1 then
-                fading[panel] = nil
-                if fade.to == 0 then panel:Hide() end
-            end
-        end
-    end
-    if idleFor >= IDLE_FADE_AFTER then
-        for _, panel in pairs(ui.panels) do
-            if panel:IsShown() and not fading[panel] then ui.fadeOutAfterIdle(panel) end
-        end
-    end
     elapsedSince = elapsedSince + elapsed
     if elapsedSince < .1 then return end
     elapsedSince = 0

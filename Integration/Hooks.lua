@@ -20,17 +20,6 @@ local UNIT_MODEL_CACHE_LIMIT = 15
 local unitModelCache, unitModelOrder = {}, {}
 local unitCacheDebug = false
 local batchComparisons = false
-local activityHooksInstalled = false
-
-local function installActivityHooks()
-    if activityHooksInstalled then return end
-    activityHooksInstalled = true
-    for _, name in ipairs({ "UseAction", "CastSpell", "CastSpellByName", "TargetUnit", "InteractUnit",
-        "MoveForwardStart", "MoveBackwardStart", "TurnLeftStart", "TurnRightStart", "StrafeLeftStart",
-        "StrafeRightStart", "JumpOrAscendStart", "CameraOrSelectOrMoveStart", "TurnOrActionStart" }) do
-        if type(_G[name]) == "function" then hooksecurefunc(name, ui.noteActivity) end
-    end
-end
 
 local function showsOriginal(panel)
     local tooltipType = TooltipTypes[panel.dataType]
@@ -171,8 +160,6 @@ local function update(tooltip, data, model)
     if panel.unitDebouncePending then return end
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
-    local wasShown = panel:IsShown()
-    if not wasShown then ui.resetFade(panel) end
     panel.nativeOnly = nil
     local ok = true
     if not model then ok, model = pcall(tooltipType.read, tooltip, data, ns.Game) end
@@ -181,7 +168,6 @@ local function update(tooltip, data, model)
     if not panel.nativeAlpha then restoreNative(tooltip); return end
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
-    ui.consumeTestFadeOut(panel)
     if panel.dataType == Enum.TooltipDataType.Unit then panel.unitDead = model.dead end
     if panel.dataType == Enum.TooltipDataType.Unit and ns.ui.unitLayoutKey then
         local layoutOK, layoutKey = pcall(ns.ui.unitLayoutKey, panel, model)
@@ -829,7 +815,6 @@ local installed = false
 function hooks.install()
     if installed then return end
     installed = true
-    installActivityHooks()
     installComparisonHooks()
     if not installAuctionHouseHook() then
         auctionLoadFrame = CreateFrame("Frame")
