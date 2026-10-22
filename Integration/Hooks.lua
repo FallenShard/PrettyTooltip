@@ -381,7 +381,6 @@ local function onTooltipData(dataType, tooltip, data)
     -- A native presentation needs no panel, geometry hooks, or restore work.
     -- Existing hooks stay installed across settings changes but become idle.
     if not ns.restyles(TooltipTypes[dataType].option) then
-        local panel = panels[tooltip]
         if panel then
             if not panel.nativeOnly then
                 panel.nativeOnly = true
@@ -395,7 +394,7 @@ local function onTooltipData(dataType, tooltip, data)
     end
     installComparisonHooks()
     native.unpark(tooltip)
-    local panel = getPanel(tooltip)
+    panel = getPanel(tooltip)
     panel.nativeOnly = nil
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)

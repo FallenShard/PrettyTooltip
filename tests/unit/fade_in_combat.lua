@@ -158,12 +158,13 @@ return function(test)
         data = { type = 33, id = 1, lines = { { lineIndex = 1, leftText = "Object" } } },
         lines = { { left = { text = "Object" } } },
     })
+    InCombatLockdown = function() return combat end
     local unitDead = false
     local unitRenderCount = 0
     unitNs.ui.defineTooltipType(2, {
         read = function(_, data, _, unit)
-            if unit then return { guid = data.guid, dead = unitDead } end
-            return { guid = data.guid, dead = unitDead, isPlayer = data.isPlayer, color = data.color,
+            if unit then return { guid = data.guid, dead = unitDead, reaction = data.reaction } end
+            return { guid = data.guid, dead = unitDead, reaction = data.reaction, isPlayer = data.isPlayer, color = data.color,
                 omitInfo = data.omitInfo, portrait = data.portrait, wide = data.wide }
         end,
         render = function(panel, tooltip, model)
@@ -273,6 +274,8 @@ return function(test)
     unitCallback(unitTooltip, { guid = "wider", wide = true, lines = {} })
     test.check("a unit with a different measured size gets a full redraw",
         { unitRenderCount, unitPanel.unitGuid }, { renderCountBeforeSizeChange + 1, "wider" })
+    unitNs.ui.unitTextFields = nil
+    unitNs.ui.updateUnitTextField = nil
     local unitTokens = { mouseover = "engaged-a", nameplate1 = "engaged-a", nameplate2 = "engaged-b",
         target = "unengaged" }
     local dead = {}
@@ -295,6 +298,7 @@ return function(test)
     unitCallback(unitTooltip, { guid = "engaged-a", reaction = 2, lines = {} })
     test.check("combat hovers update the tooltip for a living engaged enemy", unitPanel.unitGuid, "engaged-a")
     unitTokens.nameplate3 = "engaged-c"
+    unitNs.Game.NEARBY_UNITS = { "target", "mouseover", "nameplate1", "nameplate2", "nameplate3" }
     unitNs.Game.unitAffectingCombat = function(unit)
         return unit == "nameplate1" or unit == "nameplate2" or unit == "nameplate3"
     end

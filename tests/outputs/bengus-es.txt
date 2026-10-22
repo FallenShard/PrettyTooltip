@@ -41,9 +41,10 @@ quests: {}
 reaction: 5
 tag: "Artesano herrero"
 tapped: false
+targetFlavor: "Taking a stroll"
 unit: "mouseover"
 == tooltip render
-panel 286 x 155
+panel 299 x 198
 texture at -16,-16 0x0 rgb=0.3,0.85,0.35,0.385 glow
 texture at 0,0 0x0 rgb=0.7795,0.9527,0.7953,0.9 TooltipBackground-Temp.png
 texture at 0,0 0x0 rgb=0.3,0.85,0.35,0.2205 TooltipBackground-Temp.png
@@ -53,9 +54,15 @@ texture CENTER Texture CENTER 0,0 40x40 rgb=0.3,0.85,0.35,0.85 WHITE8X8
 texture TOP Texture BOTTOM 0,-5 40x16 rgb=0.8,0.08,0.08,0.9 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.14,0.014,0.014,1 WHITE8X8
 text CENTER Texture CENTER 0,0 w=0 size=10 rgb=1,0.595,0.595 "45"
-text at 67,21 w=200 size=17 rgb=0.3,0.85,0.35 "BENGUS FORJAHONDA"
-text at 67,43 w=200 size=12 rgb=0.82,0.78,0.71 "Humanoide · Artesano herrero"
-text at 67,61 w=200 size=12 rgb=0.82,0.78,0.71 "Forjaz"
+text at 67,21 w=213 size=17 rgb=0.3,0.85,0.35 "BENGUS FORJAHONDA"
+text at 67,43 w=213 size=12 rgb=0.82,0.78,0.71 "Humanoide · Artesano herrero"
+text at 67,61 w=213 size=12 rgb=0.82,0.78,0.71 "Forjaz"
 text at 67,80 w=20 size=12 rgb=0.82,0.78,0.71 "|cffFF9D8BJcJ|r"
-text at 19,108 w=248 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Creature"
-text at 19,123 w=248 size=11 rgb=0.6,0.6,0.63 "ID de PNJ: 4258"
+texture at 19,109 122x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-109 122x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-104 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,122 w=164.5 size=11 rgb=0.82,0.78,0.71 "Objetivo"
+text at 195.5,122 w=84.5 size=11 rgb=0.6,0.57,0.52 "Taking a stroll"
+texture at 19,142 261x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,151 w=261 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Creature"
+text at 19,166 w=261 size=11 rgb=0.6,0.6,0.63 "ID de PNJ: 4258"

@@ -105,6 +105,7 @@ end
 
 -- The widest thing the view holds, plus the panel's padding, within the limits.
 local function fitWidth(panel, view)
+    if view.fixedWidth then return ui.snap(panel, view.fixedWidth) end
     local indent, need = indentOf(view), 0
     local function consider(width) if width > need then need = width end end
     for _, item in ipairs(view.header) do

@@ -39,9 +39,10 @@ pvp: true
 quests: {}
 reaction: 6
 tapped: false
+targetFlavor: "Muttering to themself"
 unit: "mouseover"
 == tooltip render
-panel 286 x 155
+panel 299 x 198
 texture at -16,-16 0x0 rgb=0.3,0.85,0.35,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x100 rgb=1,1,1,1 WHITE8X8
@@ -58,9 +59,15 @@ texture unplaced 0x0 rgb=0.3,0.85,0.35,1 tooltip-TopEdge
 texture unplaced 0x0 rgb=0.3,0.85,0.35,1 tooltip-BottomEdge
 texture unplaced 0x0 rgb=0.3,0.85,0.35,1 tooltip-LeftEdge
 texture unplaced 0x0 rgb=0.3,0.85,0.35,1 tooltip-RightEdge
-text at 67,21 w=200 size=17 rgb=0.3,0.85,0.35 "GWENNYTH BLY'LEGGONDE"
-text at 67,43 w=200 size=12 rgb=0.82,0.78,0.71 "Humanoid"
-text at 67,61 w=200 size=12 rgb=0.82,0.78,0.71 "Darnassus"
+text at 67,21 w=213 size=17 rgb=0.3,0.85,0.35 "GWENNYTH BLY'LEGGONDE"
+text at 67,43 w=213 size=12 rgb=0.82,0.78,0.71 "Humanoid"
+text at 67,61 w=213 size=12 rgb=0.82,0.78,0.71 "Darnassus"
 text at 67,80 w=20 size=12 rgb=0.82,0.78,0.71 "|cffFF9D8BPvP|r"
-text at 19,108 w=248 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Creature"
-text at 19,123 w=248 size=11 rgb=0.6,0.6,0.63 "NPC ID: 10219"
+texture at 19,109 122x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-109 122x1 rgb=0.4056,0.3068,0.1664,0.8 WHITE8X8
+texture TOP panel TOP 0,-104 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
+text at 19,122 w=131.5 size=11 rgb=0.82,0.78,0.71 "Target"
+text at 162.5,122 w=117.5 size=11 rgb=0.6,0.57,0.52 "Muttering to themself"
+texture at 19,142 261x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,151 w=261 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Creature"
+text at 19,166 w=261 size=11 rgb=0.6,0.6,0.63 "NPC ID: 10219"

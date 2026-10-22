@@ -793,7 +793,6 @@ local function drawChrome(panel, tooltip, style)
     local color = style.color
     panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
     local tinted = style.tint and ns.option("qualityTint")
-    local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
     local suffix = ns.TYPE_SUFFIX[style.tooltipType] or ""
     local glow = ns.option("glowAlpha" .. suffix) or 1

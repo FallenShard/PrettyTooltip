@@ -23,9 +23,36 @@ local DETAIL_COLOR = colors.detail
 local MUTED = colors.caption
 local EXTRAS_RULE = { .50, .50, .54 }
 local UNMET_COLOR = colors.unmet
+local PVE = "PvE"
 local REACTION = {
     { 1, .27, .22 }, { 1, .27, .22 }, { 1, .50, .20 }, { 1, .82, .20 },
     { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 },
+}
+local NEUTRAL_TARGETS = { "grazing", "frolicking", "day-dreaming", "wandering", "humming" }
+local FRIENDLY_TARGETS = {
+    "taking a stroll", "enjoying the sunshine", "chatting with a neighbor",
+    "practicing a hobby", "taking a short break", "watching the clouds",
+    "browsing the market", "savoring a snack",
+}
+local DEAD_TARGETS = {
+    "taking a dirt nap", "off-duty forever", "waiting for a skinning",
+    "practicing stillness", "loot-window shopping",
+}
+local HOSTILE_TARGETS = {
+    Beast = { "prowling", "stalking", "circling", "hunting" },
+    Demon = { "plotting", "stalking", "looming", "scheming" },
+    Dragonkin = { "circling", "guarding its hoard", "sizing you up" },
+    Humanoid = { "plotting", "scheming", "sizing you up", "lying in wait" },
+    Undead = { "lurking", "hungering", "plotting", "stalking" },
+}
+local HUMANOID_ACTIVITIES = {
+    bodyguard = { "checking the perimeter", "watching the door", "standing guard" },
+    weaponVendor = { "polishing wares", "checking the stock", "counting coins", "haggling" },
+    vendor = { "arranging wares", "counting coins", "haggling", "chatting with customers" },
+    guard = { "checking the gates", "making a patrol", "keeping watch" },
+    innkeeper = { "pouring a drink", "changing the sheets", "hearing a tall tale" },
+    trainer = { "planning a lesson", "practicing a move", "correcting a stance" },
+    generic = { "stretching their legs", "checking their pockets", "muttering to themself", "taking a break" },
 }
 local BADGES = {
     elite = { ELITE, { .95, .78, .30 } },
@@ -43,7 +70,7 @@ for _, rank in ipairs({ { BOSS, "worldboss" }, { ELITE, "elite" }, { formats.rar
 end
 -- Lines the badges and the faction crest show: "Alliance", "PvP", "Dead".
 local SHOWN_ELSEWHERE = {}
-for _, word in pairs({ FACTION_ALLIANCE, FACTION_HORDE, PVP_ENABLED, DEAD, CORPSE, UNIT_SKINNABLE_LEATHER }) do
+for _, word in pairs({ FACTION_ALLIANCE, FACTION_HORDE, PVP_ENABLED, PVE, DEAD, CORPSE, UNIT_SKINNABLE_LEATHER }) do
     SHOWN_ELSEWHERE[word] = true
 end
 
@@ -160,6 +187,57 @@ local function skinning(model, game)
     return { needed = needed, player = game.skill("Skinning"), rows = rows }
 end
 
+local function humanoidRole(model)
+    if model.creature ~= "Humanoid" or type(model.tag) ~= "string" or isSecret(model.tag) then return end
+    local role = model.tag:lower()
+    if role:find("bodyguard", 1, true) then return "bodyguard" end
+    if role:find("weapon", 1, true) and role:find("vendor", 1, true) then return "weaponVendor" end
+    if role:find("vendor", 1, true) or role:find("merchant", 1, true) then return "vendor" end
+    if role:find("guard", 1, true) then return "guard" end
+    if role:find("innkeeper", 1, true) then return "innkeeper" end
+    if role:find("trainer", 1, true) then return "trainer" end
+    return "generic"
+end
+
+local function stableChoice(model, words)
+    local creature = type(model.creature) == "string" and not isSecret(model.creature) and model.creature or ""
+    local identity = type(model.guid) == "string" and not isSecret(model.guid) and model.guid
+        or type(model.name) == "string" and not isSecret(model.name) and model.name or ""
+    local source = identity .. creature
+    local hash = 0
+    for index = 1, #source do
+        hash = (hash * 33 + source:byte(index)) % 2147483647
+    end
+    return words[hash % #words + 1]
+end
+
+local function capitalize(text)
+    return text:sub(1, 1):upper() .. text:sub(2)
+end
+
+local function targetFlavor(model, role)
+    if model.isPlayer then return end
+    local activityRole = role or (model.creature == "Humanoid" and "generic")
+    if activityRole and not model.dead then
+        return capitalize(stableChoice(model, HUMANOID_ACTIVITIES[activityRole]))
+    end
+    local words
+    if model.dead then
+        words = DEAD_TARGETS
+    elseif model.tapped then
+        return
+    elseif model.reaction == 4 then
+        words = NEUTRAL_TARGETS
+    elseif type(model.reaction) == "number" and model.reaction >= 1 and model.reaction <= 3 then
+        words = HOSTILE_TARGETS[model.creature] or HOSTILE_TARGETS.Humanoid
+    elseif type(model.reaction) == "number" and model.reaction >= 5 then
+        words = FRIENDLY_TARGETS
+    else
+        return
+    end
+    return capitalize(stableChoice(model, words))
+end
+
 local function completeModel(model, unit, game)
     if unit then
         model.isPlayer = game.unitIsPlayer(unit)
@@ -224,6 +302,7 @@ local function completeModel(model, unit, game)
         end
     end
     model.skinning = model.skinning or skinning(model, game)
+    model.targetRole = humanoidRole(model)
     if model.isPlayer then
         model.color = ns.Palette.classColor(model.classFile, game)
     elseif model.dead or model.tapped then
@@ -231,6 +310,7 @@ local function completeModel(model, unit, game)
     else
         model.color = model.reaction and REACTION[model.reaction]
     end
+    model.targetFlavor = targetFlavor(model, model.targetRole)
     return model
 end
 
@@ -329,6 +409,7 @@ local function badges(model)
     local classification = model.classification and BADGES[model.classification]
     if classification then list[#list + 1] = classification end
     if model.pvp then list[#list + 1] = { PVP_ENABLED, { 1, .45, .35 } } end
+    if not model.isPlayer and not model.pvp then list[#list + 1] = { PVE, MUTED } end
     if model.afk then list[#list + 1] = { L["AFK"], MUTED } end
     if model.dnd then list[#list + 1] = { L["DND"], MUTED } end
     if model.dead then list[#list + 1] = { DEAD, TAPPED } end
@@ -345,10 +426,13 @@ end
 local function detailRows(model)
     local rows = {}
     if model.owner then rows[#rows + 1] = { left = model.owner, right = "" } end
-    if model.target or model.isPlayer then
-        rows[#rows + 1] = model.targetIsYou
-            and { left = TARGET, right = YOU, rightColor = UNMET_COLOR }
-            or { left = TARGET, right = model.target or "-", rightColor = model.targetColor }
+    if model.targetRole or model.targetFlavor or model.target or model.isPlayer then
+        local guarded = model.targetRole == "bodyguard" and model.target
+        local target = guarded and (model.targetIsYou and YOU or model.target)
+            or model.targetFlavor or (model.targetIsYou and YOU) or model.target or "-"
+        local color = guarded and (model.targetIsYou and UNMET_COLOR or model.targetColor)
+            or model.targetFlavor and MUTED or model.targetIsYou and UNMET_COLOR or model.targetColor
+        rows[#rows + 1] = { left = TARGET, right = target, rightColor = color }
     end
     return rows
 end
@@ -422,6 +506,13 @@ local function unitView(panel, model, healthBar)
     local color = model.color or colors.neutral
     local hasIcon = ns.option("iconUnits") and (model.unit or model.iconPath) and true or false
     local plate = levelBadge(model, hasIcon)
+    local indent = ICON_SIZE + 10
+    local maximumName = string.rep("M", 12) .. " " .. string.rep("M", 12)
+    local fixedWidth
+    if panel.measure then
+        fixedWidth = math.max(ui.minWidth(), math.min(ui.MAX_WIDTH,
+            math.ceil(ui.measureStyled(panel, maximumName, styles.unitName) + indent + 2 * ui.pad())))
+    end
 
     local header = { { text = model.name, fieldKey = "name", style = styles.unitName, color = color, gap = 2 } }
     local guild = guildText(model)
@@ -475,6 +566,7 @@ local function unitView(panel, model, healthBar)
     end
     return {
         tooltipType = "unit",
+        fixedWidth = fixedWidth,
         color = color,
         tint = model.color,
         strength = TINT_STRENGTH,
