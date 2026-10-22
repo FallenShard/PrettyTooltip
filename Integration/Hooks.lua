@@ -86,6 +86,7 @@ local function update(tooltip, data, model)
     local wasShown = panel:IsShown()
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
+    if panel.dataType == Enum.TooltipDataType.Unit then panel.unitDead = model.dead end
     tally("refit from render")
     refitNative(tooltip, panel)
     panel.data = data
@@ -201,11 +202,11 @@ end
 function hooks.comparisonsBatched() return batchComparisons end
 
 -- Keep the previous panel across a clear while its native tooltip is still
--- shown. Hides dismiss the panel immediately; native cleanup waits until no
--- new item post-call replaces it in that frame.
+-- shown. Hides dismiss it unless it is a retained unit; native cleanup waits
+-- until no new item post-call replaces it in that frame.
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
-    if not panel or panel.nativeOnly then return end
+    if not panel or panel.nativeOnly or panel.stickyUnit then return end
     if batchComparisons then native.holdComparison(tooltip) end
     native.beginRefresh(tooltip)
     if panel.data and panel.data.fromLines then panel.data = nil end
@@ -221,6 +222,8 @@ end
 
 local function onTooltipData(dataType, tooltip, data)
     if not util.canModify(tooltip) then return end
+    local panel = panels[tooltip]
+    if panel and panel.stickyUnit and dataType ~= Enum.TooltipDataType.Unit then return end
     if isSecret(data) or type(data) ~= "table" or isSecret(data.lines) or type(data.lines) ~= "table" then
         restoreNative(tooltip)
         return
@@ -229,6 +232,7 @@ local function onTooltipData(dataType, tooltip, data)
     if tooltip.prettyTooltipScanner then return end
     -- A type drawn in this one's place (an imbue's, for its weapon) goes by its own setting.
     dataType = claimantOf(dataType, tooltip, data)
+    if panel and panel.stickyUnit then panel.stickyUnit = nil end
     -- A native presentation needs no panel, geometry hooks, or restore work.
     -- Existing hooks stay installed across settings changes but become idle.
     if not ns.restyles(TooltipTypes[dataType].option) then
@@ -258,7 +262,7 @@ local function onTooltipData(dataType, tooltip, data)
     panel.restorePending = false
     if not panel.hooked then
         tooltip:HookScript("OnHide", function(hidden)
-            if panel.nativeOnly then return end
+            if panel.nativeOnly or panel.stickyUnit then return end
             -- Keep native cleanup deferred, but never draw the old panel at
             -- an anchor reset by an action button's hide/clear sequence.
             panel.refreshPending = nil
@@ -272,6 +276,10 @@ local function onTooltipData(dataType, tooltip, data)
         local function onNativeShown(shown, source)
             if panel.nativeOnly then return end
             if not util.canModify(shown) then return end
+            if panel.stickyUnit then
+                if panel.nativeAlpha then shown:SetAlpha(0) end
+                return
+            end
             tally(isComparison(shown) and "show hook (comparison)" or "show hook")
             if panel.refreshPending or panel.restorePending or panel.comparisonPending then
                 if panel.nativeAlpha then shown:SetAlpha(0) end
@@ -430,6 +438,31 @@ local function onTooltipData(dataType, tooltip, data)
     end)
 end
 onTooltipData = probe("tooltip data", onTooltipData)
+
+-- Mouseover can already refer to another unit; the event token lets a parked
+-- panel refresh only when its own unit's dead state changes.
+local unitStatus = CreateFrame("Frame")
+unitStatus:RegisterEvent("UNIT_FLAGS")
+unitStatus:RegisterEvent("UNIT_HEALTH")
+unitStatus:SetScript("OnEvent", function(_, _, unit)
+    if type(unit) ~= "string" then return end
+    local guid = util.call(ns.Game.unitGUID, unit)
+    if isSecret(guid) or type(guid) ~= "string" then return end
+    for tooltip, panel in pairs(panels) do
+        if panel.stickyUnit and panel.dataType == Enum.TooltipDataType.Unit and panel.key == guid
+            and panel.data and util.canModify(tooltip) then
+            local dead = util.call(ns.Game.unitIsDead, unit)
+            if type(dead) ~= "boolean" or dead ~= panel.unitDead then
+                local tooltipType = TooltipTypes[panel.dataType]
+                local ok, model = pcall(tooltipType.read, tooltip, panel.data, ns.Game, unit)
+                if ok and model then
+                    local rendered = pcall(tooltipType.render, panel, tooltip, model)
+                    if rendered then panel.unitDead = model.dead else restoreNative(tooltip) end
+                end
+            end
+        end
+    end
+end)
 
 local installed = false
 function hooks.install()

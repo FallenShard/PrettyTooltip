@@ -90,8 +90,12 @@ local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitSkinning
     "unitQuests", "extras" }
 
 -- The mouseover token can still be the previous unit; the data's GUID cannot.
-local function unitFor(tooltip, guid, game)
+local function unitFor(tooltip, guid, game, unitOverride)
     if isSecret(guid) then guid = nil end
+    if type(unitOverride) == "string" and game.unitExists(unitOverride)
+        and (not guid or game.unitGUID(unitOverride) == guid) then
+        return unitOverride
+    end
     local _, unit = get(tooltip.GetUnit, tooltip)
     if type(unit) == "string" and game.unitExists(unit) and (not guid or game.unitGUID(unit) == guid) then
         return unit
@@ -222,7 +226,7 @@ local function completeModel(model, unit, game)
     model.skinning = model.skinning or skinning(model, game)
     if model.isPlayer then
         model.color = ns.Palette.classColor(model.classFile, game)
-    elseif model.tapped then
+    elseif model.dead or model.tapped then
         model.color = TAPPED
     else
         model.color = model.reaction and REACTION[model.reaction]
@@ -235,9 +239,9 @@ local function unitKey(_, data)
     return data.guid
 end
 
-local function readUnit(tooltip, data, game)
+local function readUnit(tooltip, data, game, unitOverride)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    local unit = unitFor(tooltip, data.guid, game)
+    local unit = unitFor(tooltip, data.guid, game, unitOverride)
     local model = { quests = {}, extras = {}, lineIndices = {}, unit = unit,
         guid = not isSecret(data.guid) and data.guid or nil }
     for _, line in ipairs(data.lines) do

@@ -29,7 +29,7 @@ Code an addon runs is insecure, and every value it writes carries that taint. Bl
 
 ### None known
 
-A world unit's tooltip that starts fading used to be hidden with `Hide()` outside combat, which ran `GameTooltip_OnHide` under the addon's taint. The game sets a fading tooltip's alpha every frame in C, past the `SetAlpha` hook (seen with `/ptip trace`), so the addon now moves it off the screen instead, in combat and out: it unclamps it, anchors it far below the screen's corner, pins the panel where it stood, and fades the panel. `SetClampedToScreen`, `ClearAllPoints`, and `SetPoint` run no Lua. The game hides the tooltip itself when its fade ends; new content anchors it afresh, and the addon gives its clamping back on `SetOwner` or hide (`unit/fade_in_combat.lua`, `unit/cursor_combat.lua`).
+A world unit's tooltip that starts fading used to be hidden with `Hide()` outside combat, which ran `GameTooltip_OnHide` under the addon's taint. The game sets a fading tooltip's alpha every frame in C, past the `SetAlpha` hook (seen with `/ptip trace`), so the addon moves it off the screen instead: it unclamps and anchors it far below the screen's corner, then pins the unit panel where it stood and keeps it visible until a new unit is hovered. Matching unit status events refresh its tint when it dies. Other tooltip types still hide their panels when they fade. `SetClampedToScreen`, `ClearAllPoints`, and `SetPoint` run no Lua. The new unit restores the parked tooltip and its clamping (`unit/fade_in_combat.lua`, `unit/cursor_combat.lua`).
 
 ### Not a concern
 

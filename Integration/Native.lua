@@ -267,8 +267,8 @@ local function releaseNative(tooltip, panel)
 end
 
 -- A world unit's tooltip fades out once the mouse leaves the unit, the game
--- setting its alpha every frame, past the SetAlpha hook. Move it off screen
--- while it fades, and hide our panel immediately.
+-- setting its alpha every frame, past the SetAlpha hook. Keep unit panels at
+-- their last position; other panels hide while their native tooltip fades.
 
 -- Off the screen, where a fading tooltip goes so its alpha no longer matters.
 local PARKED = -10000
@@ -302,7 +302,7 @@ end
 local function unpark(tooltip)
     local panel = panels[tooltip]
     local parked = panel and panel.parked
-    if not parked or not util.canModify(tooltip) then return end
+    if not parked or panel.stickyUnit or not util.canModify(tooltip) then return end
     local points = util.framePoints(tooltip)
     if not points then return end
     local kept = {}
@@ -326,6 +326,14 @@ local function fadeOut(tooltip)
     if not util.canModify(tooltip) then return end
     local panel = panels[tooltip]
     if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
+    if panel.dataType == Enum.TooltipDataType.Unit then
+        panel.stickyUnit = true
+        panel.refreshPending = nil
+        panel.restorePending = false
+        panel.refreshToken = (panel.refreshToken or 0) + 1
+        if ui.pinPanel(panel) then park(tooltip, panel) end
+        return
+    end
     -- The game sets a fading tooltip's alpha itself, past the SetAlpha hook,
     -- so it would show through the panel.
     panel:Hide()
@@ -341,6 +349,7 @@ local function restoreNative(tooltip)
     panel.comparisonPending, panel.comparisonAnchorPending = nil, nil
     panel.comparisonFitPending = nil
     panel.comparisonAnchorHeld = nil
+    panel.stickyUnit = nil
     panel.restorePending = false
     pcall(releaseNative, tooltip, panel)
     panel:Hide()

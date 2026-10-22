@@ -1,5 +1,5 @@
--- Fading hides only our panel; the native tooltip stays off screen until
--- reuse, which must restore its anchors without overriding a fresh position.
+-- Ordinary tooltips hide on fade; the last hovered unit stays until another
+-- unit replaces it. Parked native tooltips restore their anchors on reuse.
 return function(test)
     local fixture = { enums = { TooltipDataType = { Item = 0, Object = 33, UnitAura = 7 } },
         data = { type = 33, id = 1, lines = { { lineIndex = 1, leftText = "Mailbox" } } },
@@ -149,4 +149,72 @@ return function(test)
     world.fireEvent("PLAYER_REGEN_DISABLED")
     test.check("combat still restores the real default anchor after reuse",
         { anchor(tooltip), tooltip:IsClampedToScreen() }, { default, true })
+
+    local unitNs, unitWorld = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+        "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
+        "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua", "Integration/Native.lua",
+        "Integration/Hooks.lua" }, {
+        enums = { TooltipDataType = { Item = 0, Unit = 2, Object = 33 } },
+        data = { type = 33, id = 1, lines = { { lineIndex = 1, leftText = "Object" } } },
+        lines = { { left = { text = "Object" } } },
+    })
+    local unitDead = false
+    unitNs.ui.defineTooltipType(2, {
+        read = function(_, data, _, unit)
+            if unit then return { guid = data.guid, dead = unitDead } end
+            return data
+        end,
+        render = function(panel, tooltip, model)
+            panel.unitGuid = model.guid
+            panel.unitReaction = model.reaction
+            panel.unitDead = model.dead
+            unitNs.ui.finishPanel(panel, tooltip, 40)
+        end,
+        key = function(_, data) return data.guid end,
+        option = "unitPanels",
+    })
+    unitNs.Hooks.install()
+    local unitGuids = { mouseover = "friendly" }
+    unitNs.Game.unitGUID = function(unit) return unitGuids[unit] end
+    local unitTooltip = unitWorld.main
+    local unitCallback = unitWorld.postCalls[2][1]
+    local objectCallback = unitWorld.postCalls[33][1]
+    unitTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    unitTooltip:ClearAllPoints()
+    unitTooltip:SetPoint("BOTTOMRIGHT", UIParent, "BOTTOMRIGHT", -20, 30)
+    unitTooltip:Show()
+    unitTooltip:SetAlpha(1)
+    unitCallback(unitTooltip, { guid = "friendly", reaction = 5, lines = {} })
+    local unitPanel = unitNs.ui.panels[unitTooltip]
+    unitTooltip:FadeOut()
+    test.check("a hovered unit panel stays visible after the cursor leaves",
+        { unitPanel:IsShown(), unitPanel.unitGuid, unitNs.Native.isParked(unitTooltip) },
+        { true, "friendly", true })
+    unitTooltip:Hide()
+    unitTooltip:GetScript("OnHide")(unitTooltip)
+    test.check("the game's completed tooltip hide retains the last unit",
+        unitPanel:IsShown(), true)
+    unitGuids.eventunit = "friendly"
+    unitDead = true
+    unitWorld.fireEvent("UNIT_FLAGS", "eventunit")
+    test.check("the retained tooltip updates when its unit dies",
+        { unitPanel:IsShown(), unitPanel.unitDead }, { true, true })
+    unitTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    unitTooltip:Show()
+    unitTooltip:SetAlpha(1)
+    objectCallback(unitTooltip, { id = 3, lines = {} })
+    test.check("non-unit hovers do not replace the retained unit",
+        { unitPanel:IsShown(), unitPanel.unitGuid, select(2, unitPanel:GetPoint(1)) == UIParent },
+        { true, "friendly", true })
+    for _, target in ipairs({ { guid = "friendly-next", reaction = 5 }, { guid = "neutral", reaction = 4 },
+        { guid = "enemy", reaction = 2 } }) do
+        unitTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+        unitTooltip:Show()
+        unitTooltip:SetAlpha(1)
+        unitCallback(unitTooltip, { guid = target.guid, reaction = target.reaction, lines = {} })
+        test.check("hovering a new unit replaces the retained one: " .. target.guid,
+            { unitPanel:IsShown(), unitPanel.unitGuid, unitPanel.unitReaction,
+                unitNs.Native.isParked(unitTooltip) },
+            { true, target.guid, target.reaction, false })
+    end
 end
