@@ -38,10 +38,18 @@ return function(test)
     local function panelWidth(unitModel)
         return ns.ui.renderPreview(anchor, unitModel, UNIT).width
     end
+    local function headerHeight(unitModel)
+        return ns.ui.renderPreview(anchor, unitModel, UNIT).header:GetHeight()
+    end
     local function unitLayoutKey(unitModel)
         local panel = ns.ui.renderPreview(anchor, unitModel, UNIT)
         return ns.ui.unitLayoutKey(panel, unitModel), panel:GetHeight()
     end
+    local shortHeaderHeight = headerHeight(model)
+    model.factionName, model.pvp = "Stormwind", true
+    test.check("unit headers reserve the same height for five rows",
+        { headerHeight(model), shortHeaderHeight }, { shortHeaderHeight, shortHeaderHeight })
+    model.factionName, model.pvp = nil, nil
     local function includes(list, value)
         for _, candidate in ipairs(list) do
             if candidate == value then return true end
@@ -58,6 +66,17 @@ return function(test)
             neutral.targetFlavor:match("^%u") ~= nil,
             includes({ "Grazing", "Frolicking", "Day-dreaming", "Wandering", "Humming" }, neutral.targetFlavor) },
         { neutral.targetFlavor, true, true, true, true, true, true })
+    local minion = ns.ui.unitModel({ name = "Warlock's Minion", guid = "Creature-minion",
+        creature = "Demon", reaction = 5, isPlayer = false, owner = "Warlock", quests = {} })
+    local minionWithoutTarget = targetText(minion)
+    minion.target, minion.targetColor = "Enemy", { 1, .27, .22 }
+    local minionWithTarget = targetText(minion)
+    test.check("an owned unit omits an empty target and shows its current target",
+        { minionWithoutTarget:find("Target", 1, true) == nil,
+            minionWithTarget:find("Target", 1, true) ~= nil,
+            minionWithTarget:find("Enemy", 1, true) ~= nil,
+            minionWithTarget:find(minion.targetFlavor, 1, true) == nil },
+        { true, true, true, true })
     local playerWidth = panelWidth(model)
     local neutralWidth = panelWidth(neutral)
     test.check("unit tooltips keep one width sized for a two-word, 12-character name",

@@ -426,7 +426,13 @@ end
 local function detailRows(model)
     local rows = {}
     if model.owner then rows[#rows + 1] = { left = model.owner, right = "" } end
-    if model.targetRole or model.targetFlavor or model.target or model.isPlayer then
+    if model.owner then
+        if model.target then
+            rows[#rows + 1] = { left = TARGET,
+                right = model.targetIsYou and YOU or model.target,
+                rightColor = model.targetIsYou and UNMET_COLOR or model.targetColor }
+        end
+    elseif model.targetRole or model.targetFlavor or model.target or model.isPlayer then
         local guarded = model.targetRole == "bodyguard" and model.target
         local target = guarded and (model.targetIsYou and YOU or model.target)
             or model.targetFlavor or (model.targetIsYou and YOU) or model.target or "-"
@@ -529,6 +535,8 @@ local function unitView(panel, model, healthBar)
             style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
     end
     header[#header + 1] = { badges = badges(model), style = styles.unitBadges, before = 1, gap = 4 }
+    local headerHeight = ui.titleTop() + styles.unitName.size + 4 + styles.unitGuild.size + 4
+        + 2 * (styles.unitInfo.size + 6) + styles.unitBadges.size + 7
 
     local sections = {}
     local details = detailRows(model)
@@ -576,6 +584,7 @@ local function unitView(panel, model, healthBar)
         badge = plate,
         badgeColor = model.level and levelColor(model.level),
         header = header,
+        headerHeight = headerHeight,
         sections = sections,
     }
 end

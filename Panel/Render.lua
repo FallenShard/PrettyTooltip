@@ -247,7 +247,7 @@ local function renderView(panel, tooltip, view)
     if #view.header > 0 or view.icon then
         -- A header alone ends as far below its last line as its first is from the top.
         local alone = #view.sections == 0 and not hasFooter
-        y = math.max(alone and y or y + 6, headerMin)
+        y = math.max(alone and y or y + 6, headerMin, view.headerHeight or 0)
         panel.header:SetHeight(y - panel.inset)
     else
         -- Sections alone, as the minimap's list: as much room above as below.
