@@ -138,6 +138,7 @@ local function fitWidth(panel, view)
     end
     return math.max(view.minWidth or ui.minWidth(), math.min(ui.MAX_WIDTH, math.ceil(need + 2 * pad())))
 end
+ui.viewWidth = fitWidth
 
 -- The space a divider shows below its line, and a rule: one after a section
 -- shows as much above its line, counting in what the section's last row left
@@ -197,7 +198,6 @@ local function renderView(panel, tooltip, view)
     local scale = ns.tooltipScale()
     if panel:GetScale() ~= scale then panel:SetScale(scale) end
     panel:Show()
-    if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
     ui.clearPool(panel)
     live[panel] = nil
     -- Whole pixels, so the edges away from the aligned corner are on pixels too.
@@ -217,6 +217,7 @@ local function renderView(panel, tooltip, view)
         gradient = view.gradient,
         tag = view.tag,
     })
+    if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
     local indent = indentOf(view)
     local leftIndent, rightIndent = ui.headerInsets(indent)
     local inner = panel.width - 2 * pad()

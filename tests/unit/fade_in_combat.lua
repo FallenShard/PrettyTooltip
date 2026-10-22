@@ -164,7 +164,7 @@ return function(test)
         read = function(_, data, _, unit)
             if unit then return { guid = data.guid, dead = unitDead } end
             return { guid = data.guid, dead = unitDead, isPlayer = data.isPlayer, color = data.color,
-                omitInfo = data.omitInfo, portrait = data.portrait }
+                omitInfo = data.omitInfo, portrait = data.portrait, wide = data.wide }
         end,
         render = function(panel, tooltip, model)
             unitRenderCount = unitRenderCount + 1
@@ -234,6 +234,10 @@ return function(test)
         if not model.omitInfo then fields.info = { text = "unchanged" } end
         return fields, model.color, .5
     end
+    unitNs.ui.unitLayoutKey = function(_, model)
+        if model.wide then return "wide" end
+        return model.omitInfo and "without-info" or "with-info"
+    end
     unitNs.ui.updatePanelTint = function(_, tint, strength, tooltipType)
         updatedTint = { tint, strength, tooltipType }
     end
@@ -247,6 +251,7 @@ return function(test)
         updatedPortrait = model.portrait
     end
     unitPanel.unitTextFields = { name = { text = unitPanel.unitGuid }, info = { text = "unchanged" } }
+    unitPanel.unitLayoutKey = "with-info"
     local renderCountBeforeTextUpdate = unitRenderCount
     local hostileTint = { .9, .1, .1 }
     unitCallback(unitTooltip, { guid = "text-only", reaction = 2, color = hostileTint,
@@ -264,6 +269,10 @@ return function(test)
     test.check("missing target fields trigger a full redraw that clears the old field",
         { unitRenderCount, unitPanel.unitGuid, unitPanel.renderedOmitInfo, unitPanel.unitTextFields.info },
         { renderCountBeforeMissingField + 1, "without-info", true, nil })
+    local renderCountBeforeSizeChange = unitRenderCount
+    unitCallback(unitTooltip, { guid = "wider", wide = true, lines = {} })
+    test.check("a unit with a different measured size gets a full redraw",
+        { unitRenderCount, unitPanel.unitGuid }, { renderCountBeforeSizeChange + 1, "wider" })
     local unitTokens = { mouseover = "engaged-a", nameplate1 = "engaged-a", nameplate2 = "engaged-b",
         target = "unengaged" }
     local dead = {}

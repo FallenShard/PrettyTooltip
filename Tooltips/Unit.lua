@@ -345,10 +345,10 @@ end
 local function detailRows(model)
     local rows = {}
     if model.owner then rows[#rows + 1] = { left = model.owner, right = "" } end
-    if model.target then
+    if model.target or model.isPlayer then
         rows[#rows + 1] = model.targetIsYou
             and { left = TARGET, right = YOU, rightColor = UNMET_COLOR }
-            or { left = TARGET, right = model.target, rightColor = model.targetColor }
+            or { left = TARGET, right = model.target or "-", rightColor = model.targetColor }
     end
     return rows
 end
@@ -631,10 +631,36 @@ end
 
 ui.unitTextFields = function(panel, model)
     local fields = {}
-    for _, item in ipairs(unitView(panel, model).header) do
+    local view = unitView(panel, model)
+    for _, item in ipairs(view.header) do
         if item.fieldKey then fields[item.fieldKey] = { text = item.text, color = item.color } end
     end
     return fields, model.color, TINT_STRENGTH
+end
+
+ui.unitLayoutKey = function(panel, model)
+    local view = unitView(panel, model)
+    local available = panel.width - 2 * ui.pad() - (view.icon and view.iconSize + 10 or 0)
+    local parts = { tostring(ui.snap(panel, ui.viewWidth(panel, view))) }
+    for _, item in ipairs(view.header) do
+        if item.fieldKey and ui.measureStyled(panel, item.text, item.style) > available then
+            parts[#parts + 1] = item.fieldKey .. "\031" .. item.text
+        elseif item.badges then
+            for _, badge in ipairs(item.badges) do parts[#parts + 1] = badge[1] end
+        end
+    end
+    for _, section in ipairs(view.sections) do
+        parts[#parts + 1] = section.kind
+        if section.rows then
+            for _, row in ipairs(section.rows) do
+                parts[#parts + 1] = row.left or ""
+                parts[#parts + 1] = row.right or ""
+            end
+        elseif section.sentences then
+            for _, sentence in ipairs(section.sentences) do parts[#parts + 1] = sentence end
+        end
+    end
+    return table.concat(parts, "\030")
 end
 
 ui.unitModel = function(fields)

@@ -87,6 +87,12 @@ local function update(tooltip, data, model)
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
     if panel.dataType == Enum.TooltipDataType.Unit then panel.unitDead = model.dead end
+    if panel.dataType == Enum.TooltipDataType.Unit and ns.ui.unitLayoutKey then
+        local layoutOK, layoutKey = pcall(ns.ui.unitLayoutKey, panel, model)
+        panel.unitLayoutKey = layoutOK and layoutKey or nil
+    else
+        panel.unitLayoutKey = nil
+    end
     tally("refit from render")
     refitNative(tooltip, panel)
     panel.data = data
@@ -308,6 +314,12 @@ local function updateUnitTextFields(tooltip, panel, data, key, token)
     if not ok or not model then return false end
     local fieldsOK, fields, tint, strength = pcall(ns.ui.unitTextFields, panel, model)
     if not fieldsOK or type(fields) ~= "table" then return false, model end
+    local layoutKey
+    if ns.ui.unitLayoutKey then
+        local layoutOK
+        layoutOK, layoutKey = pcall(ns.ui.unitLayoutKey, panel, model)
+        if not layoutOK or layoutKey ~= panel.unitLayoutKey then return false, model end
+    end
     if ns.ui.updateUnitPortrait then ns.ui.updateUnitPortrait(panel, model) end
     for fieldKey in pairs(fields) do
         if not (panel.unitTextFields and panel.unitTextFields[fieldKey]) then return false, model end
@@ -329,6 +341,7 @@ local function updateUnitTextFields(tooltip, panel, data, key, token)
     end
     ns.ui.updatePanelTint(panel, tint, strength, "unit")
     panel.data, panel.key, panel.unitDead = data, key, model.dead
+    if ns.ui.unitLayoutKey then panel.unitLayoutKey = layoutKey end
     panel.model = nil
     panel.lineCount = util.call(tooltip.NumLines, tooltip)
     panel.elapsed = 0
