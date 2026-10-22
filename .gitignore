@@ -33,3 +33,4 @@ desktop.ini
 # Local environment settings and logs.
 .env
 *.log
+deploy.py
