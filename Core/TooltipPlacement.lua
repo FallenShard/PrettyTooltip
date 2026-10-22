@@ -19,8 +19,14 @@ local function validSide(side)
 end
 
 local function rectangle(left, top, width, height)
-    return { left = left, right = left + width, top = top, bottom = top - height,
-        width = width, height = height }
+    return {
+        left = left,
+        right = left + width,
+        top = top,
+        bottom = top - height,
+        width = width,
+        height = height
+    }
 end
 
 local function finiteRectangle(rect)
@@ -104,7 +110,8 @@ function PlacementPlan.solve(input)
     local top = height <= screenHeight and clamp(main.top, screen.bottom + height, screen.top) or screen.top
     local plan = {
         main = rectangle(left, top, main.width, main.height),
-        comparisons = {}, side = side,
+        comparisons = {},
+        side = side,
         overflow = { horizontal = width > screenWidth, vertical = height > screenHeight },
     }
 

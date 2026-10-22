@@ -1,8 +1,9 @@
-Run `python tests/benchmarks/placement.py` from the repository root. It compares
-the retained native placement route with Pretty placement in isolated Lua 5.1
-runtimes, with profiling disabled. Runs alternate mode order, warm up first,
-and report the median of repeated elapsed-time samples. Use `--json PATH` to
-save the samples and operation counts.
+Run `python tests/benchmarks/placement.py` from the repository root. It measures
+Pretty placement in isolated Lua 5.1 runtimes, with profiling disabled. Runs
+warm up first and report the median of repeated elapsed-time samples. Use
+`--json PATH` to save samples and operation counts. The legacy positioning
+backend and its A/B toggle have been removed; Blizzard layout remains a
+separate presentation option.
 
 Pretty now uses relative frame anchors: comparisons attach vertically to the
 main panel and horizontally to their neighbour. The main panel reserves their
@@ -26,17 +27,13 @@ timed samples use normal garbage collection. Allocation is not retained memory.
 
 These are harness timings. Frame geometry and clamp rectangles are implemented in Lua, and native
 layout, rendering, GPU work and other addons are absent. Ratios cannot establish
-in-game parity. The old route is selected with the same diagnostic toggle used
-in-game; it is not a separate installation of a historical release.
+in-game parity. Use historical checkouts when comparing implementations; this runner measures
+the current Pretty backend. Blizzard layout renders different content and is
+not an equivalent placement benchmark.
 
-Before removing that route, compare in-game captures:
-
-1. `/reload`, then `/ptip placement native` and hover the item again.
-2. `/ptip perf 10`. Perform one workload for the full capture.
-3. `/ptip placement pretty`, hover the item again, and repeat `/ptip perf 10`.
-4. Repeat at least three captures per mode, alternating the order. Use the same
-   items, location, addons and frame-rate limit. Do not run `/ptip trace` during
-   performance captures.
+For in-game captures, use `/ptip perf 10` and repeat the same workload, items,
+location, addons and frame-rate limit. Compare against captures from the
+baseline build. Do not run `/ptip trace` during performance captures.
 
 Capture each workload separately: all tooltips closed; one stationary tooltip;
 stationary comparisons; moving between the same items; dragging the same sticky
@@ -54,7 +51,6 @@ per `auction content ready` call: a normal refill with two comparisons should
 need three completed item renders. `partial render deferred` counts the main
 item pass avoided while waiting for the auction completion callback.
 
-Keep native placement until repeated real captures establish parity or better
-for these workloads, with unchanged content and visibility. Treat a repeatable
-slowdown as a failed comparison. A faster refill path does not compensate for a
-regression while holding a stationary tooltip.
+Require unchanged content and visibility when comparing captures. Treat a
+repeatable slowdown as a regression. A faster refill path does not compensate
+for a slowdown while holding a stationary tooltip.

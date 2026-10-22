@@ -1,6 +1,6 @@
 -- Placement workloads for placement.py. Geometry and engine layout are Lua
 -- stand-ins: elapsed times measure this harness, never WoW's C++ frame layout.
-return function(makeWorld, sources, mode, scenario)
+return function(makeWorld, sources, scenario)
     local sticky = scenario == "sticky comparisons" or scenario == "sticky dragging"
     local comparing = scenario ~= "single" and scenario ~= "closed"
     local data = { type = 0, id = 1, lines = { { lineIndex = 1, leftText = "Item" } } }
@@ -15,7 +15,6 @@ return function(makeWorld, sources, mode, scenario)
         "Panel/Render.lua", "Integration/Native.lua", "Integration/Placement.lua", "Integration/Hooks.lua" }) do
         assert(loadstring(sources[name], "@" .. name))("PrettyTooltip", ns)
     end
-    ns.Placement.setEnabled(mode == "pretty")
     local stats
     local function count(name)
         if stats then stats[name] = (stats[name] or 0) + 1 end

@@ -3,15 +3,15 @@
 -- key is pressed. The entry file installs them.
 local _, ns = ...
 local ui = ns.ui
-if not (ui and ns.Native) then return end
+if not ui then return end
+local placement = ns.Placement
 
 local isSecret = ns.util.isSecret
 local util = ns.util
 local TooltipTypes = ns.TooltipTypes
-local panels, getPanel, isComparison, alignPanel = ui.panels, ui.getPanel, ui.isComparison, ui.alignPanel
+local panels, getPanel, isComparison = ui.panels, ui.getPanel, ui.isComparison
 local probe, tally = ui.probe, ui.tally
 local native = ns.Native
-local anchorToPanels, refitNative, refitUnlessPartial = native.anchorToPanels, native.refitNative, native.refitUnlessPartial
 local restoreNative, showsDataType = native.restoreNative, native.showsDataType
 local hooks = {}
 ns.Hooks = hooks
@@ -83,19 +83,13 @@ local function update(tooltip, data, model)
     if not ok or not model then restoreNative(tooltip); return end
     if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
     if not panel.nativeAlpha then restoreNative(tooltip); return end
-    local wasShown = panel:IsShown()
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
-    tally("refit from render")
-    refitNative(tooltip, panel)
+    tally("placement from render")
+    placement.refresh(tooltip)
     panel.data = data
     local key, valid = keyOf(tooltipType, tooltip, data)
     if not valid then restoreNative(tooltip); return end
-    -- A fresh render was fitted to whatever the tooltip measured mid-fill (an
-    -- early Show can be taller); the final Show must not wait as "smaller".
-    if key ~= panel.key or not wasShown then
-        panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil
-    end
     panel.key = key
     if panel.dataType == Enum.TooltipDataType.Item then
         panel.model, panel.modelDataType = model, panel.dataType
@@ -124,7 +118,7 @@ local function finishTooltip(tooltip, panel, data, token)
         and panel.fingerprint and panel.fingerprint == fingerprint(tooltip, data) then
         panel.elapsed = 0
         tally("render skipped")
-        if pending and ns.Placement and ns.Placement.owns(tooltip) then ns.Placement.shown(tooltip) end
+        if pending and placement.owns(tooltip) then placement.shown(tooltip) end
         return
     end
     update(tooltip, data)
@@ -165,19 +159,9 @@ local function hasAuctionCompletion(tooltip)
         and util.readable(owner.GetRowData) == row.GetRowData
 end
 
-local function fitComparison(tooltip, panel)
-    panel.comparisonFitPending = nil
-    if ns.Placement and ns.Placement.owns(tooltip) then return ns.Placement.refresh(tooltip) end
-    -- A completed comparison may legitimately have fewer rows now.
-    panel.fullLines = tooltip:NumLines()
-    panel.forceFit = true
-    refitNative(tooltip, panel)
-    panel.forceFit = false
-end
-
 -- The comparison manager fills the item, shows it, then appends the delta
--- rows. Read the completed content after SetItemTooltip, but wait for its
--- final SetShown to measure it: appended rows are not laid out until then.
+-- rows. Read the completed content after SetItemTooltip and commit the group
+-- after the manager's final SetShown and anchor callbacks.
 local function finishComparison(tooltip, panel, deferFit)
     if not panel.comparisonPending then return end
     if not util.canModify(tooltip) or native.isParked(tooltip) or panel.restorePending or not tooltip:IsShown()
@@ -199,51 +183,21 @@ local function finishComparison(tooltip, panel, deferFit)
     if panel:IsShown() then
         panel.elapsed = 0
         panel.comparisonFitPending = true
-        if not deferFit then fitComparison(tooltip, panel) end
-    end
-end
-
-local function finishComparisonAnchor(tooltip, panel)
-    if ns.Placement and ns.Placement.owns(tooltip) then
-        return ns.Placement.refresh(tooltip)
-    end
-    panel.comparisonAnchorPending = nil
-    if not util.canModify(tooltip) or panel.restorePending or not tooltip:IsShown() or not panel:IsShown() then return end
-    anchorToPanels(tooltip)
-    panel.comparisonAnchorHeld = nil
-    pcall(alignPanel, panel, tooltip)
-end
-
--- One comparison can be attached to the other; place that one first. Measured
--- against a panel with no position yet, as on the first comparison, a panel
--- stays unplaced until the next refresh.
-local function finishComparisonAnchors()
-    local pending = {}
-    for tooltip, panel in pairs(panels) do
-        if panel.comparisonAnchorPending and util.canModify(tooltip) and isComparison(tooltip) then
-            pending[tooltip] = panel
+        if not deferFit then
+            panel.comparisonFitPending = nil
+            placement.refresh(tooltip)
         end
     end
-    local function finish(tooltip)
-        local panel = pending[tooltip]
-        if not panel then return end
-        pending[tooltip] = nil
-        for _, point in ipairs(util.framePoints(tooltip) or {}) do finish(point[2]) end
-        finishComparisonAnchor(tooltip, panel)
-    end
-    for tooltip in pairs(pending) do finish(tooltip) end
 end
 
-local function scheduleComparisonAnchor(panel)
-    panel.comparisonAnchorPending = true
-    if ns.Placement and ns.Placement.enabled then return end
-    if panel.comparisonAnchorQueued then return end
-    panel.comparisonAnchorQueued = true
-    -- Also handles comparisons anchored by an addon outside the manager.
-    C_Timer.After(0, function()
-        panel.comparisonAnchorQueued = nil
-        finishComparisonAnchors()
-    end)
+-- Each Pretty comparison group is committed by its owner; native comparison
+-- anchors are never retargeted to a replacement panel.
+local function finishComparisonAnchors()
+    for tooltip, panel in pairs(panels) do
+        if panel.comparisonAnchorPending and panel:IsShown() and util.canModify(tooltip) and isComparison(tooltip) then
+            placement.finish(tooltip)
+        end
+    end
 end
 
 -- Shared Blizzard UI can become available after this addon's startup. Retry
@@ -264,16 +218,12 @@ local function installComparisonHooks()
         local tooltip = tooltips[isPrimary and 1 or 2]
         if not util.canModify(tooltip) then return end
         local panel = panels[tooltip]
-        if ns.Placement and ns.Placement.enabled then ns.Placement.beginComparisons(owner) end
+        placement.beginComparisons(owner)
         if panel then finishComparison(tooltip, panel, true) end
     end))
-    -- Retarget after all points, including the neighbour and side, are set.
+    -- Commit Pretty anchors after Blizzard finishes its own anchor sequence.
     hooksecurefunc(manager, "AnchorShoppingTooltips", probe("comparison anchors ready", function(self)
-        if ns.Placement and ns.Placement.enabled then
-            ns.Placement.finishComparisons(self.tooltip)
-        else
-            finishComparisonAnchors()
-        end
+        placement.finishComparisons(self.tooltip)
     end))
 end
 
@@ -285,8 +235,6 @@ function hooks.comparisonsBatched() return batchComparisons end
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
     if not panel or panel.nativeOnly then return end
-    if batchComparisons then native.holdComparison(tooltip) end
-    native.beginRefresh(tooltip)
     if panel.data and panel.data.fromLines then panel.data = nil end
     panel.restorePending = true
     panel.contentPending = nil
@@ -329,7 +277,7 @@ local function onTooltipData(dataType, tooltip, data)
     native.unpark(tooltip)
     local panel = getPanel(tooltip)
     panel.nativeOnly = nil
-    if ns.Placement then ns.Placement.observe(tooltip, dataType) end
+    placement.observe(tooltip, dataType)
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)
     if not valid then restoreNative(tooltip); return end
@@ -340,85 +288,52 @@ local function onTooltipData(dataType, tooltip, data)
     panel.restorePending = false
     panel.contentPending = nil
     if not panel.hooked then
-        if ns.Placement then ns.Placement.hookInput(tooltip) end
+        placement.hookInput(tooltip)
         tooltip:HookScript("OnHide", function(hidden)
             if panel.nativeOnly then return end
             -- Keep native cleanup deferred, but never draw the old panel at
             -- an anchor reset by an action button's hide/clear sequence.
-            panel.refreshPending = nil
-            panel.comparisonAnchorHeld = nil
             panel:Hide()
             scheduleRestore(hidden)
-            if ns.Placement then ns.Placement.hidden(hidden) end
+            placement.hidden(hidden)
         end)
         tooltip:HookScript("OnTooltipCleared", scheduleRestore)
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
-        local function onNativeShown(shown, source)
+        local function onNativeShown(shown)
             if panel.nativeOnly then return end
             if not util.canModify(shown) then return end
             tally(isComparison(shown) and "show hook (comparison)" or "show hook")
-            if panel.refreshPending or panel.restorePending or panel.comparisonPending or panel.contentPending then
+            if panel.restorePending or panel.comparisonPending or panel.contentPending then
                 if panel.nativeAlpha then shown:SetAlpha(0) end
                 return
             end
-            if ns.Placement and ns.Placement.owns(shown) then
+            if placement.owns(shown) then
                 panel.comparisonFitPending = nil
-                ns.Placement.shown(shown)
+                placement.shown(shown)
                 if panel.nativeAlpha then shown:SetAlpha(0) end
                 native.suppressChildMouse(shown, panel)
-                return
             end
-            if panel.comparisonFitPending and panel:IsShown() then
-                fitComparison(shown, panel)
-            else
-                if not (panel.nativeSize and panel:IsShown()) then return end
-                tally("refit from " .. source)
-                refitUnlessPartial(shown, panel)
-            end
-            -- Comparisons are anchored after they are shown, so align here.
-            if batchComparisons and isComparison(shown) then
-                scheduleComparisonAnchor(panel)
-            else
-                pcall(alignPanel, panel, shown)
-                if isComparison(shown) then pcall(anchorToPanels, shown) end
-            end
-            local alpha = util.number((util.call(shown.GetAlpha, shown)))
-            if panel.nativeAlpha and alpha and alpha ~= 0 then
-                shown:SetAlpha(0)
-            end
-            native.suppressChildMouse(shown, panel)
         end
         onNativeShown = probe("native shown", onNativeShown)
         hooksecurefunc(tooltip, "Show", function(shown)
-            if not panel.fitting then onNativeShown(shown, "Show") end
+            onNativeShown(shown)
         end)
         -- The comparison manager re-shows its tooltips with SetShown, which
         -- resets them the same way but never goes through Show.
         hooksecurefunc(tooltip, "SetShown", function(shown, visible)
-            if not isSecret(visible) and visible and not panel.fitting then onNativeShown(shown, "SetShown") end
+            if not isSecret(visible) and visible then onNativeShown(shown) end
         end)
-        tooltip:HookScript("OnShow", function(shown) onNativeShown(shown, "OnShow") end)
-        -- The comparison code anchors a comparison after showing it, a point at
-        -- a time; it belongs beside the panels, not the hidden tooltips under
-        -- them, and its panel pinned to the edge those points place.
+        tooltip:HookScript("OnShow", function(shown) onNativeShown(shown) end)
+        -- Observe external native anchors without rewriting them. The Pretty
+        -- backend commits its own owner/neighbour constraints.
         hooksecurefunc(tooltip, "SetPoint", function(moved)
-            if panel.nativeOnly or native.anchoring then return end
-            if not util.canModify(moved) then return end
-            if ns.Placement and ns.Placement.owns(moved) then
-                ns.Placement.moved(moved)
-                return
-            end
-            if panel:IsShown() and isComparison(moved) then
-                if batchComparisons then scheduleComparisonAnchor(panel); return end
-                tally("re-anchor after SetPoint")
-                anchorToPanels(moved)
-                pcall(alignPanel, panel, moved)
-            end
+            if panel.nativeOnly or not util.canModify(moved) then return end
+            if placement.owns(moved) then placement.moved(moved) end
         end)
         if tooltip.SetAnchorType then
             hooksecurefunc(tooltip, "SetAnchorType", function(moved)
-                if ns.Placement and ns.Placement.owns(moved) then ns.Placement.moved(moved) end
+                if placement.owns(moved) then placement.moved(moved) end
             end)
         end
         hooksecurefunc(tooltip, "SetAlpha", function(faded, alpha)
@@ -445,9 +360,7 @@ local function onTooltipData(dataType, tooltip, data)
         hooksecurefunc(tooltip, "SetOwner", function(owned)
             if panel.nativeOnly then return end
             native.unpark(owned)
-            if ns.Placement then ns.Placement.ownerChanged(owned) end
-            if batchComparisons then native.holdComparison(owned) end
-            native.beginRefresh(owned)
+            placement.ownerChanged(owned)
         end)
         tooltip:HookScript("OnHide", native.unpark)
         panel.hooked = true
@@ -468,7 +381,7 @@ local function onTooltipData(dataType, tooltip, data)
             -- Lines added, or rewritten in place, as the talent window does
             -- after the game fills the tooltip.
             local function changed()
-                return not self.comparisonPending and not self.refreshPending and not self.restorePending and not self.contentPending
+                return not self.comparisonPending and not self.restorePending and not self.contentPending
                     and tooltip:IsShown() and self.data and (tooltip:NumLines() ~= self.lineCount
                     or (self.fingerprint and self.fingerprint ~= fingerprint(tooltip, self.data)))
             end
@@ -501,8 +414,8 @@ local function onTooltipData(dataType, tooltip, data)
                     panel.comparisonPending = true
                     finishComparison(tooltip, panel)
                     panel.comparisonAnchorPending = true
-                    if ns.Placement and ns.Placement.owns(tooltip) then
-                        ns.Placement.finish(tooltip)
+                    if placement.owns(tooltip) then
+                        placement.finish(tooltip)
                     else
                         finishComparisonAnchors()
                     end
@@ -528,8 +441,8 @@ local function onTooltipData(dataType, tooltip, data)
         if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
         if not panel.nativeAlpha then restoreNative(tooltip); return end
         tooltip:SetAlpha(0)
-        tally("refit from same item's data")
-        refitUnlessPartial(tooltip, panel)
+        tally("unchanged item handover")
+        placement.refresh(tooltip)
     end
     C_Timer.After(0, function()
         finishTooltip(tooltip, panel, data, token)

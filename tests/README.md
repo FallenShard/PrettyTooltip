@@ -59,7 +59,17 @@ Each fixture is run as the game would: the addon's files load in the `.toc`'s or
 
 `unit/native_idle.lua` checks that Lite refreshes create no Pretty panels or panel cleanup timers, and prepare no hidden details. It covers details appearing in the modifier event from the latest data, canceled or restricted handovers, and switching presentations at runtime.
 
-`unit/pretty_noop_hooks.lua` counts native layout queries in Pretty callbacks. Zero-alpha writes, internal anchoring, and already pending fits must return without a layout probe; real fits, external changes, protected frames, and secret alpha values retain their access checks and cleanup behavior. Completed refreshes reset the periodic content poll, while tooltips without further handovers still detect in-place text changes.
+`unit/pretty_noop_hooks.lua` counts native layout queries in Pretty callbacks.
+Zero-alpha writes return without a layout probe; external changes, protected
+frames, and secret alpha values retain their access checks and cleanup.
+Completed refreshes reset the periodic content poll, while quiet tooltips still
+detect in-place text changes.
+
+`unit/placement_layout_boundary.lua` checks that Pretty placement never pads
+native frames, while Blizzard layout and unstyled types retain their own detail
+padding. It covers switching layouts, the original-tooltip modifier, and the
+retired placement diagnostic. Legacy fitting tests have been replaced with
+checks for stable Pretty constraints across early native Show/refill sequences.
 
 `unit/pixel_rounding.lua` checks native rounding on owned panels, borders, labels,
 close buttons and growing text/texture pools, with no setter calls when entries

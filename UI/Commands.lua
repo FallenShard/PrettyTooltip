@@ -77,19 +77,8 @@ end
 
 local function handleCommand(message)
     local wanted = (message or ""):match("^%s*(.-)%s*$"):lower()
-    if wanted == "placement" and ns.Placement then
-        print("PrettyTooltip: " .. (ns.Placement.enabled and "pretty" or "native")
-            .. " placement; /ptip placement pretty | native")
-        return
-    end
-    local placementMode = wanted:match("^placement%s+(%a+)$")
-    if placementMode and ns.Placement then
-        if placementMode == "pretty" or placementMode == "native" then
-            ns.Placement.setEnabled(placementMode == "pretty")
-            print("PrettyTooltip: " .. placementMode .. " placement; hover the item again.")
-        else
-            print("PrettyTooltip: /ptip placement pretty | native")
-        end
+    if wanted == "placement" or wanted:match("^placement%s") then
+        print("PrettyTooltip: Pretty panels use frame anchors. Select Blizzard layout in the options to use Blizzard tooltips.")
         return
     end
     local perfSeconds = wanted:match("^perf%s*(%d*)$")

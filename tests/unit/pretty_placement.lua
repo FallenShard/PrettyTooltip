@@ -223,7 +223,7 @@ return function(test)
     end
     refresh()
     local first, second = ns.ui.panels[primary], ns.ui.panels[secondary]
-    test.check("Pretty-owned placement is active by default", ns.Placement.enabled, true)
+    test.check("Pretty-owned placement is active by default", ns.Placement.strategy, "frame anchors")
     test.check("partial data/show callbacks never render comparison fragments", fullRenders, partialRenders)
     test.check("completed comparison tails are included before any timer", { first.renderedRows, second.renderedRows }, { 3, 3 })
     test.check("the main tooltip ignores Blizzard's comparison-owner slide", bounds(main), { 650, 600, 240, 70 })
@@ -291,12 +291,12 @@ return function(test)
     test.check("content polling never schedules a redraw during an incomplete comparison fill", partialPollSafe, true)
     flush()
     local beforeReads = reads
-    main.refreshPending = {}
+    main.contentPending = {}
     owner:GetLeftLine(1):SetText("An incomplete main-tooltip rewrite")
     main:GetScript("OnUpdate")(main, .3)
     flush()
-    test.check("content polling never reads a main tooltip with a refresh hold", reads, beforeReads)
-    main.refreshPending = nil
+    test.check("content polling never reads a main tooltip with pending content", reads, beforeReads)
+    main.contentPending = nil
     owner:GetLeftLine(1):SetText("Ring")
 
     local oldFirst, oldSecond = bounds(first), bounds(second)
@@ -582,14 +582,13 @@ return function(test)
         { first.renderedID, ns.Placement.refresh(owner) }, { 43, true })
     flush()
 
-    ns.Placement.setEnabled(false)
-    ns.Placement.setEnabled(true)
+    ns.Native.restoreNative(owner)
     owner:Show()
     world.postCalls[0][1](owner, owner._data)
     TooltipComparisonManager.tooltip = owner
     refresh(true)
     flush()
-    test.check("cached manager calls rejoin the correct group after placement is toggled",
+    test.check("cached manager calls rejoin the correct group after the native tooltip is restored",
         { main:IsShown(), first:IsShown(), second:IsShown(), first.comparisonPending == nil,
             second.comparisonPending == nil, ns.Placement.refresh(owner) }, { true, true, true, true, true, true })
     local mainX, _, mainWidth = rectangle(main)

@@ -2,9 +2,9 @@
 -- columns share horizontal space but clamp vertically on their own.
 local _, ns = ...
 local ui, util = ns.ui, ns.util
-if not (ui and ns.PlacementPlan and ns.Native) then return end
+if not ui then return end
 
-local placement = { enabled = true, strategy = "frame anchors" }
+local placement = { strategy = "frame anchors" }
 ns.Placement = placement
 local solve = ui.probe("placement plan", ns.PlacementPlan.solve)
 local roots = setmetatable({}, { __mode = "k" })
@@ -64,6 +64,7 @@ local function bind(owner, index, tooltip)
 end
 
 local function ownerOf(tooltip)
+    if type(tooltip.GetName) ~= "function" then return end
     if not ui.isComparison(tooltip) then return tooltip end
     local name = util.call(tooltip.GetName, tooltip)
     local index = type(name) == "string" and tonumber(name:match("(%d)$"))
@@ -95,7 +96,7 @@ end
 
 function placement.owns(tooltip)
     local panel = ui.panels[tooltip]
-    return placement.enabled and panel ~= nil and not panel.nativeOnly and not panel.parked
+    return panel ~= nil and not panel.nativeOnly and not panel.parked
 end
 
 -- Offsets are in the native frame's units; relative anchors use their own
@@ -283,7 +284,7 @@ local function dismissOutsideComparisons(tooltip, panel)
 end
 
 function placement.refresh(tooltip)
-    if not placement.enabled or not util.canModify(tooltip) then return false end
+    if not util.canModify(tooltip) then return false end
     local owner = ownerOf(tooltip)
     if not util.canModify(owner) then return false end
     local state, panel = rootState(owner), ui.panels[owner]
@@ -331,7 +332,7 @@ function placement.refresh(tooltip)
             anchor(comparison, { { "TOP", panel, "TOP", 0, 0 },
                 { plan.side == "left" and "RIGHT" or "LEFT", neighbour,
                     plan.side == "left" and "LEFT" or "RIGHT", offset, 0 } })
-            comparison.comparisonAnchorPending, comparison.comparisonAnchorHeld = nil, nil
+            comparison.comparisonAnchorPending = nil
             comparison.side = plan.side == "left" and "RIGHT" or "LEFT"
             neighbour, neighbourRight = comparison, insets[2]
         end
@@ -370,7 +371,7 @@ function placement.observe(tooltip, dataType)
 end
 
 function placement.beginComparisons(owner)
-    if ns.originalKeyDown() or not (placement.enabled and util.canModify(owner)) then return end
+    if ns.originalKeyDown() or not util.canModify(owner) then return end
     local state = rootState(owner)
     if not state.points then state.points = util.framePoints(owner) end
     state.collecting = true
@@ -385,7 +386,7 @@ function placement.beginComparisons(owner)
 end
 
 function placement.finishComparisons(owner)
-    if not (placement.enabled and util.canModify(owner)) then return end
+    if not util.canModify(owner) then return end
     rootState(owner).collecting = false
     return placement.refresh(owner)
 end
@@ -407,7 +408,7 @@ function placement.moved(tooltip)
 end
 
 function placement.ownerChanged(tooltip)
-    if not placement.enabled or ui.isComparison(tooltip) then return end
+    if ui.isComparison(tooltip) then return end
     local state = rootState(tooltip)
     state.points, state.side, state.collecting, state.awaitingOwner = nil, nil, false, true
     state.drag, state.manual = nil, nil
@@ -415,7 +416,6 @@ function placement.ownerChanged(tooltip)
 end
 
 function placement.hidden(tooltip)
-    if not placement.enabled then return end
     if not ui.isComparison(tooltip) then
         if tooltip == ItemRefTooltip then dragFrame:SetScript("OnUpdate", nil) end
         local state = roots[tooltip]
@@ -456,12 +456,6 @@ function placement.release(tooltip, panel)
     panel:SetClampedToScreen(true)
     if tooltip == ItemRefTooltip then dragFrame:SetScript("OnUpdate", nil) end
     if not ui.isComparison(tooltip) then roots[tooltip] = nil end
-end
-
-function placement.setEnabled(enabled)
-    if placement.enabled == enabled then return end
-    placement.enabled = enabled
-    for tooltip in pairs(ui.panels) do ns.Native.restoreNative(tooltip) end
 end
 
 function placement.hookInput(tooltip)

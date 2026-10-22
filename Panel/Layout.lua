@@ -910,116 +910,25 @@ local function drawChrome(panel, tooltip, style)
 end
 drawChrome = probe("chrome", drawChrome)
 
--- What a panel's parts are placed on whole pixels from is its corner, so the
--- corner must sit on one too: half a pixel off, a one-pixel line rounds to none
--- or two. The tooltip's corner is wherever its anchor and height put it.
-local function gridOffset(panel, tooltip, side)
-    local x = side == "RIGHT" and tooltip:GetRight() or tooltip:GetLeft()
-    local y = tooltip:GetTop()
-    local scale, panelScale = scaleOf(tooltip), scaleOf(panel)
-    if isSecret(x) or isSecret(y) or type(x) ~= "number" or type(y) ~= "number"
-        or not (scale and panelScale) then
-        return 0, 0
-    end
-    x, y = x * scale / panelScale, y * scale / panelScale
-    return snap(panel, x) - x, snap(panel, y) - y
-end
-
--- The side of the first of a tooltip's points that places a left or right
--- edge; comparisons are anchored by "TOP" first, then by "LEFT" or "RIGHT".
-local function anchoredSide(tooltip)
-    for index = 1, tooltip:GetNumPoints() do
-        local point = tooltip:GetPoint(index)
-        if isSecret(point) or type(point) ~= "string" then return "LEFT" end
-        if point:find("RIGHT") then return "RIGHT" end
-        if point:find("LEFT") then return "LEFT" end
-    end
-    return "LEFT"
-end
-
--- The hidden tooltip is often wider than its panel, as long as its longest
--- unwrapped line, and narrower until it is fitted. Pin the panel to the side
--- the tooltip itself is anchored by, so the difference faces away from
--- whatever it is attached to.
+-- Preview panels belong to the editor's anchor. Live panels are positioned
+-- by the single Pretty placement backend, independently of native dimensions.
 local function alignPanel(panel, tooltip, force)
-    -- Cursor placement can replace the refresh hold with its new top anchor.
-    -- A fading tooltip parked off screen always keeps its panel pinned.
-    if panel.parked or ((panel.refreshPending or panel.comparisonAnchorHeld) and not force) then return end
-    if ns.Placement and ns.Placement.owns(tooltip) then
+    if panel.parked then return end
+    if panel.isPreview then
+        panel:ClearAllPoints()
+        panel:SetPoint("TOPLEFT", tooltip, "TOPLEFT", 0, 0)
+    else
         return ns.Placement.align(panel, tooltip, force)
     end
-    local side = anchoredSide(tooltip)
-    local dx, dy = gridOffset(panel, tooltip, side)
-    if isComparison(tooltip) then
-        -- Follow the completed layout's owners, not the native comparison.
-        -- SetOwner can reset that frame before our post-hook can hold it.
-        local points = util.framePoints(tooltip)
-        local nativeScale, panelScale = scaleOf(tooltip), scaleOf(panel)
-        if not (points and #points > 0 and nativeScale and panelScale) then return end
-        local anchor = points[1]
-        for _, point in ipairs(points) do
-            if point[1]:find(side) then anchor = point; break end
-        end
-        local target = anchor[2]
-        local owner = target and panels[target]
-        if owner and owner:IsShown() then target = owner end
-        if not util.canModify(target) then return end
-        local targetScale = scaleOf(target)
-        local relativeSide = anchor[3]:find("RIGHT") and "RIGHT" or "LEFT"
-        local x = util.number(side == "RIGHT" and tooltip:GetRight() or tooltip:GetLeft())
-        local y = util.number(tooltip:GetTop())
-        local targetX = util.number(relativeSide == "RIGHT" and target:GetRight() or target:GetLeft())
-        local targetY = util.number(target:GetTop())
-        if not (targetScale and x and y and targetX and targetY) then return end
-        x = (x * nativeScale - targetX * targetScale) / panelScale + dx
-        y = (y * nativeScale - targetY * targetScale) / panelScale + dy
-        local own, relative, relativePoint, oldX, oldY = panel:GetPoint(1)
-        local corner, targetCorner = "TOP" .. side, "TOP" .. relativeSide
-        if panel.side == side and panel:GetNumPoints() == 1 and own == corner
-            and relative == target and relativePoint == targetCorner
-            and math.abs(x - oldX) < .001 and math.abs(y - oldY) < .001 then return end
-        panel.side, panel.gridX, panel.gridY = side, dx, dy
-        panel:ClearAllPoints()
-        panel:SetPoint(corner, target, targetCorner, x, y)
-        return
-    end
-    if panel.side == side and panel:GetNumPoints() > 0
-        and math.abs(dx - (panel.gridX or 0)) < .001 and math.abs(dy - (panel.gridY or 0)) < .001 then
-        return
-    end
-    panel.side, panel.gridX, panel.gridY = side, dx, dy
-    panel:ClearAllPoints()
-    panel:SetPoint("TOP" .. side, tooltip, "TOP" .. side, dx, dy)
 end
 alignPanel = probe("align panel", alignPanel)
 
--- Keep the last fitted top while the native tooltip briefly reports a
--- different height during a refill. Use its anchored edge, so owner movement
--- still carries the panel along. Offsets are in the panel's own units.
-local function holdPanel(panel, tooltip)
-    local point = tooltip:GetPoint(1)
-    local nativeScale, panelScale = scaleOf(tooltip), scaleOf(panel)
-    if isSecret(point) or type(point) ~= "string" or not panel.fittedHeight
-        or not (nativeScale and panelScale) then return false end
-    local side = panel.side or anchoredSide(tooltip)
-    local relative, fraction = side, .5
-    if point:find("BOTTOM") then relative, fraction = "BOTTOM" .. side, 1
-    elseif point:find("TOP") then relative, fraction = "TOP" .. side, 0 end
-    panel:ClearAllPoints()
-    panel:SetPoint("TOP" .. side, tooltip, relative, panel.gridX or 0,
-        panel.fittedHeight * nativeScale / panelScale * fraction + (panel.gridY or 0))
-    panel.side = nil
-    return true
-end
-
--- Holds a panel where it stands while its tooltip moves; the next alignment
--- anchors it to the tooltip again. False when where it stands cannot be read.
+-- Keep a visible panel still while cursor following restores native anchors.
 local function pinPanel(panel)
     local left, top = util.number(panel:GetLeft()), util.number(panel:GetTop())
     if not (left and top) then return false end
     panel:ClearAllPoints()
     panel:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)
-    panel.side = nil
     return true
 end
 
@@ -1085,7 +994,6 @@ ns.ui = {
     defaultHeaderAlpha = defaultHeaderAlpha,
     styleOf = styleOf,
     alignPanel = alignPanel,
-    holdPanel = holdPanel,
     pinPanel = pinPanel,
     shownPanel = function(tooltip)
         local panel = panels[tooltip]

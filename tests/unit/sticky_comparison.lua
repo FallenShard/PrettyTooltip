@@ -3,9 +3,9 @@
 return function(test)
     local data = { type = 0, id = 1, lines = { { lineIndex = 1, leftText = "Equipped ring" } } }
     local lines = { { left = { text = "Equipped ring" } } }
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Core/TooltipPlacement.lua",
         "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua",
-        "Panel/Layout.lua", "Panel/Render.lua", "Integration/Native.lua", "Integration/Hooks.lua" }, {
+        "Panel/Layout.lua", "Panel/Render.lua", "Integration/Native.lua", "Integration/Placement.lua", "Integration/Hooks.lua" }, {
         enums = { TooltipDataType = { Item = 0 } }, tooltip = "ItemRefTooltip", data = data, lines = lines,
         comparisons = {
             { tooltip = "ItemRefShoppingTooltip1", data = data, lines = lines },
@@ -31,6 +31,7 @@ return function(test)
     }
     local owner = world.main
     local main = ns.ui.getPanel(owner)
+    main.IsMouseOver = function() return true end
     main:SetSize(200, 100)
     main:Show()
     local primary, secondary = ItemRefShoppingTooltip1, ItemRefShoppingTooltip2
@@ -111,8 +112,10 @@ return function(test)
     test.check("independent comparison panels need no temporary absolute anchor", rejectedPins, 0)
     test.check("sticky refreshes keep their completed models", reads, initialReads)
     local first, second = ns.ui.panels[primary], ns.ui.panels[secondary]
+    local near = first.side == "RIGHT" and first or second
+    local far = near == first and second or first
     test.check("sticky comparisons return to their owner and neighbour after cached refreshes",
-        { select(2, first:GetPoint(1)) == main, select(2, second:GetPoint(1)) == first,
-            first.comparisonAnchorHeld == nil, second.comparisonAnchorHeld == nil }, { true, true, true, true })
+        { select(2, first:GetPoint(1)) == main, select(2, second:GetPoint(1)) == main,
+            select(2, near:GetPoint(2)) == main, select(2, far:GetPoint(2)) == near }, { true, true, true, true })
     TooltipComparisonManager = nil
 end
