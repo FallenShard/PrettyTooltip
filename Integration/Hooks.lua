@@ -20,6 +20,119 @@ local UNIT_MODEL_CACHE_LIMIT = 15
 local unitModelCache, unitModelOrder = {}, {}
 local unitCacheDebug = false
 local batchComparisons = false
+local combatHooked = setmetatable({}, { __mode = "k" })
+local combatHidden = setmetatable({}, { __mode = "k" })
+local combatPending = setmetatable({}, { __mode = "k" })
+local combatAlphaChanges = setmetatable({}, { __mode = "k" })
+local combatPanels = setmetatable({}, { __mode = "k" })
+local update
+local onTooltipData
+
+local combatTicker = CreateFrame("Frame")
+
+local function combatTooltipEnabled()
+    return ns.option("hideTooltipsInCombat") and InCombatLockdown()
+end
+
+local function combatAlpha(tooltip, alpha)
+    combatAlphaChanges[tooltip] = true
+    local ok, problem = pcall(tooltip.SetAlpha, tooltip, alpha)
+    combatAlphaChanges[tooltip] = nil
+    if not ok then
+        local report = geterrorhandler and geterrorhandler()
+        if report then report(problem) else error(problem, 0) end
+    end
+    return ok
+end
+
+local function hideForCombat(tooltip)
+    if not util.canModify(tooltip) then return end
+    local panel = panels[tooltip]
+    if not combatHidden[tooltip] then
+        combatHidden[tooltip] = { alpha = util.number(util.call(tooltip.GetAlpha, tooltip)) }
+    end
+    if panel then
+        panel.combatHidden = true
+        panel.stickyUnit = nil
+        panel.stickyTimerToken = (panel.stickyTimerToken or 0) + 1
+        panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+        panel.unitDebouncePending = nil
+        panel.restorePending = false
+        panel.refreshToken = (panel.refreshToken or 0) + 1
+        panel:Hide()
+    end
+    if util.number(util.call(tooltip.GetAlpha, tooltip)) ~= 0 then combatAlpha(tooltip, 0) end
+end
+
+local function restoreAfterCombat(tooltip)
+    local state = combatHidden[tooltip]
+    if not state then return end
+    combatHidden[tooltip] = nil
+    local panel = panels[tooltip]
+    if panel then panel.combatHidden = nil end
+    local alpha = panel and panel.nativeAlpha and not panel.nativeOnly and 0 or state.alpha
+    if alpha ~= nil and util.canModify(tooltip) then combatAlpha(tooltip, alpha) end
+    local pending = combatPending[tooltip]
+    combatPending[tooltip] = nil
+    if pending then
+        onTooltipData(pending.dataType, tooltip, pending.data)
+        return
+    end
+    if panel and not panel.nativeOnly and panel.data and util.canModify(tooltip)
+        and util.call(tooltip.IsShown, tooltip) and showsDataType(tooltip, panel) then
+        update(tooltip, panel.data)
+    end
+end
+
+local function onCombatTooltipShow(tooltip)
+    if combatTooltipEnabled() then
+        hideForCombat(tooltip)
+    else
+        restoreAfterCombat(tooltip)
+    end
+end
+
+local function hookCombatTooltip(tooltip)
+    if not util.canModify(tooltip) or combatHooked[tooltip] then return end
+    combatHooked[tooltip] = true
+    hooksecurefunc(tooltip, "Show", onCombatTooltipShow)
+    hooksecurefunc(tooltip, "SetShown", function(shown, visible)
+        if not isSecret(visible) and visible then onCombatTooltipShow(shown) end
+    end)
+    tooltip:HookScript("OnShow", onCombatTooltipShow)
+    hooksecurefunc(tooltip, "SetAlpha", function(changed, alpha)
+        if combatAlphaChanges[changed] then return end
+        if combatTooltipEnabled() and (isSecret(alpha) or alpha ~= 0) then hideForCombat(changed) end
+    end)
+    if combatTooltipEnabled() then hideForCombat(tooltip) end
+end
+
+local function hookCombatPanel(panel)
+    if combatPanels[panel] then return end
+    combatPanels[panel] = true
+    hooksecurefunc(panel, "Show", function(shown)
+        if combatTooltipEnabled() then shown:Hide() end
+    end)
+    hooksecurefunc(panel, "SetShown", function(shown, visible)
+        if combatTooltipEnabled() and visible then shown:Hide() end
+    end)
+    panel:HookScript("OnShow", function(shown)
+        if combatTooltipEnabled() then shown:Hide() end
+    end)
+end
+
+local function enforceCombatVisibility()
+    if not combatTooltipEnabled() then return end
+    for tooltip in pairs(combatHidden) do
+        if util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip)
+            and util.number(util.call(tooltip.GetAlpha, tooltip)) ~= 0 then
+            hideForCombat(tooltip)
+        end
+    end
+end
+
+combatTicker:SetScript("OnUpdate", enforceCombatVisibility)
+hooks.enforceCombatVisibility = enforceCombatVisibility
 
 local function showsOriginal(panel)
     local tooltipType = TooltipTypes[panel.dataType]
@@ -154,9 +267,12 @@ local function claimantOf(dataType, tooltip, data)
     return dataType
 end
 
-local function update(tooltip, data, model)
+update = function(tooltip, data, model)
     if not util.canModify(tooltip) or native.isParked(tooltip) then return end
+    hookCombatTooltip(tooltip)
+    if combatTooltipEnabled() then hideForCombat(tooltip); return end
     local panel = getPanel(tooltip)
+    hookCombatPanel(panel)
     if panel.unitDebouncePending then return end
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
@@ -462,12 +578,21 @@ local function updateUnitTextFields(tooltip, panel, data, key, token)
     return true
 end
 
-local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
+onTooltipData = function(dataType, tooltip, data, skipUnitDebounce)
     if not util.canModify(tooltip) then return end
+    hookCombatTooltip(tooltip)
+    if combatTooltipEnabled() then
+        hideForCombat(tooltip)
+        if not isSecret(data) and type(data) == "table" and not isSecret(data.lines) then
+            combatPending[tooltip] = { dataType = dataType, data = data }
+        end
+        return
+    end
     local panel = panels[tooltip]
     if panel then
         panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
         panel.unitDebouncePending = nil
+        hookCombatPanel(panel)
     end
     if dataType == Enum.TooltipDataType.Unit and InCombatLockdown() and isNonPlayerTooltip(tooltip, data) then
         local hasEngagedEnemies = scanEngagedEnemies()
@@ -495,7 +620,10 @@ local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
     if tooltip.prettyTooltipScanner then return end
     -- A type drawn in this one's place (an imbue's, for its weapon) goes by its own setting.
     dataType = claimantOf(dataType, tooltip, data)
-    if panel and panel.stickyUnit then panel.stickyUnit = nil end
+    if panel and panel.stickyUnit then
+        panel.stickyUnit = nil
+        panel.stickyTimerToken = (panel.stickyTimerToken or 0) + 1
+    end
     -- A native presentation needs no panel, geometry hooks, or restore work.
     -- Existing hooks stay installed across settings changes but become idle.
     if not ns.restyles(TooltipTypes[dataType].option) then
@@ -514,6 +642,7 @@ local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
     installAuctionHouseHook()
     native.unpark(tooltip)
     panel = getPanel(tooltip)
+    hookCombatPanel(panel)
     panel.nativeOnly = nil
     placement.observe(tooltip, dataType)
     local previousKey, previousDataType = panel.key, panel.dataType
@@ -778,6 +907,15 @@ unitStatus:RegisterEvent("PLAYER_FOCUS_CHANGED")
 unitStatus:RegisterEvent("GROUP_ROSTER_UPDATE")
 unitStatus:RegisterEvent("NAME_PLATE_UNIT_ADDED")
 unitStatus:SetScript("OnEvent", function(_, event, unit)
+    if event == "PLAYER_REGEN_DISABLED" and ns.option("hideTooltipsInCombat") then
+        for tooltip in pairs(combatHooked) do
+            hideForCombat(tooltip)
+        end
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        for tooltip in pairs(combatHooked) do
+            restoreAfterCombat(tooltip)
+        end
+    end
     if type(unit) == "string" then
         local guid = util.call(ns.Game.unitGUID, unit)
         if InCombatLockdown() and not isSecret(guid) and type(guid) == "string"
@@ -815,6 +953,10 @@ local installed = false
 function hooks.install()
     if installed then return end
     installed = true
+    for _, name in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2",
+        "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2" }) do
+        hookCombatTooltip(_G[name])
+    end
     installComparisonHooks()
     if not installAuctionHouseHook() then
         auctionLoadFrame = CreateFrame("Frame")

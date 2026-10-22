@@ -1231,6 +1231,9 @@ toggles({
     { "Level badge", "itemLevelBadge", "The item level on a plate under the icon, for equipment.", items },
     { "Level badge", "unitLevelBadge",
         "The level on a plate under the portrait. Off, the level stays in the info line.", units },
+    { "Keep visible", "unitTooltipKeepVisible",
+        "Keep the player or NPC tooltip visible briefly after the game's tooltip fades. A new unit replaces it immediately.",
+        units },
     { "Stat markers", "statMarkers", "The small diamond before each stat; enchants use a green one.", items },
     { "Stat colors", "statColors",
         "Each kind of stat in its color below, and the school colors. Off, every stat is parchment.", items },
@@ -1261,6 +1264,11 @@ toggles({
     { "IDs", "showIDs", "The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows.",
         forTypes("item", "spell", "unit") },
 })
+row("Duration", slider(FIELD_WIDTH, function()
+    return ns.option("unitTooltipDuration")
+end, function(seconds)
+    ns.setOption("unitTooltipDuration", seconds ~= 5 and seconds or nil)
+end, 1, 30, " sec"), optionSetting("unitTooltipDuration"), units)
 
 row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)
     return hexColor((ns.Stats.categoryColors(key)))

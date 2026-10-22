@@ -114,7 +114,7 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 - The kind's own details:
   - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Abbreviated Equip Effects** (see *The Blizzard layout* above), the disenchant section, and the sell price.
   - **Spell Details**: the spell power breakdown and the damage and healing rates under it.
-  - **Unit Details**: the level badge (off, the level stays in the info line), the health bar, what a skinnable creature gives, and the nine **Class colors** swatches. Hover a swatch for its class name.
+  - **Unit Details**: the level badge (off, the level stays in the info line), **Keep visible** (on by default) and its duration (5 seconds; a new unit replaces it immediately), the health bar, what a skinnable creature gives, and the nine **Class colors** swatches. Hover a swatch for its class name.
   - **Object Details**: what herbs and ore give: a node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap.
 
 **Reset all fonts and colors** puts every part back and clears custom stat-category, school, and class colors. The restyle and detail switches keep their settings. Tooltips use the new look the next time they open.
@@ -129,6 +129,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
   - **Disable in combat**, under **Follow cursor** (on by default): use the default tooltip position during combat, then resume following the cursor afterward. Each kind's Follow cursor preference is kept.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never**.
+- **Hide tooltips in combat** hides every tooltip during combat, whether it uses PrettyTooltip or Blizzard's layout. On by default.
 
 ## Install
 

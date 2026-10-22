@@ -12,7 +12,14 @@ return function(test)
     local combat = false
     InCombatLockdown = function() return combat end
     local pending = {}
-    C_Timer.After = function(_, callback) pending[#pending + 1] = callback end
+    local timers = {}
+    C_Timer.After = function(delay, callback)
+        if delay and delay > 0 then
+            timers[#timers + 1] = { delay = delay, callback = callback }
+        else
+            pending[#pending + 1] = callback
+        end
+    end
     local function flush()
         local callbacks = pending
         pending = {}
@@ -29,6 +36,7 @@ return function(test)
     ns.Cursor.register()
     local follower = world.objects[#world.objects]
     ns.setOption("cursorObjects", false)
+    ns.setOption("hideTooltipsInCombat", false)
     local function show()
         GameTooltip_SetDefaultAnchor(tooltip)
         tooltip:SetClampedToScreen(true)
@@ -160,6 +168,15 @@ return function(test)
         lines = { { left = { text = "Object" } } },
     })
     InCombatLockdown = function() return combat end
+    combat = false
+    unitNs.setOption("hideTooltipsInCombat", false)
+    C_Timer.After = function(delay, callback)
+        if delay and delay > 0 then
+            timers[#timers + 1] = { delay = delay, callback = callback }
+        else
+            pending[#pending + 1] = callback
+        end
+    end
     unitNs.Hooks.unitDebounce = 0
     local unitDead = false
     local unitRenderCount = 0
@@ -196,14 +213,29 @@ return function(test)
     unitCallback(unitTooltip, { guid = "friendly", reaction = 5, lines = {} })
     local unitPanel = unitNs.ui.panels[unitTooltip]
     unitTooltip:FadeOut()
+    test.check("unit tooltip duration defaults to five seconds", unitNs.option("unitTooltipDuration"), 5)
+    local firstTimer = timers[#timers]
+    test.check("a fading unit stays visible until the timer expires",
+        { firstTimer.delay, unitPanel:IsShown(), unitNs.Native.isParked(unitTooltip) }, { 5, true, true })
+    unitCallback(unitTooltip, { guid = "friendly-next", reaction = 5, lines = {} })
+    test.check("a new unit replaces the retained tooltip immediately",
+        { unitPanel:IsShown(), unitPanel.unitGuid, unitNs.Native.isParked(unitTooltip) },
+        { true, "friendly-next", false })
+    firstTimer.callback()
+    test.check("the previous unit's timer cannot hide the newly hovered unit",
+        { unitPanel:IsShown(), unitPanel.unitGuid }, { true, "friendly-next" })
+
+    unitTooltip:FadeOut()
+    test.check("the next unit gets its own retention timer",
+        { timers[#timers].delay, unitPanel:IsShown() }, { 5, true })
     test.check("a hovered unit panel stays visible after the cursor leaves",
         { unitPanel:IsShown(), unitPanel.unitGuid, unitNs.Native.isParked(unitTooltip) },
-        { true, "friendly", true })
+        { true, "friendly-next", true })
     unitTooltip:Hide()
     unitTooltip:GetScript("OnHide")(unitTooltip)
     test.check("the game's completed tooltip hide retains the last unit",
         unitPanel:IsShown(), true)
-    unitGuids.eventunit = "friendly"
+    unitGuids.eventunit = "friendly-next"
     unitDead = true
     unitWorld.fireEvent("UNIT_FLAGS", "eventunit")
     test.check("the retained tooltip updates when its unit dies",
@@ -214,7 +246,17 @@ return function(test)
     objectCallback(unitTooltip, { id = 3, lines = {} })
     test.check("non-unit hovers do not replace the retained unit",
         { unitPanel:IsShown(), unitPanel.unitGuid, select(2, unitPanel:GetPoint(1)) == UIParent },
-        { true, "friendly", true })
+        { true, "friendly-next", true })
+    for _, timer in ipairs(timers) do timer.callback() end
+    test.check("the retained unit panel hides when its duration expires", unitPanel:IsShown(), false)
+    unitNs.setOption("unitTooltipKeepVisible", false)
+    unitTooltip:SetOwner(UIParent, "ANCHOR_NONE")
+    unitTooltip:Show()
+    unitTooltip:SetAlpha(1)
+    unitCallback(unitTooltip, { guid = "no-retention", reaction = 5, lines = {} })
+    unitTooltip:FadeOut()
+    test.check("disabling Keep visible hides the unit panel immediately",
+        { unitPanel:IsShown(), unitNs.Native.isParked(unitTooltip) }, { false, true })
     for _, target in ipairs({ { guid = "friendly-next", reaction = 5 }, { guid = "neutral", reaction = 4 },
         { guid = "enemy", reaction = 2 } }) do
         unitTooltip:SetOwner(UIParent, "ANCHOR_NONE")

@@ -172,6 +172,24 @@ function ns.Options.register()
     explain(combatBox, "Disable in combat",
         "Use the default tooltip position during combat, then resume following the cursor afterward.")
     rightColumn.y = rightColumn.y - 34
+    section(rightColumn, "Hide tooltips in combat")
+    local hideTooltipsBox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    hideTooltipsBox:SetSize(24, 24)
+    hideTooltipsBox:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y + 4)
+    local hideTooltipsLabel = hideTooltipsBox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    hideTooltipsLabel:SetPoint("LEFT", hideTooltipsBox, "RIGHT", 6, 0)
+    hideTooltipsLabel:SetText(L["Hide tooltips in combat"])
+    hideTooltipsBox:SetHitRectInsets(0, -(hideTooltipsLabel:GetStringWidth() + 8), 0, 0)
+    hideTooltipsBox:SetScript("OnClick", function(self)
+        setOption("hideTooltipsInCombat", self:GetChecked() and true or false)
+    end)
+    hideTooltipsBox.refresh = function()
+        hideTooltipsBox:SetChecked(ns.option("hideTooltipsInCombat"))
+    end
+    controls[#controls + 1] = hideTooltipsBox
+    explain(hideTooltipsBox, "Hide tooltips in combat",
+        "Hide all game tooltips during combat, whether they use the PrettyTooltip panel or Blizzard's layout.")
+    rightColumn.y = rightColumn.y - 34
 
     section(rightColumn, "Style Editor Appearance")
     radios(rightColumn, {

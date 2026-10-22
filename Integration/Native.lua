@@ -116,12 +116,24 @@ local function fadeOut(tooltip)
         return
     end
     if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
-    if panel.dataType == Enum.TooltipDataType.Unit then
+    local duration = ns.option("unitTooltipKeepVisible") and util.number(ns.option("unitTooltipDuration"))
+    if panel.dataType == Enum.TooltipDataType.Unit and duration then
+        duration = math.max(1, math.min(30, math.floor(duration + .5)))
         panel.stickyUnit = true
         panel.refreshPending = nil
         panel.restorePending = false
         panel.refreshToken = (panel.refreshToken or 0) + 1
+        local stickyToken = (panel.stickyTimerToken or 0) + 1
+        panel.stickyTimerToken = stickyToken
+        local key = panel.key
         if ui.pinPanel(panel) then park(tooltip, panel) end
+        C_Timer.After(duration, function()
+            if panel.stickyUnit and panel.stickyTimerToken == stickyToken and panel.key == key then
+                panel.stickyUnit = nil
+                panel.refreshToken = (panel.refreshToken or 0) + 1
+                panel:Hide()
+            end
+        end)
         return
     end
     -- The game sets a fading tooltip's alpha itself, past the SetAlpha hook,
