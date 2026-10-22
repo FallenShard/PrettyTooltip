@@ -14,10 +14,10 @@ return function(test)
         data = weapon,
         lines = { { left = { text = "Thunderfury" } }, { left = { text = "Windfury 1 (59 min)" } } },
     }
-    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
+    local files = { "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Core/TooltipPlacement.lua", "Locale/Locale.lua",
         "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua", "Data/Imbues.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Item.lua", "Tooltips/Spell.lua", "Tooltips/Aura.lua",
-        "Tooltips/Imbue.lua", "Integration/Native.lua", "Integration/Hooks.lua" }
+        "Tooltips/Imbue.lua", "Integration/Native.lua", "Integration/Placement.lua", "Integration/Hooks.lua" }
 
     -- The spells' own tooltips, as the hidden scanner would read them.
     local spells = {
