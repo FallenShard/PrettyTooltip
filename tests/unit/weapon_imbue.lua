@@ -149,6 +149,41 @@ return function(test)
         { ns.option("imbuePanels") ~= nil, ns.TOOLTIP_TYPES[5].restyle }, { true, "imbuePanels" })
     GetWeaponEnchantInfo = nil
 
+    -- Forever's C_Item.GetWeaponEnchantInfo, by weapon slot from 0: a list
+    -- with the temporary enchant and the class imbue apart. C_PaperDollInfo
+    -- has no class imbue: Rockbiter 1, as the game gave it, shows nothing there.
+    spells[8017] = { "Rockbiter Weapon", "Rank 1", "Imbue the Shaman's weapon with the fury of the earth." }
+    spells[2823] = { "Deadly Poison", "", "Coats a weapon with poison that lasts for 30 minutes." }
+    local enchants = { [0] = {
+        { hasEnchant = false, enchantID = 0, timeLeft = 0, charges = 0, enchantType = 0, enchantIconID = 0 },
+        { hasEnchant = true, enchantID = 29, timeLeft = 3243647, charges = 0, enchantType = 3,
+            enchantIconID = 136086 },
+    } }
+    ns, world = start(function()
+        C_PaperDollInfo = { GetTemporaryEnchantmentInfo = function() end }
+        C_Item = C_Item or {}
+        C_Item.GetWeaponEnchantInfo = function(weaponSlot) return enchants[weaponSlot] or {} end
+    end)
+    -- The buff bar's button, as it fills one for each enchant.
+    local function enchantButton(slot, timeLeft, charges)
+        local frame = button(slot)
+        frame.buttonInfo = { auraType = "TempEnchant", ID = slot, count = charges, expirationTime = 1000 + timeLeft }
+        return frame
+    end
+    panel, text = hover(ns, world, enchantButton(16, 3243.647, 0))
+    test.check("Forever: a class imbue by C_Item", { panel.dataType, has(text, "Rockbiter Weapon"),
+        has(text, "54 minutes remaining") }, { "imbue", true, true })
+    -- A poison and a class imbue on one weapon: two buttons, one slot.
+    enchants[0][1] = { hasEnchant = true, enchantID = 7, timeLeft = 1500000, charges = 0, enchantType = 2,
+        enchantIconID = 0 }
+    panel, text = hover(ns, world, enchantButton(16, 1500, 0))
+    test.check("the poison's button shows the poison", { has(text, "Deadly Poison"), has(text, "Rockbiter") },
+        { true, false })
+    panel, text = hover(ns, world, enchantButton(16, 3243.647, 0))
+    test.check("the imbue's button shows the imbue", { has(text, "Rockbiter Weapon"), has(text, "Deadly Poison") },
+        { true, false })
+    C_PaperDollInfo, C_Item.GetWeaponEnchantInfo = nil, nil
+
     -- Retail: C_PaperDollInfo, and retail's own enchant IDs.
     WOW_PROJECT_ID, WOW_PROJECT_MAINLINE = 1, 1
     ns, world = start(function()
