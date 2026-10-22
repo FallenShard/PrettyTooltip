@@ -86,13 +86,25 @@ local function addonMemory()
     if ok and not isSecret(usage) and type(usage) == "number" then return usage end
 end
 
+local perfFrame
 function ns.perfCapture(seconds)
-    perf.calls, perf.time, perf.on = {}, {}, true
+    if perf.on then print("PrettyTooltip: a performance capture is already running."); return end
+    seconds = math.min(30, math.max(1, tonumber(seconds) or 5))
+    perf.calls, perf.time, perf.max = {}, {}, {}
+    perf.depth, perf.total = 0, 0
     local memory = collectgarbage("count")
     local own = addonMemory()
+    local mode = ns.Placement and ns.Placement.enabled and "pretty" or "native"
+    local strategy = mode == "pretty" and (ns.Placement.strategy or "unspecified") or "native"
+    local started, frames = debugprofilestop(), 0
+    perfFrame = perfFrame or CreateFrame("Frame")
+    perfFrame:SetScript("OnUpdate", function() frames = frames + 1 end)
+    perf.on = true
     print("PrettyTooltip: measuring for " .. seconds .. " seconds; keep the tooltip open.")
     C_Timer.After(seconds, function()
+        local elapsed = math.max(.001, (debugprofilestop() - started) / 1000)
         perf.on = false
+        perfFrame:SetScript("OnUpdate", nil)
         local names, counts = {}, {}
         for name, calls in pairs(perf.calls) do
             if perf.time[name] then
@@ -103,7 +115,14 @@ function ns.perfCapture(seconds)
         end
         table.sort(names, function(a, b) return perf.time[a] > perf.time[b] end)
         table.sort(counts)
-        local lines = { string.format("PrettyTooltip perf over %d s:", seconds) }
+        local lines = { string.format("PrettyTooltip perf over %.3f s (requested %g s), placement %s:", elapsed, seconds, mode),
+            "  placement strategy: " .. strategy,
+            string.format("  %d frames, %.1f frames/s", frames, frames / elapsed),
+            string.format("  instrumented work: %.3f ms total, %.3f ms/frame (nested calls counted once)",
+                perf.total, frames > 0 and perf.total / frames or 0),
+            "  Times are inclusive and overlap; do not add rows. Profiling adds overhead." }
+        local endMode = ns.Placement and ns.Placement.enabled and "pretty" or "native"
+        if endMode ~= mode then lines[#lines + 1] = "  Placement mode changed during capture; repeat this run." end
         local ownNow = addonMemory()
         if own and ownNow then
             lines[#lines + 1] = string.format("  memory: %.0f KB, %+.0f KB over the run", ownNow, ownNow - own)
@@ -112,8 +131,10 @@ function ns.perfCapture(seconds)
             collectgarbage("count") - memory)
         if #counts > 0 then lines[#lines + 1] = "  counts: " .. table.concat(counts, ", ") end
         for _, name in ipairs(names) do
-            lines[#lines + 1] = string.format("  %s: %d calls (%.0f/s), %.1f ms", name, perf.calls[name],
-                perf.calls[name] / seconds, perf.time[name] or 0)
+            lines[#lines + 1] = string.format("  %s: %d calls (%.1f/s), %.3f ms total, %.2f us/call, %.2f us max, %.3f ms/frame",
+                name, perf.calls[name], perf.calls[name] / elapsed, perf.time[name],
+                perf.time[name] * 1000 / perf.calls[name], (perf.max[name] or 0) * 1000,
+                frames > 0 and perf.time[name] / frames or 0)
         end
         ns.showReport("perf", lines)
     end)
@@ -156,7 +177,7 @@ end
 local function pendingOf(panel)
     if not panel then return "no panel" end
     local flags = {}
-    for _, flag in ipairs({ "refreshPending", "restorePending", "comparisonPending", "comparisonFitPending",
+    for _, flag in ipairs({ "refreshPending", "restorePending", "contentPending", "comparisonPending", "comparisonFitPending",
         "comparisonAnchorPending", "comparisonAnchorHeld" }) do
         if panel[flag] then flags[#flags + 1] = flag end
     end
@@ -328,6 +349,9 @@ function ns.traceTooltips(seconds)
     end
     traceLines, traceStart, tracing = {}, debugprofilestop() / 1000, true
     traceLine("placement mode: " .. (ns.Placement and ns.Placement.enabled and "pretty" or "native"))
+    if ns.Placement and ns.Placement.enabled and ns.Placement.strategy then
+        traceLine("placement strategy: " .. ns.Placement.strategy)
+    end
     lastAlpha, suppressed = {}, 0
     eventCount, omittedEvents = 0, 0
     local previous, combat, previousMouse = {}, nil, nil

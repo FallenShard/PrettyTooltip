@@ -216,12 +216,20 @@ return function(fixture, enums, report, strings)
     function Object:GetSize() return self:GetWidth(), self:GetHeight() end
     function Object:SetClampedToScreen(clamped) self._clamped = not not clamped end
     function Object:IsClampedToScreen() return self._clamped or false end
+    function Object:SetClampRectInsets(left, right, top, bottom) self._clampRectInsets = { left, right, top, bottom } end
+    function Object:GetClampRectInsets() return unpack(self._clampRectInsets or { 0, 0, 0, 0 }) end
     function Object:SetHitRectInsets(left, right, top, bottom) self._hitRectInsets = { left, right, top, bottom } end
     function Object:GetHitRectInsets() return unpack(self._hitRectInsets or { 0, 0, 0, 0 }) end
     function Object:GetLeft() return 0 end
     function Object:GetRight() return self:GetWidth() end
     function Object:GetTop() return 0 end
     function Object:GetBottom() return -self:GetHeight() end
+    function Object:GetScaledRect()
+        local left, bottom = self:GetLeft(), self:GetBottom()
+        if left == nil or bottom == nil then return end
+        local factor = self:GetEffectiveScale()
+        return left * factor, bottom * factor, self:GetWidth() * factor, self:GetHeight() * factor
+    end
     function Object:SetScale(scale) self._scale = scale end
     function Object:GetEffectiveScale()
         return self:GetScale() * (self._parent and self._parent:GetEffectiveScale() or 1)

@@ -53,7 +53,17 @@ return function(test)
         if not x or not y then return end
         local fx = fractions(horizontal[1])
         local _, fy = fractions(vertical[1])
-        return x - fx * width, y + (1 - fy) * height, width, height
+        local left, top = x - fx * width, y + (1 - fy) * height
+        if frame:IsClampedToScreen() then
+            local a, b, c, d = frame:GetClampRectInsets()
+            local screenWidth, screenHeight = UIParent:GetWidth() * UIParent:GetEffectiveScale(),
+                UIParent:GetHeight() * UIParent:GetEffectiveScale()
+            local low, high = -a * factor, screenWidth - width - b * factor
+            left = math.max(low, math.min(high, left))
+            low, high = height - d * factor, screenHeight - c * factor
+            top = math.max(low, math.min(high, top))
+        end
+        return left, top, width, height
     end
     local function geometry(frame)
         if frame._dynamicGeometry then return end
@@ -73,6 +83,10 @@ return function(test)
         frame.GetBottom = function(self)
             local x, y, _, h = rectangle(self)
             return x and (y - h) / self:GetEffectiveScale()
+        end
+        frame.GetScaledRect = function(self)
+            local x, y, w, h = rectangle(self)
+            if x then return x, y - h, w, h end
         end
         -- SetPoint replaces an existing constraint with the same point.
         local setPoint = frame.SetPoint
@@ -217,6 +231,9 @@ return function(test)
         { bounds(first), bounds(second), first.side, second.side },
         { { 340, 600, 310, 210 }, { 150, 600, 190, 210 }, "RIGHT", "RIGHT" })
     test.check("normal content and comparison placement never pad native frames", paddingWrites, 0)
+    test.check("comparison frames anchor to Pretty's main panel and neighbour",
+        { select(2, first:GetPoint(1)) == main, select(2, second:GetPoint(1)) == main,
+            select(2, second:GetPoint(2)) == first }, { true, true, true })
     test.check("native presentation remains transparent", { owner:GetAlpha(), primary:GetAlpha(), secondary:GetAlpha() }, { 0, 0, 0 })
     test.check("the native close button is aligned to Pretty's visible X", select(2, close:GetPoint(1)) == main.close, true)
     local completedRenders = renders
@@ -239,7 +256,14 @@ return function(test)
             return setPoint(self, ...)
         end
     end
+    ns.ui.perf.calls, ns.ui.perf.time, ns.ui.perf.max = {}, {}, {}
+    ns.ui.perf.total, ns.ui.perf.depth, ns.ui.perf.on = 0, 0, true
     for _ = 1, 80 do ns.Placement.refresh(owner) end
+    ns.ui.perf.on = false
+    test.check("profiling measures completed placement work even when geometry is unchanged",
+        { ns.ui.perf.calls["placement refresh"], ns.ui.perf.calls["placement plan"],
+            ns.ui.perf.calls["placement anchors kept"], ns.ui.perf.calls["placement anchor writes"] or 0 },
+        { 80, 80, 240, 0 })
     test.check("subpixel GetPoint readback noise never rewrites stable main or comparison anchors", anchorWrites, { 0, 0, 0 })
     for index, panel in ipairs({ main, first, second }) do
         panel.GetPoint, panel.SetPoint = unpack(originalMethods[index])
@@ -253,7 +277,7 @@ return function(test)
     for _ = 1, 12 do
         refresh()
         for _, panel in ipairs({ main, first, second }) do
-            positioned = positioned and panel:IsShown() and panel:GetNumPoints() == 1 and panel:GetLeft() ~= nil
+            positioned = positioned and panel:IsShown() and panel:GetNumPoints() > 0 and panel:GetLeft() ~= nil
         end
         flush()
     end
@@ -300,6 +324,42 @@ return function(test)
         { bounds(main), bounds(first), bounds(second) },
         { { 960, 800, 240, 70 }, { 650, 800, 310, 70 }, { 460, 800, 190, 70 } })
 
+    first:SetHeight(250)
+    second:SetHeight(110)
+    owner:ClearAllPoints()
+    owner:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 10, 20)
+    ns.Placement.refresh(owner)
+    test.check("tall comparisons clamp independently without holding the main above the bottom edge",
+        { bounds(main)[2], bounds(first)[2], bounds(second)[2] }, { 70, 250, 110 })
+    ns.ui.drawChrome(first, primary, { tooltipType = "item", color = { 1, 1, 1 }, tag = "Equipped" })
+    ns.ui.drawChrome(second, secondary, { tooltipType = "item", color = { 1, 1, 1 }, tag = "If equipped together" })
+    geometry(first.equipped)
+    geometry(second.equipped)
+    owner:ClearAllPoints()
+    owner:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 1190, 900)
+    ns.Placement.refresh(owner)
+    test.check("the main reaches the top while both equipped labels remain onscreen",
+        { bounds(main)[2], first.equipped:GetTop() <= 800, second.equipped:GetTop() <= 800 }, { 800, true, true })
+    first.equipped:SetWidth(first:GetWidth() + 40)
+    owner:ClearAllPoints()
+    owner:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 450, 500)
+    ns.Placement.refresh(owner)
+    test.check("a label wider than its comparison stays onscreen without overlapping the next column",
+        first.equipped:GetRight() <= 1200.01 and first:GetLeft() >= second:GetRight() - .01, true)
+    first.equipped:SetWidth(first:GetWidth())
+    second.equipped:SetWidth(second:GetWidth() + 40)
+    ns.Placement.refresh(owner)
+    test.check("a wide inner comparison label leaves room for the outer column on the right",
+        math.abs(second.equipped:GetRight() - first:GetLeft()) < .01, true)
+    owner:ClearAllPoints()
+    owner:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 1000, 500)
+    ns.Placement.refresh(owner)
+    test.check("a wide outer comparison label leaves room for its neighbour on the left",
+        math.abs(second.equipped:GetRight() - first:GetLeft()) < .01, true)
+    ns.ui.drawChrome(first, primary, { tooltipType = "item", color = { 1, 1, 1 } })
+    ns.ui.drawChrome(second, secondary, { tooltipType = "item", color = { 1, 1, 1 } })
+    refresh()
+
     -- Mixed UIParent/native/Pretty scales must still produce abutting edges.
     UIParent:SetScale(.8)
     owner:SetScale(1.25)
@@ -313,6 +373,17 @@ return function(test)
     test.check("mixed scales preserve the main source anchor in screen pixels", { a[1], a[2], a[3] }, { 650, 600, 144 })
     test.check("mixed-scale comparison edges meet without gaps", { b[1] + b[3], c[1] + c[3], b[2], c[2] }, { a[1], b[1], a[2], a[2] })
     test.check("mixed-scale group stays within the scaled screen", c[1] >= 0 and a[1] + a[3] <= 960 and a[2] <= 640, true)
+    ns.ui.drawChrome(first, primary, { tooltipType = "item", color = { 1, 1, 1 }, tag = "Equipped" })
+    ns.ui.drawChrome(second, secondary, { tooltipType = "item", color = { 1, 1, 1 }, tag = "If equipped together" })
+    second.equipped:SetWidth(second:GetWidth() + 40)
+    owner:ClearAllPoints()
+    owner:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 100, 500)
+    ns.Placement.refresh(owner)
+    test.check("wide label spacing converts between different comparison scales",
+        math.abs(second.equipped:GetRight() * second.equipped:GetEffectiveScale()
+            - first:GetLeft() * first:GetEffectiveScale()) < .01, true)
+    ns.ui.drawChrome(first, primary, { tooltipType = "item", color = { 1, 1, 1 } })
+    ns.ui.drawChrome(second, secondary, { tooltipType = "item", color = { 1, 1, 1 } })
 
     -- A moving relative frame has no SetPoint callback on the tooltip itself.
     local source = CreateFrame("Frame", nil, UIParent)
@@ -321,23 +392,54 @@ return function(test)
     source:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 200, 500)
     owner:ClearAllPoints()
     owner:SetPoint("TOPLEFT", source, "TOPLEFT", 0, 0)
+    local function placementUpdate(object)
+        if object == main or object == first or object == second then return end
+        local callback = object:GetScript("OnUpdate")
+        -- Render's existing dirty-view driver is unrelated to placement.
+        if callback and not debug.getinfo(callback, "S").source:find("Panel/Render.lua", 1, true) then return callback end
+    end
     local follower
     for _, object in ipairs(world.objects) do
-        if object ~= main and object ~= first and object ~= second and object:GetScript("OnUpdate") then follower = object end
+        if placementUpdate(object) then follower = object end
+    end
+    test.check("stationary placement has no per-frame follower", follower == nil, true)
+    local function tickDrag()
+        for _, object in ipairs(world.objects) do
+            local callback = placementUpdate(object)
+            if callback then callback(object, .016) end
+        end
     end
     local originalX = bounds(main)[1]
     source:ClearAllPoints()
     source:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 250, 500)
-    if follower then follower:GetScript("OnUpdate")(follower, .016) end
+    tickDrag()
     test.check("moving the relative source updates Pretty without another content read", bounds(main)[1] - originalX, 40)
+    local firstX, _, firstWidth = rectangle(first)
+    local secondX, _, secondWidth = rectangle(second)
+    local mainX, _, mainWidth = rectangle(main)
+    test.check("engine anchors keep comparisons attached while their source moves",
+        math.abs(firstX + firstWidth - mainX) < 1 and math.abs(secondX + secondWidth - firstX) < 1
+            or math.abs(secondX - mainX - mainWidth) < 1 and math.abs(firstX - secondX - secondWidth) < 1, true)
+    source:ClearAllPoints()
+    source:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 1190, 700)
+    local engineClamped = true
+    for _, panel in ipairs({ main, first, second }) do
+        local x, y, w, h = rectangle(panel)
+        engineClamped = engineClamped and x >= -.01 and x + w <= 960.01 and y <= 640.01 and y - h >= -.01
+    end
+    test.check("the engine clamps moving source and comparisons together without a Lua placement callback", engineClamped, true)
+    source:ClearAllPoints()
+    source:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 250, 500)
     owner:SetSize(100, 20)
     owner:ClearAllPoints()
     owner:SetPoint("TOP", UIParent, "BOTTOMLEFT", 600, 480)
     cursorX, cursorY = 580, 470
     local beforeDrag, beforeNativeDrag = bounds(main), bounds(owner)
     beforeReads = reads
+    local closeChecks, isProtected = 0, close.IsProtected
+    close.IsProtected = function(self) closeChecks = closeChecks + 1; return isProtected(self) end
     owner:GetScript("OnDragStart")(owner)
-    if follower then follower:GetScript("OnUpdate")(follower, .016) end
+    tickDrag()
     test.check("StartMoving changes native anchor semantics without moving the native frame", bounds(owner), beforeNativeDrag)
     test.check("drag start preserves the visible grab offset across TOP to TOPLEFT conversion", bounds(main), beforeDrag)
     cursorX, cursorY = cursorX + 30, cursorY + 20
@@ -345,13 +447,19 @@ return function(test)
     -- displacement from its own completed rectangle, not the new native corner.
     owner._points[1][4] = owner._points[1][4] + 30 / owner:GetEffectiveScale()
     owner._points[1][5] = owner._points[1][5] + 20 / owner:GetEffectiveScale()
-    if follower then follower:GetScript("OnUpdate")(follower, .016) end
+    local previousPlans = ns.ui.perf.calls["placement plan"] or 0
+    ns.ui.perf.on = true
+    tickDrag()
+    ns.ui.perf.on = false
+    test.check("drag motion within the same side does not replan geometry", ns.ui.perf.calls["placement plan"] or 0, previousPlans)
     local dragged = bounds(main)
     test.check("mixed-scale sticky dragging follows cursor displacement without reading content",
         { dragged[1] - beforeDrag[1], dragged[2] - beforeDrag[2], reads }, { 30, 20, beforeReads })
+    test.check("drag frames do not recheck an already anchored close button", closeChecks, 0)
+    close.IsProtected = isProtected
     local beforeNativeStop = bounds(owner)
     owner:GetScript("OnDragStop")(owner)
-    if follower then follower:GetScript("OnUpdate")(follower, .016) end
+    tickDrag()
     test.check("StopMoving changes native anchor semantics without moving the native frame", bounds(owner), beforeNativeStop)
     test.check("drag release preserves Pretty's final rectangle across TOPLEFT to CENTER conversion", bounds(main), dragged)
 
@@ -362,18 +470,33 @@ return function(test)
     local beforeSecondDrag = bounds(main)
     beforeReads = reads
     owner:GetScript("OnDragStart")(owner)
-    if follower then follower:GetScript("OnUpdate")(follower, .016) end
+    tickDrag()
     test.check("a second drag starts from the manual Pretty position without another jump", bounds(main), beforeSecondDrag)
     cursorX, cursorY = cursorX + 12, cursorY - 8
     owner._points[1][4] = owner._points[1][4] + 12 / owner:GetEffectiveScale()
     owner._points[1][5] = owner._points[1][5] - 8 / owner:GetEffectiveScale()
-    if follower then follower:GetScript("OnUpdate")(follower, .016) end
+    tickDrag()
     local secondDragged = bounds(main)
     owner:GetScript("OnDragStop")(owner)
-    if follower then follower:GetScript("OnUpdate")(follower, .016) end
+    tickDrag()
     test.check("a second drag follows its cursor delta and releases stably without new content reads",
         { secondDragged[1] - beforeSecondDrag[1], secondDragged[2] - beforeSecondDrag[2], bounds(main), reads },
         { 12, -8, secondDragged, beforeReads })
+
+    local previousSide = first.side
+    local dragInsets = main.placementHitRect
+    owner:GetScript("OnDragStart")(owner)
+    local targetLeft = previousSide == "RIGHT" and 5 or UIParent:GetWidth() * UIParent:GetEffectiveScale() - bounds(main)[3] - 5
+    local delta = targetLeft - rectangle(main)
+    cursorX = cursorX + delta
+    owner._points[1][4] = owner._points[1][4] + delta / owner:GetEffectiveScale()
+    tickDrag()
+    test.check("dragging across the comparison boundary changes sides without waiting for a refill", first.side ~= previousSide, true)
+    test.check("changed drag insets reuse the same stored values", main.placementHitRect == dragInsets, true)
+    owner:GetScript("OnDragStop")(owner)
+    local idle = true
+    for _, object in ipairs(world.objects) do if placementUpdate(object) then idle = false end end
+    test.check("drag-only input updates stop immediately on release", idle, true)
 
     local nativeX, nativeY, nativeW, nativeH = rectangle(owner)
     local prettyX, prettyY, prettyW, prettyH = rectangle(main)
@@ -385,6 +508,39 @@ return function(test)
             math.abs(nativeY - top * factor - prettyY) < .01,
             math.abs(nativeY - nativeH + bottom * factor - prettyY + prettyH) < .01 },
         { true, true, true, true })
+
+    first:SetHeight(300)
+    second:SetHeight(130)
+    ns.ui.drawChrome(first, primary, { tooltipType = "item", color = { 1, 1, 1 }, tag = "Equipped" })
+    ns.ui.drawChrome(second, secondary, { tooltipType = "item", color = { 1, 1, 1 }, tag = "If equipped together" })
+    ns.Placement.refresh(owner)
+    local screenWidth, screenHeight = UIParent:GetWidth() * UIParent:GetEffectiveScale(),
+        UIParent:GetHeight() * UIParent:GetEffectiveScale()
+    local _, _, mainWidth, mainHeight = rectangle(main)
+    local corners, labels, stableRelease = true, true, true
+    beforeReads = reads
+    for _, target in ipairs({ { 0, mainHeight }, { screenWidth - mainWidth, mainHeight },
+        { 0, screenHeight }, { screenWidth - mainWidth, screenHeight } }) do
+        owner:GetScript("OnDragStart")(owner)
+        local x, y = rectangle(main)
+        owner._points[1][4] = owner._points[1][4] + (target[1] - x) / owner:GetEffectiveScale()
+        owner._points[1][5] = owner._points[1][5] + (target[2] - y) / owner:GetEffectiveScale()
+        tickDrag()
+        x, y = rectangle(main)
+        corners = corners and math.abs(x - target[1]) < 1 and math.abs(y - target[2]) < 1
+        for _, frame in ipairs({ first, second, first.equipped, second.equipped }) do
+            local left, top, width, height = rectangle(frame)
+            labels = labels and left >= -.01 and top <= screenHeight + .01
+                and left + width <= screenWidth + .01 and top - height >= -.01
+        end
+        local beforeRelease = bounds(main)
+        owner:GetScript("OnDragStop")(owner)
+        local afterRelease = bounds(main)
+        for index = 1, 4 do stableRelease = stableRelease and beforeRelease[index] == afterRelease[index] end
+    end
+    test.check("a small sticky main reaches all four corners beside larger comparisons at mixed scales", corners, true)
+    test.check("comparison bodies and both equipped labels stay within all four screen edges", labels, true)
+    test.check("corner drag releases keep the main position without rereading content", { stableRelease, reads }, { true, beforeReads })
 
     -- Hide/clear work from a previous lifetime must not restore a reused item.
     owner:Hide()
@@ -418,7 +574,7 @@ return function(test)
     primary:Show()
     flush()
     test.check("a direct comparison fill completes even without the manager's active owner",
-        { first.renderedID, first.comparisonPending == nil, first:IsShown(), first:GetNumPoints() }, { 42, true, true, 1 })
+        { first.renderedID, first.comparisonPending == nil, first:IsShown(), first:GetNumPoints() }, { 42, true, true, 2 })
     primary._data = { type = 1, id = 43, lines = data.lines }
     world.postCalls[1][1](primary, primary._data)
     primary:Show()
@@ -442,13 +598,12 @@ return function(test)
     test.check("restored group members have valid abutting placements", math.abs(firstX + firstWidth - mainX) <= 1
         or math.abs(secondX - mainX - mainWidth) <= 1, true)
 
-    local expectedMain = bounds(main)
+    local expectedMain, expectedPoint = bounds(main), { main:GetPoint(1) }
     main:ClearAllPoints()
     main:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -10, -10)
     ns.Placement.refresh(owner)
     test.check("a replaced single-point Pretty anchor is repaired even with unchanged cached geometry",
-        { select(1, main:GetPoint(1)), select(2, main:GetPoint(1)) == UIParent,
-            select(3, main:GetPoint(1)), bounds(main) }, { "TOPLEFT", true, "BOTTOMLEFT", expectedMain })
+        { { main:GetPoint(1) }, bounds(main) }, { expectedPoint, expectedMain })
 
     local protectedSource = CreateFrame("Button", nil, UIParent)
     geometry(protectedSource)
@@ -465,6 +620,46 @@ return function(test)
         { bounds(main)[1], bounds(main)[2] }, { 200, 400 })
     test.check("protected relative frames are readable positioning sources without writes", protectedWrites, 0)
     flush()
+
+    local getScaledRect, getLeft, getTop = protectedSource.GetScaledRect, protectedSource.GetLeft, protectedSource.GetTop
+    local scaledReads, edgeReads = 0, 0
+    protectedSource.GetScaledRect = function(self)
+        scaledReads = scaledReads + 1
+        return getScaledRect(self)
+    end
+    protectedSource.GetLeft = function(self) edgeReads = edgeReads + 1; return getLeft(self) end
+    protectedSource.GetTop = function(self) edgeReads = edgeReads + 1; return getTop(self) end
+    local placed = ns.Placement.refresh(owner)
+    test.check("protected mixed-scale sources use scaled rectangles without separate edge reads",
+        { placed, scaledReads > 0, edgeReads, bounds(main)[1], bounds(main)[2] }, { true, true, 0, 200, 400 })
+    protectedSource.GetLeft, protectedSource.GetTop = getLeft, getTop
+
+    local expectedBounds, expectedAnchor = bounds(main), { main:GetPoint(1) }
+    local function rejectedGeometry(name, getter)
+        protectedSource.GetScaledRect = getter
+        local ok, result = pcall(ns.Placement.refresh, owner)
+        test.check(name, { ok, result, bounds(main), { main:GetPoint(1) }, main:IsShown(), owner:GetAlpha() },
+            { true, false, expectedBounds, expectedAnchor, true, 0 })
+    end
+    rejectedGeometry("missing scaled geometry preserves the completed panel", function() end)
+    rejectedGeometry("failed scaled geometry preserves the completed panel", function() error("restricted layout") end)
+    rejectedGeometry("an unavailable scaled-rectangle method is handled safely", false)
+    for index, component in ipairs({ "left", "bottom", "width", "height" }) do
+        for _, value in ipairs({ world.secret, world.secretTable, "invalid" }) do
+            rejectedGeometry("unreadable scaled " .. component .. " preserves the completed panel", function()
+                local values = { 200, 384, 16, 16 }
+                values[index] = value
+                return unpack(values)
+            end)
+        end
+    end
+    protectedSource.GetScaledRect = function() error("forbidden geometry must not be read") end
+    protectedSource._forbidden = true
+    local ok, result = pcall(ns.Placement.refresh, owner)
+    test.check("forbidden relative sources are rejected before querying scaled geometry",
+        { ok, result, bounds(main), protectedWrites }, { true, false, expectedBounds, 0 })
+    protectedSource._forbidden, protectedSource.GetScaledRect = false, getScaledRect
+    test.check("readable geometry resumes placement after a restricted source", ns.Placement.refresh(owner), true)
 
     owner._anchorTypePoint = { "TOPLEFT", UIParent, "BOTTOMLEFT", 300, 480 }
     owner:SetAnchorType("ANCHOR_LEFT", 0, 0)
@@ -497,6 +692,13 @@ return function(test)
     world.fireEvent("MODIFIER_STATE_CHANGED", "LALT", 0)
     test.check("native-mode wrapped fills and cached anchoring cannot strand a Pretty collection",
         { ns.Placement.refresh(owner), bounds(main)[1], bounds(main)[2] }, { true, 250, 430 })
+    for _, tooltip in ipairs({ primary, secondary }) do
+        tooltip:Hide()
+        tooltip:GetScript("OnHide")(tooltip)
+    end
+    test.check("hiding comparisons immediately restores the main frame's clamp rectangle",
+        { main:GetClampRectInsets() }, { 0, 0, 0, 0 })
+    test.check("removing comparisons keeps the main Pretty tooltip visible", main:IsShown(), true)
     test.check("all exercised Pretty placement paths avoid native padding", paddingWrites, 0)
     TooltipComparisonManager = nil
 end

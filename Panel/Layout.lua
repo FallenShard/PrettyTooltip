@@ -91,7 +91,7 @@ local panels = setmetatable({}, { __mode = "k" })
 
 -- /ptip perf: how often the panel's work runs and how long it takes. While no
 -- capture runs, a probed call costs one check.
-local perf = { on = false, calls = {}, time = {} }
+local perf = { on = false, calls = {}, time = {}, max = {}, depth = 0, total = 0 }
 
 local function tally(name)
     if perf.on then perf.calls[name] = (perf.calls[name] or 0) + 1 end
@@ -100,18 +100,27 @@ end
 -- Adds the time since start, from debugprofilestop, to a part of a call.
 local function timed(name, start)
     if not (perf.on and start) then return end
+    local elapsed = debugprofilestop() - start
     perf.calls[name] = (perf.calls[name] or 0) + 1
-    perf.time[name] = (perf.time[name] or 0) + debugprofilestop() - start
+    perf.time[name] = (perf.time[name] or 0) + elapsed
+    perf.max[name] = math.max(perf.max[name] or 0, elapsed)
 end
 
 local function probe(name, fn)
     return function(...)
         if not perf.on then return fn(...) end
         local start = debugprofilestop()
-        local results = pack(fn(...))
+        local depth = perf.depth
+        perf.depth = depth + 1
+        local results = pack(pcall(fn, ...))
+        local elapsed = debugprofilestop() - start
+        perf.depth = depth
+        if depth == 0 then perf.total = perf.total + elapsed end
         perf.calls[name] = (perf.calls[name] or 0) + 1
-        perf.time[name] = (perf.time[name] or 0) + debugprofilestop() - start
-        return unpack(results, 1, results.n)
+        perf.time[name] = (perf.time[name] or 0) + elapsed
+        perf.max[name] = math.max(perf.max[name] or 0, elapsed)
+        if not results[1] then error(results[2], 0) end
+        return unpack(results, 2, results.n)
     end
 end
 
@@ -721,10 +730,11 @@ local function getCloseButton(panel, tooltip)
     return close
 end
 
+local EQUIPPED_TAG_GAP = 2
 local function getEquippedTag(panel)
     if panel.equipped then return panel.equipped end
     local tag = CreateFrame("Frame", nil, panel)
-    tag:SetPoint("BOTTOMLEFT", panel, "TOPLEFT", 0, 2)
+    tag:SetPoint("BOTTOMLEFT", panel, "TOPLEFT", 0, EQUIPPED_TAG_GAP)
     tag:SetHeight(BADGE_HEIGHT)
     tag.border = tag:CreateTexture(nil, "BACKGROUND")
     tag.border:SetAllPoints()
@@ -741,6 +751,14 @@ local function getEquippedTag(panel)
     tag.text:SetPoint("CENTER")
     panel.equipped = tag
     return tag
+end
+
+-- The comparison label sits outside the body. Include its visible bounds in
+-- frame clamping and column width without changing the body's layout size.
+local function clampInsets(panel)
+    local tag = panel.equipped
+    if not (tag and tag:IsShown()) then return 0, 0, 0, 0 end
+    return 0, math.max(0, tag:GetWidth() - panel:GetWidth()), tag:GetHeight() + EQUIPPED_TAG_GAP, 0
 end
 
 -- Returns the header height the icon and badge need.
@@ -1080,6 +1098,7 @@ ns.ui = {
     rule = rule,
     divider = divider,
     drawChrome = drawChrome,
+    clampInsets = clampInsets,
     finishPanel = finishPanel,
     caption = caption,
     pad = pad,

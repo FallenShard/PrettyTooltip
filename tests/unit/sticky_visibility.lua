@@ -149,6 +149,17 @@ return function(test)
     inside.owner:GetScript("OnLeave")(inside.owner)
     test.check("native leave handling still dismisses comparison panels", inside.visible(), { false, false, false, false })
 
+    local dragging = setup(true, true)
+    dragging.compare()
+    dragging.root()
+    dragging.owner:GetScript("OnDragStart")(dragging.owner)
+    dragging.hover(false)
+    dragging.ns.Placement.refresh(dragging.owner)
+    test.check("clamping during an active drag does not dismiss comparisons outside geometric hover",
+        dragging.visible(), { true, true, true, true })
+    dragging.owner:GetScript("OnDragStop")(dragging.owner)
+    test.check("releasing a drag outside hover still dismisses comparisons", dragging.visible(), { false, false, false, false })
+
     local cached = setup(true, false)
     cached.compare(true)
     cached.root()

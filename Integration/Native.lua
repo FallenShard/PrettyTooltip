@@ -341,12 +341,14 @@ local function restoreNative(tooltip)
     if not panel then return end
     if ns.Placement then ns.Placement.release(tooltip, panel) end
     panel.refreshPending = nil
+    panel.contentPending = nil
     panel.comparisonPending, panel.comparisonAnchorPending = nil, nil
     panel.comparisonFitPending = nil
     panel.comparisonAnchorHeld = nil
     panel.restorePending = false
     pcall(releaseNative, tooltip, panel)
     panel:Hide()
+    if ns.Placement then ns.Placement.hidden(tooltip) end
     panel.fullLines, panel.naturalWidth, panel.naturalHeight = nil, nil, nil
     if panel.nativeAlpha and util.canModify(tooltip) then
         tooltip:SetAlpha(panel.nativeAlpha)
