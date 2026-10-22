@@ -76,6 +76,7 @@ return function(test)
     ns.Cursor.register()
     local tracker = world.objects[#world.objects]
     geometry(tracker)
+    test.check("the cursor tracker uses native pixel rounding", tracker:GetRoundLayoutToNearestPixel(), true)
     local function tick() tracker:GetScript("OnUpdate")() end
     local function show(id)
         GameTooltip_SetDefaultAnchor(tooltip, UIParent)

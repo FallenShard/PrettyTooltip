@@ -244,19 +244,26 @@ local function asStyle(style)
     return { size = style, font = bodyFont(), flags = "" }
 end
 
+-- Rounding is per region, not inherited. Configure each owned region once,
+-- including those created later when a text or texture pool grows.
+local function roundLayout(region)
+    region:SetRoundLayoutToNearestPixel(true)
+    return region
+end
+
 -- Rows other addons append are absent from the data. Nil when one is unreadable.
 local function makeTexture(parent, layer, path)
-    local tex = parent:CreateTexture(nil, layer)
+    local tex = roundLayout(parent:CreateTexture(nil, layer))
     tex:SetTexture(path or WHITE)
     return tex
 end
 
 local function createPanel(parent)
-    local panel = CreateFrame("Frame", nil, parent)
+    local panel = roundLayout(CreateFrame("Frame", nil, parent))
     panel:SetFrameStrata("TOOLTIP")
     panel.width = MAX_WIDTH
     panel:SetWidth(MAX_WIDTH)
-    panel.measure = panel:CreateFontString(nil, "OVERLAY")
+    panel.measure = roundLayout(panel:CreateFontString(nil, "OVERLAY"))
     panel.measure:SetPoint("TOPLEFT", panel, "TOPLEFT")
     panel.measure:SetAlpha(0)
     panel:SetClampedToScreen(true)
@@ -264,7 +271,7 @@ local function createPanel(parent)
     panel.pool, panel.used = {}, 0
     panel.texturePool, panel.texturesUsed = {}, 0
     if panel.SetIgnoreParentAlpha then panel:SetIgnoreParentAlpha(true) end
-    panel.halo = panel:CreateTexture(nil, "BACKGROUND", nil, -8)
+    panel.halo = roundLayout(panel:CreateTexture(nil, "BACKGROUND", nil, -8))
     panel.halo:SetPoint("TOPLEFT", panel, "TOPLEFT", -HALO_SPREAD, HALO_SPREAD)
     panel.halo:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", HALO_SPREAD, -HALO_SPREAD)
     panel.halo:SetTexture(ART .. "glow")
@@ -272,11 +279,11 @@ local function createPanel(parent)
         panel.halo:SetTextureSliceMargins(HALO_MARGIN, HALO_MARGIN, HALO_MARGIN, HALO_MARGIN)
     end
     panel.halo:SetBlendMode("ADD")
-    panel.background = panel:CreateTexture(nil, "BACKGROUND", nil, -7)
+    panel.background = roundLayout(panel:CreateTexture(nil, "BACKGROUND", nil, -7))
     panel.background:SetAllPoints()
     if panel.background.SetTextureSliceMargins then
         -- Multiplying barely tints the near-black backdrop; an additive copy carries the glow.
-        panel.glow = panel:CreateTexture(nil, "BACKGROUND", nil, -6)
+        panel.glow = roundLayout(panel:CreateTexture(nil, "BACKGROUND", nil, -6))
         panel.glow:SetAllPoints()
         panel.glow:SetTexture(DIALOGUE_BACKDROP)
         panel.glow:SetTextureSliceMargins(32, 32, 32, 32)
@@ -284,7 +291,7 @@ local function createPanel(parent)
         panel.glow:SetBlendMode("ADD")
     end
     local function shade(orientation, from, to, a1, a2)
-        local tex = panel:CreateTexture(nil, "BORDER", nil, 2)
+        local tex = roundLayout(panel:CreateTexture(nil, "BORDER", nil, 2))
         tex:SetColorTexture(1, 1, 1, 1)
         tex:SetPoint(from, panel, from)
         tex:SetPoint(to, panel, to)
@@ -317,7 +324,7 @@ local function createPanel(parent)
     panel.badgeFill:SetDrawLayer("OVERLAY", 2)
     panel.badgeFill:SetPoint("TOPLEFT", panel.badge, "TOPLEFT", 1, -1)
     panel.badgeFill:SetPoint("BOTTOMRIGHT", panel.badge, "BOTTOMRIGHT", -1, 1)
-    panel.badgeText = panel:CreateFontString(nil, "OVERLAY")
+    panel.badgeText = roundLayout(panel:CreateFontString(nil, "OVERLAY"))
     panel.badgeText:SetDrawLayer("OVERLAY", 3)
     panel.badgeText:SetPoint("CENTER", panel.badge, "CENTER", 0, 0)
     panel.edges = {}
@@ -358,12 +365,14 @@ local function nativeBorder(panel)
     if not (NineSliceUtil and NineSliceUtil.ApplyLayoutByName) then return end
     local slice = GameTooltip and GameTooltip.NineSlice
     local layout = slice and type(slice.layoutType) == "string" and slice.layoutType or "TooltipDefaultLayout"
-    local frame = CreateFrame("Frame", nil, panel)
+    local frame = roundLayout(CreateFrame("Frame", nil, panel))
     frame:SetAllPoints()
     if not pcall(NineSliceUtil.ApplyLayoutByName, frame, layout) then
         frame:Hide()
         return
     end
+    -- These textures are created by Blizzard's layout on our border frame.
+    for _, region in ipairs({ frame:GetRegions() }) do roundLayout(region) end
     if frame.Center then frame.Center:Hide() end
     panel.nativeBorder = frame
     return frame
@@ -467,7 +476,7 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align,
     panel.used = panel.used + 1
     local font = panel.pool[panel.used]
     if not font then
-        font = panel:CreateFontString(nil, "OVERLAY")
+        font = roundLayout(panel:CreateFontString(nil, "OVERLAY"))
         -- The same for every row, so set once.
         font:SetJustifyV("TOP")
         font:SetShadowColor(0, 0, 0, 0)
@@ -536,7 +545,7 @@ local function hiddenTextAt(panel, content, x, y, width, style, color)
     panel.hiddenUsed = (panel.hiddenUsed or 0) + 1
     local font = panel.hiddenPool[panel.hiddenUsed]
     if not font then
-        font = panel:CreateFontString(nil, "OVERLAY")
+        font = roundLayout(panel:CreateFontString(nil, "OVERLAY"))
         font:SetJustifyV("TOP")
         font:SetJustifyH("LEFT")
         font:SetShadowColor(0, 0, 0, 0)
@@ -624,7 +633,7 @@ local function acquireTexture(panel, path, sublevel)
     panel.texturesUsed = panel.texturesUsed + 1
     local tex = panel.texturePool[panel.texturesUsed]
     if not tex then
-        tex = panel:CreateTexture(nil, "OVERLAY")
+        tex = roundLayout(panel:CreateTexture(nil, "OVERLAY"))
         panel.texturePool[panel.texturesUsed] = tex
     end
     tex:SetDrawLayer("OVERLAY", sublevel or 0)
@@ -704,12 +713,12 @@ end
 
 local function getCloseButton(panel, tooltip)
     if panel.close then return panel.close end
-    local close = CreateFrame("Button", nil, panel)
+    local close = roundLayout(CreateFrame("Button", nil, panel))
     close:SetSize(16, 16)
     close:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -3, -3)
     local lines = {}
     for index, angle in ipairs({ 45, -45 }) do
-        local line = close:CreateTexture(nil, "ARTWORK")
+        local line = roundLayout(close:CreateTexture(nil, "ARTWORK"))
         line:SetTexture(WHITE)
         line:SetSize(11, 1.5)
         line:SetPoint("CENTER")
@@ -733,19 +742,19 @@ end
 local EQUIPPED_TAG_GAP = 2
 local function getEquippedTag(panel)
     if panel.equipped then return panel.equipped end
-    local tag = CreateFrame("Frame", nil, panel)
+    local tag = roundLayout(CreateFrame("Frame", nil, panel))
     tag:SetPoint("BOTTOMLEFT", panel, "TOPLEFT", 0, EQUIPPED_TAG_GAP)
     tag:SetHeight(BADGE_HEIGHT)
-    tag.border = tag:CreateTexture(nil, "BACKGROUND")
+    tag.border = roundLayout(tag:CreateTexture(nil, "BACKGROUND"))
     tag.border:SetAllPoints()
     tag.border:SetTexture(WHITE)
     tag.border:SetVertexColor(.55, .45, .30, .9)
-    tag.fill = tag:CreateTexture(nil, "BORDER")
+    tag.fill = roundLayout(tag:CreateTexture(nil, "BORDER"))
     tag.fill:SetPoint("TOPLEFT", 1, -1)
     tag.fill:SetPoint("BOTTOMRIGHT", -1, 1)
     tag.fill:SetTexture(WHITE)
     tag.fill:SetVertexColor(.07, .055, .05, 1)
-    tag.text = tag:CreateFontString(nil, "OVERLAY")
+    tag.text = roundLayout(tag:CreateFontString(nil, "OVERLAY"))
     tag.text:SetFont(bodyFont(), 10)
     tag.text:SetTextColor(.93, .80, .52)
     tag.text:SetPoint("CENTER")

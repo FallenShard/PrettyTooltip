@@ -61,6 +61,12 @@ Each fixture is run as the game would: the addon's files load in the `.toc`'s or
 
 `unit/pretty_noop_hooks.lua` counts native layout queries in Pretty callbacks. Zero-alpha writes, internal anchoring, and already pending fits must return without a layout probe; real fits, external changes, protected frames, and secret alpha values retain their access checks and cleanup behavior. Completed refreshes reset the periodic content poll, while tooltips without further handovers still detect in-place text changes.
 
+`unit/pixel_rounding.lua` checks native rounding on owned panels, borders, labels,
+close buttons and growing text/texture pools, with no setter calls when entries
+are reused. The harness records the rounding policy; fractional-scale text and
+border rasterization still require an in-game check. Explicit snapping and
+one-pixel thickness calculations remain in place during this change.
+
 A capture holds the game's answers to what the readers ask (item, spell, and unit info, the player's level, spell power, and skills), and the client's enums. A call the capture has no answer for returns nothing and is listed with `--notes`; if a reader needs it, add it to `UI/Capture.lua` and capture again.
 
 ### Settings variants

@@ -214,6 +214,9 @@ return function(fixture, enums, report, strings)
         return self._height
     end
     function Object:GetSize() return self:GetWidth(), self:GetHeight() end
+    -- Record the native layout policy; pixel rasterization belongs to the game.
+    function Object:SetRoundLayoutToNearestPixel(enabled) self._roundLayout = enabled end
+    function Object:GetRoundLayoutToNearestPixel() return self._roundLayout == true end
     function Object:SetClampedToScreen(clamped) self._clamped = not not clamped end
     function Object:IsClampedToScreen() return self._clamped or false end
     function Object:SetClampRectInsets(left, right, top, bottom) self._clampRectInsets = { left, right, top, bottom } end
