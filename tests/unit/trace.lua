@@ -1,9 +1,10 @@
 -- /ptip trace writes a tooltip's state each frame it changes and the calls
 -- that change it, hidden values as "secret", and reports when its time is up.
 return function(test)
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Core/TooltipPlacement.lua", "Locale/Locale.lua",
         "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua", "Panel/Layout.lua",
-        "Panel/Render.lua", "UI/Debug.lua" }, { enums = { TooltipDataType = { Item = 0 } } })
+        "Panel/Render.lua", "Integration/Native.lua", "Integration/Placement.lua", "UI/Debug.lua" },
+        { enums = { TooltipDataType = { Item = 0 } } })
     local report, finish, scheduledSeconds
     ns.showReport = function(_, lines) report = lines end
     C_Timer.After = function(seconds, callback) scheduledSeconds, finish = seconds, callback end
@@ -35,6 +36,7 @@ return function(test)
 
     local text = table.concat(report, "\n")
     local function has(fragment) return text:find(fragment, 1, true) ~= nil end
+    test.check("each trace identifies the selected layout at capture start", has("layout: pretty"), true)
     test.check("each change is written once, a frame with none is not",
         select(2, text:gsub("frame %d+  GameTooltip  ", "")), 4)
     test.check("position changes are reported even when size and anchors stay the same", has("pos 0.0,210.0"), true)
@@ -178,4 +180,11 @@ return function(test)
     test.check("restricted focus objects and tables are redacted", has("restricted") and has("focus restricted"), true)
     test.check("clients with the older mouse focus API still identify the invisible control",
         has("InvisibleStickyControl parent ItemRefTooltip"), true)
+    ns.traceTooltips(4)
+    tick()
+    ns.setOption("layout", "blizzard")
+    finish()
+    text = table.concat(report, "\n")
+    test.check("the recorded Pretty mode belongs to capture start rather than report time",
+        has("layout: pretty"), true)
 end

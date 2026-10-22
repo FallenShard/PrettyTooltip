@@ -10,6 +10,26 @@ local isSecret, readable, call, number, rgb = util.isSecret, util.readable, util
 local game = {}
 ns.Game = game
 
+function game.mailAttachments(index)
+    if not (GetInboxItem and GetInboxItemLink) then return {} end
+    local items = {}
+    for slot = 1, ATTACHMENTS_MAX_RECEIVE or 12 do
+        local ok, name, id, icon, count = pcall(GetInboxItem, index, slot)
+        if not ok then return end
+        if isSecret(name) or isSecret(id) or isSecret(icon) or isSecret(count) then return end
+        local linked, link = pcall(GetInboxItemLink, index, slot)
+        if not linked or isSecret(link) then return end
+        link = util.safeText(link)
+        if link == "" then link = nil end
+        name, id, icon, count = util.safeText(name), number(id), readable(icon), number(count)
+        if name and name ~= "" and (link or id) then
+            items[#items + 1] = { name = name, id = id or tonumber(link:match("item:(%d+)")),
+                link = link, icon = icon, count = count }
+        end
+    end
+    return items
+end
+
 -- Items -----------------------------------------------------------------------
 
 -- An item's name, link, quality, icon, and unit sell price, by ID, link, or
@@ -147,8 +167,38 @@ end
 -- The weapon slots a temporary enchant can be on, in GetWeaponEnchantInfo's order.
 local WEAPON_SLOTS = { [16] = 1, [17] = 2, [18] = 3 }
 
--- A weapon slot's temporary enchant, an imbue: its enchant ID, the seconds it
--- has left, and its charges; nil without one.
+-- Every enchant on a weapon from Forever's C_Item.GetWeaponEnchantInfo, which
+-- lists a weapon's temporary enchant (a poison, an oil) and its class imbue
+-- (Windfury, Rockbiter) apart; the other APIs miss the class imbue. Nil when
+-- the API is missing or unreadable.
+local function weaponEnchants(slot)
+    if not (C_Item and C_Item.GetWeaponEnchantInfo) then return end
+    -- Enum.WeaponSlot counts from 0: main hand, off hand, ranged.
+    local ok, enchants = pcall(C_Item.GetWeaponEnchantInfo, WEAPON_SLOTS[slot] - 1)
+    if not ok or isSecret(enchants) or type(enchants) ~= "table" then return end
+    local list = {}
+    for _, enchant in ipairs(enchants) do
+        if not isSecret(enchant) and type(enchant) == "table" and readable(enchant.hasEnchant) then
+            local id, left = number(enchant.enchantID), number(enchant.timeLeft)
+            if id then
+                list[#list + 1] = { enchantID = id, remaining = left and left / 1000,
+                    charges = number(enchant.charges) }
+            end
+        end
+    end
+    return list
+end
+
+-- Every temporary enchant on a weapon slot, each as game.weaponImbue gives
+-- one. On Forever a weapon can hold two at once, a temporary enchant and a
+-- class imbue; elsewhere one at most.
+function game.weaponImbues(slot)
+    if isSecret(slot) or not WEAPON_SLOTS[slot] then return {} end
+    return weaponEnchants(slot) or { game.weaponImbue(slot) }
+end
+
+-- A weapon slot's one temporary enchant, from the APIs that give a slot one:
+-- its enchant ID, the seconds it has left, and its charges; nil without one.
 function game.weaponImbue(slot)
     if isSecret(slot) or not WEAPON_SLOTS[slot] then return end
     local id, left, charges

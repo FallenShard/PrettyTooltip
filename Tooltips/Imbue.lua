@@ -27,12 +27,30 @@ local REMAINING = { { 86400, "SPELL_TIME_REMAINING_DAYS" }, { 3600, "SPELL_TIME_
     { 60, "SPELL_TIME_REMAINING_MIN" }, { 1, "SPELL_TIME_REMAINING_SEC" } }
 
 -- The weapon slot of the imbue button the tooltip shows for, which the game's
--- buff bar marks as a temporary enchant's.
+-- buff bar marks as a temporary enchant's, and the button.
 local function slotOf(tooltip)
     local owner = util.call(tooltip.GetOwner, tooltip)
     if type(owner) ~= "table" or readable(owner.auraType) ~= "TempEnchant" then return end
     local slot = util.number((util.call(owner.GetID, owner)))
-    if slot and SLOT_NAMES[slot] then return slot end
+    if slot and SLOT_NAMES[slot] then return slot, owner end
+end
+
+-- Which of a weapon's enchants the button shows, when it has more than one (on
+-- Forever, a poison and a class imbue): both buttons give the same slot, so
+-- go by when the button's ends and its charges.
+local function shownBy(owner, imbues)
+    if #imbues < 2 then return imbues[1] end
+    local info = readable(owner.buttonInfo)
+    local expires = type(info) == "table" and util.number(info.expirationTime)
+    if not expires then return end
+    local count = util.number(info.count)
+    local now, best, bestGap = GetTime(), nil, nil
+    for _, imbue in ipairs(imbues) do
+        local gap = math.abs(now + (imbue.remaining or 0) - expires)
+        if count ~= imbue.charges then gap = gap + 1e6 end
+        if not bestGap or gap < bestGap then best, bestGap = imbue, gap end
+    end
+    return best
 end
 
 local function remainingText(seconds)
@@ -69,8 +87,8 @@ local function spellOf(spellID, game)
 end
 
 local function imbueOf(tooltip, game)
-    local slot = slotOf(tooltip)
-    local imbue = slot and game.weaponImbue(slot)
+    local slot, owner = slotOf(tooltip)
+    local imbue = slot and shownBy(owner, game.weaponImbues(slot))
     if imbue then return slot, imbue end
 end
 

@@ -2,9 +2,9 @@
 -- Alpha zero hides the line, but the button must stop receiving mouse input.
 return function(test)
     local data = { type = 0, id = 1, lines = { { lineIndex = 1, leftText = "Ring" } } }
-    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua",
+    local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Core/TooltipPlacement.lua",
         "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua",
-        "Panel/Layout.lua", "Panel/Render.lua", "Integration/Native.lua", "Integration/Hooks.lua" }, {
+        "Panel/Layout.lua", "Panel/Render.lua", "Integration/Native.lua", "Integration/Placement.lua", "Integration/Hooks.lua" }, {
         enums = { TooltipDataType = { Item = 0 } }, tooltip = "ItemRefTooltip", data = data,
         lines = { { left = { text = "Ring" } } },
     })

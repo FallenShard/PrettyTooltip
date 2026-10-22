@@ -21,6 +21,8 @@ local DEFAULTS = {
     petPanels = true,
     minimapPanels = true,
     taxiPanels = true,
+    mailPanels = true,
+    iconMail = true,
     iconItems = true,
     iconSpells = true,
     iconObjects = true,
@@ -135,6 +137,8 @@ end
 -- tooltipType: "item" (default), "spell", "object", "unit", "aura", "quest", "macro", or "shared" by all. color is where the picker starts
 -- while the color is automatic.
 ns.ELEMENTS = {
+    { key = "mailTitle", label = "Mail title", size = 16, title = true, color = colors.title, tooltipType = "mail" },
+    { key = "mailPrices", label = "Attachments and prices", size = 12, color = colors.detail, tooltipType = "mail" },
     { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
         note = "Quality color unless set." },
     { key = "subtitle", label = "Type and slot", size = 13, color = { .9, .9, .9 },
@@ -248,6 +252,7 @@ ns.TOOLTIP_TYPES = {
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
     { label = "Flight paths", restyle = "taxiPanels", types = {} },
+    { label = "Mail", restyle = "mailPanels", types = {} },
     { label = "Quests", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
     { label = "Macros", restyle = "macroPanels", cursor = "cursorMacros", types = { "Macro" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
@@ -364,7 +369,7 @@ end
 -- The backdrop's opacity with none set, for every type and style.
 ns.BACKDROP_ALPHA = .9
 ns.TYPE_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests",
-    macro = "Macros" }
+    macro = "Macros", mail = "Mail" }
 
 -- The header band's opacity at an edge ("Top" or "Bottom") for a tooltip type; one
 -- without its own follows the setting shared by all, and nil means the default.
