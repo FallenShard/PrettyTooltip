@@ -37,15 +37,48 @@ return function(test)
     local panel = ns.ui.panels[tooltip]
     test.check("the first target renders without a switch debounce", { panel.guid, renders }, { "first", 1 })
 
+    ns.Native.restoreNative(tooltip)
+    test.check("native tooltip is restored before switching units", tooltip:GetAlpha(), 1)
+    tooltip._scripts.OnTooltipCleared(tooltip)
+    local deferredRestore = scheduled[#scheduled].callback
     handover("second")
     test.check("a new target waits for the configurable debounce",
         { panel.guid, renders, scheduled[#scheduled].delay }, { "first", 1, .2 })
+    test.check("native tooltip stays hidden while the debounce is pending", tooltip:GetAlpha(), 0)
+    deferredRestore()
+    test.check("a deferred native restore cannot reveal the tooltip during debounce", tooltip:GetAlpha(), 0)
+    tooltip:SetAlpha(1)
+    test.check("a native alpha reset is suppressed during debounce", tooltip:GetAlpha(), 0)
+    tooltip:Show()
+    test.check("a native show is suppressed during debounce", tooltip:GetAlpha(), 0)
+    ns.Native.fadeOut(tooltip)
+    test.check("a native fade during debounce is covered or parked",
+        ns.Native.isParked(tooltip) or panel:IsShown(), true)
+    test.check("a native fade during debounce cannot reveal the tooltip", tooltip:GetAlpha(), 0)
+    local secondDebounce = scheduled[#scheduled]
+    panel.fingerprint = nil
+    scheduled[1].callback()
+    test.check("a queued tooltip refresh cannot render while the debounce is pending",
+        { panel.guid, renders }, { "first", 1 })
     handover("third")
-    test.check("a later target replaces the pending target", #scheduled, 3)
-    scheduled[2].callback()
+    test.check("a later target replaces the pending target", #scheduled, 4)
+    local thirdDebounce = scheduled[#scheduled]
+    secondDebounce.callback()
     test.check("superseded target callback is ignored", { panel.guid, renders }, { "first", 1 })
-    scheduled[3].callback()
+    thirdDebounce.callback()
     test.check("the latest stable target renders", { panel.guid, renders }, { "third", 2 })
+
+    handover("fourth")
+    local fourthDebounce = scheduled[#scheduled]
+    test.check("the previous styled panel is hidden during an uncached unit debounce", panel:IsShown(), false)
+    tooltip._data = { type = 2, guid = "fifth", lines = {} }
+    fourthDebounce.callback()
+    test.check("an expired timer tracks the latest unit before its post-call",
+        { panel.guid, renders, panel:IsShown(), tooltip:GetAlpha(), scheduled[#scheduled].delay },
+        { "third", 2, false, 0, ns.Hooks.unitDebounce })
+    scheduled[#scheduled].callback()
+    test.check("the latest unit renders after its own debounce", { panel.guid, renders }, { "fifth", 3 })
+    test.check("the panel returns only after the latest unit is ready", panel:IsShown(), true)
 
     local readsBeforeCacheHit = reads
     handover("first")

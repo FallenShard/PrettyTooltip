@@ -15,7 +15,7 @@ local native = ns.Native
 local restoreNative, showsDataType = native.restoreNative, native.showsDataType
 local hooks = {}
 ns.Hooks = hooks
-hooks.unitDebounce = 0.1
+hooks.unitDebounce = 0.15
 local UNIT_MODEL_CACHE_LIMIT = 15
 local unitModelCache, unitModelOrder = {}, {}
 local unitCacheDebug = false
@@ -168,6 +168,7 @@ end
 local function update(tooltip, data, model)
     if not util.canModify(tooltip) or native.isParked(tooltip) then return end
     local panel = getPanel(tooltip)
+    if panel.unitDebouncePending then return end
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
     local wasShown = panel:IsShown()
@@ -212,7 +213,7 @@ update = probe("update", update)
 
 local function finishTooltip(tooltip, panel, data, token)
     if not util.canModify(tooltip) or panel.refreshToken ~= token or not util.call(tooltip.IsShown, tooltip)
-        or not showsDataType(tooltip, panel) then return end
+        or panel.unitDebouncePending or not showsDataType(tooltip, panel) then return end
     local pending = panel.contentPending
     panel.contentPending = nil
     -- A producer can signal completion synchronously; the fallback then sees
@@ -338,14 +339,14 @@ function hooks.comparisonsBatched() return batchComparisons end
 -- until no new item post-call replaces it in that frame.
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
-    if not panel or panel.nativeOnly or panel.stickyUnit then return end
+    if not panel or panel.nativeOnly or panel.stickyUnit or panel.unitDebouncePending then return end
     if panel.data and panel.data.fromLines then panel.data = nil end
     panel.restorePending = true
     panel.contentPending = nil
     panel.refreshToken = (panel.refreshToken or 0) + 1
     local token = panel.refreshToken
     C_Timer.After(0, function()
-        if panel.refreshToken == token and panel.restorePending then
+        if panel.refreshToken == token and panel.restorePending and not panel.unitDebouncePending then
             restoreNative(tooltip)
         end
     end)
@@ -480,6 +481,7 @@ local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
     local panel = panels[tooltip]
     if panel then
         panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+        panel.unitDebouncePending = nil
     end
     if dataType == Enum.TooltipDataType.Unit and InCombatLockdown() and isNonPlayerTooltip(tooltip, data) then
         local hasEngagedEnemies = scanEngagedEnemies()
@@ -538,16 +540,51 @@ local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
         and previousDataType == dataType and key ~= previousKey and not unitModel and hooks.unitDebounce > 0 then
         panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
         local debounceToken = panel.unitDebounceToken
+        panel.unitDebouncePending = true
+        panel.refreshToken = (panel.refreshToken or 0) + 1
+        panel.restorePending = false
+        panel.contentPending = nil
+        panel:Hide()
+        if not panel.nativeAlpha then
+            panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip)))
+        end
+        if panel.nativeAlpha and util.call(tooltip.GetAlpha, tooltip) ~= 0 then tooltip:SetAlpha(0) end
         C_Timer.After(hooks.unitDebounce, function()
-            if panel.unitDebounceToken ~= debounceToken or not util.canModify(tooltip)
-                or util.call(tooltip.IsShown, tooltip) ~= true then return end
+            if panel.unitDebounceToken ~= debounceToken then return end
+            if not util.canModify(tooltip) or util.call(tooltip.IsShown, tooltip) ~= true then
+                panel.unitDebouncePending = nil
+                restoreNative(tooltip)
+                return
+            end
             local currentData = util.call(tooltip.GetTooltipData, tooltip)
             if type(currentData) == "table" then
                 local currentKey, currentValid = keyOf(TooltipTypes[dataType], tooltip, currentData)
-                if not currentValid or currentKey ~= key then return end
+                if not currentValid then
+                    panel.unitDebouncePending = nil
+                    restoreNative(tooltip)
+                    return
+                end
+                if currentKey ~= key then
+                    if util.call(tooltip.IsTooltipType, tooltip, dataType) == true then
+                        onTooltipData(dataType, tooltip, currentData)
+                    else
+                        panel.unitDebouncePending = nil
+                        restoreNative(tooltip)
+                    end
+                    return
+                end
+            else
+                panel.unitDebouncePending = nil
+                restoreNative(tooltip)
+                return
             end
             local isUnit = util.call(tooltip.IsTooltipType, tooltip, dataType)
-            if isUnit == false then return end
+            if isUnit == false then
+                panel.unitDebouncePending = nil
+                restoreNative(tooltip)
+                return
+            end
+            panel.unitDebouncePending = nil
             onTooltipData(dataType, tooltip, data, true)
         end)
         return
@@ -575,6 +612,10 @@ local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
         local function onNativeShown(shown)
             if panel.nativeOnly then return end
             if not util.canModify(shown) then return end
+            if panel.unitDebouncePending then
+                if panel.nativeAlpha then shown:SetAlpha(0) end
+                return
+            end
             if panel.stickyUnit then
                 if panel.nativeAlpha then shown:SetAlpha(0) end
                 return
@@ -621,7 +662,7 @@ local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
                 restoreNative(faded)
                 return
             end
-            if not (panel.nativeAlpha and panel:IsShown()) then return end
+            if not (panel.nativeAlpha and (panel:IsShown() or panel.unitDebouncePending)) then return end
             panel.nativeAlpha = alpha
             panel.settingAlpha = true
             pcall(faded.SetAlpha, faded, 0)

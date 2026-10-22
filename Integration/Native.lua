@@ -108,6 +108,13 @@ end
 local function fadeOut(tooltip)
     if not util.canModify(tooltip) then return end
     local panel = panels[tooltip]
+    if panel and panel.unitDebouncePending and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip) then
+        if not park(tooltip, panel) then
+            panel:Show()
+            pcall(tooltip.SetAlpha, tooltip, 0)
+        end
+        return
+    end
     if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
     if panel.dataType == Enum.TooltipDataType.Unit then
         panel.stickyUnit = true
