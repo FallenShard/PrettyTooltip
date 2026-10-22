@@ -81,6 +81,29 @@ local function handleCommand(message)
         print("PrettyTooltip: Pretty panels use frame anchors. Select Blizzard layout in the options to use Blizzard tooltips.")
         return
     end
+    if wanted == "fade" then
+        local count = ns.ui.testFadeOut()
+        local duration = ns.ui.fadeOutDuration()
+        if count > 0 then
+            print(("PrettyTooltip: fading out %d visible panel(s) over %g seconds."):format(count, duration))
+        else
+            print(("PrettyTooltip: the next restyled tooltip will fade out over %g seconds."):format(duration))
+        end
+        return
+    end
+    local cacheAction = wanted:match("^debounce%s*(%S*)$")
+    if cacheAction then
+        if cacheAction == "" then
+            ns.Hooks.debugUnitCache()
+        elseif cacheAction == "on" then
+            ns.Hooks.debugUnitCache(true)
+        elseif cacheAction == "off" then
+            ns.Hooks.debugUnitCache(false)
+        else
+            print("PrettyTooltip: use /ptip debounce [on|off].")
+        end
+        return
+    end
     local perfSeconds = wanted:match("^perf%s*(%d*)$")
     if perfSeconds then
         if ns.perfCapture then ns.perfCapture(math.min(30, math.max(1, tonumber(perfSeconds) or 5))) end

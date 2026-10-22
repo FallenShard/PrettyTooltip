@@ -15,7 +15,22 @@ local native = ns.Native
 local restoreNative, showsDataType = native.restoreNative, native.showsDataType
 local hooks = {}
 ns.Hooks = hooks
+hooks.unitDebounce = 0.1
+local UNIT_MODEL_CACHE_LIMIT = 15
+local unitModelCache, unitModelOrder = {}, {}
+local unitCacheDebug = false
 local batchComparisons = false
+local activityHooksInstalled = false
+
+local function installActivityHooks()
+    if activityHooksInstalled then return end
+    activityHooksInstalled = true
+    for _, name in ipairs({ "UseAction", "CastSpell", "CastSpellByName", "TargetUnit", "InteractUnit",
+        "MoveForwardStart", "MoveBackwardStart", "TurnLeftStart", "TurnRightStart", "StrafeLeftStart",
+        "StrafeRightStart", "JumpOrAscendStart", "CameraOrSelectOrMoveStart", "TurnOrActionStart" }) do
+        if type(_G[name]) == "function" then hooksecurefunc(name, ui.noteActivity) end
+    end
+end
 
 local function showsOriginal(panel)
     local tooltipType = TooltipTypes[panel.dataType]
@@ -60,6 +75,84 @@ local function keyOf(tooltipType, tooltip, data)
     if ok and not isSecret(key) then return key, true end
 end
 
+local function unitCacheSnapshot()
+    local entries = {}
+    for _, key in ipairs(unitModelOrder) do
+        local entry = unitModelCache[key]
+        local name = entry and util.safeText(entry.model.name)
+        local suffix = key:match("([^%-]+)$") or key
+        entries[#entries + 1] = ("%s [%s]"):format((name or "<unnamed>"):gsub("|", "||"), suffix)
+    end
+    return entries
+end
+hooks.unitCacheSnapshot = function()
+    local snapshot = unitCacheSnapshot()
+    local copy = {}
+    for index, entry in ipairs(snapshot) do copy[index] = entry end
+    return copy
+end
+
+local function reportUnitCache(reason)
+    if not unitCacheDebug then return end
+    print(("PrettyTooltip unit cache (%s, %d/%d; oldest to newest): %s"):format(reason, #unitModelOrder,
+        UNIT_MODEL_CACHE_LIMIT, #unitModelOrder > 0 and table.concat(unitCacheSnapshot(), " > ") or "<empty>"))
+end
+
+function hooks.debugUnitCache(enabled)
+    if enabled == nil then
+        unitCacheDebug = not unitCacheDebug
+    else
+        unitCacheDebug = enabled == true
+    end
+    if unitCacheDebug then
+        reportUnitCache("monitoring on")
+    else
+        print("PrettyTooltip unit cache monitoring off.")
+    end
+    return unitCacheDebug
+end
+
+local function rememberUnitModel(key, model)
+    if type(key) ~= "string" or type(model) ~= "table" then return end
+    for index, cachedKey in ipairs(unitModelOrder) do
+        if cachedKey == key then table.remove(unitModelOrder, index); break end
+    end
+    unitModelCache[key] = { model = model, settingsVersion = ns.settingsVersion or 0 }
+    unitModelOrder[#unitModelOrder + 1] = key
+    if #unitModelOrder > UNIT_MODEL_CACHE_LIMIT then
+        local evicted = table.remove(unitModelOrder, 1)
+        unitModelCache[evicted] = nil
+        reportUnitCache("evicted " .. (evicted:match("([^%-]+)$") or evicted))
+    else
+        reportUnitCache("updated " .. (key:match("([^%-]+)$") or key))
+    end
+end
+
+local function cachedUnitModel(key)
+    if type(key) ~= "string" then return end
+    local entry = unitModelCache[key]
+    if not entry then return end
+    if entry.settingsVersion ~= (ns.settingsVersion or 0) then
+        unitModelCache[key] = nil
+        for index, cachedKey in ipairs(unitModelOrder) do
+            if cachedKey == key then table.remove(unitModelOrder, index); break end
+        end
+        reportUnitCache("invalidated " .. (key:match("([^%-]+)$") or key))
+        return
+    end
+    for index, cachedKey in ipairs(unitModelOrder) do
+        if cachedKey == key then table.remove(unitModelOrder, index); break end
+    end
+    unitModelOrder[#unitModelOrder + 1] = key
+    reportUnitCache("hit " .. (key:match("([^%-]+)$") or key))
+    local model, unit = entry.model, entry.model.unit
+    if unit and ns.Game.unitGUID(unit) ~= key then
+        local current = ns.Game.unitToken(key)
+        model.unit = current and ns.Game.unitGUID(current) == key and current or nil
+    end
+    return model
+end
+
 -- The type that draws this tooltip in its data type's place, while it is
 -- restyled: an imbue's, for the weapon tooltip its buff button shows.
 local function claimantOf(dataType, tooltip, data)
@@ -77,6 +170,8 @@ local function update(tooltip, data, model)
     local panel = getPanel(tooltip)
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
+    local wasShown = panel:IsShown()
+    if not wasShown then ui.resetFade(panel) end
     panel.nativeOnly = nil
     local ok = true
     if not model then ok, model = pcall(tooltipType.read, tooltip, data, ns.Game) end
@@ -85,6 +180,7 @@ local function update(tooltip, data, model)
     if not panel.nativeAlpha then restoreNative(tooltip); return end
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
+    ui.consumeTestFadeOut(panel)
     if panel.dataType == Enum.TooltipDataType.Unit then panel.unitDead = model.dead end
     if panel.dataType == Enum.TooltipDataType.Unit and ns.ui.unitLayoutKey then
         local layoutOK, layoutKey = pcall(ns.ui.unitLayoutKey, panel, model)
@@ -98,6 +194,7 @@ local function update(tooltip, data, model)
     local key, valid = keyOf(tooltipType, tooltip, data)
     if not valid then restoreNative(tooltip); return end
     panel.key = key
+    if panel.dataType == Enum.TooltipDataType.Unit then rememberUnitModel(key, model) end
     if panel.dataType == Enum.TooltipDataType.Item then
         panel.model, panel.modelDataType = model, panel.dataType
         panel.modelVersion, panel.modelDetails = ns.settingsVersion or 0, ns.detailsKeyDown()
@@ -342,6 +439,7 @@ local function updateUnitTextFields(tooltip, panel, data, key, token)
     if not ok or not model then return false end
     local fieldsOK, fields, tint, strength = pcall(ns.ui.unitTextFields, panel, model)
     if not fieldsOK or type(fields) ~= "table" then return false, model end
+    rememberUnitModel(key, model)
     local layoutKey
     if ns.ui.unitLayoutKey then
         local layoutOK
@@ -377,9 +475,12 @@ local function updateUnitTextFields(tooltip, panel, data, key, token)
     return true
 end
 
-local function onTooltipData(dataType, tooltip, data)
+local function onTooltipData(dataType, tooltip, data, skipUnitDebounce)
     if not util.canModify(tooltip) then return end
     local panel = panels[tooltip]
+    if panel then
+        panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+    end
     if dataType == Enum.TooltipDataType.Unit and InCombatLockdown() and isNonPlayerTooltip(tooltip, data) then
         local hasEngagedEnemies = scanEngagedEnemies()
         local guid = data.guid
@@ -391,6 +492,7 @@ local function onTooltipData(dataType, tooltip, data)
         if disregardedEnemies[guid] or (hasEngagedEnemies and not engagedEnemies[guid]) then
             if panel then
                 panel.refreshToken = (panel.refreshToken or 0) + 1
+                panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
                 if panel.nativeAlpha and util.call(tooltip.GetAlpha, tooltip) ~= 0 then tooltip:SetAlpha(0) end
             end
             return
@@ -429,6 +531,28 @@ local function onTooltipData(dataType, tooltip, data)
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)
     if not valid then restoreNative(tooltip); return end
+    local unitModel = dataType == Enum.TooltipDataType.Unit and key ~= previousKey
+        and cachedUnitModel(key) or nil
+    if unitModel then panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1 end
+    if not skipUnitDebounce and dataType == Enum.TooltipDataType.Unit
+        and previousDataType == dataType and key ~= previousKey and not unitModel and hooks.unitDebounce > 0 then
+        panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+        local debounceToken = panel.unitDebounceToken
+        C_Timer.After(hooks.unitDebounce, function()
+            if panel.unitDebounceToken ~= debounceToken or not util.canModify(tooltip)
+                or util.call(tooltip.IsShown, tooltip) ~= true then return end
+            local currentData = util.call(tooltip.GetTooltipData, tooltip)
+            if type(currentData) == "table" then
+                local currentKey, currentValid = keyOf(TooltipTypes[dataType], tooltip, currentData)
+                if not currentValid or currentKey ~= key then return end
+            end
+            local isUnit = util.call(tooltip.IsTooltipType, tooltip, dataType)
+            if isUnit == false then return end
+            onTooltipData(dataType, tooltip, data, true)
+        end)
+        return
+    end
+    panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
     panel.dataType = dataType
     panel.data = data
     panel.refreshToken = (panel.refreshToken or 0) + 1
@@ -591,8 +715,8 @@ local function onTooltipData(dataType, tooltip, data)
     local changedUnit = dataType == Enum.TooltipDataType.Unit
         and previousDataType == Enum.TooltipDataType.Unit and panel:IsShown()
         and key ~= previousKey
-    local textOnly, unitModel
-    if changedUnit then textOnly, unitModel = updateUnitTextFields(tooltip, panel, data, key, token) end
+    local textOnly
+    if changedUnit and not unitModel then textOnly, unitModel = updateUnitTextFields(tooltip, panel, data, key, token) end
     if not textOnly and (not panel:IsShown() or dataType ~= previousDataType or (key and key ~= previousKey)) then
         update(tooltip, data, unitModel)
     elseif not textOnly then
@@ -648,7 +772,12 @@ unitStatus:SetScript("OnEvent", function(_, event, unit)
                 local ok, model = pcall(tooltipType.read, tooltip, panel.data, ns.Game, unit)
                 if ok and model then
                     local rendered = pcall(tooltipType.render, panel, tooltip, model)
-                    if rendered then panel.unitDead = model.dead else restoreNative(tooltip) end
+                    if rendered then
+                        panel.unitDead = model.dead
+                        rememberUnitModel(guid, model)
+                    else
+                        restoreNative(tooltip)
+                    end
                 end
             end
         end
@@ -659,6 +788,7 @@ local installed = false
 function hooks.install()
     if installed then return end
     installed = true
+    installActivityHooks()
     installComparisonHooks()
     if not installAuctionHouseHook() then
         auctionLoadFrame = CreateFrame("Frame")

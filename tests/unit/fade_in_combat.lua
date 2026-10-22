@@ -160,6 +160,7 @@ return function(test)
         lines = { { left = { text = "Object" } } },
     })
     InCombatLockdown = function() return combat end
+    unitNs.Hooks.unitDebounce = 0
     local unitDead = false
     local unitRenderCount = 0
     unitNs.ui.defineTooltipType(2, {
