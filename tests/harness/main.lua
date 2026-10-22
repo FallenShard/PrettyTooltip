@@ -275,10 +275,12 @@ function main.track(hits)
 end
 
 -- check(name, got, expected): got and expected are compared as dumped text.
-function main.unit(testSource, testName, sources, serialize, makeWorld)
+-- tocs: each .toc's files in load order, as test.tocs.forever and test.tocs.retail.
+-- enums: the game's enums from harness/enums.lua, as test.enums, to load with.
+function main.unit(testSource, testName, sources, serialize, makeWorld, tocs, enums)
     local results = {}
     local notes, report = notesCollector()
-    local test = {}
+    local test = { tocs = tocs, enums = enums }
     -- Loads the named addon files with a world answering from fixture's calls.
     function test.load(files, fixture)
         local world = makeWorld(fixture or {}, fixture and fixture.enums or {}, report)
@@ -287,6 +289,30 @@ function main.unit(testSource, testName, sources, serialize, makeWorld)
             for _, entry in ipairs(world.tooltips) do ns.keptAuras[entry.tooltip] = entry.capture.aura end
         end
         return ns, world
+    end
+    -- A list of shared files as retail's .toc loads them: Retail/Retail.lua
+    -- first, and each other file in Retail/ just before the file after it in
+    -- that .toc, when the list has that file. Retail/Data/Schools.lua, which
+    -- replaces Forever's own schools, only when the list names it. A language's
+    -- file, which that .toc lists for its clients alone, brings Retail/Locale's.
+    function test.retail(files)
+        local before, waiting = {}, {}
+        for _, file in ipairs(tocs.retail) do
+            if file:match("^Retail/") then
+                waiting[#waiting + 1] = file
+            else
+                before[file], waiting = waiting, {}
+            end
+        end
+        local list = { "Retail/Retail.lua" }
+        for _, file in ipairs(files) do
+            if file:match("^Locale/") and sources["Retail/" .. file] then list[#list + 1] = "Retail/" .. file end
+            for _, retail in ipairs(before[file] or {}) do
+                if retail ~= "Retail/Retail.lua" and retail ~= "Retail/Data/Schools.lua" then list[#list + 1] = retail end
+            end
+            list[#list + 1] = file
+        end
+        return list
     end
     function test.check(name, got, expected)
         local gotText = type(got) == "table" and serialize.dump(got) or tostring(got)

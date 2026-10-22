@@ -25,6 +25,10 @@ local CATEGORIES = {
 }
 local CATEGORY = {}
 for _, category in ipairs(CATEGORIES) do CATEGORY[category.key] = category end
+-- Retail's secondary stats' colors (Retail/Data/Stats.lua), which the editor lists apart.
+if ns.IsRetail() then
+    for _, category in ipairs(ns.Retail.Stats.CATEGORIES) do CATEGORY[category.key] = category end
+end
 stats.CATEGORIES = CATEGORIES
 local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  "
 
@@ -98,6 +102,11 @@ local STATS = {
     MANA_REGEN = { category = "Mana", name = L["Mana per 5 sec"] },
     MANA = { category = "Mana", name = mod("MANA_SHORT"), line = mod("MANA") },
 }
+
+-- Retail's ratings, as its items print them: "+120 Haste" (Retail/Data/Stats.lua).
+if ns.IsRetail() then
+    for key, def in pairs(ns.Retail.Stats.STATS) do STATS[key] = def end
+end
 
 -- A stat's name, as the panel shows it: "Fire Resistance", "Attack Power vs Undead".
 local function nameOf(stat)
