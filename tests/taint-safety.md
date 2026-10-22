@@ -29,7 +29,7 @@ Code an addon runs is insecure, and every value it writes carries that taint. Bl
 
 ### None known
 
-A world unit's tooltip that starts fading used to be hidden with `Hide()` outside combat, which ran `GameTooltip_OnHide` under the addon's taint. The game sets a fading tooltip's alpha every frame in C, past the `SetAlpha` hook (seen with `/ptip trace`), so the addon moves it off the screen instead: it unclamps and anchors it far below the screen's corner, then pins the unit panel where it stood and keeps it visible until a new unit is hovered. Matching unit status events refresh its tint when it dies. Other tooltip types still hide their panels when they fade. `SetClampedToScreen`, `ClearAllPoints`, and `SetPoint` run no Lua. The new unit restores the parked tooltip and its clamping (`unit/fade_in_combat.lua`, `unit/cursor_combat.lua`).
+A world unit's tooltip that starts fading used to be hidden with `Hide()` outside combat, which ran `GameTooltip_OnHide` under the addon's taint. The game sets a fading tooltip's alpha every frame in C, past the `SetAlpha` hook (seen with `/ptip trace`), so the addon moves it off the screen instead: it unclamps and anchors it far below the screen's corner, then pins the unit panel where it stood and keeps it visible until a new unit is hovered. Same-layout unit changes update their portrait and tint with the text; when the new unit has fewer header fields, its fresh model is fully rendered so old fields are cleared. Matching unit status events refresh its tint when it dies. During combat, if living hostile NPCs discovered through nearby unit tokens are in combat with the player, only those NPCs may replace the retained unit; newly engaged NPCs discovered during the encounter are added. After all tracked enemies die, other units may update it. Dead GUIDs stay ignored until combat ends. Other tooltip types still hide their panels when they fade. `SetClampedToScreen`, `ClearAllPoints`, and `SetPoint` run no Lua. The new unit restores the parked tooltip and its clamping (`unit/fade_in_combat.lua`, `unit/cursor_combat.lua`).
 
 ### Not a concern
 
@@ -79,13 +79,12 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 
 | API | Taint / secret potential | Use in the addon |
 | --- | --- | --- |
-| `GameTooltipStatusBar`: `IsShown`, `GetParent`, `SetParent`, `GetNumPoints`, `GetPoint`, `ClearAllPoints`, `SetPoint`, `GetHeight`, `SetHeight`, `GetStatusBarTexture` | Moving a protected bar would be blocked, so `util.canModify` is checked first; the bar's value is secret but never read | Borrows the game's bar into the unit panel and returns it as it was (Unit). |
 
 ### Units and auras
 
 | API | Taint / secret potential | Use in the addon |
 | --- | --- | --- |
-| `UnitExists`, `UnitGUID`, `UnitTokenFromGUID`, `UnitName`, `UnitLevel`, `UnitEffectiveLevel`, `UnitClass`, `UnitRace`, `UnitFactionGroup`, `UnitReaction`, `UnitIsUnit`, `UnitIsPlayer`, `UnitIsTapDenied`, `UnitIsPVP`, `UnitIsDeadOrGhost`, `UnitIsAFK`, `UnitIsDND`, `UnitCreatureType`, `UnitClassification`, `GetGuildInfo` | **Secret** for some units, mostly in combat | Unit panels: name, level, class color, badges, reaction, guild (Game). All through `util.call`; a secret result reads as missing. |
+| `UnitExists`, `UnitGUID`, `UnitTokenFromGUID`, `UnitName`, `UnitLevel`, `UnitEffectiveLevel`, `UnitClass`, `UnitRace`, `UnitFactionGroup`, `UnitReaction`, `UnitIsUnit`, `UnitIsPlayer`, `UnitIsTapDenied`, `UnitIsPVP`, `UnitIsDeadOrGhost`, `UnitAffectingCombat`, `UnitCanAttack`, `UnitIsAFK`, `UnitIsDND`, `UnitCreatureType`, `UnitClassification`, `GetGuildInfo` | **Secret** for some units, mostly in combat | Unit panels: name, level, class color, badges, reaction, guild (Game); combat unit eligibility. All through `util.call`; a secret result reads as missing. |
 | `UnitHealth`, `UnitHealthMax` | **Secret** in Forever | Not used by the panels. Recorded by `/ptip capture` in debug builds only, results guarded. |
 | `C_UnitAuras.GetAuraDataByIndex`, `C_UnitAuras.GetAuraDataByAuraInstanceID` | **Secret** (fields such as stacks, duration, and expiration) | Aura panels (Game, Aura). Fields read through `readable` and `util.number`. |
 | `GetQuestDifficultyColor` | **Secret** in principle | Level colors on units and quests. |
@@ -110,6 +109,7 @@ The second column says what can go wrong: **Secret** marks a value the client ca
 | API | Taint / secret potential | Use in the addon |
 | --- | --- | --- |
 | `CreateFrame`, `CreateColor`, `NineSliceUtil.ApplyLayoutByName`, `SetPortraitTexture` | None: addon-owned frames | Panels, the editor, the report window, and the cursor tracker GameTooltip hangs from while following. The editor's scanner is an addon-created `GameTooltip`, `PrettyTooltipScanner`. |
+| `GameTooltipStatusBar`: `IsShown`, `GetParent`, `SetParent`, `GetNumPoints`, `GetPoint`, `ClearAllPoints`, `SetPoint`, `GetHeight`, `SetHeight`, `GetStatusBarTexture` | Moving a protected bar would be blocked, so `util.canModify` is checked first; the bar's value is secret but never read | Borrows the game's bar into the unit panel and returns it as it was (Unit). |
 | `PixelUtil.GetPixelToUIUnitFactor`, `PixelUtil.GetNearestPixelSize`, `GetPhysicalScreenSize`, `GetCursorPosition` | **Secret** in principle; checked before arithmetic | Pixel snapping, cursor follow, the editor's dragging. |
 | `Settings.RegisterCanvasLayoutCategory`, `Settings.RegisterAddOnCategory`, `InterfaceOptions_AddCategory` | None known | Registers the options page. |
 | `Settings.OpenToCategory`, `InterfaceOptionsFrame_OpenToCategory` | **Taint** in the settings window; does not open in combat | `/ptip options` and the editor's More options, outside combat only. `HideUIPanel(SettingsPanel)` is not called. |

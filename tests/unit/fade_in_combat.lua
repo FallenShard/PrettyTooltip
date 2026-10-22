@@ -159,15 +159,21 @@ return function(test)
         lines = { { left = { text = "Object" } } },
     })
     local unitDead = false
+    local unitRenderCount = 0
     unitNs.ui.defineTooltipType(2, {
         read = function(_, data, _, unit)
             if unit then return { guid = data.guid, dead = unitDead } end
-            return data
+            return { guid = data.guid, dead = unitDead, isPlayer = data.isPlayer, color = data.color,
+                omitInfo = data.omitInfo, portrait = data.portrait }
         end,
         render = function(panel, tooltip, model)
+            unitRenderCount = unitRenderCount + 1
             panel.unitGuid = model.guid
             panel.unitReaction = model.reaction
+            panel.renderedOmitInfo = model.omitInfo
             panel.unitDead = model.dead
+            panel.unitTextFields = { name = { text = model.guid } }
+            if not model.omitInfo then panel.unitTextFields.info = { text = "unchanged" } end
             unitNs.ui.finishPanel(panel, tooltip, 40)
         end,
         key = function(_, data) return data.guid end,
@@ -217,4 +223,100 @@ return function(test)
                 unitNs.Native.isParked(unitTooltip) },
             { true, target.guid, target.reaction, false })
     end
+
+    local updatedFields = {}
+    local updatedTint
+    local updatedPortrait
+    local unitUpdateOrder = {}
+    local fieldRegion = unitPanel:CreateFontString(nil, "OVERLAY")
+    unitNs.ui.unitTextFields = function(_, model)
+        local fields = { name = { text = model.guid } }
+        if not model.omitInfo then fields.info = { text = "unchanged" } end
+        return fields, model.color, .5
+    end
+    unitNs.ui.updatePanelTint = function(_, tint, strength, tooltipType)
+        updatedTint = { tint, strength, tooltipType }
+    end
+    unitNs.ui.updateUnitTextField = function(_, key, text)
+        unitUpdateOrder[#unitUpdateOrder + 1] = "text"
+        updatedFields[key] = text
+        fieldRegion:SetAlpha(1)
+    end
+    unitNs.ui.updateUnitPortrait = function(_, model)
+        unitUpdateOrder[#unitUpdateOrder + 1] = "portrait"
+        updatedPortrait = model.portrait
+    end
+    unitPanel.unitTextFields = { name = { text = unitPanel.unitGuid }, info = { text = "unchanged" } }
+    local renderCountBeforeTextUpdate = unitRenderCount
+    local hostileTint = { .9, .1, .1 }
+    unitCallback(unitTooltip, { guid = "text-only", reaction = 2, color = hostileTint,
+        portrait = "text-only-portrait", lines = {} })
+    test.check("a unit hover updates only the differing header text field",
+        { unitRenderCount, updatedFields, unitPanel:GetAlpha(), updatedTint },
+        { renderCountBeforeTextUpdate, { name = "text-only" }, 1,
+            { hostileTint, .5, "unit" } })
+    test.check("the differing text field updates without a fade", fieldRegion:GetAlpha(), 1)
+    test.check("a text-only unit update refreshes the portrait", updatedPortrait, "text-only-portrait")
+    test.check("the portrait update is requested before other unit text changes",
+        unitUpdateOrder, { "portrait", "text" })
+    local renderCountBeforeMissingField = unitRenderCount
+    unitCallback(unitTooltip, { guid = "without-info", omitInfo = true, lines = {} })
+    test.check("missing target fields trigger a full redraw that clears the old field",
+        { unitRenderCount, unitPanel.unitGuid, unitPanel.renderedOmitInfo, unitPanel.unitTextFields.info },
+        { renderCountBeforeMissingField + 1, "without-info", true, nil })
+    local unitTokens = { mouseover = "engaged-a", nameplate1 = "engaged-a", nameplate2 = "engaged-b",
+        target = "unengaged" }
+    local dead = {}
+    unitNs.Game.NEARBY_UNITS = { "target", "mouseover", "nameplate1", "nameplate2" }
+    unitNs.Game.unitExists = function(unit) return unitTokens[unit] ~= nil end
+    unitNs.Game.unitGUID = function(unit) return unitTokens[unit] end
+    unitNs.Game.unitToken = function(guid)
+        for token, tokenGuid in pairs(unitTokens) do
+            if tokenGuid == guid then return token end
+        end
+    end
+    unitNs.Game.unitIsPlayer = function(unit) return unit == "player" end
+    unitNs.Game.unitCanAttack = function(_, unit) return unit ~= "player" end
+    unitNs.Game.unitAffectingCombat = function(unit) return unit == "nameplate1" or unit == "nameplate2" end
+    unitNs.Game.unitIsDead = function(unit) return dead[unitTokens[unit]] == true end
+    unitTooltip.GetUnit = function() return "Creature", "mouseover" end
+    combat = true
+    unitWorld.fireEvent("PLAYER_REGEN_DISABLED")
+    unitTokens.mouseover = "engaged-a"
+    unitCallback(unitTooltip, { guid = "engaged-a", reaction = 2, lines = {} })
+    test.check("combat hovers update the tooltip for a living engaged enemy", unitPanel.unitGuid, "engaged-a")
+    unitTokens.nameplate3 = "engaged-c"
+    unitNs.Game.unitAffectingCombat = function(unit)
+        return unit == "nameplate1" or unit == "nameplate2" or unit == "nameplate3"
+    end
+    unitWorld.fireEvent("UNIT_COMBAT", "nameplate3")
+    unitTokens.mouseover = "engaged-c"
+    unitCallback(unitTooltip, { guid = "engaged-c", reaction = 2, lines = {} })
+    test.check("a new enemy joining the encounter is added to the engaged list", unitPanel.unitGuid, "engaged-c")
+    unitTokens.mouseover = "unengaged"
+    unitCallback(unitTooltip, { guid = "unengaged", reaction = 2, lines = {} })
+    test.check("combat hovers ignore enemies that are not engaged", unitPanel.unitGuid, "engaged-c")
+    dead["engaged-a"] = true
+    unitWorld.fireEvent("UNIT_HEALTH", "nameplate1")
+    unitTokens.mouseover = "engaged-b"
+    unitCallback(unitTooltip, { guid = "engaged-b", reaction = 2, lines = {} })
+    test.check("a different living engaged enemy can update the tooltip", unitPanel.unitGuid, "engaged-b")
+    dead["engaged-a"] = false
+    unitTokens.mouseover = "engaged-a"
+    unitCallback(unitTooltip, { guid = "engaged-a", reaction = 2, lines = {} })
+    test.check("a dead enemy stays disregarded for the rest of combat", unitPanel.unitGuid, "engaged-b")
+    dead["engaged-b"] = true
+    unitWorld.fireEvent("UNIT_HEALTH", "nameplate2")
+    dead["engaged-c"] = true
+    unitWorld.fireEvent("UNIT_HEALTH", "nameplate3")
+    unitTokens.mouseover = "unengaged"
+    unitCallback(unitTooltip, { guid = "unengaged", reaction = 2, lines = {} })
+    test.check("other units can update once no living engaged enemies remain", unitPanel.unitGuid, "unengaged")
+    unitTokens.mouseover = "engaged-a"
+    unitCallback(unitTooltip, { guid = "engaged-a", reaction = 2, lines = {} })
+    test.check("dead enemies remain ignored even after the gate opens", unitPanel.unitGuid, "unengaged")
+    combat = false
+    unitWorld.fireEvent("PLAYER_REGEN_ENABLED")
+    unitCallback(unitTooltip, { guid = "engaged-a", reaction = 2, lines = {} })
+    test.check("dead enemies are eligible again after combat ends", unitPanel.unitGuid, "engaged-a")
 end

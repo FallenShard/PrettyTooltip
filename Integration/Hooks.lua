@@ -220,9 +220,141 @@ local function scheduleRestore(tooltip)
     end)
 end
 
+local engagedEnemies, disregardedEnemies = {}, {}
+
+local function combatUnitTokens()
+    local tokens, seen = {}, {}
+    for _, unit in ipairs(ns.Game.NEARBY_UNITS) do
+        for _, candidate in ipairs({ unit, unit .. "target" }) do
+            if not seen[candidate] then
+                seen[candidate] = true
+                tokens[#tokens + 1] = candidate
+            end
+        end
+    end
+    return tokens
+end
+
+local function findUnit(guid)
+    local engaged = engagedEnemies[guid]
+    if type(engaged) == "string" and ns.Game.unitExists(engaged) and ns.Game.unitGUID(engaged) == guid then
+        return engaged
+    end
+    local token = ns.Game.unitToken(guid)
+    if type(token) == "string" and ns.Game.unitExists(token) and ns.Game.unitGUID(token) == guid then
+        return token
+    end
+    for _, unit in ipairs(combatUnitTokens()) do
+        if ns.Game.unitExists(unit) and ns.Game.unitGUID(unit) == guid then return unit end
+    end
+end
+
+local function collectCombatUnits()
+    local units = {}
+    for _, unit in ipairs(combatUnitTokens()) do
+        if ns.Game.unitExists(unit) then
+            local guid = ns.Game.unitGUID(unit)
+            if not isSecret(guid) and type(guid) == "string" then units[guid] = unit end
+        end
+    end
+    return units
+end
+
+local function scanEngagedEnemies()
+    if not InCombatLockdown() then
+        for guid in pairs(engagedEnemies) do engagedEnemies[guid] = nil end
+        for guid in pairs(disregardedEnemies) do disregardedEnemies[guid] = nil end
+        return false
+    end
+    local units = collectCombatUnits()
+    for guid, previousUnit in pairs(engagedEnemies) do
+        local unit = units[guid] or previousUnit
+        if ns.Game.unitGUID(unit) ~= guid then
+            unit = ns.Game.unitToken(guid)
+            if type(unit) ~= "string" or ns.Game.unitGUID(unit) ~= guid then unit = nil end
+        end
+        if unit and ns.Game.unitIsDead(unit) == true then
+            engagedEnemies[guid] = nil
+            disregardedEnemies[guid] = true
+        elseif unit then
+            engagedEnemies[guid] = unit
+        end
+    end
+    for guid, unit in pairs(units) do
+        if ns.Game.unitIsDead(unit) == true then
+            disregardedEnemies[guid] = true
+        elseif not disregardedEnemies[guid] and ns.Game.unitIsPlayer(unit) == false
+            and ns.Game.unitCanAttack("player", unit) == true
+            and ns.Game.unitAffectingCombat(unit) == true then
+            engagedEnemies[guid] = unit
+        end
+    end
+    return next(engagedEnemies) ~= nil
+end
+
+local function isNonPlayerTooltip(tooltip, data)
+    if isSecret(data) or type(data) ~= "table" or isSecret(data.guid) or type(data.guid) ~= "string" then
+        return false
+    end
+    local _, unit = util.call(tooltip.GetUnit, tooltip)
+    if type(unit) ~= "string" or ns.Game.unitGUID(unit) ~= data.guid then unit = findUnit(data.guid) end
+    return type(unit) == "string" and ns.Game.unitIsPlayer(unit) == false
+end
+
+local function updateUnitTextFields(tooltip, panel, data, key, token)
+    local tooltipType = TooltipTypes[Enum.TooltipDataType.Unit]
+    if not (tooltipType and ns.ui.unitTextFields and ns.ui.updateUnitTextField) then return false end
+    local ok, model = pcall(tooltipType.read, tooltip, data, ns.Game)
+    if not ok or not model then return false end
+    local fieldsOK, fields, tint, strength = pcall(ns.ui.unitTextFields, panel, model)
+    if not fieldsOK or type(fields) ~= "table" then return false, model end
+    if ns.ui.updateUnitPortrait then ns.ui.updateUnitPortrait(panel, model) end
+    for fieldKey in pairs(fields) do
+        if not (panel.unitTextFields and panel.unitTextFields[fieldKey]) then return false, model end
+    end
+    for fieldKey in pairs(panel.unitTextFields or {}) do
+        if not fields[fieldKey] then return false, model end
+    end
+    for fieldKey, previous in pairs(panel.unitTextFields or {}) do
+        local field = fields[fieldKey]
+        local text = field and field.text or ""
+        local color = field and field.color
+        local previousColor = previous.color
+        local colorChanged = color ~= previousColor
+            and (not color or not previousColor or color[1] ~= previousColor[1]
+                or color[2] ~= previousColor[2] or color[3] ~= previousColor[3])
+        if previous.text ~= text or colorChanged then
+            ns.ui.updateUnitTextField(panel, fieldKey, text, color)
+        end
+    end
+    ns.ui.updatePanelTint(panel, tint, strength, "unit")
+    panel.data, panel.key, panel.unitDead = data, key, model.dead
+    panel.model = nil
+    panel.lineCount = util.call(tooltip.NumLines, tooltip)
+    panel.elapsed = 0
+    panel.textOnlyRefreshToken = token
+    return true
+end
+
 local function onTooltipData(dataType, tooltip, data)
     if not util.canModify(tooltip) then return end
     local panel = panels[tooltip]
+    if dataType == Enum.TooltipDataType.Unit and InCombatLockdown() and isNonPlayerTooltip(tooltip, data) then
+        local hasEngagedEnemies = scanEngagedEnemies()
+        local guid = data.guid
+        local unit = findUnit(guid)
+        if unit and ns.Game.unitIsDead(unit) == true then
+            engagedEnemies[guid] = nil
+            disregardedEnemies[guid] = true
+        end
+        if disregardedEnemies[guid] or (hasEngagedEnemies and not engagedEnemies[guid]) then
+            if panel then
+                panel.refreshToken = (panel.refreshToken or 0) + 1
+                if panel.nativeAlpha and util.call(tooltip.GetAlpha, tooltip) ~= 0 then tooltip:SetAlpha(0) end
+            end
+            return
+        end
+    end
     if panel and panel.stickyUnit and dataType ~= Enum.TooltipDataType.Unit then return end
     if isSecret(data) or type(data) ~= "table" or isSecret(data.lines) or type(data.lines) ~= "table" then
         restoreNative(tooltip)
@@ -412,9 +544,14 @@ local function onTooltipData(dataType, tooltip, data)
     end
     -- The first render shows the new item promptly. On refresh, retain the
     -- complete old panel until other addons have appended their rows.
-    if not panel:IsShown() or dataType ~= previousDataType or (key and key ~= previousKey) then
-        update(tooltip, data)
-    else
+    local changedUnit = dataType == Enum.TooltipDataType.Unit
+        and previousDataType == Enum.TooltipDataType.Unit and panel:IsShown()
+        and key ~= previousKey
+    local textOnly, unitModel
+    if changedUnit then textOnly, unitModel = updateUnitTextFields(tooltip, panel, data, key, token) end
+    if not textOnly and (not panel:IsShown() or dataType ~= previousDataType or (key and key ~= previousKey)) then
+        update(tooltip, data, unitModel)
+    elseif not textOnly then
         if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
         if not panel.nativeAlpha then restoreNative(tooltip); return end
         tooltip:SetAlpha(0)
@@ -424,6 +561,10 @@ local function onTooltipData(dataType, tooltip, data)
     C_Timer.After(0, function()
         if util.canModify(tooltip) and panel.refreshToken == token and util.call(tooltip.IsShown, tooltip)
             and showsDataType(tooltip, panel) then
+            if panel.textOnlyRefreshToken == token then
+                panel.textOnlyRefreshToken = nil
+                return
+            end
             -- The game re-sets shown tooltips often, comparisons most; a panel
             -- already showing the same text needs no new render.
             if panel:IsShown() and panel.fingerprint and panel.fingerprint == fingerprint(tooltip, data) then
@@ -444,7 +585,24 @@ onTooltipData = probe("tooltip data", onTooltipData)
 local unitStatus = CreateFrame("Frame")
 unitStatus:RegisterEvent("UNIT_FLAGS")
 unitStatus:RegisterEvent("UNIT_HEALTH")
-unitStatus:SetScript("OnEvent", function(_, _, unit)
+unitStatus:RegisterEvent("UNIT_COMBAT")
+unitStatus:RegisterEvent("UNIT_TARGET")
+unitStatus:RegisterEvent("PLAYER_REGEN_DISABLED")
+unitStatus:RegisterEvent("PLAYER_REGEN_ENABLED")
+unitStatus:RegisterEvent("PLAYER_TARGET_CHANGED")
+unitStatus:RegisterEvent("PLAYER_FOCUS_CHANGED")
+unitStatus:RegisterEvent("GROUP_ROSTER_UPDATE")
+unitStatus:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+unitStatus:SetScript("OnEvent", function(_, event, unit)
+    if type(unit) == "string" then
+        local guid = util.call(ns.Game.unitGUID, unit)
+        if InCombatLockdown() and not isSecret(guid) and type(guid) == "string"
+            and util.call(ns.Game.unitIsPlayer, unit) == false and util.call(ns.Game.unitIsDead, unit) == true then
+            engagedEnemies[guid] = nil
+            disregardedEnemies[guid] = true
+        end
+    end
+    if event ~= "UNIT_HEALTH" then scanEngagedEnemies() end
     if type(unit) ~= "string" then return end
     local guid = util.call(ns.Game.unitGUID, unit)
     if isSecret(guid) or type(guid) ~= "string" then return end

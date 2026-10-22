@@ -284,6 +284,8 @@ function game.unitToken(guid) return UnitTokenFromGUID and call(UnitTokenFromGUI
 function game.unitName(unit) return (call(UnitName, unit)) end
 function game.unitIsUnit(unit, other) return call(UnitIsUnit, unit, other) end
 function game.unitIsPlayer(unit) return call(UnitIsPlayer, unit) end
+function game.unitAffectingCombat(unit) return call(UnitAffectingCombat, unit) end
+function game.unitCanAttack(unit, other) return call(UnitCanAttack, unit, other) end
 function game.unitLevel(unit) return call(UnitEffectiveLevel or UnitLevel, unit) end
 -- The localized class name, then the class file name.
 function game.unitClass(unit) return call(UnitClass, unit) end

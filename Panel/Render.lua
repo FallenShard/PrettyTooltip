@@ -180,17 +180,30 @@ local DRAW = {
 
 -- The panel ---------------------------------------------------------------------
 
+local function updateUnitTextField(panel, key, content, color)
+    local field = panel.unitTextFields and panel.unitTextFields[key]
+    if not field then return end
+    local used = panel.used
+    panel.used = field.index - 1
+    local ok = pcall(ui.styledAt, panel, content, field.x, field.y, field.width, field.style, color or field.color)
+    panel.used = used
+    if not ok then return end
+    field.text, field.color = content, color or field.color
+end
+
 local function renderView(panel, tooltip, view)
     -- Whatever a tooltip type lent the panel goes back before anything is drawn.
     if panel.release then panel.release(panel) end
     local scale = ns.tooltipScale()
     if panel:GetScale() ~= scale then panel:SetScale(scale) end
     panel:Show()
+    if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
     ui.clearPool(panel)
     live[panel] = nil
     -- Whole pixels, so the edges away from the aligned corner are on pixels too.
     panel.width = ui.snap(panel, fitWidth(panel, view))
     panel:SetWidth(panel.width)
+    panel.unitTextFields = nil
     local headerMin = ui.drawChrome(panel, tooltip, {
         tooltipType = view.tooltipType,
         quest = view.tooltipType == "quest" or view.questItem,
@@ -204,16 +217,21 @@ local function renderView(panel, tooltip, view)
         gradient = view.gradient,
         tag = view.tag,
     })
-    if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
-
     local indent = indentOf(view)
     local leftIndent, rightIndent = ui.headerInsets(indent)
     local inner = panel.width - 2 * pad()
     local y = ui.titleTop()
     for _, item in ipairs(view.header) do
         if item.text then
-            y = y + ui.styledAt(panel, item.text, pad() + leftIndent, y, inner - indent, item.style, item.color)
-                + item.gap
+            local x, width = pad() + leftIndent, inner - indent
+            local fieldIndex = panel.used + 1
+            local height = ui.styledAt(panel, item.text, x, y, width, item.style, item.color)
+            if item.fieldKey then
+                panel.unitTextFields = panel.unitTextFields or {}
+                panel.unitTextFields[item.fieldKey] = { index = fieldIndex, x = x, y = y, width = width,
+                    style = item.style, color = item.color, text = item.text }
+            end
+            y = y + height + item.gap
         elseif item.badges and #item.badges > 0 then
             y = drawBadges(panel, item.badges, pad() + leftIndent, y + (item.before or 0), item.style) + item.gap
         elseif item.rows then
@@ -270,6 +288,7 @@ function ui.withID(panel, extras, format, id)
 end
 
 ui.renderView = renderView
+ui.updateUnitTextField = updateUnitTextField
 ui.RULE_SPACE = RULE_SPACE
 ui.setLive, ui.drawTrack = setLive, drawTrack
 ui.drawBadges, ui.badgesWidth = drawBadges, badgesWidth

@@ -423,16 +423,19 @@ local function unitView(panel, model, healthBar)
     local hasIcon = ns.option("iconUnits") and (model.unit or model.iconPath) and true or false
     local plate = levelBadge(model, hasIcon)
 
-    local header = { { text = model.name, style = styles.unitName, color = color, gap = 2 } }
+    local header = { { text = model.name, fieldKey = "name", style = styles.unitName, color = color, gap = 2 } }
     local guild = guildText(model)
     if guild then
-        header[#header + 1] = { text = guild, style = styles.unitGuild,
+        header[#header + 1] = { text = guild, fieldKey = "guild", style = styles.unitGuild,
             color = { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, gap = 2 }
     end
     local info = infoText(model, plate ~= nil)
-    if info then header[#header + 1] = { text = info, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 } end
+    if info then
+        header[#header + 1] = { text = info, fieldKey = "info", style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
+    end
     if model.factionName then
-        header[#header + 1] = { text = model.factionName, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
+        header[#header + 1] = { text = model.factionName, fieldKey = "faction",
+            style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
     end
     header[#header + 1] = { badges = badges(model), style = styles.unitBadges, before = 1, gap = 4 }
 
@@ -608,6 +611,30 @@ local function renderUnit(panel, tooltip, model)
             showSampleHealth(panel, sample)
         end
     end
+end
+
+ui.updateUnitPortrait = function(panel, model)
+    local hasIcon = ns.option("iconUnits") and (model.unit or model.iconPath) and true or false
+    if not hasIcon then
+        panel.icon:Hide()
+        panel.iconBorder:Hide()
+        return
+    end
+    panel.icon:Show()
+    panel.iconBorder:Show()
+    if model.unit and SetPortraitTexture then
+        pcall(SetPortraitTexture, panel.icon, model.unit)
+    else
+        panel.icon:SetTexture(model.iconPath or WHITE)
+    end
+end
+
+ui.unitTextFields = function(panel, model)
+    local fields = {}
+    for _, item in ipairs(unitView(panel, model).header) do
+        if item.fieldKey then fields[item.fieldKey] = { text = item.text, color = item.color } end
+    end
+    return fields, model.color, TINT_STRENGTH
 end
 
 ui.unitModel = function(fields)
