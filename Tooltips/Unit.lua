@@ -23,6 +23,7 @@ local DETAIL_COLOR = colors.detail
 local MUTED = colors.caption
 local EXTRAS_RULE = { .50, .50, .54 }
 local UNMET_COLOR = colors.unmet
+local PVE = "PvE"
 local REACTION = {
     { 1, .27, .22 }, { 1, .27, .22 }, { 1, .50, .20 }, { 1, .82, .20 },
     { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 }, { .30, .85, .35 },
@@ -43,7 +44,7 @@ for _, rank in ipairs({ { BOSS, "worldboss" }, { ELITE, "elite" }, { formats.rar
 end
 -- Lines the badges and the faction crest show: "Alliance", "PvP", "Dead".
 local SHOWN_ELSEWHERE = {}
-for _, word in pairs({ FACTION_ALLIANCE, FACTION_HORDE, PVP_ENABLED, DEAD, CORPSE, UNIT_SKINNABLE_LEATHER }) do
+for _, word in pairs({ FACTION_ALLIANCE, FACTION_HORDE, PVP_ENABLED, PVE, DEAD, CORPSE, UNIT_SKINNABLE_LEATHER }) do
     SHOWN_ELSEWHERE[word] = true
 end
 
@@ -90,8 +91,12 @@ local PARTS = { "unitName", "unitInfo", "unitBadges", "unitGuild", "unitSkinning
     "unitQuests", "extras" }
 
 -- The mouseover token can still be the previous unit; the data's GUID cannot.
-local function unitFor(tooltip, guid, game)
+local function unitFor(tooltip, guid, game, unitOverride)
     if isSecret(guid) then guid = nil end
+    if type(unitOverride) == "string" and game.unitExists(unitOverride)
+        and (not guid or game.unitGUID(unitOverride) == guid) then
+        return unitOverride
+    end
     local _, unit = get(tooltip.GetUnit, tooltip)
     if type(unit) == "string" and game.unitExists(unit) and (not guid or game.unitGUID(unit) == guid) then
         return unit
@@ -222,7 +227,7 @@ local function completeModel(model, unit, game)
     model.skinning = model.skinning or skinning(model, game)
     if model.isPlayer then
         model.color = ns.Palette.classColor(model.classFile, game)
-    elseif model.tapped then
+    elseif model.dead or model.tapped then
         model.color = TAPPED
     else
         model.color = model.reaction and REACTION[model.reaction]
@@ -235,9 +240,9 @@ local function unitKey(_, data)
     return data.guid
 end
 
-local function readUnit(tooltip, data, game)
+local function readUnit(tooltip, data, game, unitOverride)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
-    local unit = unitFor(tooltip, data.guid, game)
+    local unit = unitFor(tooltip, data.guid, game, unitOverride)
     local model = { quests = {}, extras = {}, lineIndices = {}, unit = unit,
         guid = not isSecret(data.guid) and data.guid or nil }
     for _, line in ipairs(data.lines) do
@@ -323,6 +328,7 @@ local function badges(model)
     local classification = model.classification and BADGES[model.classification]
     if classification then list[#list + 1] = classification end
     if model.pvp then list[#list + 1] = { PVP_ENABLED, { 1, .45, .35 } } end
+    if not model.isPlayer and not model.pvp then list[#list + 1] = { PVE, MUTED } end
     if model.afk then list[#list + 1] = { L["AFK"], MUTED } end
     if model.dnd then list[#list + 1] = { L["DND"], MUTED } end
     if model.dead then list[#list + 1] = { DEAD, TAPPED } end
@@ -339,10 +345,16 @@ end
 local function detailRows(model)
     local rows = {}
     if model.owner then rows[#rows + 1] = { left = model.owner, right = "" } end
-    if model.target then
+    if model.owner then
+        if model.target then
+            rows[#rows + 1] = { left = TARGET,
+                right = model.targetIsYou and YOU or model.target,
+                rightColor = model.targetIsYou and UNMET_COLOR or model.targetColor }
+        end
+    elseif model.target or model.isPlayer then
         rows[#rows + 1] = model.targetIsYou
             and { left = TARGET, right = YOU, rightColor = UNMET_COLOR }
-            or { left = TARGET, right = model.target, rightColor = model.targetColor }
+            or { left = TARGET, right = model.target or L["None"], rightColor = model.targetColor }
     end
     return rows
 end
@@ -416,19 +428,31 @@ local function unitView(panel, model, healthBar)
     local color = model.color or colors.neutral
     local hasIcon = ns.option("iconUnits") and (model.unit or model.iconPath) and true or false
     local plate = levelBadge(model, hasIcon)
+    local indent = ICON_SIZE + 10
+    local maximumName = string.rep("M", 12) .. " " .. string.rep("M", 12)
+    local fixedWidth
+    if panel.measure then
+        fixedWidth = math.max(ui.minWidth(), math.min(ui.MAX_WIDTH,
+            math.ceil(ui.measureStyled(panel, maximumName, styles.unitName) + indent + 2 * ui.pad())))
+    end
 
-    local header = { { text = model.name, style = styles.unitName, color = color, gap = 2 } }
+    local header = { { text = model.name, fieldKey = "name", style = styles.unitName, color = color, gap = 2 } }
     local guild = guildText(model)
     if guild then
-        header[#header + 1] = { text = guild, style = styles.unitGuild,
+        header[#header + 1] = { text = guild, fieldKey = "guild", style = styles.unitGuild,
             color = { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, gap = 2 }
     end
     local info = infoText(model, plate ~= nil)
-    if info then header[#header + 1] = { text = info, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 } end
+    if info then
+        header[#header + 1] = { text = info, fieldKey = "info", style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
+    end
     if model.factionName then
-        header[#header + 1] = { text = model.factionName, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
+        header[#header + 1] = { text = model.factionName, fieldKey = "faction",
+            style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
     end
     header[#header + 1] = { badges = badges(model), style = styles.unitBadges, before = 1, gap = 4 }
+    local headerHeight = ui.titleTop() + styles.unitName.size + 4 + styles.unitGuild.size + 4
+        + 2 * (styles.unitInfo.size + 6) + styles.unitBadges.size + 7
 
     local sections = {}
     local details = detailRows(model)
@@ -466,6 +490,7 @@ local function unitView(panel, model, healthBar)
     end
     return {
         tooltipType = "unit",
+        fixedWidth = fixedWidth,
         color = color,
         tint = model.color,
         strength = TINT_STRENGTH,
@@ -475,6 +500,7 @@ local function unitView(panel, model, healthBar)
         badge = plate,
         badgeColor = model.level and levelColor(model.level),
         header = header,
+        headerHeight = headerHeight,
         sections = sections,
     }
 end
@@ -602,6 +628,56 @@ local function renderUnit(panel, tooltip, model)
             showSampleHealth(panel, sample)
         end
     end
+end
+
+ui.updateUnitPortrait = function(panel, model)
+    local hasIcon = ns.option("iconUnits") and (model.unit or model.iconPath) and true or false
+    if not hasIcon then
+        panel.icon:Hide()
+        panel.iconBorder:Hide()
+        return
+    end
+    panel.icon:Show()
+    panel.iconBorder:Show()
+    if model.unit and SetPortraitTexture then
+        pcall(SetPortraitTexture, panel.icon, model.unit)
+    else
+        panel.icon:SetTexture(model.iconPath or WHITE)
+    end
+end
+
+ui.unitTextFields = function(panel, model)
+    local fields = {}
+    local view = unitView(panel, model)
+    for _, item in ipairs(view.header) do
+        if item.fieldKey then fields[item.fieldKey] = { text = item.text, color = item.color } end
+    end
+    return fields, model.color, TINT_STRENGTH
+end
+
+ui.unitLayoutKey = function(panel, model)
+    local view = unitView(panel, model)
+    local available = panel.width - 2 * ui.pad() - (view.icon and view.iconSize + 10 or 0)
+    local parts = { tostring(ui.snap(panel, ui.viewWidth(panel, view))) }
+    for _, item in ipairs(view.header) do
+        if item.fieldKey and ui.measureStyled(panel, item.text, item.style) > available then
+            parts[#parts + 1] = item.fieldKey .. "\031" .. item.text
+        elseif item.badges then
+            for _, badge in ipairs(item.badges) do parts[#parts + 1] = badge[1] end
+        end
+    end
+    for _, section in ipairs(view.sections) do
+        parts[#parts + 1] = section.kind
+        if section.rows then
+            for _, row in ipairs(section.rows) do
+                parts[#parts + 1] = row.left or ""
+                parts[#parts + 1] = row.right or ""
+            end
+        elseif section.sentences then
+            for _, sentence in ipairs(section.sentences) do parts[#parts + 1] = sentence end
+        end
+    end
+    return table.concat(parts, "\030")
 end
 
 ui.unitModel = function(fields)

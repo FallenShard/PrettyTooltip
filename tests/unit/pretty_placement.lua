@@ -395,8 +395,10 @@ return function(test)
     local function placementUpdate(object)
         if object == main or object == first or object == second then return end
         local callback = object:GetScript("OnUpdate")
-        -- Render's existing dirty-view driver is unrelated to placement.
-        if callback and not debug.getinfo(callback, "S").source:find("Panel/Render.lua", 1, true) then return callback end
+        -- Render and combat visibility drivers are unrelated to placement.
+        local source = callback and debug.getinfo(callback, "S").source
+        if callback and not source:find("Panel/Render.lua", 1, true)
+            and not source:find("Integration/Hooks.lua", 1, true) then return callback end
     end
     local follower
     for _, object in ipairs(world.objects) do

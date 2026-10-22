@@ -81,6 +81,19 @@ local function handleCommand(message)
         print("PrettyTooltip: Pretty panels use frame anchors. Select Blizzard layout in the options to use Blizzard tooltips.")
         return
     end
+    local cacheAction = wanted:match("^debounce%s*(%S*)$")
+    if cacheAction then
+        if cacheAction == "" then
+            ns.Hooks.debugUnitCache()
+        elseif cacheAction == "on" then
+            ns.Hooks.debugUnitCache(true)
+        elseif cacheAction == "off" then
+            ns.Hooks.debugUnitCache(false)
+        else
+            print("PrettyTooltip: use /ptip debounce [on|off].")
+        end
+        return
+    end
     local perfSeconds = wanted:match("^perf%s*(%d*)$")
     if perfSeconds then
         if ns.perfCapture then ns.perfCapture(math.min(30, math.max(1, tonumber(perfSeconds) or 5))) end

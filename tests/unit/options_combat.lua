@@ -18,6 +18,20 @@ return function(test)
     InCombatLockdown = function() return combat end
     print = function(text) printed[#printed + 1] = text end
 
+    local hideTooltipsBox
+    for _, child in ipairs(page._children) do
+        if child._kind == "CheckButton" and child:GetScript("OnClick") then
+            for _, region in ipairs({ child:GetRegions() }) do
+                if region:GetText() == "Hide tooltips in combat" then hideTooltipsBox = child end
+            end
+        end
+    end
+    test.check("hiding tooltips in combat is enabled by default", ns.option("hideTooltipsInCombat"), true)
+    test.check("the combat visibility option reflects its default", hideTooltipsBox:GetChecked(), true)
+    hideTooltipsBox:SetChecked(false)
+    hideTooltipsBox:GetScript("OnClick")(hideTooltipsBox)
+    test.check("the combat visibility option saves changes", ns.option("hideTooltipsInCombat"), false)
+
     combat = true
     test.check("in combat the window stays shut and the player is told",
         { ns.openSettings(), opened, printed[1] },

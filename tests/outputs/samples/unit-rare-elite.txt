@@ -13,10 +13,10 @@ name: "Foe Reaper 4000"
 quests: {}
 reaction: 2
 == sample render
-panel 260 x 119
+panel 299 x 142
 texture at -16,-16 0x0 rgb=1,0.27,0.22,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
-texture at 4,4 0x86 rgb=1,1,1,1 WHITE8X8
+texture at 4,4 0x109 rgb=1,1,1,1 WHITE8X8
 texture at 19,21 38x38 rgb=1,1,1,1 INV_Misc_Gear_01
 texture CENTER Texture CENTER 0,0 40x40 rgb=1,0.27,0.22,0.85 WHITE8X8
 texture TOP Texture BOTTOM 0,-5 40x16 rgb=0.8,0.216,0.176,0.9 WHITE8X8
@@ -30,7 +30,7 @@ texture unplaced 0x0 rgb=1,0.27,0.22,1 tooltip-TopEdge
 texture unplaced 0x0 rgb=1,0.27,0.22,1 tooltip-BottomEdge
 texture unplaced 0x0 rgb=1,0.27,0.22,1 tooltip-LeftEdge
 texture unplaced 0x0 rgb=1,0.27,0.22,1 tooltip-RightEdge
-text at 67,21 w=174 size=17 rgb=1,0.27,0.22 "FOE REAPER 4000"
-text at 67,43 w=174 size=12 rgb=0.82,0.78,0.71 "Mechanical"
-text at 67,62 w=62 size=12 rgb=0.82,0.78,0.71 "|cffC9DBF6Rare Elite|r"
-texture at 47.71,35.32 208.3x79.68 rgb=1,1,1,0.35 8244544
+text at 67,21 w=213 size=17 rgb=1,0.27,0.22 "FOE REAPER 4000"
+text at 67,43 w=213 size=12 rgb=0.82,0.78,0.71 "Mechanical"
+text at 67,62 w=98 size=12 rgb=0.82,0.78,0.71 "|cffC9DBF6Rare Elite|r |cff999185·|r |cffB8B2A9PvE|r"
+texture at 86.71,35.32 208.3x102.7 rgb=1,1,1,0.35 8244544

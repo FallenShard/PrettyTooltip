@@ -1,3 +1,36 @@
+# Local package and build output.
 .release/
+output/
+build/
+dist/
+
+# Python development artifacts.
 __pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.tox/
+.venv/
+venv/
+.coverage
+.coverage.*
+coverage.xml
+*.py[cod]
+
+# Lua compiler output.
+*.luac
+luac.out
+
+# Editor and operating-system files.
 .vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local environment settings and logs.
+.env
+*.log
+deploy.py

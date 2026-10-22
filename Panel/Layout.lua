@@ -497,6 +497,7 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align,
         font:SetTextColor(r, g, b)
         font.prettyTooltipR, font.prettyTooltipG, font.prettyTooltipB = r, g, b
     end
+    font:SetAlpha(1)
     font:SetText(content)
     font:Show()
     return math.max(size + 2, font:GetStringHeight() or 0)
@@ -766,6 +767,39 @@ local function getEquippedTag(panel)
     return tag
 end
 
+local function updatePanelTint(panel, panelTint, strength, tooltipType)
+    local tinted = panelTint and ns.option("qualityTint")
+    local tint = tinted and panelTint or { .5, .5, .5 }
+    strength = tinted and (strength or 1) or 0
+    local suffix = ns.TYPE_SUFFIX[tooltipType] or ""
+    local body = ns.option("backdropAlpha" .. suffix) or ns.BACKDROP_ALPHA
+    local glow = ns.option("glowAlpha" .. suffix) or 1
+    if panel.parchment then
+        panel.background:SetVertexColor(1, 1, 1, body)
+    elseif panel.textured then
+        panel.background:SetVertexColor(1 - .45 * strength + .45 * strength * tint[1],
+            1 - .45 * strength + .45 * strength * tint[2],
+            1 - .45 * strength + .45 * strength * tint[3], body)
+        panel.glow:SetVertexColor(tint[1], tint[2], tint[3], .35 * strength * body)
+        panel.glow:SetShown(strength > 0)
+    else
+        panel.background:SetGradient("VERTICAL",
+            CreateColor(.016 + tint[1] * .02 * strength, .012 + tint[2] * .02 * strength,
+                .016 + tint[3] * .02 * strength, body),
+            CreateColor(.052 + tint[1] * .06 * strength, .040 + tint[2] * .06 * strength,
+                .050 + tint[3] * .06 * strength, body))
+    end
+    if strength > 0 then
+        panel.halo:SetVertexColor(tint[1], tint[2], tint[3], .55 * strength * glow)
+    else
+        panel.halo:SetVertexColor(.6, .6, .6, .18 * glow)
+    end
+    if panel.backdropMode == "native" then
+        colorNativeBorder(panel.nativeBorder, panelTint)
+    end
+    panel.tint = panelTint
+end
+
 -- The comparison label sits outside the body. Include its visible bounds in
 -- frame clamping and column width without changing the body's layout size.
 local function clampInsets(panel)
@@ -790,35 +824,15 @@ local function drawChrome(panel, tooltip, style)
     local color = style.color
     panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
     local tinted = style.tint and ns.option("qualityTint")
-    local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
     local suffix = ns.TYPE_SUFFIX[style.tooltipType] or ""
-    local body = ns.option("backdropAlpha" .. suffix) or ns.BACKDROP_ALPHA
     local glow = ns.option("glowAlpha" .. suffix) or 1
-    if panel.parchment then
-        panel.background:SetVertexColor(1, 1, 1, body)
-    elseif panel.textured then
-        panel.background:SetVertexColor(1 - .45 * strength + .45 * strength * tint[1],
-            1 - .45 * strength + .45 * strength * tint[2],
-            1 - .45 * strength + .45 * strength * tint[3], body)
-        panel.glow:SetVertexColor(tint[1], tint[2], tint[3], .35 * strength * body)
-        panel.glow:SetShown(strength > 0)
-    else
-        panel.background:SetGradient("VERTICAL",
-            CreateColor(.016 + tint[1] * .02 * strength, .012 + tint[2] * .02 * strength,
-                .016 + tint[3] * .02 * strength, body),
-            CreateColor(.052 + tint[1] * .06 * strength, .040 + tint[2] * .06 * strength,
-                .050 + tint[3] * .06 * strength, body))
-    end
+    updatePanelTint(panel, style.tint, style.strength, style.tooltipType)
     local gradient = style.gradient
     if strength > 0 and gradient then
         local left, right, alpha = gradient[1], gradient[2], .55 * strength * glow
         panel.halo:SetGradient("HORIZONTAL", CreateColor(left[1], left[2], left[3], alpha),
             CreateColor(right[1], right[2], right[3], alpha))
-    elseif strength > 0 then
-        panel.halo:SetVertexColor(tint[1], tint[2], tint[3], .55 * strength * glow)
-    else
-        panel.halo:SetVertexColor(.6, .6, .6, .18 * glow)
     end
     local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
     local bottomAlpha = ns.headerAlpha(style.tooltipType, "Bottom") or headerAlpha
@@ -1019,6 +1033,7 @@ ns.ui = {
     rule = rule,
     divider = divider,
     drawChrome = drawChrome,
+    updatePanelTint = updatePanelTint,
     clampInsets = clampInsets,
     finishPanel = finishPanel,
     caption = caption,

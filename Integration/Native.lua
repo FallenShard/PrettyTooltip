@@ -50,8 +50,8 @@ local function showsDataType(tooltip, panel)
 end
 
 -- A world unit's tooltip fades out once the mouse leaves the unit, the game
--- setting its alpha every frame, past the SetAlpha hook. Move it off screen
--- while it fades, and hide our panel immediately.
+-- setting its alpha every frame, past the SetAlpha hook. Keep unit panels at
+-- their last position; other panels hide while their native tooltip fades.
 
 -- Off the screen, where a fading tooltip goes so its alpha no longer matters.
 local PARKED = -10000
@@ -85,7 +85,7 @@ end
 local function unpark(tooltip)
     local panel = panels[tooltip]
     local parked = panel and panel.parked
-    if not parked or not util.canModify(tooltip) then return end
+    if not parked or panel.stickyUnit or not util.canModify(tooltip) then return end
     local points = util.framePoints(tooltip)
     if not points then return end
     local kept = {}
@@ -108,7 +108,34 @@ end
 local function fadeOut(tooltip)
     if not util.canModify(tooltip) then return end
     local panel = panels[tooltip]
+    if panel and panel.unitDebouncePending and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip) then
+        if not park(tooltip, panel) then
+            panel:Show()
+            pcall(tooltip.SetAlpha, tooltip, 0)
+        end
+        return
+    end
     if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
+    local duration = ns.option("unitTooltipKeepVisible") and util.number(ns.option("unitTooltipDuration"))
+    if panel.dataType == Enum.TooltipDataType.Unit and duration then
+        duration = math.max(1, math.min(30, math.floor(duration + .5)))
+        panel.stickyUnit = true
+        panel.refreshPending = nil
+        panel.restorePending = false
+        panel.refreshToken = (panel.refreshToken or 0) + 1
+        local stickyToken = (panel.stickyTimerToken or 0) + 1
+        panel.stickyTimerToken = stickyToken
+        local key = panel.key
+        if ui.pinPanel(panel) then park(tooltip, panel) end
+        C_Timer.After(duration, function()
+            if panel.stickyUnit and panel.stickyTimerToken == stickyToken and panel.key == key then
+                panel.stickyUnit = nil
+                panel.refreshToken = (panel.refreshToken or 0) + 1
+                panel:Hide()
+            end
+        end)
+        return
+    end
     -- The game sets a fading tooltip's alpha itself, past the SetAlpha hook,
     -- so it would show through the panel.
     panel:Hide()
@@ -124,6 +151,8 @@ local function restoreNative(tooltip)
     panel.contentPending = nil
     panel.comparisonPending, panel.comparisonAnchorPending = nil, nil
     panel.comparisonFitPending = nil
+    panel.comparisonAnchorHeld = nil
+    panel.stickyUnit = nil
     panel.restorePending = false
     panel:Hide()
     ns.Placement.hidden(tooltip)

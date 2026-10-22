@@ -83,7 +83,7 @@ read_globals = {
     "UnitName", "UnitExists", "UnitGUID", "UnitTokenFromGUID", "UnitLevel", "UnitEffectiveLevel",
     "UnitClass", "UnitRace", "UnitFactionGroup", "UnitReaction", "UnitIsUnit", "UnitIsPlayer",
     "UnitHealth", "UnitHealthMax", "UnitIsTapDenied", "UnitIsPVP", "UnitIsDeadOrGhost", "UnitIsDND",
-    "UnitIsAFK", "UnitCreatureType", "UnitClassification",
+    "UnitIsAFK", "UnitCreatureType", "UnitClassification", "UnitAffectingCombat", "UnitCanAttack",
     -- Other addons, used when installed
     "LibStub", "Auctionator", "QuestieLoader",
 }

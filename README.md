@@ -114,7 +114,7 @@ The controls on the right follow the kind of panel shown, top to bottom (hover a
 - The kind's own details:
   - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Abbreviated Equip Effects** (see *The Blizzard layout* above), the disenchant section, and the sell price.
   - **Spell Details**: the spell power breakdown and the damage and healing rates under it.
-  - **Unit Details**: the level badge (off, the level stays in the info line), the health bar, what a skinnable creature gives, and the nine **Class colors** swatches. Hover a swatch for its class name.
+  - **Unit Details**: the level badge (off, the level stays in the info line), **Keep visible** (on by default) and its duration (5 seconds; a new unit replaces it immediately), the health bar, what a skinnable creature gives, and the nine **Class colors** swatches. Hover a swatch for its class name.
   - **Object Details**: what herbs and ore give: a node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap.
 
 **Reset all fonts and colors** puts every part back and clears custom stat-category, school, and class colors. The restyle and detail switches keep their settings. Tooltips use the new look the next time they open.
@@ -129,6 +129,7 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
   - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
   - **Disable in combat**, under **Follow cursor** (on by default): use the default tooltip position during combat, then resume following the cursor afterward. Each kind's Follow cursor preference is kept.
 - **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never**.
+- **Hide tooltips in combat** hides every tooltip during combat, whether it uses PrettyTooltip or Blizzard's layout. On by default.
 
 ## Install
 
@@ -153,6 +154,8 @@ Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options
 `python deploy.py` copies the game files into `D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns\PrettyTooltip`; pass `--addons-dir "<path to Interface\AddOns>"` for another installation. After a deploy, `/reload` picks up Lua changes; changes to the `.toc` need a game restart.
 
 `/ptip dump` shows the raw data of the tooltip you are hovering, to see what a kind of tooltip carries, or the lines shown when an addon filled it without data. A link clicked in chat is dumped when nothing is hovered. `/ptip perf` measures for five seconds how often the panel's work runs and how long it takes. `/ptip anchors` shows where each shown panel sits, the gaps between them, and how the game's tooltips under them are anchored. `/ptip pixel` shows how lines are snapped to screen pixels at the current UI scale.
+
+`/ptip debounce` toggles live unit-cache output in chat; `/ptip debounce on` and `/ptip debounce off` explicitly start or stop it. The monitor prints the cache in oldest-to-newest order as units are added, evicted, or reused.
 
 `/ptip trace [seconds]` records tooltip states and calls for 1–10 seconds (4 by default), including clicked item links, hovered items, both sets of comparison tooltips, and their Pretty panels. To investigate sticky comparison flicker, run `/ptip trace 10`, click an item link, then hover the item that triggers the flicker. The report includes panel hide/show calls between frame samples, comparison-manager events, and pending layout work. For hover deadzones, move the mouse into and out of the affected area: enter/leave events include cursor coordinates, and mouse-focus changes identify the receiving frames, their parents, bounds, and opacity, including invisible controls. Repeated zero-alpha calls are filtered; if the detailed event limit is reached, frame samples and visibility and comparison-manager events continue for the full selected duration.
 

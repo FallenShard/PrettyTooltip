@@ -15,7 +15,124 @@ local native = ns.Native
 local restoreNative, showsDataType = native.restoreNative, native.showsDataType
 local hooks = {}
 ns.Hooks = hooks
+hooks.unitDebounce = 0.15
+local UNIT_MODEL_CACHE_LIMIT = 15
+local unitModelCache, unitModelOrder = {}, {}
+local unitCacheDebug = false
 local batchComparisons = false
+local combatHooked = setmetatable({}, { __mode = "k" })
+local combatHidden = setmetatable({}, { __mode = "k" })
+local combatPending = setmetatable({}, { __mode = "k" })
+local combatAlphaChanges = setmetatable({}, { __mode = "k" })
+local combatPanels = setmetatable({}, { __mode = "k" })
+local update
+local onTooltipData
+
+local combatTicker = CreateFrame("Frame")
+
+local function combatTooltipEnabled()
+    return ns.option("hideTooltipsInCombat") and InCombatLockdown()
+end
+
+local function combatAlpha(tooltip, alpha)
+    combatAlphaChanges[tooltip] = true
+    local ok, problem = pcall(tooltip.SetAlpha, tooltip, alpha)
+    combatAlphaChanges[tooltip] = nil
+    if not ok then
+        local report = geterrorhandler and geterrorhandler()
+        if report then report(problem) else error(problem, 0) end
+    end
+    return ok
+end
+
+local function hideForCombat(tooltip)
+    if not util.canModify(tooltip) then return end
+    local panel = panels[tooltip]
+    if not combatHidden[tooltip] then
+        combatHidden[tooltip] = { alpha = util.number(util.call(tooltip.GetAlpha, tooltip)) }
+    end
+    if panel then
+        panel.combatHidden = true
+        panel.stickyUnit = nil
+        panel.stickyTimerToken = (panel.stickyTimerToken or 0) + 1
+        panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+        panel.unitDebouncePending = nil
+        panel.restorePending = false
+        panel.refreshToken = (panel.refreshToken or 0) + 1
+        panel:Hide()
+    end
+    if util.number(util.call(tooltip.GetAlpha, tooltip)) ~= 0 then combatAlpha(tooltip, 0) end
+end
+
+local function restoreAfterCombat(tooltip)
+    local state = combatHidden[tooltip]
+    if not state then return end
+    combatHidden[tooltip] = nil
+    local panel = panels[tooltip]
+    if panel then panel.combatHidden = nil end
+    local alpha = panel and panel.nativeAlpha and not panel.nativeOnly and 0 or state.alpha
+    if alpha ~= nil and util.canModify(tooltip) then combatAlpha(tooltip, alpha) end
+    local pending = combatPending[tooltip]
+    combatPending[tooltip] = nil
+    if pending then
+        onTooltipData(pending.dataType, tooltip, pending.data)
+        return
+    end
+    if panel and not panel.nativeOnly and panel.data and util.canModify(tooltip)
+        and util.call(tooltip.IsShown, tooltip) and showsDataType(tooltip, panel) then
+        update(tooltip, panel.data)
+    end
+end
+
+local function onCombatTooltipShow(tooltip)
+    if combatTooltipEnabled() then
+        hideForCombat(tooltip)
+    else
+        restoreAfterCombat(tooltip)
+    end
+end
+
+local function hookCombatTooltip(tooltip)
+    if not util.canModify(tooltip) or combatHooked[tooltip] then return end
+    combatHooked[tooltip] = true
+    hooksecurefunc(tooltip, "Show", onCombatTooltipShow)
+    hooksecurefunc(tooltip, "SetShown", function(shown, visible)
+        if not isSecret(visible) and visible then onCombatTooltipShow(shown) end
+    end)
+    tooltip:HookScript("OnShow", onCombatTooltipShow)
+    hooksecurefunc(tooltip, "SetAlpha", function(changed, alpha)
+        if combatAlphaChanges[changed] then return end
+        if combatTooltipEnabled() and (isSecret(alpha) or alpha ~= 0) then hideForCombat(changed) end
+    end)
+    if combatTooltipEnabled() then hideForCombat(tooltip) end
+end
+
+local function hookCombatPanel(panel)
+    if combatPanels[panel] then return end
+    combatPanels[panel] = true
+    hooksecurefunc(panel, "Show", function(shown)
+        if combatTooltipEnabled() then shown:Hide() end
+    end)
+    hooksecurefunc(panel, "SetShown", function(shown, visible)
+        if combatTooltipEnabled() and visible then shown:Hide() end
+    end)
+    panel:HookScript("OnShow", function(shown)
+        if combatTooltipEnabled() then shown:Hide() end
+    end)
+end
+
+local function enforceCombatVisibility()
+    if not combatTooltipEnabled() then return end
+    for tooltip in pairs(combatHidden) do
+        if util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip)
+            and util.number(util.call(tooltip.GetAlpha, tooltip)) ~= 0 then
+            hideForCombat(tooltip)
+        end
+    end
+end
+
+combatTicker:SetScript("OnUpdate", enforceCombatVisibility)
+hooks.enforceCombatVisibility = enforceCombatVisibility
 
 local function showsOriginal(panel)
     local tooltipType = TooltipTypes[panel.dataType]
@@ -60,6 +177,84 @@ local function keyOf(tooltipType, tooltip, data)
     if ok and not isSecret(key) then return key, true end
 end
 
+local function unitCacheSnapshot()
+    local entries = {}
+    for _, key in ipairs(unitModelOrder) do
+        local entry = unitModelCache[key]
+        local name = entry and util.safeText(entry.model.name)
+        local suffix = key:match("([^%-]+)$") or key
+        entries[#entries + 1] = ("%s [%s]"):format((name or "<unnamed>"):gsub("|", "||"), suffix)
+    end
+    return entries
+end
+hooks.unitCacheSnapshot = function()
+    local snapshot = unitCacheSnapshot()
+    local copy = {}
+    for index, entry in ipairs(snapshot) do copy[index] = entry end
+    return copy
+end
+
+local function reportUnitCache(reason)
+    if not unitCacheDebug then return end
+    print(("PrettyTooltip unit cache (%s, %d/%d; oldest to newest): %s"):format(reason, #unitModelOrder,
+        UNIT_MODEL_CACHE_LIMIT, #unitModelOrder > 0 and table.concat(unitCacheSnapshot(), " > ") or "<empty>"))
+end
+
+function hooks.debugUnitCache(enabled)
+    if enabled == nil then
+        unitCacheDebug = not unitCacheDebug
+    else
+        unitCacheDebug = enabled == true
+    end
+    if unitCacheDebug then
+        reportUnitCache("monitoring on")
+    else
+        print("PrettyTooltip unit cache monitoring off.")
+    end
+    return unitCacheDebug
+end
+
+local function rememberUnitModel(key, model)
+    if type(key) ~= "string" or type(model) ~= "table" then return end
+    for index, cachedKey in ipairs(unitModelOrder) do
+        if cachedKey == key then table.remove(unitModelOrder, index); break end
+    end
+    unitModelCache[key] = { model = model, settingsVersion = ns.settingsVersion or 0 }
+    unitModelOrder[#unitModelOrder + 1] = key
+    if #unitModelOrder > UNIT_MODEL_CACHE_LIMIT then
+        local evicted = table.remove(unitModelOrder, 1)
+        unitModelCache[evicted] = nil
+        reportUnitCache("evicted " .. (evicted:match("([^%-]+)$") or evicted))
+    else
+        reportUnitCache("updated " .. (key:match("([^%-]+)$") or key))
+    end
+end
+
+local function cachedUnitModel(key)
+    if type(key) ~= "string" then return end
+    local entry = unitModelCache[key]
+    if not entry then return end
+    if entry.settingsVersion ~= (ns.settingsVersion or 0) then
+        unitModelCache[key] = nil
+        for index, cachedKey in ipairs(unitModelOrder) do
+            if cachedKey == key then table.remove(unitModelOrder, index); break end
+        end
+        reportUnitCache("invalidated " .. (key:match("([^%-]+)$") or key))
+        return
+    end
+    for index, cachedKey in ipairs(unitModelOrder) do
+        if cachedKey == key then table.remove(unitModelOrder, index); break end
+    end
+    unitModelOrder[#unitModelOrder + 1] = key
+    reportUnitCache("hit " .. (key:match("([^%-]+)$") or key))
+    local model, unit = entry.model, entry.model.unit
+    if unit and ns.Game.unitGUID(unit) ~= key then
+        local current = ns.Game.unitToken(key)
+        model.unit = current and ns.Game.unitGUID(current) == key and current or nil
+    end
+    return model
+end
+
 -- The type that draws this tooltip in its data type's place, while it is
 -- restyled: an imbue's, for the weapon tooltip its buff button shows.
 local function claimantOf(dataType, tooltip, data)
@@ -72,9 +267,13 @@ local function claimantOf(dataType, tooltip, data)
     return dataType
 end
 
-local function update(tooltip, data, model)
+update = function(tooltip, data, model)
     if not util.canModify(tooltip) or native.isParked(tooltip) then return end
+    hookCombatTooltip(tooltip)
+    if combatTooltipEnabled() then hideForCombat(tooltip); return end
     local panel = getPanel(tooltip)
+    hookCombatPanel(panel)
+    if panel.unitDebouncePending then return end
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
     panel.nativeOnly = nil
@@ -85,12 +284,20 @@ local function update(tooltip, data, model)
     if not panel.nativeAlpha then restoreNative(tooltip); return end
     local rendered = pcall(tooltipType.render, panel, tooltip, model)
     if not rendered then restoreNative(tooltip); return end
+    if panel.dataType == Enum.TooltipDataType.Unit then panel.unitDead = model.dead end
+    if panel.dataType == Enum.TooltipDataType.Unit and ns.ui.unitLayoutKey then
+        local layoutOK, layoutKey = pcall(ns.ui.unitLayoutKey, panel, model)
+        panel.unitLayoutKey = layoutOK and layoutKey or nil
+    else
+        panel.unitLayoutKey = nil
+    end
     tally("placement from render")
     placement.refresh(tooltip)
     panel.data = data
     local key, valid = keyOf(tooltipType, tooltip, data)
     if not valid then restoreNative(tooltip); return end
     panel.key = key
+    if panel.dataType == Enum.TooltipDataType.Unit then rememberUnitModel(key, model) end
     if panel.dataType == Enum.TooltipDataType.Item then
         panel.model, panel.modelDataType = model, panel.dataType
         panel.modelVersion, panel.modelDetails = ns.settingsVersion or 0, ns.detailsKeyDown()
@@ -108,7 +315,7 @@ update = probe("update", update)
 
 local function finishTooltip(tooltip, panel, data, token)
     if not util.canModify(tooltip) or panel.refreshToken ~= token or not util.call(tooltip.IsShown, tooltip)
-        or not showsDataType(tooltip, panel) then return end
+        or panel.unitDebouncePending or not showsDataType(tooltip, panel) then return end
     local pending = panel.contentPending
     panel.contentPending = nil
     -- A producer can signal completion synchronously; the fallback then sees
@@ -230,25 +437,181 @@ end
 function hooks.comparisonsBatched() return batchComparisons end
 
 -- Keep the previous panel across a clear while its native tooltip is still
--- shown. Hides dismiss the panel immediately; native cleanup waits until no
--- new item post-call replaces it in that frame.
+-- shown. Hides dismiss it unless it is a retained unit; native cleanup waits
+-- until no new item post-call replaces it in that frame.
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
-    if not panel or panel.nativeOnly then return end
+    if not panel or panel.nativeOnly or panel.stickyUnit or panel.unitDebouncePending then return end
     if panel.data and panel.data.fromLines then panel.data = nil end
     panel.restorePending = true
     panel.contentPending = nil
     panel.refreshToken = (panel.refreshToken or 0) + 1
     local token = panel.refreshToken
     C_Timer.After(0, function()
-        if panel.refreshToken == token and panel.restorePending then
+        if panel.refreshToken == token and panel.restorePending and not panel.unitDebouncePending then
             restoreNative(tooltip)
         end
     end)
 end
 
-local function onTooltipData(dataType, tooltip, data)
+local engagedEnemies, disregardedEnemies = {}, {}
+
+local function combatUnitTokens()
+    local tokens, seen = {}, {}
+    for _, unit in ipairs(ns.Game.NEARBY_UNITS) do
+        for _, candidate in ipairs({ unit, unit .. "target" }) do
+            if not seen[candidate] then
+                seen[candidate] = true
+                tokens[#tokens + 1] = candidate
+            end
+        end
+    end
+    return tokens
+end
+
+local function findUnit(guid)
+    local engaged = engagedEnemies[guid]
+    if type(engaged) == "string" and ns.Game.unitExists(engaged) and ns.Game.unitGUID(engaged) == guid then
+        return engaged
+    end
+    local token = ns.Game.unitToken(guid)
+    if type(token) == "string" and ns.Game.unitExists(token) and ns.Game.unitGUID(token) == guid then
+        return token
+    end
+    for _, unit in ipairs(combatUnitTokens()) do
+        if ns.Game.unitExists(unit) and ns.Game.unitGUID(unit) == guid then return unit end
+    end
+end
+
+local function collectCombatUnits()
+    local units = {}
+    for _, unit in ipairs(combatUnitTokens()) do
+        if ns.Game.unitExists(unit) then
+            local guid = ns.Game.unitGUID(unit)
+            if not isSecret(guid) and type(guid) == "string" then units[guid] = unit end
+        end
+    end
+    return units
+end
+
+local function scanEngagedEnemies()
+    if not InCombatLockdown() then
+        for guid in pairs(engagedEnemies) do engagedEnemies[guid] = nil end
+        for guid in pairs(disregardedEnemies) do disregardedEnemies[guid] = nil end
+        return false
+    end
+    local units = collectCombatUnits()
+    for guid, previousUnit in pairs(engagedEnemies) do
+        local unit = units[guid] or previousUnit
+        if ns.Game.unitGUID(unit) ~= guid then
+            unit = ns.Game.unitToken(guid)
+            if type(unit) ~= "string" or ns.Game.unitGUID(unit) ~= guid then unit = nil end
+        end
+        if unit and ns.Game.unitIsDead(unit) == true then
+            engagedEnemies[guid] = nil
+            disregardedEnemies[guid] = true
+        elseif unit then
+            engagedEnemies[guid] = unit
+        end
+    end
+    for guid, unit in pairs(units) do
+        if ns.Game.unitIsDead(unit) == true then
+            disregardedEnemies[guid] = true
+        elseif not disregardedEnemies[guid] and ns.Game.unitIsPlayer(unit) == false
+            and ns.Game.unitCanAttack("player", unit) == true
+            and ns.Game.unitAffectingCombat(unit) == true then
+            engagedEnemies[guid] = unit
+        end
+    end
+    return next(engagedEnemies) ~= nil
+end
+
+local function isNonPlayerTooltip(tooltip, data)
+    if isSecret(data) or type(data) ~= "table" or isSecret(data.guid) or type(data.guid) ~= "string" then
+        return false
+    end
+    local _, unit = util.call(tooltip.GetUnit, tooltip)
+    if type(unit) ~= "string" or ns.Game.unitGUID(unit) ~= data.guid then unit = findUnit(data.guid) end
+    return type(unit) == "string" and ns.Game.unitIsPlayer(unit) == false
+end
+
+local function updateUnitTextFields(tooltip, panel, data, key, token)
+    local tooltipType = TooltipTypes[Enum.TooltipDataType.Unit]
+    if not (tooltipType and ns.ui.unitTextFields and ns.ui.updateUnitTextField) then return false end
+    local ok, model = pcall(tooltipType.read, tooltip, data, ns.Game)
+    if not ok or not model then return false end
+    local fieldsOK, fields, tint, strength = pcall(ns.ui.unitTextFields, panel, model)
+    if not fieldsOK or type(fields) ~= "table" then return false, model end
+    rememberUnitModel(key, model)
+    local layoutKey
+    if ns.ui.unitLayoutKey then
+        local layoutOK
+        layoutOK, layoutKey = pcall(ns.ui.unitLayoutKey, panel, model)
+        if not layoutOK or layoutKey ~= panel.unitLayoutKey then return false, model end
+    end
+    if ns.ui.updateUnitPortrait then ns.ui.updateUnitPortrait(panel, model) end
+    for fieldKey in pairs(fields) do
+        if not (panel.unitTextFields and panel.unitTextFields[fieldKey]) then return false, model end
+    end
+    for fieldKey in pairs(panel.unitTextFields or {}) do
+        if not fields[fieldKey] then return false, model end
+    end
+    for fieldKey, previous in pairs(panel.unitTextFields or {}) do
+        local field = fields[fieldKey]
+        local text = field and field.text or ""
+        local color = field and field.color
+        local previousColor = previous.color
+        local colorChanged = color ~= previousColor
+            and (not color or not previousColor or color[1] ~= previousColor[1]
+                or color[2] ~= previousColor[2] or color[3] ~= previousColor[3])
+        if previous.text ~= text or colorChanged then
+            ns.ui.updateUnitTextField(panel, fieldKey, text, color)
+        end
+    end
+    ns.ui.updatePanelTint(panel, tint, strength, "unit")
+    panel.data, panel.key, panel.unitDead = data, key, model.dead
+    if ns.ui.unitLayoutKey then panel.unitLayoutKey = layoutKey end
+    panel.model = nil
+    panel.lineCount = util.call(tooltip.NumLines, tooltip)
+    panel.elapsed = 0
+    panel.textOnlyRefreshToken = token
+    return true
+end
+
+onTooltipData = function(dataType, tooltip, data, skipUnitDebounce)
     if not util.canModify(tooltip) then return end
+    hookCombatTooltip(tooltip)
+    if combatTooltipEnabled() then
+        hideForCombat(tooltip)
+        if not isSecret(data) and type(data) == "table" and not isSecret(data.lines) then
+            combatPending[tooltip] = { dataType = dataType, data = data }
+        end
+        return
+    end
+    local panel = panels[tooltip]
+    if panel then
+        panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+        panel.unitDebouncePending = nil
+        hookCombatPanel(panel)
+    end
+    if dataType == Enum.TooltipDataType.Unit and InCombatLockdown() and isNonPlayerTooltip(tooltip, data) then
+        local hasEngagedEnemies = scanEngagedEnemies()
+        local guid = data.guid
+        local unit = findUnit(guid)
+        if unit and ns.Game.unitIsDead(unit) == true then
+            engagedEnemies[guid] = nil
+            disregardedEnemies[guid] = true
+        end
+        if disregardedEnemies[guid] or (hasEngagedEnemies and not engagedEnemies[guid]) then
+            if panel then
+                panel.refreshToken = (panel.refreshToken or 0) + 1
+                panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+                if panel.nativeAlpha and util.call(tooltip.GetAlpha, tooltip) ~= 0 then tooltip:SetAlpha(0) end
+            end
+            return
+        end
+    end
+    if panel and panel.stickyUnit and dataType ~= Enum.TooltipDataType.Unit then return end
     if isSecret(data) or type(data) ~= "table" or isSecret(data.lines) or type(data.lines) ~= "table" then
         restoreNative(tooltip)
         return
@@ -257,10 +620,13 @@ local function onTooltipData(dataType, tooltip, data)
     if tooltip.prettyTooltipScanner then return end
     -- A type drawn in this one's place (an imbue's, for its weapon) goes by its own setting.
     dataType = claimantOf(dataType, tooltip, data)
+    if panel and panel.stickyUnit then
+        panel.stickyUnit = nil
+        panel.stickyTimerToken = (panel.stickyTimerToken or 0) + 1
+    end
     -- A native presentation needs no panel, geometry hooks, or restore work.
     -- Existing hooks stay installed across settings changes but become idle.
     if not ns.restyles(TooltipTypes[dataType].option) then
-        local panel = panels[tooltip]
         if panel then
             if not panel.nativeOnly then
                 panel.nativeOnly = true
@@ -275,12 +641,70 @@ local function onTooltipData(dataType, tooltip, data)
     installComparisonHooks()
     installAuctionHouseHook()
     native.unpark(tooltip)
-    local panel = getPanel(tooltip)
+    panel = getPanel(tooltip)
+    hookCombatPanel(panel)
     panel.nativeOnly = nil
     placement.observe(tooltip, dataType)
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)
     if not valid then restoreNative(tooltip); return end
+    local unitModel = dataType == Enum.TooltipDataType.Unit and key ~= previousKey
+        and cachedUnitModel(key) or nil
+    if unitModel then panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1 end
+    if not skipUnitDebounce and dataType == Enum.TooltipDataType.Unit
+        and previousDataType == dataType and key ~= previousKey and not unitModel and hooks.unitDebounce > 0 then
+        panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
+        local debounceToken = panel.unitDebounceToken
+        panel.unitDebouncePending = true
+        panel.refreshToken = (panel.refreshToken or 0) + 1
+        panel.restorePending = false
+        panel.contentPending = nil
+        panel:Hide()
+        if not panel.nativeAlpha then
+            panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip)))
+        end
+        if panel.nativeAlpha and util.call(tooltip.GetAlpha, tooltip) ~= 0 then tooltip:SetAlpha(0) end
+        C_Timer.After(hooks.unitDebounce, function()
+            if panel.unitDebounceToken ~= debounceToken then return end
+            if not util.canModify(tooltip) or util.call(tooltip.IsShown, tooltip) ~= true then
+                panel.unitDebouncePending = nil
+                restoreNative(tooltip)
+                return
+            end
+            local currentData = util.call(tooltip.GetTooltipData, tooltip)
+            if type(currentData) == "table" then
+                local currentKey, currentValid = keyOf(TooltipTypes[dataType], tooltip, currentData)
+                if not currentValid then
+                    panel.unitDebouncePending = nil
+                    restoreNative(tooltip)
+                    return
+                end
+                if currentKey ~= key then
+                    if util.call(tooltip.IsTooltipType, tooltip, dataType) == true then
+                        onTooltipData(dataType, tooltip, currentData)
+                    else
+                        panel.unitDebouncePending = nil
+                        restoreNative(tooltip)
+                    end
+                    return
+                end
+            else
+                panel.unitDebouncePending = nil
+                restoreNative(tooltip)
+                return
+            end
+            local isUnit = util.call(tooltip.IsTooltipType, tooltip, dataType)
+            if isUnit == false then
+                panel.unitDebouncePending = nil
+                restoreNative(tooltip)
+                return
+            end
+            panel.unitDebouncePending = nil
+            onTooltipData(dataType, tooltip, data, true)
+        end)
+        return
+    end
+    panel.unitDebounceToken = (panel.unitDebounceToken or 0) + 1
     panel.dataType = dataType
     panel.data = data
     panel.refreshToken = (panel.refreshToken or 0) + 1
@@ -290,7 +714,7 @@ local function onTooltipData(dataType, tooltip, data)
     if not panel.hooked then
         placement.hookInput(tooltip)
         tooltip:HookScript("OnHide", function(hidden)
-            if panel.nativeOnly then return end
+            if panel.nativeOnly or panel.stickyUnit then return end
             -- Keep native cleanup deferred, but never draw the old panel at
             -- an anchor reset by an action button's hide/clear sequence.
             panel:Hide()
@@ -303,6 +727,14 @@ local function onTooltipData(dataType, tooltip, data)
         local function onNativeShown(shown)
             if panel.nativeOnly then return end
             if not util.canModify(shown) then return end
+            if panel.unitDebouncePending then
+                if panel.nativeAlpha then shown:SetAlpha(0) end
+                return
+            end
+            if panel.stickyUnit then
+                if panel.nativeAlpha then shown:SetAlpha(0) end
+                return
+            end
             tally(isComparison(shown) and "show hook (comparison)" or "show hook")
             if panel.restorePending or panel.comparisonPending or panel.contentPending then
                 if panel.nativeAlpha then shown:SetAlpha(0) end
@@ -345,7 +777,7 @@ local function onTooltipData(dataType, tooltip, data)
                 restoreNative(faded)
                 return
             end
-            if not (panel.nativeAlpha and panel:IsShown()) then return end
+            if not (panel.nativeAlpha and (panel:IsShown() or panel.unitDebouncePending)) then return end
             panel.nativeAlpha = alpha
             panel.settingAlpha = true
             pcall(faded.SetAlpha, faded, 0)
@@ -433,27 +865,98 @@ local function onTooltipData(dataType, tooltip, data)
         tooltip:SetAlpha(0)
         panel.contentPending = true
         tally("partial render deferred")
+    else
     -- Other first renders show the new item promptly. On refresh, retain the
     -- complete old panel until other addons have appended their rows.
-    elseif not panel:IsShown() or dataType ~= previousDataType or (key and key ~= previousKey) then
-        update(tooltip, data)
-    else
+    local changedUnit = dataType == Enum.TooltipDataType.Unit
+        and previousDataType == Enum.TooltipDataType.Unit and panel:IsShown()
+        and key ~= previousKey
+    local textOnly
+    if changedUnit and not unitModel then textOnly, unitModel = updateUnitTextFields(tooltip, panel, data, key, token) end
+    if not textOnly and (not panel:IsShown() or dataType ~= previousDataType or (key and key ~= previousKey)) then
+        update(tooltip, data, unitModel)
+    elseif not textOnly then
         if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
         if not panel.nativeAlpha then restoreNative(tooltip); return end
         tooltip:SetAlpha(0)
         tally("unchanged item handover")
         placement.refresh(tooltip)
     end
+    end
     C_Timer.After(0, function()
+        if panel.textOnlyRefreshToken == token then
+            panel.textOnlyRefreshToken = nil
+            return
+        end
         finishTooltip(tooltip, panel, data, token)
     end)
 end
 onTooltipData = probe("tooltip data", onTooltipData)
 
+-- Mouseover can already refer to another unit; the event token lets a parked
+-- panel refresh only when its own unit's dead state changes.
+local unitStatus = CreateFrame("Frame")
+unitStatus:RegisterEvent("UNIT_FLAGS")
+unitStatus:RegisterEvent("UNIT_HEALTH")
+unitStatus:RegisterEvent("UNIT_COMBAT")
+unitStatus:RegisterEvent("UNIT_TARGET")
+unitStatus:RegisterEvent("PLAYER_REGEN_DISABLED")
+unitStatus:RegisterEvent("PLAYER_REGEN_ENABLED")
+unitStatus:RegisterEvent("PLAYER_TARGET_CHANGED")
+unitStatus:RegisterEvent("PLAYER_FOCUS_CHANGED")
+unitStatus:RegisterEvent("GROUP_ROSTER_UPDATE")
+unitStatus:RegisterEvent("NAME_PLATE_UNIT_ADDED")
+unitStatus:SetScript("OnEvent", function(_, event, unit)
+    if event == "PLAYER_REGEN_DISABLED" and ns.option("hideTooltipsInCombat") then
+        for tooltip in pairs(combatHooked) do
+            hideForCombat(tooltip)
+        end
+    elseif event == "PLAYER_REGEN_ENABLED" then
+        for tooltip in pairs(combatHooked) do
+            restoreAfterCombat(tooltip)
+        end
+    end
+    if type(unit) == "string" then
+        local guid = util.call(ns.Game.unitGUID, unit)
+        if InCombatLockdown() and not isSecret(guid) and type(guid) == "string"
+            and util.call(ns.Game.unitIsPlayer, unit) == false and util.call(ns.Game.unitIsDead, unit) == true then
+            engagedEnemies[guid] = nil
+            disregardedEnemies[guid] = true
+        end
+    end
+    if event ~= "UNIT_HEALTH" then scanEngagedEnemies() end
+    if type(unit) ~= "string" then return end
+    local guid = util.call(ns.Game.unitGUID, unit)
+    if isSecret(guid) or type(guid) ~= "string" then return end
+    for tooltip, panel in pairs(panels) do
+        if panel.stickyUnit and panel.dataType == Enum.TooltipDataType.Unit and panel.key == guid
+            and panel.data and util.canModify(tooltip) then
+            local dead = util.call(ns.Game.unitIsDead, unit)
+            if type(dead) ~= "boolean" or dead ~= panel.unitDead then
+                local tooltipType = TooltipTypes[panel.dataType]
+                local ok, model = pcall(tooltipType.read, tooltip, panel.data, ns.Game, unit)
+                if ok and model then
+                    local rendered = pcall(tooltipType.render, panel, tooltip, model)
+                    if rendered then
+                        panel.unitDead = model.dead
+                        rememberUnitModel(guid, model)
+                    else
+                        restoreNative(tooltip)
+                    end
+                end
+            end
+        end
+    end
+end)
+
 local installed = false
 function hooks.install()
     if installed then return end
     installed = true
+    for _, name in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2",
+        "ItemRefShoppingTooltip1", "ItemRefShoppingTooltip2" }) do
+        hookCombatTooltip(_G[name])
+    end
     installComparisonHooks()
     if not installAuctionHouseHook() then
         auctionLoadFrame = CreateFrame("Frame")

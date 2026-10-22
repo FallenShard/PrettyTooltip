@@ -10,6 +10,11 @@
 ## Performance
 
 - Reduced repeated item reads, rendering, and anchor changes during auction-house and comparison refreshes. Pretty placement no longer inflates hidden native tooltips to match the panels' dimensions.
+- Removed the automatic idle fade and `/ptip fade` command.
+
+## Options
+
+- Added **Hide tooltips in combat** to the addon's options page, on by default. It hides native and PrettyTooltip tooltips alike.
 
 ## Bug reports
 
@@ -36,6 +41,7 @@
 
 ## Options
 
+- Added a **Keep visible** toggle and duration under **Unit Details** in the style editor. Retention is on by default for five seconds after the game fades a unit tooltip, unless a new unit is hovered first.
 - Fixed the **Global scale** slider's layout on the main options page: the percentage stays inside the settings window, and the slider uses the game's artwork without overlapping custom graphics.
 
 # PrettyTooltip 1.3.3

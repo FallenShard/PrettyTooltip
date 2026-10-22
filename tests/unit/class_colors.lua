@@ -32,6 +32,29 @@ return function(test)
     test.check("a player's model uses the class override", model.color, { 1, 0, 0 })
     test.check("its player target uses that class's override", model.targetColor, { 0, 0, 1 })
 
+    local dead = false
+    local npcGame = setmetatable({
+        unitExists = function(unit) return unit == "eventunit" end,
+        unitGUID = function() return "Creature-test" end,
+        unitIsPlayer = function() return false end,
+        unitLevel = function() return 10 end,
+        unitCreatureType = function() return "Beast" end,
+        unitClassification = function() return "normal" end,
+        unitIsDead = function() return dead end,
+        unitReaction = function() return 2 end,
+        unitIsTapDenied = function() return false end,
+    }, { __index = ns.Game })
+    local npcData = { guid = "Creature-test", lines = { { lineIndex = 1, leftText = "Wolf" } } }
+    local alive = ns.TooltipTypes[UNIT].read(world.main, npcData, npcGame, "eventunit")
+    test.check("a live hostile unit keeps its reaction tint", alive.color, { 1, .27, .22 })
+    dead = true
+    local deceased = ns.TooltipTypes[UNIT].read(world.main, npcData, npcGame, "eventunit")
+    test.check("a dead unit uses the neutral background tint", deceased.color, { .55, .55, .55 })
+    local deadView
+    ns.ui.renderView = function(_, _, value) deadView = value end
+    ns.TooltipTypes[UNIT].render({}, world.main, deceased)
+    test.check("a dead unit's panel background uses its updated tint", deadView.tint, { .55, .55, .55 })
+
     local view
     ns.ui.renderView = function(_, _, value) view = value end
     ns.setOption("unitHealthBar", false)
