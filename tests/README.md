@@ -46,6 +46,11 @@ branch protection rule or repository ruleset after the first successful run.
 
 ## Fixtures and expected outputs
 
+`fixtures/mail.lua` replays the captured multi-attachment summary. `unit/mail.lua`
+checks mailbox quantities, asynchronous price fills, other addons' rows, totals,
+modifier restoration, presentation settings, owner isolation and restricted data.
+New mail captures record the inbox index and attachment API answers for replay.
+
 A fixture is a real tooltip, captured in the game:
 
 1. Hover a tooltip, or click a link in chat, and type `/ptip capture <name>`. Hold Shift first to capture the comparison tooltips too. Values the game hides, as on some player tooltips, are kept marked; the harness gives them back as hidden values that `issecretvalue` knows, so the addon's handling of them is tested too.

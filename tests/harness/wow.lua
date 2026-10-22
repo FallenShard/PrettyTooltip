@@ -429,6 +429,7 @@ return function(fixture, enums, report, strings)
     -- Functions some clients lack; a fixture says which its client had, or,
     -- from before it did, has those it recorded answers for.
     local OPTIONAL = {
+        "GetInboxItem", "GetInboxItemLink",
         "GetNumSkillLines", "GetSkillLineInfo", "GetProfessions", "GetProfessionInfo", "UnitTokenFromGUID",
         "UnitEffectiveLevel", "GetSpellInfo", "GetSpellTexture", "C_Item.GetItemInfoInstant",
         "C_Item.GetDetailedItemLevelInfo", "C_Item.GetItemNameByID", "C_Spell.GetSpellTexture",

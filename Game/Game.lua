@@ -10,6 +10,26 @@ local isSecret, readable, call, number, rgb = util.isSecret, util.readable, util
 local game = {}
 ns.Game = game
 
+function game.mailAttachments(index)
+    if not (GetInboxItem and GetInboxItemLink) then return {} end
+    local items = {}
+    for slot = 1, ATTACHMENTS_MAX_RECEIVE or 12 do
+        local ok, name, id, icon, count = pcall(GetInboxItem, index, slot)
+        if not ok then return end
+        if isSecret(name) or isSecret(id) or isSecret(icon) or isSecret(count) then return end
+        local linked, link = pcall(GetInboxItemLink, index, slot)
+        if not linked or isSecret(link) then return end
+        link = util.safeText(link)
+        if link == "" then link = nil end
+        name, id, icon, count = util.safeText(name), number(id), readable(icon), number(count)
+        if name and name ~= "" and (link or id) then
+            items[#items + 1] = { name = name, id = id or tonumber(link:match("item:(%d+)")),
+                link = link, icon = icon, count = count }
+        end
+    end
+    return items
+end
+
 -- Items -----------------------------------------------------------------------
 
 -- An item's name, link, quality, icon, and unit sell price, by ID, link, or

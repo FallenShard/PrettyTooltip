@@ -24,6 +24,7 @@ globals = {
 
 -- The game's functions, objects, and constants the addon reads.
 read_globals = {
+    "GetInboxItem", "GetInboxItemLink", "ATTACHMENTS_MAX_RECEIVE",
     -- Lua the game adds
     "date", "tinsert", "issecretvalue", "canaccesstable", "debugprofilestop", "hooksecurefunc", "geterrorhandler", "debugstack",
     -- Frames and UI
