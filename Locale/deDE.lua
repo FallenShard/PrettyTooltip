@@ -304,9 +304,10 @@ L["The vendor price in the footer; for a stack, the price of one and of the whol
 L["Swap Damage Stats"] = "Schadenswerte tauschen"
 L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
     "Der Schaden einer Waffe in der großen Zeile, ihr Tempo und Schaden pro Sekunde in der kleinen darunter."
-L["Spell power"] = "Zaubermacht"
+L["Spell power (Experimental)"] = "Zaubermacht (Experimentell)"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "Unter der Beschreibung der Zaubermachtkoeffizient jedes Betrags und seine Aufteilung in Grundwert und Zaubermacht. Keine Spiel-API liefert Koeffizienten: Sie stammen aus den Clientdaten von Forever, mit ~ markierte sind Schätzungen."
+L["Experimental: not all values are correct yet."] = "Experimentell: Noch sind nicht alle Werte korrekt."
 L["Rates"] = "Raten"
 L["Under the spell power breakdown, the average a cast deals or heals per second and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time over its duration. Crits and talents do not count."] =
     "Unter der Zaubermacht-Aufteilung der durchschnittliche Schaden oder die Heilung eines Zaubers pro Sekunde und pro Mana. Pro Sekunde zählt, was sofort wirkt, über die Zauberzeit (Spontanzauber als globale Abklingzeit von 1,5 Sek.) und was über Zeit wirkt, über seine Dauer. Kritische Treffer und Talente zählen nicht."

@@ -281,9 +281,10 @@ L["The vendor price in the footer; for a stack, the price of one and of the whol
 L["Swap Damage Stats"] = "交换伤害显示"
 L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
     "武器伤害显示在大字行，速度和每秒伤害显示在其下方的小字行。"
-L["Spell power"] = "法术强度"
+L["Spell power (Experimental)"] = "法术强度（实验性）"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "在说明下方显示各项数值的法术强度系数，以及基础值和法术强度加成。游戏API不提供系数，数据来自Forever客户端，带~的数值为估算值。"
+L["Experimental: not all values are correct yet."] = "实验性功能：部分数值尚不准确。"
 L["Rates"] = "效率"
 L["Under the spell power breakdown, the average a cast deals or heals per second and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time over its duration. Crits and talents do not count."] =
     "在法术强度分析下方显示每次施法的平均每秒及每点法力伤害或治疗量。直接效果按施法时间计算，瞬发法术按1.5秒公共冷却计算，持续效果按持续时间计算。不计入爆击和天赋。"

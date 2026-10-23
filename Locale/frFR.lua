@@ -302,9 +302,10 @@ L["The vendor price in the footer; for a stack, the price of one and of the whol
 L["Swap Damage Stats"] = "Inverser les dégâts"
 L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
     "Les dégâts d'une arme sur la grande ligne, sa vitesse et ses dégâts par seconde sur la petite ligne en dessous."
-L["Spell power"] = "Puissance des sorts"
+L["Spell power (Experimental)"] = "Puissance des sorts (expérimental)"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "Sous la description, le coefficient de puissance des sorts de chaque montant et sa répartition entre valeur de base et puissance des sorts. Aucune API du jeu ne donne les coefficients : ils viennent des données du client Forever, ceux marqués ~ sont des estimations."
+L["Experimental: not all values are correct yet."] = "Expérimental : toutes les valeurs ne sont pas encore correctes."
 L["Rates"] = "Débits"
 L["Under the spell power breakdown, the average a cast deals or heals per second and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time over its duration. Crits and talents do not count."] =
     "Sous la répartition de puissance des sorts, la moyenne de dégâts ou de soins d'un sort par seconde et par point de mana. Par seconde, ce qui arrive d'un coup compte sur le temps d'incantation (les sorts instantanés comme le temps de recharge global de 1,5 s) et ce qui arrive sur la durée compte sur cette durée. Les critiques et les talents ne comptent pas."

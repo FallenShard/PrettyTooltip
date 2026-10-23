@@ -305,9 +305,10 @@ L["The vendor price in the footer; for a stack, the price of one and of the whol
 L["Swap Damage Stats"] = "Trocar dados de dano"
 L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
     "O dano de uma arma na linha grande, com a velocidade e o dano por segundo na pequena logo abaixo."
-L["Spell power"] = "Poder mágico"
+L["Spell power (Experimental)"] = "Poder mágico (experimental)"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "Abaixo da descrição, o coeficiente de poder mágico de cada valor e sua divisão entre base e poder mágico. Nenhuma API do jogo fornece coeficientes: eles vêm dos dados do cliente do Forever, e os marcados com ~ são estimativas."
+L["Experimental: not all values are correct yet."] = "Experimental: nem todos os valores estão corretos ainda."
 L["Rates"] = "Taxas"
 L["Under the spell power breakdown, the average a cast deals or heals per second and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time over its duration. Crits and talents do not count."] =
     "Abaixo da divisão de poder mágico, a média que um lançamento causa ou cura por segundo e por ponto de mana. Por segundo, o que chega de uma vez conta sobre o tempo de lançamento (os instantâneos como a recarga global de 1,5 s) e o que chega ao longo do tempo, sobre sua duração. Críticos e talentos não contam."

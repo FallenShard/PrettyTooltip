@@ -748,7 +748,7 @@ local function colorControl()
     return holder
 end
 
-local function checkbox(label, key, description, isAvailable)
+local function checkbox(label, key, description, isAvailable, warning)
     local button = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
     button:SetSize(22, 22)
     if isAvailable then button:SetMotionScriptsWhileDisabled(true) end
@@ -759,6 +759,7 @@ local function checkbox(label, key, description, isAvailable)
         GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
         GameTooltip:SetText(L[label], 1, 1, 1)
         GameTooltip:AddLine(L[description], nil, nil, nil, true)
+        if warning then GameTooltip:AddLine(L[warning], 1, .82, 0, true) end
         GameTooltip:Show()
     end)
     button:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -939,13 +940,14 @@ local function row(label, control, setting, shown, stacked)
     }
 end
 
--- Checkboxes two to a line, each { label, key, description, shown }: those
--- shown close up, so a type's own come out without gaps.
+-- Checkboxes two to a line, each { label, key, description, shown, isAvailable,
+-- warning }: those shown close up, so a type's own come out without gaps. A
+-- warning is a gold line under the description.
 local function toggles(list, shown)
     local holder, item = entry(0, shown)
     local boxes = {}
     for index, toggle in ipairs(list) do
-        local box = checkbox(toggle[1], toggle[2], toggle[3], toggle[5])
+        local box = checkbox(toggle[1], toggle[2], toggle[3], toggle[5], toggle[6])
         box:SetParent(holder)
         boxes[index] = { box = box, shown = toggle[4] }
     end
@@ -1244,9 +1246,10 @@ toggles({
         .. "with each result's chance and the Enchanting it needs; with Auctionator, the expected value.", items },
     { "Sell price", "sellPrice", "The vendor price in the footer; for a stack, the price of one and of the "
         .. "whole stack.", items },
-    { "Spell power", "spellPower", "Under the description, each amount's spell power coefficient and its "
-        .. "split into base and spell power. No game API has coefficients: they come from Forever's client "
-        .. "data, and ones marked ~ are estimates.", spells, coefficients },
+    { "Spell power (Experimental)", "spellPower", "Under the description, each amount's spell power coefficient "
+        .. "and its split into base and spell power. No game API has coefficients: they come from Forever's client "
+        .. "data, and ones marked ~ are estimates.", spells, coefficients,
+        "Experimental: not all values are correct yet." },
     { "Rates", "spellRates", "Under the spell power breakdown, the average a cast deals or heals per second "
         .. "and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec "
         .. "global cooldown) and what comes over time over its duration. Crits and talents do not count.", spells,

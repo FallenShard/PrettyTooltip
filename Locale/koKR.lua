@@ -284,9 +284,10 @@ L["The vendor price in the footer; for a stack, the price of one and of the whol
 L["Swap Damage Stats"] = "피해량 표시 바꾸기"
 L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
     "무기의 피해량을 큰 줄에, 공격 속도와 초당 피해량을 그 아래 작은 줄에 표시합니다."
-L["Spell power"] = "주문력"
+L["Spell power (Experimental)"] = "주문력 (실험적)"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "설명 아래에 각 수치의 주문력 계수와 기본값 및 주문력 기여분을 표시합니다. 계수는 게임 API가 아닌 Forever 클라이언트 데이터에서 가져오며 ~ 표시는 추정값입니다."
+L["Experimental: not all values are correct yet."] = "실험적 기능: 아직 일부 값이 정확하지 않습니다."
 L["Rates"] = "효율"
 L["Under the spell power breakdown, the average a cast deals or heals per second and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time over its duration. Crits and talents do not count."] =
     "주문력 분석 아래에 시전당 평균 초당 및 마나당 피해량이나 치유량을 표시합니다. 즉발 효과는 시전 시간으로 나누고 즉시 시전 주문은 전역 재사용 대기시간 1.5초로 계산합니다. 지속 효과는 지속 시간으로 나눕니다. 치명타 및 극대화와 특성은 반영하지 않습니다."

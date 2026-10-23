@@ -275,8 +275,9 @@ L["The vendor price in the footer; for a stack, the price of one and of the whol
 L["Swap Damage Stats"] = "Поменять урон местами"
 L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
     "Урон оружия — крупной строкой, его скорость и урон в секунду — мелкой строкой под ней."
-L["Spell power"] = "Сила заклинаний"
+L["Spell power (Experimental)"] = "Сила заклинаний (экспериментально)"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] = "Под описанием показывает коэффициент силы заклинаний для каждой величины и ее базовую часть и прибавку от силы заклинаний. Игровой API не предоставляет коэффициенты: они получены из данных клиента Forever. Значения с отметкой ~ приблизительны."
+L["Experimental: not all values are correct yet."] = "Экспериментально: пока не все значения верны."
 L["Rates"] = "Эффективность"
 L["Under the spell power breakdown, the average a cast deals or heals per second and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time over its duration. Crits and talents do not count."] = "Под расчетом силы заклинаний показывает средний урон или исцеление за секунду и на единицу маны. Мгновенный эффект делится на время применения, для мгновенных заклинаний — на глобальное восстановление 1,5 сек.; периодический эффект — на его длительность. Критические эффекты и таланты не учитываются."
 L["Health bar"] = "Полоса здоровья"

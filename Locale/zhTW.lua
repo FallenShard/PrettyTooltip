@@ -283,9 +283,10 @@ L["The vendor price in the footer; for a stack, the price of one and of the whol
 L["Swap Damage Stats"] = "交換傷害顯示"
 L["A weapon's damage on the large line, with its speed and damage per second on the small one under it."] =
     "武器傷害顯示在大字行，速度和每秒傷害顯示在其下方的小字行。"
-L["Spell power"] = "法術能量"
+L["Spell power (Experimental)"] = "法術能量（實驗性）"
 L["Under the description, each amount's spell power coefficient and its split into base and spell power. No game API has coefficients: they come from Forever's client data, and ones marked ~ are estimates."] =
     "在說明下方顯示各項數值的法術能量係數，以及基礎值和法術能量加成。遊戲API不提供係數，資料來自Forever用戶端，帶~的數值為估計值。"
+L["Experimental: not all values are correct yet."] = "實驗性功能：部分數值尚不準確。"
 L["Rates"] = "效率"
 L["Under the spell power breakdown, the average a cast deals or heals per second and per mana. Per second, what lands at once counts over the cast time (instants as the 1.5 sec global cooldown) and what comes over time over its duration. Crits and talents do not count."] =
     "在法術能量分析下方顯示每次施法的平均每秒及每點法力傷害或治療量。直接效果依施法時間計算，瞬發法術依1.5秒共用冷卻計算，持續效果依持續時間計算。不計入致命一擊和天賦。"
