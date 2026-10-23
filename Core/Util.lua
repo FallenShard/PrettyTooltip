@@ -120,7 +120,7 @@ end
 
 -- Without color codes or inline textures.
 function util.plainText(text)
-    return (text:gsub("|T.-|t", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
+    return (text:gsub("|T.-|t", ""):gsub("|A.-|a", ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", ""))
 end
 
 -- The game's own escapes; digits inside them (color codes, icon sizes, the
