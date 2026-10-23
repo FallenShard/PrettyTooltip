@@ -25,9 +25,16 @@ end
 
 -- An item's, spell's, or quest's name on this client, asked on each draw.
 -- Quest fallbacks are translated while the client loads their titles.
-local function itemName(id, english) return { itemName = id, english } end
-local function spellName(id, english) return { spellName = id, english } end
-local function questName(id, english) return { questName = id, english } end
+local function previewName(id, english, kind)
+    if GetLocale and GetLocale() == "zhCN" then
+        local translated = L[english]
+        if translated and translated ~= english then return translated end
+    end
+    return { [kind] = id, english }
+end
+local function itemName(id, english) return previewName(id, english, "itemName") end
+local function spellName(id, english) return previewName(id, english, "spellName") end
+local function questName(id, english) return previewName(id, english, "questName") end
 
 local function quoted(text) return '"' .. text .. '"' end
 
@@ -35,13 +42,13 @@ local function quoted(text) return '"' .. text .. '"' end
 -- model the completer the tooltip file shares.
 local TYPES = {
     { key = "mail", label = "Mail", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
-        noLookup = true, samples = { { label = "Attachments", fields = {
+        noLookup = true, samples = { { label = L["Attachments"], fields = {
             attachments = {
-                { link = "|cffffffffCooked Crab Claw|r", count = 9, icon = { item = 2682 },
-                    prices = { { left = "Vendor", right = { money = 25 } }, { left = "Auction", right = { money = 97 } } } },
-                { link = "|cff1eff00Pyrite|r", count = 5, icon = { item = 249391 },
-                    prices = { { left = "Vendor", right = { money = 100 } }, { left = "Auction", right = { money = 109 } } } },
-            }, totals = { { left = "Total: 14 items", right = { money = 1418 } } },
+                { link = "|cffffffff" .. L["Cooked Crab Claw"] .. "|r", count = 9, icon = { item = 2682 },
+                    prices = { { left = L["Vendor"], right = { money = 25 } }, { left = L["Auction"], right = { money = 97 } } } },
+                { link = "|cff1eff00" .. L["Pyrite"] .. "|r", count = 5, icon = { item = 249391 },
+                    prices = { { left = L["Vendor"], right = { money = 100 } }, { left = L["Auction"], right = { money = 109 } } } },
+            }, totals = { { left = L["Total: 14 items"], right = { money = 1418 } } },
         } } } },
     {
         key = "item", label = "Items", dataType = "Item", model = "itemModel", first = "title", noun = "item",
@@ -145,7 +152,7 @@ local TYPES = {
                         rightColor = PALE } },
                     created = {
                         name = itemName(250508, "Veteran's Gloves"), quality = 2, icon = "Interface\\Icons\\INV_Gauntlets_05",
-                        slot = L["Mail"] .. DOT .. INVTYPE_HAND,
+                        slot = L["Mail armor"] .. DOT .. INVTYPE_HAND,
                         levelRequirement = { text = fill(ITEM_MIN_LEVEL, 15), met = true },
                         armor = { { left = fill(ARMOR_TEMPLATE, 115), right = "", value = "115" } },
                         primary = { statLine("STRENGTH", 5), statLine("AGILITY", 3), statLine("STAMINA", 5) },
@@ -399,7 +406,41 @@ local TYPES = {
 local function icon(getter, id)
     if getter then
         local ok, found = pcall(getter, id)
-        if ok and found then return found end
+        if ok and found and found ~= 0 then return found end
+    end
+    return QUESTION_MARK
+end
+
+-- Some legacy sample spell IDs are no longer queryable on retail clients.
+-- Keep a texture fallback for the *preview* rather than displaying a question mark.
+-- These are only editor samples; live spell tooltip resolution is unchanged.
+local SAMPLE_SPELL_ICONS = {
+    [133] = "Interface\\Icons\\Spell_Fire_FlameBolt",       -- Fireball
+    [72] = "Interface\\Icons\\Ability_Warrior_ShieldBash", -- Shield Bash
+    [635] = "Interface\\Icons\\Spell_Holy_HolyBolt",       -- Holy Light
+    [1245] = "Interface\\Icons\\Spell_Holy_WordFortitude",-- Power Word: Fortitude
+    [980] = "Interface\\Icons\\Spell_Shadow_CurseOfSargeras", -- Curse of Agony
+    [2818] = "Interface\\Icons\\Ability_Rogue_DualWeild", -- Deadly Poison
+    [19750] = "Interface\\Icons\\Spell_Holy_FlashHeal",   -- Heal sample
+}
+
+local function spellIcon(id)
+    -- Prefer a known icon for the fixed editor samples. In particular, some
+    -- removed spells return the generic question-mark texture without error.
+    if SAMPLE_SPELL_ICONS[id] then return SAMPLE_SPELL_ICONS[id] end
+    if C_Spell and C_Spell.GetSpellInfo then
+        local ok, info = pcall(C_Spell.GetSpellInfo, id)
+        if ok and type(info) == "table" and info.iconID and info.iconID ~= 0 then
+            return info.iconID
+        end
+    end
+    if C_Spell and C_Spell.GetSpellTexture then
+        local ok, texture = pcall(C_Spell.GetSpellTexture, id)
+        if ok and texture and texture ~= 0 then return texture end
+    end
+    if GetSpellTexture then
+        local ok, texture = pcall(GetSpellTexture, id)
+        if ok and texture and texture ~= 0 then return texture end
     end
     return QUESTION_MARK
 end
@@ -417,7 +458,7 @@ local function resolve(value)
         return icon(C_Item and C_Item.GetItemIconByID, value.item)
     end
     if value.spell and next(value, next(value)) == nil then
-        return icon(C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, value.spell)
+        return spellIcon(value.spell)
     end
     if value.itemName then return ns.Game.itemName(value.itemName) or value[1] end
     if value.spellName then return ns.Game.spellName(value.spellName) or value[1] end
