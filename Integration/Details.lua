@@ -69,7 +69,6 @@ local function fontAt(state, side, index)
     local font = list[index]
     if not font then
         font = state.block:CreateFontString(nil, "ARTWORK", "GameTooltipText")
-        font:SetRoundLayoutToNearestPixel(true)
         if font.SetWordWrap then font:SetWordWrap(false) end
         font:SetJustifyH(side == "rights" and "RIGHT" or "LEFT")
         list[index] = font
@@ -110,8 +109,8 @@ local function draw(state, rows)
     state.block:SetHeight(state.height)
 end
 
-local function wanted(state)
-    return not ns.originalKeyDown() and ns.detailsKeyDown()
+local function shows(state)
+    return state.rows ~= nil and not ns.originalKeyDown() and ns.detailsKeyDown()
         and not ns.restyles(TooltipTypes[state.dataType].option)
 end
 
@@ -119,11 +118,11 @@ end
 -- SetPadding resizes the tooltip at once, so it needs no Show, which would run
 -- the game's OnShow under the addon's taint; it comes last, after the width.
 local function apply(tooltip, state)
-    if not (state.rows and wanted(state)) then
-        if state.base and util.canModify(tooltip) then giveBack(tooltip, state, false) end
+    if not util.canModify(tooltip) then return end
+    if not shows(state) then
+        if state.base then giveBack(tooltip, state, false) end
         return
     end
-    if not util.canModify(tooltip) then return end
     local base = baseOf(tooltip, state)
     local minWidth = math.max(base.minWidth, state.width + 2 * INSET)
     local bottom = base.bottom + state.height
@@ -137,7 +136,6 @@ local function stateOf(tooltip)
     local state = states[tooltip]
     if state then return state end
     local block = CreateFrame("Frame", nil, tooltip)
-    block:SetRoundLayoutToNearestPixel(true)
     block:SetPoint("BOTTOMLEFT", tooltip, "BOTTOMLEFT", INSET, INSET)
     block:SetPoint("BOTTOMRIGHT", tooltip, "BOTTOMRIGHT", -INSET, INSET)
     block:Hide()
@@ -154,11 +152,11 @@ local function stateOf(tooltip)
     end)
     -- The game clears its padding on hide, but not on a refill.
     tooltip:HookScript("OnHide", function(hidden)
-        state.rows, state.data = nil, nil
+        state.rows = nil
         giveBack(hidden, state, true)
     end)
     tooltip:HookScript("OnTooltipCleared", function(cleared)
-        state.rows, state.data = nil, nil
+        state.rows = nil
         giveBack(cleared, state, false)
     end)
     return state
@@ -171,43 +169,18 @@ local function anyOn(tooltipType)
     return false
 end
 
--- Retain the latest handover while hidden. Read and draw only when requested,
--- in the modifier event itself, so toggling details never waits for a refill.
-local function prepare(tooltip, state)
-    local tooltipType = TooltipTypes[state.dataType]
-    if state.rows and state.version == (ns.settingsVersion or 0) then return end
-    state.rows = nil
-    if not anyOn(tooltipType) then return end
-    local ok, model = pcall(tooltipType.readDetails or tooltipType.read, tooltip, state.data, ns.Game)
+local function onTooltipData(dataType, tooltip, data)
+    if not util.canModify(tooltip) or tooltip.prettyTooltipScanner then return end
+    local tooltipType = TooltipTypes[dataType]
+    if ns.restyles(tooltipType.option) or not anyOn(tooltipType) then return end
+    if isSecret(data) or type(data) ~= "table" then return end
+    local ok, model = pcall(tooltipType.read, tooltip, data, ns.Game)
     if not ok or not model then return end
     local built, rows = pcall(tooltipType.details, model, ALL)
     if not built or not rows or #rows == 0 then return end
-    if not pcall(draw, state, rows) then return end
-    state.rows, state.version = rows, ns.settingsVersion or 0
-end
-
-local function onTooltipData(dataType, tooltip, data)
-    local tooltipType = TooltipTypes[dataType]
-    if ns.restyles(tooltipType.option) or not anyOn(tooltipType) then
-        local state = not isSecret(tooltip) and states[tooltip]
-        if state then
-            state.rows, state.data = nil, nil
-            if state.base and util.canModify(tooltip) then giveBack(tooltip, state, false) end
-        end
-        return
-    end
-    if not util.canModify(tooltip) or tooltip.prettyTooltipScanner then return end
-    if isSecret(data) or type(data) ~= "table" then
-        local state = states[tooltip]
-        if state then
-            state.rows, state.data = nil, nil
-            if state.base then giveBack(tooltip, state, false) end
-        end
-        return
-    end
     local state = stateOf(tooltip)
-    state.rows, state.data, state.dataType = nil, data, dataType
-    if wanted(state) then prepare(tooltip, state) end
+    if not pcall(draw, state, rows) then return end
+    state.rows, state.dataType = rows, dataType
     pcall(apply, tooltip, state)
 end
 
@@ -227,8 +200,7 @@ function ns.Details.register()
     ns.Processor.onKey("details", function(key)
         if not (ns.isDetailsKey(key) or ns.isOriginalKey(key)) then return end
         for tooltip, state in pairs(states) do
-            if state.data and util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip) then
-                if wanted(state) then prepare(tooltip, state) end
+            if state.rows and util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip) then
                 pcall(apply, tooltip, state)
             end
         end
