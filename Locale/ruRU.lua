@@ -423,7 +423,6 @@ L["Restyle items"] = "Оформлять предметы"
 L["Restyle spells"] = "Оформлять заклинания"
 L["Restyle players and npcs"] = "Оформлять игроков и NPC"
 L["Restyle buffs and debuffs"] = "Оформлять положительные и отрицательные эффекты"
-L["Restyle weapon imbues"] = "Оформлять временные чары оружия"
 L["Restyle herbs, ore, chests, and other objects"] = "Оформлять травы, руду, сундуки и другие объекты"
 L["Restyle flight paths"] = "Оформлять маршруты полетов"
 L["Restyle quests"] = "Оформлять задания"
@@ -438,7 +437,6 @@ L["Restyle totems"] = "Оформлять тотемы"
 L["Restyle flyout buttons"] = "Оформлять раскрывающиеся кнопки"
 L["Players and NPCs"] = "Игроки и NPC"
 L["Buffs and debuffs"] = "Положительные и отрицательные эффекты"
-L["Weapon imbues"] = "Временные чары оружия"
 L["Herbs, ore, chests, and other objects"] = "Травы, руда, сундуки и другие объекты"
 L["Flight paths"] = "Маршруты полетов"
 L["Currencies"] = "Валюты"
@@ -486,7 +484,7 @@ L["Select all"] = "Выбрать все"
 L["Axe"] = "Топор"
 L["Plate"] = "Латы"
 L["Polearm"] = "Древковое"
-L["Mail"] = "Кольчуга"
+L["Mail"] = "Почта"
 L["Consumable"] = "Расходуемый предмет"
 L["Plans"] = "Чертеж"
 L["Shields"] = "Щиты"
@@ -539,3 +537,41 @@ L["Ended by"] = "Завершает"
 L["Started by"] = "Начинает"
 L["Found in"] = "Находится в"
 L["Rares"] = "Редкие существа"
+
+-- Mythic+ score modifier option (localized).
+L["Mythic+ Rating Modifier"] = "Клавиша-модификатор рейтинга эпохальных+"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Удерживайте Ctrl, чтобы показывать рейтинг эпохальных+ и результаты подземелий в подсказке игрока."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Удерживайте Alt, чтобы показывать рейтинг эпохальных+ и результаты подземелий в подсказке игрока."
+L["Show Mythic+ rating without holding a modifier key."] = "Всегда показывать рейтинг эпохальных+ без клавиши-модификатора."
+
+L["Mythic+ Rating"] = "Рейтинг эпохальных+"
+
+-- Mount tooltip labels and collection status.
+L["Mount"] = "Средство передвижения"
+L["Source"] = "Источник"
+L["Collected"] = "Получено"
+L["Not collected"] = "Не получено"
+
+-- 1.3.6 localized additions
+L["Restyle weapon imbues"] = "Оформлять временные чары оружия"
+L["Weapon imbues"] = "Временные чары оружия"
+
+L["Mail armor"] = "Кольчуга"
+
+L["Examples:"] = "Примеры:"
+
+L["Attachments"] = "Вложения"
+
+L["Mail title"] = "Заголовок письма"
+
+L["Attachments and prices"] = "Вложения и цены"
+
+L["Mail contents"] = "Содержимое письма"
+
+L["Total: 14 items"] = "Всего: 14 предметов"
+
+L["Cooked Crab Claw"] = "Варёная клешня краба"
+
+L["Pyrite"] = "Пирит"
+
+L["%d items"] = "%d предметов"
