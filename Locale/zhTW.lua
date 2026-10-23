@@ -272,6 +272,9 @@ L["The small diamond before each stat; enchants use a green one."] = "每項屬�
 L["Stat colors"] = "屬性顏色"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "使用下方的屬性分類顏色和法術系別顏色。關閉後所有屬性均使用羊皮紙色。"
+L["Armor colors"] = "護甲顏色"
+L["Cloth, leather, mail, and plate under the item's name, each in its color below. A type you cannot wear stays red. Off, they take the quality color."] =
+    "物品名稱下方的布甲、皮甲、鎖甲和鎧甲各使用下方的顏色。無法穿戴的類型仍顯示為紅色。關閉後使用品質顏色。"
 L["Abbreviated Equip Effects"] = "簡化裝備效果"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "在顯示遊戲物品浮動提示時（暴雪版面或未重繪的物品），將裝備效果縮短為+1%致命一擊機率等簡短文字。保留遊戲顏色，法術能量和擊中時觸發的效果則使用屬性顏色。按住原版提示輔助鍵可查看完整文字。"
@@ -504,6 +507,8 @@ L["Axe"] = "斧"
 L["Plate"] = "鎧甲"
 L["Polearm"] = "長柄武器"
 L["Mail"] = "鎖甲"
+L["Cloth"] = "布甲"
+L["Leather"] = "皮甲"
 L["Consumable"] = "消耗品"
 L["Plans"] = "設計圖"
 L["Shields"] = "盾牌"

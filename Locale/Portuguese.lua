@@ -293,6 +293,9 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Cores dos atributos"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Cada tipo de atributo na sua cor abaixo, e as cores das escolas. Desligado, todo atributo fica cor de pergaminho."
+L["Armor colors"] = "Cores de armadura"
+L["Cloth, leather, mail, and plate under the item's name, each in its color below. A type you cannot wear stays red. Off, they take the quality color."] =
+    "Tecido, couro, malha e placas sob o nome do item, cada um na sua cor abaixo. Um tipo que você não pode usar continua vermelho. Desligado, assumem a cor da qualidade."
 L["Abbreviated Equip Effects"] = "Efeitos de Equipado abreviados"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "Onde a dica de item do jogo aparece, no layout Blizzard ou com itens não redesenhados, os efeitos de Equipado são encurtados, como +1% Chance de acerto crítico, e as cores do jogo mantidas, exceto o poder mágico e os efeitos de chance ao acertar, nas cores de atributo. Segure a tecla para a dica do jogo para ver o texto completo."
@@ -550,6 +553,8 @@ L["Axe"] = "Machado"
 L["Plate"] = "Placas"
 L["Polearm"] = "Arma de haste"
 L["Mail"] = "Malha"
+L["Cloth"] = "Tecido"
+L["Leather"] = "Couro"
 L["Consumable"] = "Consumível"
 L["Plans"] = "Diagrama"
 L["Shields"] = "Escudos"

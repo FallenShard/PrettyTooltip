@@ -1236,7 +1236,8 @@ toggles({
     { "Stat markers", "statMarkers", "The small diamond before each stat; enchants use a green one.", items },
     { "Stat colors", "statColors",
         "Each kind of stat in its color below, and the school colors. Off, every stat is parchment.", items },
-    { "Abbreviated Equip Effects", "liteWording", "Where the game's own item tooltip shows, in the Blizzard layout or with "
+    { "Armor colors", "armorColors", "Cloth, leather, mail, and plate under the item's name, each in its color "
+        .. "below. A type you cannot wear stays red. Off, they take the quality color.", items },    { "Abbreviated Equip Effects", "liteWording", "Where the game's own item tooltip shows, in the Blizzard layout or with "
         .. "items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's "
         .. "colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default "
         .. "tooltip modifier for the full wording.", items },
@@ -1268,6 +1269,8 @@ toggles({
 row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)
     return hexColor((ns.Stats.categoryColors(key)))
 end), colorGroupSetting(ns.Stats.CATEGORIES, "statColor"), items, true)
+row("Armor colors", colorSwatches(ns.Palette.ARMOR, "armorColor", ns.Palette.armorColor),
+    colorGroupSetting(ns.Palette.ARMOR, "armorColor"), items, true)
 row("Class colors", colorSwatches(ns.Palette.CLASSES, "classColor", ns.Palette.classColor, function()
     if ns.Palette.addonClassColors() then
         return L["Your class colors addon sets these; the colors chosen here apply without it."]

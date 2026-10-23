@@ -292,6 +292,9 @@ L["The small diamond before each stat; enchants use a green one."] =
 L["Stat colors"] = "Wertefarben"
 L["Each kind of stat in its color below, and the school colors. Off, every stat is parchment."] =
     "Jede Art von Wert in ihrer Farbe unten, und die Schulfarben. Aus: Jeder Wert ist pergamentfarben."
+L["Armor colors"] = "Rüstungsfarben"
+L["Cloth, leather, mail, and plate under the item's name, each in its color below. A type you cannot wear stays red. Off, they take the quality color."] =
+    "Stoff, Leder, Kette und Platte unter dem Namen des Gegenstands, jeweils in ihrer Farbe unten. Eine Art, die Ihr nicht tragen könnt, bleibt rot. Aus: Sie haben die Qualitätsfarbe."
 L["Abbreviated Equip Effects"] = "Gekürzte Anlegen-Effekte"
 L["Where the game's own item tooltip shows, in the Blizzard layout or with items not restyled, its Equip effects are shortened, as +1% Critical Strike Chance, and the game's colors kept, but for spell power and chance on hit effects in their stat colors. Hold the default tooltip modifier for the full wording."] =
     "Wo der Gegenstands-Tooltip des Spiels erscheint, im Blizzard-Layout oder bei nicht neu gestalteten Gegenständen, werden seine Anlegen-Effekte gekürzt, etwa zu +1% Kritische Trefferchance, und die Farben des Spiels bleiben, außer bei Zaubermacht und Trefferchance-Effekten in ihren Wertefarben. Haltet die Zusatztaste für den Standard-Tooltip für den vollen Wortlaut."
@@ -547,6 +550,8 @@ L["Axe"] = "Axt"
 L["Plate"] = "Platte"
 L["Polearm"] = "Stangenwaffe"
 L["Mail"] = "Kette"
+L["Cloth"] = "Stoff"
+L["Leather"] = "Leder"
 L["Consumable"] = "Verbrauchbar"
 L["Plans"] = "Pläne"
 L["Shields"] = "Schilde"
