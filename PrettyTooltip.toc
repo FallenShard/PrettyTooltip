@@ -1,4 +1,4 @@
-## Interface: 16001
+## Interface: 120105
 ## Title: PrettyTooltip
 ## Notes: A full reskin of tooltips for WoW Forever.
 ## Author: FallenShard
@@ -38,6 +38,7 @@ Data\Skinning.lua
 Data\SpellRanks.lua
 Data\Coefficients.lua
 Tooltips\Item.lua
+Tooltips\MythicScore.lua
 Tooltips\Spell.lua
 Tooltips\Object.lua
 Tooltips\Unit.lua
@@ -55,13 +56,11 @@ UI\EditorSkin.lua
 UI\Editor.lua
 Integration\Native.lua
 Integration\Placement.lua
+Integration\MidnightRatings.lua
 Integration\Hooks.lua
 Integration\Details.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
-#@debug@
-UI\Capture.lua
-#@end-debug@
 UI\Report.lua
 UI\Debug.lua
 UI\Commands.lua
