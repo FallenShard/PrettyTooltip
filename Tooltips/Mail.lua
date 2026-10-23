@@ -121,7 +121,7 @@ ui.defineTooltipType(MAIL, { read = readMail, key = mailKey, option = "mailPanel
 
 -- Both Blizzard and Auctionator Show after filling; Auctionator may finish
 -- asynchronously. Observe that completion rather than adding a sizing timer.
-hooksecurefunc(GameTooltip, "Show", function(tooltip)
+hooksecurefunc(GameTooltip, "Show", ui.probe("mail Show", function(tooltip)
     if not ns.Hooks or not util.canModify(tooltip) or not tooltip:IsShown() then return end
     local owner = mailOwner(tooltip)
     if not owner then return end
@@ -129,4 +129,4 @@ hooksecurefunc(GameTooltip, "Show", function(tooltip)
     if util.isSecret(data) then return end
     if type(data) == "table" then return end -- Single attachments keep item tooltips.
     ns.Hooks.renderLines(tooltip, MAIL, util.number(owner.index))
-end)
+end))

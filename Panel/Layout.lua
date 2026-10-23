@@ -7,7 +7,7 @@ end
 
 local util = ns.util
 local colors = ns.Palette.roles
-local isSecret, pack = util.isSecret, util.pack
+local isSecret = util.isSecret
 local uncolored = util.uncolored
 local ITEM = Enum.TooltipDataType.Item
 local ART = "Interface\\AddOns\\PrettyTooltip\\art\\"
@@ -89,40 +89,7 @@ local DIALOGUE_BACKDROP = "Interface\\AddOns\\DialogueUI\\Art\\Theme_Dark\\Toolt
 local QUEST_PARCHMENT = "Interface\\AddOns\\DialogueUI\\Art\\Theme_Brown\\GenericFrame-Tiled-Large.png"
 local panels = setmetatable({}, { __mode = "k" })
 
--- /ptip perf: how often the panel's work runs and how long it takes. While no
--- capture runs, a probed call costs one check.
-local perf = { on = false, calls = {}, time = {}, max = {}, depth = 0, total = 0 }
-
-local function tally(name)
-    if perf.on then perf.calls[name] = (perf.calls[name] or 0) + 1 end
-end
-
--- Adds the time since start, from debugprofilestop, to a part of a call.
-local function timed(name, start)
-    if not (perf.on and start) then return end
-    local elapsed = debugprofilestop() - start
-    perf.calls[name] = (perf.calls[name] or 0) + 1
-    perf.time[name] = (perf.time[name] or 0) + elapsed
-    perf.max[name] = math.max(perf.max[name] or 0, elapsed)
-end
-
-local function probe(name, fn)
-    return function(...)
-        if not perf.on then return fn(...) end
-        local start = debugprofilestop()
-        local depth = perf.depth
-        perf.depth = depth + 1
-        local results = pack(pcall(fn, ...))
-        local elapsed = debugprofilestop() - start
-        perf.depth = depth
-        if depth == 0 then perf.total = perf.total + elapsed end
-        perf.calls[name] = (perf.calls[name] or 0) + 1
-        perf.time[name] = (perf.time[name] or 0) + elapsed
-        perf.max[name] = math.max(perf.max[name] or 0, elapsed)
-        if not results[1] then error(results[2], 0) end
-        return unpack(results, 2, results.n)
-    end
-end
+local probe, tally = ns.Profiler.probe, ns.Profiler.tally
 
 local COIN = "|TInterface\\MoneyFrame\\UI-%sIcon:0:0:2:0|t"
 local function formatMoney(copper)
@@ -995,9 +962,7 @@ ns.ui = {
     defineTooltipType = defineTooltipType,
     panels = panels,
     getPanel = getPanel,
-    perf = perf,
     tally = tally,
-    timed = timed,
     renderPreview = renderPreview,
     defaultHeaderAlpha = defaultHeaderAlpha,
     styleOf = styleOf,

@@ -62,8 +62,8 @@ local function auraOf(tooltip, spellID, game)
     if not aura then return end
     if not auraHooks[tooltip] then
         local function forget() keptAuras[tooltip] = nil end
-        tooltip:HookScript("OnHide", forget)
-        tooltip:HookScript("OnTooltipCleared", forget)
+        tooltip:HookScript("OnHide", ui.probe("aura OnHide", forget))
+        tooltip:HookScript("OnTooltipCleared", ui.probe("aura OnTooltipCleared", forget))
         auraHooks[tooltip] = true
     end
     keptAuras[tooltip] = { spellID = spellID, aura = aura }

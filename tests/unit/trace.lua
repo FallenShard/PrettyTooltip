@@ -93,8 +93,12 @@ return function(test)
     shopping:SetAlpha(0)
     for _ = 1, 5000 do shopping:SetAlpha(0) end
     test.check("tracing does not replace the native Hide method", shopping.Hide == hide, true)
+    ns.Processor.onData("panel", 0, function() end)
+    world.postCalls[0][1](shopping, { type = 0, lines = {} })
     finish()
     text = table.concat(report, "\n")
+    test.check("data handovers name who made them, past the addon's own files",
+        { has("ShoppingTooltip1 data handed over  from Other/Tooltip.lua:42:"), ns.Processor.watcher }, { true, nil })
     test.check("transient equipped panel hides and shows are captured between frame samples",
         has("ShoppingTooltip1.panel:SetShown(false)") and has("ShoppingTooltip1.panel:SetShown(true)")
             and has("ShoppingTooltip1.panel OnHide"), true)

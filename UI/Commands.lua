@@ -75,15 +75,34 @@ local function dumpTooltip()
     ns.showReport("dump", lines)
 end
 
+local function bounded(text, low, high, default)
+    return math.min(high, math.max(low, tonumber(text) or default))
+end
+
 local function handleCommand(message)
     local wanted = (message or ""):match("^%s*(.-)%s*$"):lower()
     if wanted == "placement" or wanted:match("^placement%s") then
         print("PrettyTooltip: Pretty panels use frame anchors. Select Blizzard layout in the options to use Blizzard tooltips.")
         return
     end
-    local perfSeconds = wanted:match("^perf%s*(%d*)$")
-    if perfSeconds then
-        if ns.perfCapture then ns.perfCapture(math.min(30, math.max(1, tonumber(perfSeconds) or 5))) end
+    -- /ptip perf [ab] [seconds] [label] and /ptip bench [refreshes] [label].
+    local perf = wanted == "perf" and "" or wanted:match("^perf([%s%d].*)$")
+    if perf then
+        perf = perf:match("^%s*(.-)$")
+        local impact = perf == "ab" or perf:find("^ab%s") ~= nil
+        if impact then perf = perf:sub(3):match("^%s*(.-)$") end
+        local seconds, label = perf:match("^(%d*)%s*(.-)$")
+        if impact then
+            if ns.perfImpact then ns.perfImpact(bounded(seconds, 10, 120, 20), label) end
+        elseif ns.perfCapture then
+            ns.perfCapture(bounded(seconds, 1, 30, 5), label)
+        end
+        return
+    end
+    local bench = wanted == "bench" and "" or wanted:match("^bench([%s%d].*)$")
+    if bench then
+        local count, label = bench:match("^%s*(%d*)%s*(.-)$")
+        if ns.perfBench then ns.perfBench(bounded(count, 8, 200, 24), label) end
         return
     end
     -- /ptip trace [seconds]: what the tooltips do while the player hovers.

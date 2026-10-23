@@ -33,18 +33,21 @@ not an equivalent placement benchmark.
 
 For in-game captures, use `/ptip perf 10` and repeat the same workload, items,
 location, addons and frame-rate limit. Compare against captures from the
-baseline build. Do not run `/ptip trace` during performance captures.
+baseline build. Do not run `/ptip trace` during performance captures. For the
+cost of one refresh, timed by the game with PrettyTooltip off and on, use
+`/ptip bench`; for its effect on frame times, without probes, `/ptip perf ab`.
 
 Capture each workload separately: all tooltips closed; one stationary tooltip;
 stationary comparisons; moving between the same items; dragging the same sticky
 tooltip with comparisons. Include opening links outside hover and returning
 from the native-tooltip modifier when checking correctness.
 
-Compare the non-overlapping `instrumented work` total in milliseconds per frame,
-capture durations, frame counts, reader/render counts and anchor/padding writes.
-Per-function rows are inclusive: adding them double-counts nested calls. Profiling
-adds overhead in both modes, so also compare smoothness with profiling off.
-Memory deltas in-game include collection and are not allocation rates.
+Compare PrettyTooltip's work per update, the frame times of frames with tooltip
+data, and the per-update calls of each scope, such as `read item`, `render item`
+and `placement plan`. Own times add up; totals include nested scopes and overlap.
+Probes add overhead, so compare frame times with `/ptip perf ab`, which runs
+none. Memory deltas in-game include collection and are not allocation rates;
+`/ptip bench` reports the bytes each refresh allocates.
 
 Measure AH price hovering separately from dragging. Compare item reads/renders
 per `auction content ready` call: a normal refill with two comparisons should

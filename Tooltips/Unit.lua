@@ -523,9 +523,9 @@ end
 
 local healthBarRestore = CreateFrame("Frame")
 healthBarRestore:RegisterEvent("PLAYER_REGEN_ENABLED")
-healthBarRestore:SetScript("OnEvent", function()
+healthBarRestore:SetScript("OnEvent", ui.probe("unit health bar return", function()
     if lent and lent.returnPending then returnHealthBar(lent.panel) end
-end)
+end))
 
 local function lendHealthBar(panel, bar)
     if not util.canModify(bar) then return end
@@ -536,16 +536,16 @@ local function lendHealthBar(panel, bar)
         lent = { bar = bar, panel = panel, parent = parent, points = points, height = height }
         if not hookedHealthBars[bar] then
             -- The game may place its bar again while the panel has it.
-            hooksecurefunc(bar, "SetPoint", function()
+            hooksecurefunc(bar, "SetPoint", ui.probe("unit health bar SetPoint", function()
                 if lent and lent.bar == bar and not lent.placing then placeHealthBar() end
-            end)
+            end))
             hookedHealthBars[bar] = true
         end
         if not panel.returnsHealthBar then
             -- Kept while the panel's host hides it; the panel comes back with it.
-            panel:HookScript("OnHide", function(hidden)
+            panel:HookScript("OnHide", ui.probe("unit OnHide", function(hidden)
                 if not hidden:IsShown() then returnHealthBar(hidden) end
-            end)
+            end))
             panel.returnsHealthBar = true
         end
     end

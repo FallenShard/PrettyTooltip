@@ -3,6 +3,7 @@
 local _, ns = ...
 ns.Cursor = {}
 local util = ns.util
+local probe = ns.Profiler.probe
 local registered = false
 
 local OFFSET = 16
@@ -152,7 +153,7 @@ function ns.Cursor.register()
     end
     local function refresh(allowHidden)
         if not util.canModify(GameTooltip) or parked() then follower:Hide(); return end
-        local follows = (allowHidden or util.call(GameTooltip.IsShown, GameTooltip))
+        local follows = not ns.suspended and (allowHidden or util.call(GameTooltip.IsShown, GameTooltip))
             and defaultAnchored and cursorKey and ns.option(cursorKey)
             and not (ns.option("cursorDisableInCombat") and InCombatLockdown())
         if follows then
@@ -168,37 +169,37 @@ function ns.Cursor.register()
             restoreAnchor()
         end
     end
-    follower:SetScript("OnUpdate", function() refresh() end)
+    follower:SetScript("OnUpdate", probe("cursor follow", function() refresh() end))
     follower:RegisterEvent("PLAYER_REGEN_DISABLED")
     follower:RegisterEvent("PLAYER_REGEN_ENABLED")
-    follower:SetScript("OnEvent", function() refresh() end)
+    follower:SetScript("OnEvent", probe("cursor combat", function() refresh() end))
 
-    hooksecurefunc(GameTooltip, "SetOwner", function()
+    hooksecurefunc(GameTooltip, "SetOwner", probe("cursor SetOwner", function()
         defaultAnchored = false
         stop()
-    end)
-    hooksecurefunc("GameTooltip_SetDefaultAnchor", function(tooltip)
+    end))
+    hooksecurefunc("GameTooltip_SetDefaultAnchor", probe("cursor SetDefaultAnchor", function(tooltip)
         if tooltip == GameTooltip then defaultAnchored = true end
-    end)
+    end))
 
     -- The game re-places a default tooltip when it refreshes; undone at once.
-    hooksecurefunc(GameTooltip, "SetPoint", function()
+    hooksecurefunc(GameTooltip, "SetPoint", probe("cursor SetPoint", function()
         if follower:IsShown() and not placing then
             anchoredHeight = nil
             refresh()
         end
-    end)
+    end))
 
     -- Return to the real anchor before Native saves it for parking. Saving
     -- our tracker instead would lose the default position on the next hover.
     if GameTooltip.FadeOut then
-        hooksecurefunc(GameTooltip, "FadeOut", function(self)
+        hooksecurefunc(GameTooltip, "FadeOut", probe("cursor FadeOut", function(self)
             if util.canModify(self) and follower:IsShown() then restoreAnchor(true) end
-        end)
+        end))
     end
 
     -- Cleared before every new content, so a tooltip type left off is not dragged along.
-    GameTooltip:HookScript("OnTooltipCleared", function()
+    GameTooltip:HookScript("OnTooltipCleared", probe("cursor OnTooltipCleared", function()
         -- A refresh can reuse the same owner and anchor. Restore before
         -- forgetting it, so its next handover cannot save our cursor position.
         -- The panel stays where it stands: an action button refills its item
@@ -206,8 +207,8 @@ function ns.Cursor.register()
         -- its comparisons finish, a frame or two later.
         restoreAnchor(true)
         stop()
-    end)
-    GameTooltip:HookScript("OnHide", stop)
+    end))
+    GameTooltip:HookScript("OnHide", probe("cursor OnHide", stop))
 
     for _, tooltipType in ipairs(ns.TOOLTIP_TYPES) do
         for _, typeName in ipairs(tooltipType.types) do

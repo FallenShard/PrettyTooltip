@@ -344,10 +344,10 @@ local function drawQuestie(tooltip, id)
     end
 end
 
-hooksecurefunc("SetItemRef", function(link)
+hooksecurefunc("SetItemRef", ui.probe("quest SetItemRef", function(link)
     local id = linkedQuest(link)
     if id then drawQuestie(ItemRefTooltip, id) end
-end)
+end))
 
 -- The world map's quest log fills the tooltip with lines too, from its title
 -- buttons; their quest is the button's.
@@ -360,7 +360,7 @@ end
 -- caught too. Other addons add their lines to the quest log's and show it again.
 local hovered
 local drawing = false
-hooksecurefunc(GameTooltip, "Show", function(tooltip)
+hooksecurefunc(GameTooltip, "Show", ui.probe("quest Show", function(tooltip)
     if drawing or not util.canModify(tooltip) then return end
     local owner = util.call(tooltip.GetOwner, tooltip)
     local id
@@ -374,16 +374,16 @@ hooksecurefunc(GameTooltip, "Show", function(tooltip)
     drawing = true
     pcall(drawQuestie, tooltip, id)
     drawing = false
-end)
+end))
 for index = 1, NUM_CHAT_WINDOWS or 10 do
     local frame = _G["ChatFrame" .. index]
     if util.canModify(frame) then
-        frame:HookScript("OnHyperlinkEnter", function(self, link)
+        frame:HookScript("OnHyperlinkEnter", ui.probe("quest OnHyperlinkEnter", function(self, link)
             local id = not isSecret(link) and type(link) == "string" and link:match("^questie:(%d+)")
             hovered = id and { frame = self, id = tonumber(id) } or nil
             if hovered and util.canModify(GameTooltip)
                 and util.call(GameTooltip.GetOwner, GameTooltip) == self then drawQuestie(GameTooltip, hovered.id) end
-        end)
+        end))
         frame:HookScript("OnHyperlinkLeave", function() hovered = nil end)
     end
 end

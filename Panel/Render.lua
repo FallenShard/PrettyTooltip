@@ -69,13 +69,16 @@ local live = setmetatable({}, { __mode = "k" })
 
 local ticker = CreateFrame("Frame")
 local elapsedSince = 0
+local updateLive = ui.probe("live update", function()
+    for panel, update in pairs(live) do
+        if panel:IsShown() then update() else live[panel] = nil end
+    end
+end)
 ticker:SetScript("OnUpdate", function(_, elapsed)
     elapsedSince = elapsedSince + elapsed
     if elapsedSince < .1 then return end
     elapsedSince = 0
-    for panel, update in pairs(live) do
-        if panel:IsShown() then update() else live[panel] = nil end
-    end
+    if next(live) then updateLive() end
 end)
 
 local function setLive(panel, update)

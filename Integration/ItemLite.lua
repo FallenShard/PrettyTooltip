@@ -3,6 +3,7 @@
 local _, ns = ...
 local isSecret = ns.util.isSecret
 local util = ns.util
+local probe = ns.Profiler.probe
 local itemWording = ns.TooltipData.itemWording
 ns.ItemLite = {}
 local registered = false
@@ -39,8 +40,8 @@ local function onItemShown(tooltip, data)
 
     if not hookedTooltips[tooltip] then
         local function forget(cleared) activeLinesByTooltip[cleared] = nil end
-        tooltip:HookScript("OnHide", forget)
-        tooltip:HookScript("OnTooltipCleared", forget)
+        tooltip:HookScript("OnHide", probe("wording OnHide", forget))
+        tooltip:HookScript("OnTooltipCleared", probe("wording OnTooltipCleared", forget))
         hookedTooltips[tooltip] = true
     end
 

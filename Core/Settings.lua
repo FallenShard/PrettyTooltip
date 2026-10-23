@@ -94,9 +94,10 @@ function ns.tooltipScale()
     return math.max(.5, math.min(1.5, scale))
 end
 
--- Whether a type whose panel the setting `option` turns on draws it.
+-- Whether a type whose panel the setting `option` turns on draws it. Nothing
+-- does while /ptip perf ab or /ptip bench measures the game's tooltips alone.
 function ns.restyles(option)
-    return ns.option("layout") ~= "blizzard" and ns.option(option) and true or false
+    return not ns.suspended and ns.option("layout") ~= "blizzard" and ns.option(option) and true or false
 end
 
 function ns.editorStyle()

@@ -2,9 +2,10 @@
 -- quests, the player, and other addons, as ns.Game. Answers the game hides
 -- come back as nil, and a missing API answers nothing. Readers receive this
 -- table as an argument, so a test can pass its own.
--- Last, ns.Processor, through which the addon's stages hook the game's
--- tooltip processor.
-local _, ns = ...
+-- Last, ns.Profiler, which measures the addon for /ptip perf and /ptip bench,
+-- and ns.Processor, through which the addon's stages hook the game's tooltip
+-- processor.
+local addonName, ns = ...
 local util = ns.util
 local isSecret, readable, call, number, rgb = util.isSecret, util.readable, util.call, util.number, util.rgb
 local game = {}
@@ -485,6 +486,202 @@ function game.questieText(phrase)
     return phrase
 end
 
+-- The profiler ------------------------------------------------------------------
+
+-- While nothing is measured, a probe costs one check. Frames are split where the
+-- sampler's OnUpdate runs, so a frame's interval and the work counted in it
+-- cover the same span of time.
+local profiler = { on = false }
+ns.Profiler = profiler
+local EXIT = "ptip <"
+local children = {}
+
+function profiler.reset()
+    profiler.calls, profiler.self, profiler.total, profiler.max = {}, {}, {}, {}
+    profiler.depth, profiler.work = 0, 0
+    profiler.frames, profiler.slotStart, profiler.slotWork, profiler.slotData = nil, nil, 0, 0
+end
+profiler.reset()
+
+local function finish(name, marked, start, level, ok, ...)
+    local elapsed = debugprofilestop() - start
+    local mark = profiler.mark
+    if marked and mark then mark(EXIT) end
+    profiler.depth = level - 1
+    local calls, total, own = profiler.calls, profiler.total, profiler.self
+    calls[name] = (calls[name] or 0) + 1
+    total[name] = (total[name] or 0) + elapsed
+    own[name] = (own[name] or 0) + elapsed - children[level]
+    if elapsed > (profiler.max[name] or 0) then profiler.max[name] = elapsed end
+    if level > 1 then
+        children[level - 1] = children[level - 1] + elapsed
+    else
+        profiler.work = profiler.work + elapsed
+        profiler.slotWork = profiler.slotWork + elapsed
+    end
+    if not ok then error((...), 0) end
+    return ...
+end
+
+-- Event names are made once here: AddMeasuredCallEvent allocates for longer ones.
+function profiler.probe(name, fn)
+    local event = ("ptip " .. name):sub(1, 47)
+    return function(...)
+        if not profiler.on then return fn(...) end
+        local level = profiler.depth + 1
+        profiler.depth = level
+        children[level] = 0
+        local marked = profiler.mark ~= nil
+        if marked then profiler.mark(event) end
+        local start = debugprofilestop()
+        return finish(name, marked, start, level, pcall(fn, ...))
+    end
+end
+
+function profiler.tally(name)
+    if profiler.on then profiler.calls[name] = (profiler.calls[name] or 0) + 1 end
+end
+
+-- A frame ends each time the capture's sampler runs; the first one is partial.
+function profiler.frame()
+    local now, frames = debugprofilestop(), profiler.frames
+    if profiler.slotStart and frames then
+        local count = frames.n + 1
+        frames.n = count
+        frames.interval[count] = now - profiler.slotStart
+        frames.work[count] = profiler.slotWork
+        frames.data[count] = profiler.slotData
+    end
+    profiler.slotStart, profiler.slotWork, profiler.slotData = now, 0, 0
+end
+
+function profiler.startFrames()
+    profiler.frames = { n = 0, interval = {}, work = {}, data = {} }
+    profiler.slotStart, profiler.slotWork, profiler.slotData = nil, 0, 0
+end
+
+function profiler.stopFrames()
+    local frames = profiler.frames
+    profiler.frames, profiler.slotStart = nil, nil
+    return frames
+end
+
+-- The game handed a tooltip its data: the frames that refresh tooltips.
+local function handover(tooltip)
+    if isSecret(tooltip) or type(tooltip) ~= "table" or tooltip.prettyTooltipScanner then return end
+    profiler.slotData = profiler.slotData + 1
+    local name = call(tooltip.GetName, tooltip)
+    profiler.tally(type(name) == "string" and name:find("ShoppingTooltip%d$") and "data: comparison" or "data: main")
+end
+
+-- The game's own profiler. It counts a hook that runs inside the game's code as
+-- the game's time, so only a measured call shows the work done in hooks.
+local ENGINE_METRICS = { "CountTimeOver1Ms", "CountTimeOver5Ms", "CountTimeOver10Ms", "CountTimeOver50Ms" }
+
+local function engine()
+    local api = C_AddOnProfiler
+    if isSecret(api) or type(api) ~= "table" or call(api.IsEnabled) ~= true then return end
+    return api
+end
+
+function profiler.engineAvailable() return engine() ~= nil end
+
+function profiler.canMeasure()
+    local api = engine()
+    return api ~= nil and type(api.MeasureCall) == "function" and type(api.AddMeasuredCallEvent) == "function"
+end
+
+-- Each metric's value for the whole game, every addon, and this one.
+function profiler.engineMetrics()
+    local api, metrics = engine(), Enum and Enum.AddOnProfilerMetric
+    if not api or isSecret(metrics) or type(metrics) ~= "table" then return end
+    local values = { game = {}, addons = {}, own = {} }
+    for _, metric in ipairs(ENGINE_METRICS) do
+        local id = readable(metrics[metric])
+        if id ~= nil then
+            values.game[metric] = number((call(api.GetApplicationMetric, id)))
+            values.addons[metric] = number((call(api.GetOverallMetric, id)))
+            values.own[metric] = number((call(api.GetAddOnMetric, addonName, id)))
+        end
+    end
+    return values
+end
+
+-- The addons with the most time in the game's last 60 frames, as { name, ms }.
+function profiler.busiestAddOns(count)
+    local api, metrics = engine(), Enum and Enum.AddOnProfilerMetric
+    if not api or isSecret(metrics) or type(metrics) ~= "table" then return {} end
+    local results = call(api.GetTopKAddOnsForMetric, readable(metrics.RecentAverageTime), count)
+    local busiest = {}
+    for _, result in ipairs(type(results) == "table" and results or {}) do
+        local name = not isSecret(result) and type(result) == "table" and util.safeText(result.addOnName)
+        local value = name and number(result.metricValue)
+        if value then busiest[#busiest + 1] = { name = name, ms = value } end
+    end
+    return busiest
+end
+
+-- The game's own timing of fn(...), as its results table (elapsedMilliseconds,
+-- allocatedBytes, events); nil and the error when the call or the measure fails.
+-- Probes add events while profiler.mark is set.
+function profiler.measure(fn, ...)
+    local api = engine()
+    if not (api and profiler.canMeasure()) then return nil, "the game's profiler is unavailable" end
+    local ok, results = pcall(api.MeasureCall, fn, ...)
+    if not ok then return nil, util.safeText(results) or "restricted" end
+    if isSecret(results) or type(results) ~= "table" or not number(results.elapsedMilliseconds)
+        or not number(results.allocatedBytes) then
+        return nil, "the game's profiler returned no timing"
+    end
+    return results
+end
+
+function profiler.startEvents()
+    local api = engine()
+    profiler.mark = api and type(api.AddMeasuredCallEvent) == "function" and api.AddMeasuredCallEvent or nil
+    return profiler.mark ~= nil
+end
+
+function profiler.stopEvents() profiler.mark = nil end
+
+-- A measured call's events as scopes: { [name] = { calls, ms, self, bytes, selfBytes } }
+-- added into scopes, and the time and bytes inside the addon's outermost scopes.
+-- False when the events do not pair up, as when another addon adds its own.
+function profiler.addEvents(events, scopes)
+    if isSecret(events) or type(events) ~= "table" then return false end
+    local stack, depth, ms, bytes = {}, 0, 0, 0
+    for _, event in ipairs(events) do
+        local name = not isSecret(event) and type(event) == "table" and util.safeText(event.name)
+        local at, allocated = name and number(event.elapsedMilliseconds), name and number(event.allocatedBytes)
+        if name and at and allocated and name:sub(1, 5) == "ptip " then
+            if name == EXIT then
+                local open = stack[depth]
+                if not open then return false end
+                stack[depth], depth = nil, depth - 1
+                local spent, used = at - open.at, allocated - open.allocated
+                local scope = scopes[open.name]
+                if not scope then
+                    scope = { calls = 0, ms = 0, self = 0, bytes = 0, selfBytes = 0 }
+                    scopes[open.name] = scope
+                end
+                scope.calls, scope.ms, scope.bytes = scope.calls + 1, scope.ms + spent, scope.bytes + used
+                scope.self = scope.self + spent - open.childMs
+                scope.selfBytes = scope.selfBytes + used - open.childBytes
+                local parent = stack[depth]
+                if parent then
+                    parent.childMs, parent.childBytes = parent.childMs + spent, parent.childBytes + used
+                else
+                    ms, bytes = ms + spent, bytes + used
+                end
+            else
+                depth = depth + 1
+                stack[depth] = { name = name:sub(6), at = at, allocated = allocated, childMs = 0, childBytes = 0 }
+            end
+        end
+    end
+    return depth == 0, ms, bytes
+end
+
 -- The tooltip processor --------------------------------------------------------
 
 -- The addon's one hand in the game's tooltip processor: a single post-call for
@@ -531,10 +728,13 @@ function processor.onData(stage, dataType, handler)
         list = {}
         byType[dataType] = list
         TooltipDataProcessor.AddTooltipPostCall(dataType, function(tooltip, data)
+            if profiler.frames or profiler.on then handover(tooltip) end
+            if processor.watcher then processor.watcher(tooltip, data) end
+            if ns.suspended then return end
             for _, entry in ipairs(list) do run(entry.handler, tooltip, data) end
         end)
     end
-    insert(list, stage, handler)
+    insert(list, stage, profiler.probe(stage .. " data", handler))
 end
 
 -- handler(key), as MODIFIER_STATE_CHANGED names it.
@@ -543,10 +743,11 @@ function processor.onKey(stage, handler)
         watcher = CreateFrame("Frame")
         watcher:RegisterEvent("MODIFIER_STATE_CHANGED")
         watcher:SetScript("OnEvent", function(_, _, key)
+            if ns.suspended then return end
             for _, entry in ipairs(onKeys) do run(entry.handler, key) end
         end)
     end
-    insert(onKeys, stage, handler)
+    insert(onKeys, stage, profiler.probe(stage .. " key", handler))
 end
 
 -- The stages a data type runs, in order.

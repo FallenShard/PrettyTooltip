@@ -31,7 +31,7 @@ return function(test)
 
     -- An enchant's name lists its stats; each takes its own row.
     ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
-        "Locale/English.lua", "Panel/Layout.lua" }, { enums = { TooltipDataType = { Item = 0 } } })
+        "Locale/English.lua", "Game/Game.lua", "Panel/Layout.lua" }, { enums = { TooltipDataType = { Item = 0 } } })
     local function plain(rows)
         local out = {}
         for index, row in ipairs(rows) do out[index] = ns.util.plainText(row) end

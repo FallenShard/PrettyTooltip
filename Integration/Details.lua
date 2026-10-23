@@ -11,6 +11,7 @@ local _, ns = ...
 if not ns.TooltipTypes then return end
 local util = ns.util
 local isSecret = util.isSecret
+local probe = ns.Profiler.probe
 local TooltipTypes = ns.TooltipTypes
 local DETAIL_COLOR = ns.Palette.roles.detail
 ns.Details = {}
@@ -111,7 +112,7 @@ local function draw(state, rows)
 end
 
 local function wanted(state)
-    return not ns.originalKeyDown() and ns.detailsKeyDown()
+    return not ns.suspended and not ns.originalKeyDown() and ns.detailsKeyDown()
         and not ns.restyles(TooltipTypes[state.dataType].option)
 end
 
@@ -148,19 +149,19 @@ local function stateOf(tooltip)
     local function shown(visible)
         if state.rows then pcall(apply, visible, state) end
     end
-    hooksecurefunc(tooltip, "Show", shown)
-    hooksecurefunc(tooltip, "SetShown", function(toggled, visible)
+    hooksecurefunc(tooltip, "Show", probe("details Show", shown))
+    hooksecurefunc(tooltip, "SetShown", probe("details SetShown", function(toggled, visible)
         if not isSecret(visible) and visible then shown(toggled) end
-    end)
+    end))
     -- The game clears its padding on hide, but not on a refill.
-    tooltip:HookScript("OnHide", function(hidden)
+    tooltip:HookScript("OnHide", probe("details OnHide", function(hidden)
         state.rows, state.data = nil, nil
         giveBack(hidden, state, true)
-    end)
-    tooltip:HookScript("OnTooltipCleared", function(cleared)
+    end))
+    tooltip:HookScript("OnTooltipCleared", probe("details OnTooltipCleared", function(cleared)
         state.rows, state.data = nil, nil
         giveBack(cleared, state, false)
-    end)
+    end))
     return state
 end
 

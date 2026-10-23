@@ -90,13 +90,13 @@ return function(test)
     local panel = ns.ui.panels[tooltip]
     test.check("Pretty attaches to the cursor tracker's anchor", select(2, panel:GetPoint(1)) == tracker, true)
     test.check("the frame-anchored tooltip starts above the cursor", { panel:GetLeft(), panel:GetBottom() }, { 516, 116 })
-    ns.ui.perf.calls, ns.ui.perf.time, ns.ui.perf.max = {}, {}, {}
-    ns.ui.perf.total, ns.ui.perf.depth, ns.ui.perf.on = 0, 0, true
+    ns.Profiler.reset()
+    ns.Profiler.on = true
     x, y = x + 40, y + 30
     tick()
-    ns.ui.perf.on = false
+    ns.Profiler.on = false
     test.check("engine anchors carry cursor movement immediately", { panel:GetLeft(), panel:GetBottom() }, { 556, 146 })
-    test.check("cursor motion does not recalculate Pretty placement", ns.ui.perf.calls["placement plan"] or 0, 0)
+    test.check("cursor motion does not recalculate Pretty placement", ns.Profiler.calls["placement plan"] or 0, 0)
     show(2)
     test.check("changing content height preserves the cursor gap", { panel:GetLeft(), panel:GetBottom(), panel:GetHeight() }, { 556, 146, 140 })
     ns.setOption("cursorItems", false)

@@ -54,6 +54,7 @@ local function fingerprint(tooltip, data)
     end
     return table.concat(parts, "\031")
 end
+fingerprint = probe("fingerprint", fingerprint)
 
 local function keyOf(tooltipType, tooltip, data)
     local ok, key = pcall(tooltipType.key, tooltip, data)
@@ -124,6 +125,7 @@ local function finishTooltip(tooltip, panel, data, token)
     end
     update(tooltip, data)
 end
+finishTooltip = probe("finish tooltip", finishTooltip)
 
 local auctionHouseHooked, auctionLoadFrame
 local function installAuctionHouseHook()
@@ -224,11 +226,18 @@ local function installComparisonHooks()
     end))
     -- Commit Pretty anchors after Blizzard finishes its own anchor sequence.
     hooksecurefunc(manager, "AnchorShoppingTooltips", probe("comparison anchors ready", function(self)
+        if not ns.restyles("itemPanels") then return end
         placement.finishComparisons(self.tooltip)
     end))
 end
 
 function hooks.comparisonsBatched() return batchComparisons end
+
+local restoreLater = probe("timer restore", function(tooltip, panel, token)
+    if panel.refreshToken == token and panel.restorePending then
+        restoreNative(tooltip)
+    end
+end)
 
 -- Keep the previous panel across a clear while its native tooltip is still
 -- shown. Hides dismiss the panel immediately; native cleanup waits until no
@@ -241,12 +250,23 @@ local function scheduleRestore(tooltip)
     panel.contentPending = nil
     panel.refreshToken = (panel.refreshToken or 0) + 1
     local token = panel.refreshToken
-    C_Timer.After(0, function()
-        if panel.refreshToken == token and panel.restorePending then
-            restoreNative(tooltip)
-        end
-    end)
+    C_Timer.After(0, function() restoreLater(tooltip, panel, token) end)
 end
+
+local checkComparison = probe("timer comparison check", function(tooltip, panel)
+    panel.comparisonCheckQueued = nil
+    if panel.comparisonPending or panel.comparisonFitPending or (util.canModify(tooltip) and panel:IsShown()
+        and panel.fingerprint and panel.fingerprint ~= util.call(fingerprint, tooltip, panel.data)) then
+        panel.comparisonPending = true
+        finishComparison(tooltip, panel)
+        panel.comparisonAnchorPending = true
+        if placement.owns(tooltip) then
+            placement.finish(tooltip)
+        else
+            finishComparisonAnchors()
+        end
+    end
+end)
 
 local function onTooltipData(dataType, tooltip, data)
     if not util.canModify(tooltip) then return end
@@ -290,7 +310,7 @@ local function onTooltipData(dataType, tooltip, data)
     panel.contentPending = nil
     if not panel.hooked then
         placement.hookInput(tooltip)
-        tooltip:HookScript("OnHide", function(hidden)
+        tooltip:HookScript("OnHide", probe("hook OnHide", function(hidden)
             if panel.nativeOnly then return end
             if native.hiddenByParent(hidden) then
                 native.followParent(hidden, panel)
@@ -301,15 +321,14 @@ local function onTooltipData(dataType, tooltip, data)
             panel:Hide()
             scheduleRestore(hidden)
             placement.hidden(hidden)
-        end)
-        tooltip:HookScript("OnTooltipCleared", scheduleRestore)
+        end))
+        tooltip:HookScript("OnTooltipCleared", probe("hook OnTooltipCleared", scheduleRestore))
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
         local function onNativeShown(shown)
             if panel.nativeOnly then return end
             if not util.canModify(shown) then return end
             native.followParent(shown, panel)
-            tally(isComparison(shown) and "show hook (comparison)" or "show hook")
             if panel.restorePending or panel.comparisonPending or panel.contentPending then
                 if panel.nativeAlpha then shown:SetAlpha(0) end
                 return
@@ -321,28 +340,25 @@ local function onTooltipData(dataType, tooltip, data)
                 native.suppressChildMouse(shown, panel)
             end
         end
-        onNativeShown = probe("native shown", onNativeShown)
-        hooksecurefunc(tooltip, "Show", function(shown)
-            onNativeShown(shown)
-        end)
+        hooksecurefunc(tooltip, "Show", probe("hook Show", onNativeShown))
         -- The comparison manager re-shows its tooltips with SetShown, which
         -- resets them the same way but never goes through Show.
-        hooksecurefunc(tooltip, "SetShown", function(shown, visible)
+        hooksecurefunc(tooltip, "SetShown", probe("hook SetShown", function(shown, visible)
             if not isSecret(visible) and visible then onNativeShown(shown) end
-        end)
-        tooltip:HookScript("OnShow", function(shown) onNativeShown(shown) end)
+        end))
+        tooltip:HookScript("OnShow", probe("hook OnShow", onNativeShown))
         -- Observe external native anchors without rewriting them. The Pretty
         -- backend commits its own owner/neighbour constraints.
-        hooksecurefunc(tooltip, "SetPoint", function(moved)
+        hooksecurefunc(tooltip, "SetPoint", probe("hook SetPoint", function(moved)
             if panel.nativeOnly or not util.canModify(moved) then return end
             if placement.owns(moved) then placement.moved(moved) end
-        end)
+        end))
         if tooltip.SetAnchorType then
-            hooksecurefunc(tooltip, "SetAnchorType", function(moved)
+            hooksecurefunc(tooltip, "SetAnchorType", probe("hook SetAnchorType", function(moved)
                 if placement.owns(moved) then placement.moved(moved) end
-            end)
+            end))
         end
-        hooksecurefunc(tooltip, "SetAlpha", function(faded, alpha)
+        hooksecurefunc(tooltip, "SetAlpha", probe("hook SetAlpha", function(faded, alpha)
             if panel.nativeOnly or panel.settingAlpha then return end
             if not isSecret(alpha) and alpha == 0 then return end
             if not util.canModify(faded) then return end
@@ -356,23 +372,23 @@ local function onTooltipData(dataType, tooltip, data)
             panel.settingAlpha = true
             pcall(faded.SetAlpha, faded, 0)
             panel.settingAlpha = false
-        end)
+        end))
         -- Hooked after follow cursor's, which stops following first.
         if tooltip.FadeOut then
-            hooksecurefunc(tooltip, "FadeOut", function(faded)
+            hooksecurefunc(tooltip, "FadeOut", probe("hook FadeOut", function(faded)
                 if not panel.nativeOnly then native.fadeOut(faded) end
-            end)
+            end))
         end
-        hooksecurefunc(tooltip, "SetOwner", function(owned)
+        hooksecurefunc(tooltip, "SetOwner", probe("hook SetOwner", function(owned)
             if panel.nativeOnly then return end
             native.unpark(owned)
             placement.ownerChanged(owned)
-        end)
+        end))
         -- A faded tooltip stays off the screen while hidden by its parent;
         -- EllesmereUI's modifier would otherwise reveal it at its old anchor.
-        tooltip:HookScript("OnHide", function(hidden)
+        tooltip:HookScript("OnHide", probe("hook OnHide unpark", function(hidden)
             if not native.hiddenByParent(hidden) then native.unpark(hidden) end
-        end)
+        end))
         panel.hooked = true
         panel:SetScript("OnUpdate", probe("panel update", function(self, elapsed)
             if not util.canModify(tooltip) then self:Hide(); return end
@@ -396,9 +412,9 @@ local function onTooltipData(dataType, tooltip, data)
                     or (self.fingerprint and self.fingerprint ~= fingerprint(tooltip, self.data)))
             end
             if changed() then
-                C_Timer.After(0, function()
+                C_Timer.After(0, probe("timer content check", function()
                     if showsDataType(tooltip, self) and changed() then update(tooltip, self.data) end
-                end)
+                end))
             end
         end))
     end
@@ -417,20 +433,7 @@ local function onTooltipData(dataType, tooltip, data)
             panel.comparisonCheckQueued = true
             -- A fallback for direct fills, and a check for rows appended by
             -- addons after the manager's post-hook. Keep only one per frame.
-            C_Timer.After(0, function()
-                panel.comparisonCheckQueued = nil
-                if panel.comparisonPending or panel.comparisonFitPending or (util.canModify(tooltip) and panel:IsShown()
-                    and panel.fingerprint and panel.fingerprint ~= util.call(fingerprint, tooltip, panel.data)) then
-                    panel.comparisonPending = true
-                    finishComparison(tooltip, panel)
-                    panel.comparisonAnchorPending = true
-                    if placement.owns(tooltip) then
-                        placement.finish(tooltip)
-                    else
-                        finishComparisonAnchors()
-                    end
-                end
-            end)
+            C_Timer.After(0, function() checkComparison(tooltip, panel) end)
         end
         return
     end
@@ -524,4 +527,30 @@ end
 -- Draws a tooltip type from a tooltip another addon filled with lines alone.
 function hooks.renderLines(tooltip, dataType, id)
     onTooltipData(dataType, tooltip, { type = dataType, id = id, lines = {}, fromLines = true })
+end
+
+-- /ptip perf ab and /ptip bench measure the game's own tooltips with every
+-- stage idle; the hooks stay installed, as after a settings change. Resuming
+-- hands each shown tooltip its current data again.
+function hooks.setSuspended(suspended)
+    suspended = suspended and true or nil
+    if ns.suspended == suspended then return end
+    ns.suspended = suspended
+    for tooltip, panel in pairs(panels) do
+        if util.canModify(tooltip) then
+            if suspended then
+                if not panel.nativeOnly then
+                    panel.nativeOnly = true
+                    native.unpark(tooltip)
+                    restoreNative(tooltip)
+                end
+            elseif util.call(tooltip.IsShown, tooltip) then
+                local data = util.call(tooltip.GetTooltipData, tooltip)
+                local dataType = type(data) == "table" and util.readable(data.type)
+                if dataType ~= nil and TooltipTypes[dataType] and not TooltipTypes[dataType].linesOnly then
+                    onTooltipData(dataType, tooltip, data)
+                end
+            end
+        end
+    end
 end

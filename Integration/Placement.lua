@@ -460,7 +460,7 @@ end
 
 function placement.hookInput(tooltip)
     if tooltip ~= ItemRefTooltip then return end
-    tooltip:HookScript("OnDragStart", function()
+    tooltip:HookScript("OnDragStart", ui.probe("drag start", function()
         if not placement.owns(tooltip) then return end
         local panel = ui.panels[tooltip]
         local left, top = rect(panel)
@@ -492,8 +492,8 @@ function placement.hookInput(tooltip)
                     or (state.side == "right" and right < needed and desiredLeft >= needed)) then placement.refresh(tooltip) end
             end
         end))
-    end)
-    tooltip:HookScript("OnDragStop", function()
+    end))
+    tooltip:HookScript("OnDragStop", ui.probe("drag stop", function()
         local state = rootState(tooltip)
         if not state.drag then return end
         -- Freeze the actual view after the engine normalizes native anchors.
@@ -504,5 +504,5 @@ function placement.hookInput(tooltip)
         dragFrame:SetScript("OnUpdate", nil)
         state.drag, state.points = nil, util.framePoints(tooltip)
         placement.refresh(tooltip)
-    end)
+    end))
 end

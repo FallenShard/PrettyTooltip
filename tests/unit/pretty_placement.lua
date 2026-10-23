@@ -256,13 +256,13 @@ return function(test)
             return setPoint(self, ...)
         end
     end
-    ns.ui.perf.calls, ns.ui.perf.time, ns.ui.perf.max = {}, {}, {}
-    ns.ui.perf.total, ns.ui.perf.depth, ns.ui.perf.on = 0, 0, true
+    ns.Profiler.reset()
+    ns.Profiler.on = true
     for _ = 1, 80 do ns.Placement.refresh(owner) end
-    ns.ui.perf.on = false
+    ns.Profiler.on = false
     test.check("profiling measures completed placement work even when geometry is unchanged",
-        { ns.ui.perf.calls["placement refresh"], ns.ui.perf.calls["placement plan"],
-            ns.ui.perf.calls["placement anchors kept"], ns.ui.perf.calls["placement anchor writes"] or 0 },
+        { ns.Profiler.calls["placement refresh"], ns.Profiler.calls["placement plan"],
+            ns.Profiler.calls["placement anchors kept"], ns.Profiler.calls["placement anchor writes"] or 0 },
         { 80, 80, 240, 0 })
     test.check("subpixel GetPoint readback noise never rewrites stable main or comparison anchors", anchorWrites, { 0, 0, 0 })
     for index, panel in ipairs({ main, first, second }) do
@@ -447,11 +447,11 @@ return function(test)
     -- displacement from its own completed rectangle, not the new native corner.
     owner._points[1][4] = owner._points[1][4] + 30 / owner:GetEffectiveScale()
     owner._points[1][5] = owner._points[1][5] + 20 / owner:GetEffectiveScale()
-    local previousPlans = ns.ui.perf.calls["placement plan"] or 0
-    ns.ui.perf.on = true
+    local previousPlans = ns.Profiler.calls["placement plan"] or 0
+    ns.Profiler.on = true
     tickDrag()
-    ns.ui.perf.on = false
-    test.check("drag motion within the same side does not replan geometry", ns.ui.perf.calls["placement plan"] or 0, previousPlans)
+    ns.Profiler.on = false
+    test.check("drag motion within the same side does not replan geometry", ns.Profiler.calls["placement plan"] or 0, previousPlans)
     local dragged = bounds(main)
     test.check("mixed-scale sticky dragging follows cursor displacement without reading content",
         { dragged[1] - beforeDrag[1], dragged[2] - beforeDrag[2], reads }, { 30, 20, beforeReads })

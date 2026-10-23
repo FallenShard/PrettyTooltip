@@ -64,6 +64,8 @@ Each fixture is run as the game would: the addon's files load in the `.toc`'s or
 
 `unit/native_idle.lua` checks that Lite refreshes create no Pretty panels or panel cleanup timers, and prepare no hidden details. It covers details appearing in the modifier event from the latest data, canceled or restricted handovers, and switching presentations at runtime.
 
+`unit/performance.lua` runs `/ptip perf`, `/ptip perf ab`, and `/ptip bench` with a stand-in clock and a stand-in for the game's profiler: nested scopes count once and keep their results, frames split where the sampler runs, the comparison's windows alternate and end resumed, and the bench reads the game's events per scope. `unit/suspend.lua` checks that suspending PrettyTooltip for those comparisons gives the game's tooltip back, idles every stage, key handler, detail and follow cursor, and draws the current data again on resume.
+
 `unit/pretty_noop_hooks.lua` counts native layout queries in Pretty callbacks.
 Zero-alpha writes return without a layout probe; external changes, protected
 frames, and secret alpha values retain their access checks and cleanup.
