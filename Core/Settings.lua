@@ -14,7 +14,6 @@ local DEFAULTS = {
     objectPanels = true,
     unitPanels = true,
     auraPanels = true,
-    -- A weapon imbue's buff button shows the imbue's panel, not its weapon's tooltip.
     imbuePanels = true,
     questPanels = true,
     macroPanels = true,
@@ -66,6 +65,8 @@ local DEFAULTS = {
     editorStyle = "native",
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
+    -- "NONE" keeps Mythic+ rating visible; CTRL/ALT require that key.
+    mythicScoreKey = "NONE",
     bodyFont = nil,
     titleFont = nil,
     -- "NONE", "OUTLINE", or "THICKOUTLINE", for elements without their own.
@@ -248,11 +249,11 @@ ns.TOOLTIP_TYPES = {
         types = { "Unit", "Corpse" } },
     { label = "Buffs and debuffs", restyle = "auraPanels", cursor = "cursorAuras",
         types = { "UnitAura" } },
-    { label = "Weapon imbues", restyle = "imbuePanels", types = {} },
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
-    { label = "Flight paths", restyle = "taxiPanels", types = {} },
+    { label = "Weapon imbues", restyle = "imbuePanels", types = {} },
     { label = "Mail", restyle = "mailPanels", types = {} },
+    { label = "Flight paths", restyle = "taxiPanels", types = {} },
     { label = "Quests", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
     { label = "Macros", restyle = "macroPanels", cursor = "cursorMacros", types = { "Macro" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
@@ -440,6 +441,12 @@ end
 
 function ns.originalKeyDown() return keyDown(ns.option("originalKey")) end
 function ns.isOriginalKey(key) return isKey(ns.option("originalKey"), key) end
+
+function ns.mythicScoreKeyDown()
+    local name = ns.option("mythicScoreKey")
+    return name == "NONE" or keyDown(name)
+end
+function ns.isMythicScoreKey(key) return isKey(ns.option("mythicScoreKey"), key) end
 
 -- Whether the details show now: their key is held, or they always show.
 function ns.detailsKeyDown()
