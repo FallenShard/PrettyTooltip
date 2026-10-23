@@ -219,7 +219,9 @@ local function readObject(tooltip, data, game)
     if not model.name or model.name == "" then return end
     local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
-    tooltipData.addExtras(model.extras, appended)
+    for _, row in ipairs(appended) do
+        if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
+    end
     return completeModel(model, game)
 end
 
