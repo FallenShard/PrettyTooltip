@@ -472,7 +472,6 @@ L["Restyle items"] = "Restyler les objets"
 L["Restyle spells"] = "Restyler les sorts"
 L["Restyle players and npcs"] = "Restyler les joueurs et les PNJ"
 L["Restyle buffs and debuffs"] = "Restyler les améliorations et affaiblissements"
-L["Restyle weapon imbues"] = "Restyler les imprégnations d'arme"
 L["Restyle herbs, ore, chests, and other objects"] = "Restyler les herbes, minerais, coffres et autres objets"
 L["Restyle flight paths"] = "Restyler les trajets aériens"
 L["Restyle quests"] = "Restyler les quêtes"
@@ -487,7 +486,6 @@ L["Restyle totems"] = "Restyler les totems"
 L["Restyle flyout buttons"] = "Restyler les boutons déroulants"
 L["Players and NPCs"] = "Joueurs et PNJ"
 L["Buffs and debuffs"] = "Améliorations et affaiblissements"
-L["Weapon imbues"] = "Imprégnations d'arme"
 L["Herbs, ore, chests, and other objects"] = "Herbes, minerais, coffres et autres objets"
 L["Flight paths"] = "Trajets aériens"
 L["Currencies"] = "Monnaies"
@@ -543,7 +541,7 @@ L["Select all"] = "Tout sélectionner"
 L["Axe"] = "Hache"
 L["Plate"] = "Plaques"
 L["Polearm"] = "Arme d'hast"
-L["Mail"] = "Mailles"
+L["Mail"] = "Courrier"
 L["Consumable"] = "Consommable"
 L["Plans"] = "Plans"
 L["Shields"] = "Boucliers"
@@ -604,3 +602,41 @@ L["Ended by"] = "Terminée auprès de"
 L["Started by"] = "Commencée auprès de"
 L["Found in"] = "Se trouve à"
 L["Rares"] = "Rares"
+
+-- Mythic+ score modifier option (localized).
+L["Mythic+ Rating Modifier"] = "Touche de modification du score Mythique+"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Maintenez Ctrl pour afficher le score Mythique+ et les scores des donjons dans l’infobulle du personnage."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Maintenez Alt pour afficher le score Mythique+ et les scores des donjons dans l’infobulle du personnage."
+L["Show Mythic+ rating without holding a modifier key."] = "Toujours afficher le score Mythique+ sans touche de modification."
+
+L["Mythic+ Rating"] = "Cote Mythique+"
+
+-- Mount tooltip labels and collection status.
+L["Mount"] = "Monture"
+L["Source"] = "Source"
+L["Collected"] = "Obtenue"
+L["Not collected"] = "Non obtenue"
+
+-- 1.3.6 localized additions
+L["Restyle weapon imbues"] = "Restyler les imprégnations d'arme"
+L["Weapon imbues"] = "Imprégnations d'arme"
+
+L["Mail armor"] = "Mailles"
+
+L["Examples:"] = "Exemples :"
+
+L["Attachments"] = "Pièces jointes"
+
+L["Mail title"] = "Titre du courrier"
+
+L["Attachments and prices"] = "Pièces jointes et prix"
+
+L["Mail contents"] = "Contenu du courrier"
+
+L["Total: 14 items"] = "Total : 14 objets"
+
+L["Cooked Crab Claw"] = "Pince de crabe cuite"
+
+L["Pyrite"] = "Pyrite"
+
+L["%d items"] = "%d objets"

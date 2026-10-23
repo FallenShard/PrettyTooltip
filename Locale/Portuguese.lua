@@ -477,7 +477,6 @@ L["Restyle items"] = "Redesenhar itens"
 L["Restyle spells"] = "Redesenhar feitiços"
 L["Restyle players and npcs"] = "Redesenhar jogadores e PNJs"
 L["Restyle buffs and debuffs"] = "Redesenhar bônus e penalidades"
-L["Restyle weapon imbues"] = "Redesenhar imbuições de arma"
 L["Restyle herbs, ore, chests, and other objects"] = "Redesenhar plantas, minérios, baús e outros objetos"
 L["Restyle flight paths"] = "Redesenhar rotas de voo"
 L["Restyle quests"] = "Redesenhar missões"
@@ -492,7 +491,6 @@ L["Restyle totems"] = "Redesenhar totens"
 L["Restyle flyout buttons"] = "Redesenhar botões expansíveis"
 L["Players and NPCs"] = "Jogadores e PNJs"
 L["Buffs and debuffs"] = "Bônus e penalidades"
-L["Weapon imbues"] = "Imbuições de arma"
 L["Herbs, ore, chests, and other objects"] = "Plantas, minérios, baús e outros objetos"
 L["Flight paths"] = "Rotas de voo"
 L["Currencies"] = "Moedas"
@@ -548,7 +546,7 @@ L["Select all"] = "Selecionar tudo"
 L["Axe"] = "Machado"
 L["Plate"] = "Placas"
 L["Polearm"] = "Arma de haste"
-L["Mail"] = "Malha"
+L["Mail"] = "Correio"
 L["Consumable"] = "Consumível"
 L["Plans"] = "Diagrama"
 L["Shields"] = "Escudos"
@@ -609,3 +607,41 @@ L["Ended by"] = "Concluída com"
 L["Started by"] = "Iniciada por"
 L["Found in"] = "Encontrado em"
 L["Rares"] = "Raros"
+
+-- Mythic+ score modifier option (localized).
+L["Mythic+ Rating Modifier"] = "Tecla modificadora da pontuação Mítica+"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Segure Ctrl para mostrar a pontuação Mítica+ e das masmorras na dica de jogador."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Segure Alt para mostrar a pontuação Mítica+ e das masmorras na dica de jogador."
+L["Show Mythic+ rating without holding a modifier key."] = "Mostrar sempre a pontuação Mítica+ sem segurar uma tecla modificadora."
+
+L["Mythic+ Rating"] = "Pontuação Mítica+"
+
+-- Mount tooltip labels and collection status.
+L["Mount"] = "Montaria"
+L["Source"] = "Fonte"
+L["Collected"] = "Coletada"
+L["Not collected"] = "Não coletada"
+
+-- 1.3.6 localized additions
+L["Restyle weapon imbues"] = "Redesenhar imbuições de arma"
+L["Weapon imbues"] = "Imbuições de arma"
+
+L["Mail armor"] = "Malha"
+
+L["Examples:"] = "Exemplos:"
+
+L["Attachments"] = "Anexos"
+
+L["Mail title"] = "Título do correio"
+
+L["Attachments and prices"] = "Anexos e preços"
+
+L["Mail contents"] = "Conteúdo do correio"
+
+L["Total: 14 items"] = "Total: 14 itens"
+
+L["Cooked Crab Claw"] = "Garra de Caranguejo Cozida"
+
+L["Pyrite"] = "Pirita"
+
+L["%d items"] = "%d itens"

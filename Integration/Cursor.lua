@@ -72,9 +72,8 @@ local function place()
         return false
     end
     anchoredHeight = height
-    -- Cursor placement replaces the default anchor. Release the old panel
-    -- hold's geometry immediately, while Native can still defer its size fit.
-    if panel then pcall(ns.ui.alignPanel, panel, GameTooltip, true) end
+    -- The panel took its side from the anchor the game set before this one.
+    if panel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
     return true
 end
 
@@ -84,7 +83,6 @@ function ns.Cursor.register()
     if not (ns.Processor.available() and TYPES and ns.TOOLTIP_TYPES) then return end
     registered = true
     tracker = CreateFrame("Frame", nil, UIParent)
-    tracker:SetRoundLayoutToNearestPixel(true)
     tracker:SetSize(1, 1)
     tracker:Hide()
     local follower = tracker

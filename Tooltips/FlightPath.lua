@@ -48,7 +48,6 @@ local function readTaxi(tooltip)
     local name, zone = first:match("^(.-),%s*(.+)$")
     local model = { name = name or first, zone = zone, extras = {} }
     local here = TAXINODEYOUAREHERE or "You are here"
-    local addExtra = tooltipData.extrasAdder(model.extras)
     for index = 2, #rows do
         local row = rows[index]
         local copper = copperOf(row.left)
@@ -56,8 +55,8 @@ local function readTaxi(tooltip)
             model.cost = copper
         elseif trim(util.plainText(row.left)) == here then
             model.current = true
-        else
-            addExtra(row)
+        elseif trim(row.left) ~= "" or row.right ~= "" then
+            model.extras[#model.extras + 1] = row
         end
     end
     return model

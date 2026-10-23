@@ -438,7 +438,6 @@ L["Restyle items"] = "重绘物品提示"
 L["Restyle spells"] = "重绘法术提示"
 L["Restyle players and npcs"] = "重绘玩家和NPC提示"
 L["Restyle buffs and debuffs"] = "重绘增益和减益效果提示"
-L["Restyle weapon imbues"] = "重绘武器临时附魔提示"
 L["Restyle herbs, ore, chests, and other objects"] = "重绘草药、矿石、宝箱等物体提示"
 L["Restyle flight paths"] = "重绘飞行路线提示"
 L["Restyle quests"] = "重绘任务提示"
@@ -453,7 +452,6 @@ L["Restyle totems"] = "重绘图腾提示"
 L["Restyle flyout buttons"] = "重绘弹出按钮提示"
 L["Players and NPCs"] = "玩家和NPC"
 L["Buffs and debuffs"] = "增益和减益效果"
-L["Weapon imbues"] = "武器临时附魔"
 L["Herbs, ore, chests, and other objects"] = "草药、矿石、宝箱等物体"
 L["Flight paths"] = "飞行路线"
 L["Currencies"] = "货币"
@@ -499,7 +497,8 @@ L["Select all"] = "全选"
 L["Axe"] = "斧"
 L["Plate"] = "板甲"
 L["Polearm"] = "长柄武器"
-L["Mail"] = "锁甲"
+L["Mail"] = "邮件"
+L["Mail armor"] = "锁甲"
 L["Consumable"] = "消耗品"
 L["Plans"] = "设计图"
 L["Shields"] = "盾牌"
@@ -552,3 +551,74 @@ L["Ended by"] = "完成NPC"
 L["Started by"] = "起始NPC"
 L["Found in"] = "所在位置"
 L["Rares"] = "稀有"
+
+L["Sell Price"] = "出售价格"
+
+L["Your class colors addon sets these; the colors chosen here apply without it."] = "当前职业颜色由其他职业颜色插件控制；未启用该插件时，使用此处设置的颜色。"
+
+L["Kel'Thuzad"] = "克尔苏加德"
+
+L["Ragnaros"] = "拉格纳罗斯"
+
+L["Azuregos"] = "艾索雷葛斯"
+
+L["Eagan Peltskinner"] = "伊根·派特斯金纳"
+
+L["Global scale"] = "全局缩放"
+
+L["Plans: Veteran's Gloves"] = "设计图：老兵手套"
+L["Veteran's Gloves"] = "老兵手套"
+L["Shield Bash"] = "盾击"
+L["Holy Light"] = "圣光术"
+L["Power Word: Fortitude"] = "真言术：韧"
+L["Arcanite Reaper"] = "奥金斧"
+L["Redemption Tunic"] = "救赎外套"
+L["Redemption Legguards"] = "救赎腿甲"
+L["Redemption Handguards"] = "救赎护手"
+L["Redemption Headpiece"] = "救赎头饰"
+L["Redemption Spaulders"] = "救赎肩铠"
+L["Blackhand Doomsaw"] = "黑手魔锯"
+L["Bronze Bar"] = "青铜锭"
+L["Rough Grinding Stone"] = "劣质砂轮"
+L["Small Lustrous Pearl"] = "有光泽的小珍珠"
+L["Major Healing Potion"] = "特效治疗药水"
+L["Gold Pickup Schedule"] = "拾取金币日程表"
+L["Curse of Agony"] = "痛苦诅咒"
+L["Deadly Poison"] = "致命毒药"
+L["Head of Deepfury"] = "卡姆·深怒的头颅"
+L["Head of Arugal"] = "阿鲁高的头颅"
+L["Tough Wolf Meat"] = "硬狼肉"
+
+-- Style editor sample tabs and preview names (zhCN) ---------------------------
+
+-- Mythic+ rating visibility modifier (retail).
+
+-- Mythic+ score modifier option (localized).
+L["Mythic+ Rating Modifier"] = "大秘境评分修饰键"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "按住 Ctrl 时显示玩家的大秘境总评分及各地下城评分。"
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "按住 Alt 时显示玩家的大秘境总评分及各地下城评分。"
+L["Show Mythic+ rating without holding a modifier key."] = "无需按住修饰键，始终显示大秘境评分。"
+
+L["Mythic+ Rating"] = "大秘境评分"
+
+-- Mount tooltip labels and collection status.
+L["Mount"] = "坐骑"
+L["Source"] = "来源"
+L["Collected"] = "已收集"
+L["Not collected"] = "未收集"
+
+-- 1.3.6 localized additions
+L["Restyle weapon imbues"] = "重绘武器临时附魔提示"
+L["Weapon imbues"] = "武器临时附魔"
+
+-- 1.3.6 邮件附件及样式编辑器预览
+L["Examples:"] = "示例："
+L["Attachments"] = "附件"
+L["Mail title"] = "邮件标题"
+L["Attachments and prices"] = "附件及价格"
+L["Mail contents"] = "邮件内容"
+L["Total: 14 items"] = "总计：14件物品"
+L["Cooked Crab Claw"] = "煮熟的蟹爪"
+L["Pyrite"] = "黄铁矿"
+
+L["%d items"] = "%d 件物品"

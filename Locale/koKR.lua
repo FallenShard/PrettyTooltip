@@ -441,7 +441,6 @@ L["Restyle items"] = "아이템 툴팁 꾸미기"
 L["Restyle spells"] = "주문 툴팁 꾸미기"
 L["Restyle players and npcs"] = "플레이어 및 NPC 툴팁 꾸미기"
 L["Restyle buffs and debuffs"] = "강화 및 약화 효과 툴팁 꾸미기"
-L["Restyle weapon imbues"] = "무기 강화 효과 툴팁 꾸미기"
 L["Restyle herbs, ore, chests, and other objects"] = "약초, 광석, 상자 및 기타 사물 툴팁 꾸미기"
 L["Restyle flight paths"] = "비행 경로 툴팁 꾸미기"
 L["Restyle quests"] = "퀘스트 툴팁 꾸미기"
@@ -456,7 +455,6 @@ L["Restyle totems"] = "토템 툴팁 꾸미기"
 L["Restyle flyout buttons"] = "펼침 버튼 툴팁 꾸미기"
 L["Players and NPCs"] = "플레이어 및 NPC"
 L["Buffs and debuffs"] = "강화 및 약화 효과"
-L["Weapon imbues"] = "무기 강화 효과"
 L["Herbs, ore, chests, and other objects"] = "약초, 광석, 상자 및 기타 사물"
 L["Flight paths"] = "비행 경로"
 L["Currencies"] = "화폐"
@@ -503,7 +501,7 @@ L["Select all"] = "모두 선택"
 L["Axe"] = "도끼"
 L["Plate"] = "판금"
 L["Polearm"] = "장창"
-L["Mail"] = "사슬"
+L["Mail"] = "우편"
 L["Consumable"] = "소모품"
 L["Plans"] = "도면"
 L["Shields"] = "방패"
@@ -556,3 +554,41 @@ L["Ended by"] = "완료 NPC"
 L["Started by"] = "시작 NPC"
 L["Found in"] = "발견 위치"
 L["Rares"] = "희귀"
+
+-- Mythic+ score modifier option (localized).
+L["Mythic+ Rating Modifier"] = "쐐기돌 평점 보조 키"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Ctrl 키를 누르고 있으면 플레이어 툴팁에 쐐기돌 총점과 던전별 점수가 표시됩니다."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Alt 키를 누르고 있으면 플레이어 툴팁에 쐐기돌 총점과 던전별 점수가 표시됩니다."
+L["Show Mythic+ rating without holding a modifier key."] = "보조 키를 누르지 않아도 쐐기돌 평점을 항상 표시합니다."
+
+L["Mythic+ Rating"] = "쐐기돌 평점"
+
+-- Mount tooltip labels and collection status.
+L["Mount"] = "탈것"
+L["Source"] = "획득처"
+L["Collected"] = "수집함"
+L["Not collected"] = "미수집"
+
+-- 1.3.6 localized additions
+L["Restyle weapon imbues"] = "무기 강화 효과 툴팁 꾸미기"
+L["Weapon imbues"] = "무기 강화 효과"
+
+L["Mail armor"] = "사슬"
+
+L["Examples:"] = "예시:"
+
+L["Attachments"] = "첨부 아이템"
+
+L["Mail title"] = "우편 제목"
+
+L["Attachments and prices"] = "첨부 아이템 및 가격"
+
+L["Mail contents"] = "우편 내용"
+
+L["Total: 14 items"] = "총 14개 아이템"
+
+L["Cooked Crab Claw"] = "익힌 게 집게발"
+
+L["Pyrite"] = "황철석"
+
+L["%d items"] = "아이템 %d개"

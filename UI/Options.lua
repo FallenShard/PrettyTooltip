@@ -60,7 +60,7 @@ function ns.Options.register()
         local header = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         header:SetPoint("TOPLEFT", column.x, column.y)
         header:SetText(L[text])
-        column.y = column.y - 24
+        column.y = column.y - (column == rightColumn and 20 or 24)
     end
 
     section(leftColumn, "Restyled Tooltips")
@@ -125,9 +125,9 @@ function ns.Options.register()
             button.refresh = function() button:SetChecked(current() == value) end
             controls[#controls + 1] = button
             explain(button, label, note)
-            column.y = column.y - 22
+            column.y = column.y - (column == rightColumn and 19 or 22)
         end
-        column.y = column.y - 12
+        column.y = column.y - (column == rightColumn and 6 or 12)
     end
 
     local function optionRadios(column, key, choices)
@@ -139,6 +139,13 @@ function ns.Options.register()
         { "pretty", "PrettyTooltip", "Draw the PrettyTooltip panel for each kind turned on under Restyled Tooltips." },
         { "blizzard", "Blizzard", "Keep the game's own tooltips. Item Equip effects are shortened, and the details "
             .. "modifier adds disenchant results, the spell power breakdown and rates, gathering contents, and IDs." },
+    })
+
+    section(rightColumn, "Mythic+ Rating Modifier")
+    optionRadios(rightColumn, "mythicScoreKey", {
+        { "CTRL", "Ctrl", "Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips." },
+        { "ALT", "Alt", "Hold Alt to show Mythic+ rating and dungeon scores on player tooltips." },
+        { "NONE", "Never", "Show Mythic+ rating without holding a modifier key." },
     })
 
     section(rightColumn, "Default Tooltip Modifier")

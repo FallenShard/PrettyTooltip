@@ -95,6 +95,38 @@ end
 function ns.disenchantFor(classID, quality, level, equipLoc, itemID, game)
     if classID ~= ARMOR and classID ~= WEAPON or CRAFTED_WANDS[itemID] then return end
     if type(quality) ~= "number" or type(level) ~= "number" or NOT_DISENCHANTABLE[equipLoc] then return end
+    -- Retail: select by the item's actual expansion, never by scaled item level.
+    -- GetItemInfo returns expansionID as its 15th value. If it is not cached,
+    -- do not display potentially incorrect Classic disenchant predictions.
+    if WOW_PROJECT_ID == WOW_PROJECT_MAINLINE then
+        local expansionID
+        if C_Item and C_Item.GetItemInfo and itemID then
+            expansionID = select(15, C_Item.GetItemInfo(itemID))
+        elseif GetItemInfo and itemID then
+            expansionID = select(15, GetItemInfo(itemID))
+        end
+        if type(expansionID) ~= "number" then return end
+        -- Retail expansion-specific baseline materials (rank 1).
+        -- Never use the Classic item-level table for modern equipment.
+        local RETAIL_MATERIALS = {
+            [10] = { [UNCOMMON] = {219946, "Storm Dust"}, [RARE] = {219951, "Gleaming Shard"}, [EPIC] = {219952, "Refulgent Crystal"} },
+            [11] = { [UNCOMMON] = {243599, "Eversinging Dust"}, [RARE] = {243602, "Radiant Shard"}, [EPIC] = {243605, "Dawn Crystal"} },
+        }
+        local materials = RETAIL_MATERIALS[expansionID]
+        if materials then
+            local material = materials[quality]
+            if not material then return end
+            local materialID, fallback = material[1], material[2]
+            local name = game.itemName(materialID)
+            local icon = game.itemIcon(materialID)
+            -- Output amount and crafting rank depend on Enchanting specialization.
+            return { rows = { { id = materialID, name = name or fallback,
+                icon = icon, count = {1,1}, chance = nil } } }
+        end
+        -- No modern drop table is defined for other Retail expansions.
+        -- Suppress the old Classic table rather than mislabel the item.
+        if expansionID > 0 then return end
+    end
     local list = yields(classID, quality, level)
     if not list then return end
     local result = { skill = skillFor(level, quality), player = game.skill("Enchanting"), rows = {} }

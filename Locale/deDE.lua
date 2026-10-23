@@ -474,7 +474,6 @@ L["Restyle items"] = "Gegenstände neu gestalten"
 L["Restyle spells"] = "Zauber neu gestalten"
 L["Restyle players and npcs"] = "Spieler und NSCs neu gestalten"
 L["Restyle buffs and debuffs"] = "Stärkungen und Schwächungen neu gestalten"
-L["Restyle weapon imbues"] = "Waffenverzauberungen auf Zeit neu gestalten"
 L["Restyle herbs, ore, chests, and other objects"] = "Kräuter, Erz, Truhen und andere Objekte neu gestalten"
 L["Restyle flight paths"] = "Flugrouten neu gestalten"
 L["Restyle quests"] = "Quests neu gestalten"
@@ -489,7 +488,6 @@ L["Restyle totems"] = "Totems neu gestalten"
 L["Restyle flyout buttons"] = "Ausklappleisten neu gestalten"
 L["Players and NPCs"] = "Spieler und NSCs"
 L["Buffs and debuffs"] = "Stärkungen und Schwächungen"
-L["Weapon imbues"] = "Waffenverzauberungen auf Zeit"
 L["Herbs, ore, chests, and other objects"] = "Kräuter, Erz, Truhen und andere Objekte"
 L["Flight paths"] = "Flugrouten"
 L["Currencies"] = "Währungen"
@@ -545,7 +543,7 @@ L["Select all"] = "Alles markieren"
 L["Axe"] = "Axt"
 L["Plate"] = "Platte"
 L["Polearm"] = "Stangenwaffe"
-L["Mail"] = "Kette"
+L["Mail"] = "Post"
 L["Consumable"] = "Verbrauchbar"
 L["Plans"] = "Pläne"
 L["Shields"] = "Schilde"
@@ -606,3 +604,41 @@ L["Ended by"] = "Abgeschlossen bei"
 L["Started by"] = "Begonnen bei"
 L["Found in"] = "Zu finden in"
 L["Rares"] = "Seltene"
+
+-- Mythic+ score modifier option (localized).
+L["Mythic+ Rating Modifier"] = "Mythic+-Wertung: Modifikatortaste"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Halte Strg gedrückt, um die Mythic+-Wertung und die Dungeonwertungen im Spielertooltip anzuzeigen."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Halte Alt gedrückt, um die Mythic+-Wertung und die Dungeonwertungen im Spielertooltip anzuzeigen."
+L["Show Mythic+ rating without holding a modifier key."] = "Mythic+-Wertung ohne Modifikatortaste immer anzeigen."
+
+L["Mythic+ Rating"] = "Mythic+-Wertung"
+
+-- Mount tooltip labels and collection status.
+L["Mount"] = "Reittier"
+L["Source"] = "Quelle"
+L["Collected"] = "Gesammelt"
+L["Not collected"] = "Nicht gesammelt"
+
+-- 1.3.6 localized additions
+L["Restyle weapon imbues"] = "Waffenverzauberungen auf Zeit neu gestalten"
+L["Weapon imbues"] = "Waffenverzauberungen auf Zeit"
+
+L["Mail armor"] = "Kette"
+
+L["Examples:"] = "Beispiele:"
+
+L["Attachments"] = "Anhänge"
+
+L["Mail title"] = "Posttitel"
+
+L["Attachments and prices"] = "Anhänge und Preise"
+
+L["Mail contents"] = "Postinhalt"
+
+L["Total: 14 items"] = "Insgesamt: 14 Gegenstände"
+
+L["Cooked Crab Claw"] = "Gekochte Krebsschere"
+
+L["Pyrite"] = "Pyrit"
+
+L["%d items"] = "%d Gegenstände"

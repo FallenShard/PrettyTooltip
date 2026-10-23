@@ -90,7 +90,9 @@ local function readMacro(tooltip, data, game)
     if not model.name or model.name == "" then return end
     local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
     if not appended then return end
-    tooltipData.addExtras(model.extras, appended)
+    for _, row in ipairs(appended) do
+        if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
+    end
     -- The tooltip has only the name; the macro itself has its icon and lines.
     local macro = game.macro(model.name)
     if macro then
