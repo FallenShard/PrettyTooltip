@@ -593,7 +593,6 @@ local function measureStyled(panel, text, style)
 end
 
 local function rowWidth(panel, row, style)
-    if row.blank then return 0 end
     style = asStyle(style)
     local width = measureStyled(panel, row.left, style)
     if row.right and row.right ~= "" then
@@ -616,10 +615,7 @@ local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     indent, gap, rightIndent = indent or 0, gap or 3, rightIndent or 0
     -- What the row leaves under its letters, its line's leading and the gap:
     -- a divider or rule after it counts this in (Panel/Render.lua).
-    local lineHeight = math.floor(style.size * 1.15 + .5)
-    panel.rowTail = lineHeight - style.size + gap
-    -- A blank row, as another addon's between its sections: one empty line.
-    if row.blank then return y + lineHeight + gap end
+    panel.rowTail = math.floor(style.size * 1.15 + .5) - style.size + gap
     local w = panel.width - 2 * pad() - indent - rightIndent
     if right and right ~= "" then
         local rightWidth = math.min(measureStyled(panel, right, style) + 2,
