@@ -26,13 +26,14 @@ end
 local function fingerprint(tooltip, data)
     if isSecret(data) or type(data) ~= "table" or isSecret(data.lines) then return end
     local parts = { ns.settingsVersion or 0, isComparison(tooltip) and 1 or 0,
-        ns.detailsKeyDown() and 1 or 0 }
+        ns.detailsKeyDown() and 1 or 0, ns.mythicScoreKeyDown() and 1 or 0 }
     local name = tooltip:GetName()
     for index = 1, tooltip:NumLines() do
         local left = tooltip:GetLeftLine(index)
         local right = tooltip.GetRightLine and tooltip:GetRightLine(index)
             or (name and _G[name .. "TextRight" .. index])
-        for _, font in ipairs({ left, right }) do
+        for side = 1, 2 do
+            local font = side == 1 and left or right
             if font and font:IsShown() then
                 local text = font:GetText()
                 local r, g, b = font:GetTextColor()
@@ -72,12 +73,40 @@ local function claimantOf(dataType, tooltip, data)
     return dataType
 end
 
+-- Only the player's equipped slots suppress Shift comparisons.
+local function isOwnEquippedSlot(tooltip)
+    local owner = tooltip and tooltip.GetOwner and tooltip:GetOwner()
+    local depth = 0
+    while owner and depth < 16 do
+        local name = owner.GetName and owner:GetName()
+        if type(name) == "string" then
+            if name:match("^Character[%w_]+Slot$") or name:match("^PaperDoll[%w_]+Slot$") then return true end
+            if name:match("^Inspect") or name:match("^ContainerFrame") or name:match("^Bag") then return false end
+        end
+        owner = owner.GetParent and owner:GetParent()
+        depth = depth + 1
+    end
+    return false
+end
+local function hideShiftComparison(tooltip, panel)
+    if not (isComparison(tooltip) and not ns.originalKeyDown()) then return false end
+    local main = _G.GameTooltip
+    if not (main and main.IsShown and main:IsShown() and isOwnEquippedSlot(main)) then return false end
+    if util.canModify(tooltip) then
+        local alpha = util.number((util.call(tooltip.GetAlpha, tooltip)))
+        if alpha and alpha ~= 0 then tooltip:SetAlpha(0) end
+    end
+    panel:Hide()
+    return true
+end
+
 local function update(tooltip, data, model)
     if not util.canModify(tooltip) or native.isParked(tooltip) then return end
     local panel = getPanel(tooltip)
     local tooltipType = TooltipTypes[panel.dataType]
     if showsOriginal(panel) or not tooltipType then restoreNative(tooltip); return end
     panel.nativeOnly = nil
+    if hideShiftComparison(tooltip, panel) then return end
     local ok = true
     if not model then ok, model = pcall(tooltipType.read, tooltip, data, ns.Game) end
     if not ok or not model then restoreNative(tooltip); return end
@@ -450,6 +479,20 @@ local function onTooltipData(dataType, tooltip, data)
 end
 onTooltipData = probe("tooltip data", onTooltipData)
 
+-- Retail inspect results arrive after the first tooltip paint.
+function hooks.refreshUnit(guid)
+    if not guid or isSecret(guid) then return end
+    for tooltip, panel in pairs(panels) do
+        local data = panel.data
+        if data and not isSecret(data) and not isSecret(data.guid)
+            and data.guid == guid and util.canModify(tooltip)
+            and util.call(tooltip.IsShown, tooltip) and showsDataType(tooltip, panel)
+            and not showsOriginal(panel) then
+            update(tooltip, data)
+        end
+    end
+end
+
 local installed = false
 function hooks.install()
     if installed then return end
@@ -474,7 +517,7 @@ function hooks.install()
     -- The original-tooltip key swaps the panel for the game's tooltip; Shift
     -- shows or hides the details.
     ns.Processor.onKey("panel", function(key)
-        if not (ns.isOriginalKey(key) or ns.isDetailsKey(key)) then return end
+        if not (ns.isOriginalKey(key) or ns.isDetailsKey(key) or ns.isMythicScoreKey(key)) then return end
         for tooltip, panel in pairs(panels) do
             if util.canModify(tooltip) and tooltip:IsShown() and showsDataType(tooltip, panel) then
                 if showsOriginal(panel) then
