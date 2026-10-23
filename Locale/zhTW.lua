@@ -440,7 +440,6 @@ L["Restyle items"] = "重繪物品提示"
 L["Restyle spells"] = "重繪法術提示"
 L["Restyle players and npcs"] = "重繪玩家和NPC提示"
 L["Restyle buffs and debuffs"] = "重繪增益和減益效果提示"
-L["Restyle weapon imbues"] = "重繪武器臨時附魔提示"
 L["Restyle herbs, ore, chests, and other objects"] = "重繪草藥、礦石、寶箱等物件提示"
 L["Restyle flight paths"] = "重繪飛行路線提示"
 L["Restyle quests"] = "重繪任務提示"
@@ -455,7 +454,6 @@ L["Restyle totems"] = "重繪圖騰提示"
 L["Restyle flyout buttons"] = "重繪展開按鈕提示"
 L["Players and NPCs"] = "玩家和NPC"
 L["Buffs and debuffs"] = "增益和減益效果"
-L["Weapon imbues"] = "武器臨時附魔"
 L["Herbs, ore, chests, and other objects"] = "草藥、礦石、寶箱等物件"
 L["Flight paths"] = "飛行路線"
 L["Currencies"] = "貨幣"
@@ -502,7 +500,7 @@ L["Select all"] = "全選"
 L["Axe"] = "斧"
 L["Plate"] = "鎧甲"
 L["Polearm"] = "長柄武器"
-L["Mail"] = "鎖甲"
+L["Mail"] = "郵件"
 L["Consumable"] = "消耗品"
 L["Plans"] = "設計圖"
 L["Shields"] = "盾牌"
@@ -555,3 +553,41 @@ L["Ended by"] = "完成NPC"
 L["Started by"] = "起始NPC"
 L["Found in"] = "所在位置"
 L["Rares"] = "稀有"
+
+-- Mythic+ score modifier option (localized).
+L["Mythic+ Rating Modifier"] = "傳奇鑰石評分修飾鍵"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "按住 Ctrl 時，在玩家提示中顯示傳奇鑰石總評分與各地城評分。"
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "按住 Alt 時，在玩家提示中顯示傳奇鑰石總評分與各地城評分。"
+L["Show Mythic+ rating without holding a modifier key."] = "無須按住修飾鍵，始終顯示傳奇鑰石評分。"
+
+L["Mythic+ Rating"] = "傳奇鑰石評分"
+
+-- Mount tooltip labels and collection status.
+L["Mount"] = "坐騎"
+L["Source"] = "來源"
+L["Collected"] = "已收藏"
+L["Not collected"] = "未收藏"
+
+-- 1.3.6 localized additions
+L["Restyle weapon imbues"] = "重繪武器臨時附魔提示"
+L["Weapon imbues"] = "武器臨時附魔"
+
+L["Mail armor"] = "鎖甲"
+
+L["Examples:"] = "範例："
+
+L["Attachments"] = "附件"
+
+L["Mail title"] = "郵件標題"
+
+L["Attachments and prices"] = "附件與價格"
+
+L["Mail contents"] = "郵件內容"
+
+L["Total: 14 items"] = "總計：14件物品"
+
+L["Cooked Crab Claw"] = "煮熟的蟹爪"
+
+L["Pyrite"] = "黃鐵礦"
+
+L["%d items"] = "%d 件物品"
