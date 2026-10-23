@@ -156,6 +156,155 @@ local function skinning(model, game)
     return { needed = needed, player = game.skill("Skinning"), rows = rows }
 end
 
+-- Retail unit enhancements; all optional data are guarded against 12.x secret values.
+local function safeValue(value)
+    return value ~= nil and not isSecret(value) and value
+end
+local function colored(text, color)
+    if not text or text == "" or not color then return text end
+    return "|cff" .. hex(color) .. text .. "|r"
+end
+-- Other players' average item level is not guaranteed to be available until
+-- INSPECT_READY. Keep the value keyed by GUID, never by the volatile mouseover
+-- unit token, and ask the panel to redraw once the inspected data is ready.
+local inspectIlvlCache, inspectIlvlRequests = {}, {}
+local INSPECT_ILVL_TTL, INSPECT_ILVL_RETRY = 180, 3
+local inspectIlvlFrame = CreateFrame("Frame")
+inspectIlvlFrame:RegisterEvent("INSPECT_READY")
+inspectIlvlFrame:SetScript("OnEvent", function(_, _, guid)
+    if not guid or isSecret(guid) or not inspectIlvlRequests[guid] then return end
+    local request = inspectIlvlRequests[guid]
+    local unit = request.unit
+    if not (unit and UnitGUID and not isSecret(UnitGUID(unit)) and UnitGUID(unit) == guid) then return end
+    if not (C_PaperDollInfo and C_PaperDollInfo.GetInspectItemLevel) then return end
+    local ok, value = pcall(C_PaperDollInfo.GetInspectItemLevel, unit)
+    if not ok or isSecret(value) or type(value) ~= "number" or value <= 0 then return end
+    inspectIlvlCache[guid] = { value = value, at = GetTime() }
+    inspectIlvlRequests[guid] = nil
+    if ns.Hooks and ns.Hooks.refreshUnit then
+        C_Timer.After(0, function() ns.Hooks.refreshUnit(guid) end)
+    end
+end)
+local function requestInspectIlvl(unit, guid)
+    if not (guid and not isSecret(guid) and CanInspect and NotifyInspect and GetTime) then return end
+    local cached = inspectIlvlCache[guid]
+    if cached and GetTime() - cached.at < INSPECT_ILVL_TTL then return cached.value end
+    if cached then inspectIlvlCache[guid] = nil end
+    local requested = inspectIlvlRequests[guid]
+    if requested and GetTime() - requested.at < INSPECT_ILVL_RETRY then return end
+    local ok, can = pcall(CanInspect, unit)
+    if not ok or isSecret(can) or not can then return end
+    inspectIlvlRequests[guid] = { unit = unit, at = GetTime() }
+    -- Let the tooltip settle before requesting inspection, like CaiseTip.
+    C_Timer.After(.3, function()
+        local pending = inspectIlvlRequests[guid]
+        if not pending or pending.unit ~= unit then return end
+        local current = UnitGUID(unit)
+        if isSecret(current) or current ~= guid then return end
+        local allowed, canNow = pcall(CanInspect, unit)
+        if not allowed or isSecret(canNow) or not canNow then return end
+        pcall(NotifyInspect, unit)
+    end)
+end
+
+local function playerItemLevel(unit)
+    if not unit or not UnitIsUnit then return end
+    local ok, selfUnit = pcall(UnitIsUnit, unit, "player")
+    if not ok or isSecret(selfUnit) then return end
+    local value
+    if selfUnit and GetAverageItemLevel then
+        local success, _, equipped = pcall(GetAverageItemLevel)
+        if success then value = equipped end
+    elseif C_PaperDollInfo and C_PaperDollInfo.GetInspectItemLevel then
+        local guid = UnitGUID and UnitGUID(unit)
+        if not isSecret(guid) and guid then
+            value = requestInspectIlvl(unit, guid)
+        end
+        -- Existing inspect data may already be ready (e.g. inspect window).
+        if not value then
+            local success, result = pcall(C_PaperDollInfo.GetInspectItemLevel, unit)
+            if success and not isSecret(result) and type(result) == "number" and result > 0 then
+                value = result
+                if guid and not isSecret(guid) then
+                    inspectIlvlCache[guid] = { value = result, at = GetTime() }
+                end
+            end
+        end
+    end
+    if not safeValue(value) or type(value) ~= "number" or value <= 0 then return end
+    return math.floor(value * 10 + .5) / 10
+end
+-- Cache only stable mount metadata. Aura presence is still checked on every
+-- tooltip build, so mounting/dismounting updates immediately. Bounded tables
+-- avoid retaining one entry for every spell encountered over a long session.
+local mountSpellIDs, mountDetails = {}, {}
+local mountSpellCount, mountDetailCount = 0, 0
+local MOUNT_CACHE_LIMIT = 256
+local function mountIDForSpell(spellID)
+    local cached = mountSpellIDs[spellID]
+    if cached ~= nil then return cached ~= false and cached or nil end
+    local found, mountID = pcall(C_MountJournal.GetMountFromSpell, spellID)
+    if not found or isSecret(mountID) then return end
+    if mountSpellCount >= MOUNT_CACHE_LIMIT then
+        wipe(mountSpellIDs)
+        mountSpellCount = 0
+    end
+    mountSpellCount = mountSpellCount + 1
+    mountSpellIDs[spellID] = mountID or false
+    return mountID
+end
+local function mountDetailsForID(mountID)
+    local cached = mountDetails[mountID]
+    if cached then return cached end
+    local got, name, _, _, _, _, _, _, _, _, _, collected = pcall(C_MountJournal.GetMountInfoByID, mountID)
+    if not got or not safeValue(name) then return end
+    local source
+    if C_MountJournal.GetMountInfoExtraByID then
+        local extraOK, _, _, result = pcall(C_MountJournal.GetMountInfoExtraByID, mountID)
+        if extraOK and safeValue(result) then source = result end
+    end
+    -- Collection state can change while playing; refresh it on each use.
+    cached = { name = name, source = source }
+    if mountDetailCount >= MOUNT_CACHE_LIMIT then
+        wipe(mountDetails)
+        mountDetailCount = 0
+    end
+    mountDetailCount = mountDetailCount + 1
+    mountDetails[mountID] = cached
+    return cached, collected
+end
+local function playerMount(unit)
+    if not unit or not C_UnitAuras or not C_MountJournal or not C_MountJournal.GetMountFromSpell then return end
+    if C_Secrets and C_Secrets.ShouldAurasBeSecret then
+        local ok, secret = pcall(C_Secrets.ShouldAurasBeSecret)
+        if not ok or secret then return end
+    end
+    for i = 1, 40 do
+        if C_Secrets and C_Secrets.ShouldUnitAuraIndexBeSecret then
+            local ok, secret = pcall(C_Secrets.ShouldUnitAuraIndexBeSecret, unit, i, "HELPFUL")
+            if not ok or secret then return end
+        end
+        local ok, aura = pcall(C_UnitAuras.GetAuraDataByIndex, unit, i, "HELPFUL")
+        if not ok or not safeValue(aura) then break end
+        local spellID = safeValue(aura.spellId)
+        if spellID then
+            local mountID = mountIDForSpell(spellID)
+            if mountID then
+                local details, collected = mountDetailsForID(mountID)
+                if details then
+                    -- Refresh collection status without repeating the more
+                    -- expensive mount source lookup.
+                    if collected == nil then
+                        local got, _, _, _, _, _, _, _, _, _, _, state = pcall(C_MountJournal.GetMountInfoByID, mountID)
+                        if got then collected = state end
+                    end
+                    return { name = details.name, collected = safeValue(collected), source = details.source }
+                end
+            end
+        end
+    end
+end
+
 local function completeModel(model, unit, game)
     if unit then
         model.isPlayer = game.unitIsPlayer(unit)
@@ -164,8 +313,21 @@ local function completeModel(model, unit, game)
             model.className, model.classFile = game.unitClass(unit)
             model.race = game.unitRace(unit)
             model.guild, model.guildRank = game.unitGuild(unit)
+            -- GetGuildInfo returns the guild realm as its fourth result.
+            -- Do not substitute the character realm: cross-realm guilds may differ.
+            model.guildRealm = nil
+            if GetGuildInfo then
+                local ok, guildName, _, _, guildRealm = pcall(GetGuildInfo, unit)
+                if ok and not isSecret(guildName) and not isSecret(guildRealm)
+                    and type(guildName) == "string" and type(guildRealm) == "string"
+                    and guildName ~= "" and guildRealm ~= "" then
+                    model.guildRealm = guildRealm
+                end
+            end
             model.faction = game.unitFaction(unit)
             model.afk, model.dnd = game.unitIsAFK(unit), game.unitIsDND(unit)
+            model.itemLevel = playerItemLevel(unit)
+            model.mount = playerMount(unit)
         else
             model.creature = game.unitCreatureType(unit)
             model.classification = game.unitClassification(unit)
@@ -205,6 +367,38 @@ local function completeModel(model, unit, game)
         local row = model.extras[index]
         if (row.right or "") == "" and shown[(trim(row.left):gsub("^<(.*)>$", "%1"))] then
             table.remove(model.extras, index)
+        end
+    end
+    -- Retail player tooltips may append a duplicate guild line and a
+    -- specialization/class line. Move the spec into the existing race/class
+    -- header and remove only these redundant lines from the extras section.
+    if model.isPlayer then
+        local function normalize(text)
+            text = trim(util.plainText(text or ""))
+            return (text:gsub("^<(.*)>$", "%1"))
+        end
+        local guild = normalize(model.guild)
+        local className = normalize(model.className)
+        for index = #model.extras, 1, -1 do
+            local row = model.extras[index]
+            if (row.right or "") == "" then
+                local value = normalize(row.left)
+                local spec
+                if className ~= "" and #value > #className
+                    and value:sub(-#className) == className then
+                    spec = trim(value:sub(1, #value - #className))
+                end
+                local guildWithRealm = guild
+                if guild ~= "" and type(model.guildRealm) == "string" and model.guildRealm ~= "" then
+                    guildWithRealm = guild .. "-" .. model.guildRealm
+                end
+                if guild ~= "" and (value == guild or value == guildWithRealm) then
+                    table.remove(model.extras, index)
+                elseif spec and spec ~= "" then
+                    model.specName = model.specName or spec
+                    table.remove(model.extras, index)
+                end
+            end
         end
     end
     -- An NPC's faction, as "Ironforge": the line right after its level. A
@@ -283,10 +477,37 @@ local function readUnit(tooltip, data, game)
         end
     end
     if not model.name or model.name == "" then return end
+    -- Merge appended native tooltip lines before deduplication. Retail guild
+    -- and specialization lines may arrive here rather than in data.lines.
     local appended = tooltipData.appendedRows(tooltip, model.lineIndices)
-    if not appended then return end
-    tooltipData.addExtras(model.extras, appended)
-    return completeModel(model, unit, game)
+    if appended then
+        for _, row in ipairs(appended) do
+            if trim(row.left) ~= "" or row.right ~= "" then model.extras[#model.extras + 1] = row end
+        end
+    end
+    -- Resolve player information (including equipped item level) BEFORE adding
+    -- rating rows. Previously completeModel ran at the very end, so
+    -- model.itemLevel was always nil when the rating section was built.
+    model = completeModel(model, unit, game)
+    -- Integrate Mythic+ rating into the styled panel, not the hidden native tooltip.
+    if unit and ns.MythicScore then
+        local ratingRows = ns.MythicScore.rows(unit)
+        if ratingRows then
+            if model.itemLevel then
+                local ilvl = model.itemLevel
+                -- Item-level color thresholds (upper bounds, inclusive).
+                local tint = ilvl <= 285 and "808080" or ilvl <= 298 and "1eff00"
+                    or ilvl <= 311 and "0070ff" or ilvl <= 324 and "a335ee"
+                    or ilvl <= 334 and "ff8000" or "e6cc80"
+                model.extras[#model.extras + 1] = {
+                    left = "物品等级：|cff" .. tint .. string.format("%.1f", ilvl) .. "|r", right = "" }
+            end
+            if ns.mythicScoreKeyDown() then
+                for _, row in ipairs(ratingRows) do model.extras[#model.extras + 1] = row end
+            end
+        end
+    end
+    return model
 end
 
 -- The level on a plate under the portrait, as the game's target frame shows
@@ -299,8 +520,12 @@ end
 
 -- The level and kind, then an NPC's title after a dot: "Humanoid · Herbalism Supplier".
 local function infoText(model, plated)
-    local what = model.isPlayer and table.concat({ model.race or "", model.className or "" }, " ")
-        or (model.creature or "")
+    local raceColor = model.faction == "Alliance" and { .42, .66, 1 }
+        or model.faction == "Horde" and { 1, .37, .33 } or NO_TINT
+    local what = model.isPlayer and table.concat({
+        colored(model.race or "", raceColor), colored(model.className or "", model.color or NO_TINT),
+        colored(model.specName or "", { .60, .80, 1 }) -- CaiseTip SpecName #99CCFF
+    }, " ") or (model.creature or "")
     local info
     if plated then
         info = trim(what)
@@ -332,8 +557,17 @@ end
 
 -- A player's guild; a bracketed line names it when the game does not.
 local function guildText(model)
-    if model.guild then return "<" .. model.guild .. ">" end
-    if model.isPlayer then return model.tag end
+    if model.guild then
+        local name = model.guild:gsub("^<(.*)>$", "%1")
+        if type(model.guildRealm) == "string" and model.guildRealm ~= "" then
+            -- Avoid appending the realm twice if the guild name already includes it.
+            if name:sub(-#model.guildRealm - 1) ~= "-" .. model.guildRealm then
+                name = name .. "-" .. model.guildRealm
+            end
+        end
+        return name
+    end
+    if model.isPlayer then return model.tag and model.tag:gsub("^<(.*)>$", "%1") end
 end
 
 local function detailRows(model)
@@ -421,7 +655,7 @@ local function unitView(panel, model, healthBar)
     local guild = guildText(model)
     if guild then
         header[#header + 1] = { text = guild, style = styles.unitGuild,
-            color = { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, gap = 2 }
+            color = model.isPlayer and { .92, .34, .84 } or { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, gap = 2 }
     end
     local info = infoText(model, plate ~= nil)
     if info then header[#header + 1] = { text = info, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 } end
@@ -464,6 +698,17 @@ local function unitView(panel, model, healthBar)
             return y + HEALTH_HEIGHT
         end }
     end
+    if model.mount then
+        local mount = model.mount
+        local status = mount.collected == true and (" |cff00ff00【%s】|r"):format(L["Collected"])
+            or mount.collected == false and (" |cffff5555【%s】|r"):format(L["Not collected"]) or ""
+        local rows = { { left = L["Mount"] .. "：" .. mount.name .. status, right = "" } }
+        if mount.source and mount.source ~= "" then
+            rows[#rows + 1] = { left = L["Source"] .. "：" .. mount.source:gsub("|n%s*|n$", ""), right = "" }
+        end
+        sections[#sections + 1] = { separator = { space = 6 }, kind = "rows", rows = rows,
+            style = styles.extras, color = DETAIL_COLOR, gap = 2, wrap = true }
+    end
     return {
         tooltipType = "unit",
         color = color,
@@ -504,6 +749,7 @@ end
 
 local function returnHealthBar(panel)
     panel.release = nil
+    if panel.healthNumber then panel.healthNumber:Hide() end
     if not (lent and lent.panel == panel) then return end
     if not util.canModify(lent.bar) or not util.canModify(lent.parent) then
         lent.returnPending = true
@@ -526,6 +772,30 @@ healthBarRestore:RegisterEvent("PLAYER_REGEN_ENABLED")
 healthBarRestore:SetScript("OnEvent", function()
     if lent and lent.returnPending then returnHealthBar(lent.panel) end
 end)
+
+local function updateHealthText(panel, unit)
+    if not panel.healthNumber then
+        local fs = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+        fs:SetPoint("BOTTOM", panel, "TOP", 0, 0)
+        panel.healthNumber = fs
+    end
+    local label = panel.healthNumber
+    label:Hide()
+    if not unit or not UnitHealth or not UnitHealthMax then return end
+    local ok, current, maximum = pcall(function() return UnitHealth(unit), UnitHealthMax(unit) end)
+    if not ok or not safeValue(current) or not safeValue(maximum)
+        or type(current) ~= "number" or type(maximum) ~= "number" or maximum <= 0 then return end
+    local function compact(n)
+        if n >= 1e8 then return string.format("%.1f亿", n / 1e8) end
+        if n >= 1e4 then return string.format("%.1f万", n / 1e4) end
+        return tostring(math.floor(n))
+    end
+    label:SetText(compact(current) .. " / " .. compact(maximum))
+    label:ClearAllPoints()
+    label:SetPoint("BOTTOM", panel, "TOPLEFT", panel:GetWidth() / 2, -(panel.healthTop or 0) + 1)
+    label:SetTextColor(1, 1, 1)
+    label:Show()
+end
 
 local function lendHealthBar(panel, bar)
     if not util.canModify(bar) then return end
@@ -587,6 +857,7 @@ local function renderUnit(panel, tooltip, model)
     if not (bar and util.canModify(bar) and bar:IsShown()) then bar = nil end
     local sample = shown and panel.isPreview and model.healthShare
     panel.healthTop = nil
+    if panel.healthNumber then panel.healthNumber:Hide() end
     ui.renderView(panel, tooltip, unitView(panel, model, bar ~= nil or sample ~= nil))
     local art
     if model.isPlayer then
@@ -598,6 +869,7 @@ local function renderUnit(panel, tooltip, model)
     if panel.healthTop then
         if bar then
             lendHealthBar(panel, bar)
+            updateHealthText(panel, model.unit)
         elseif sample then
             showSampleHealth(panel, sample)
         end
