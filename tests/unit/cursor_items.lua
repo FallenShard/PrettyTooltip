@@ -173,4 +173,33 @@ return function(test)
     flush()
     test.check("rapid mixed spell and item hovers stay at the cursor through queued callbacks",
         mixedSteady and atCursor(), true)
+
+    -- An action button refills its shown item every .2 s: a clear, the default
+    -- anchor, then the item. Restoring the anchor moves a shown tooltip's panel
+    -- with it, so the panel is pinned after the restore, at the cursor.
+    show(1)
+    flush()
+    top = panelTop()
+    GameTooltip_SetDefaultAnchor(tooltip, UIParent)
+    test.check("an action button's refresh keeps the panel at the cursor until the refill",
+        { math.abs(panelTop() - top) < .01, select(2, panel:GetPoint(1)) == UIParent }, { true, true })
+    world.postCalls[0][1](tooltip, tooltip._data)
+    tooltip:Show()
+    flush()
+    test.check("the refill puts the panel back on the cursor", atCursor(), true)
+
+    -- Leaving a spell pins its panel; the item entered next is taller, and its
+    -- pending comparison holds placement back a frame. The item's panel must
+    -- not show at the spell's pin, lower than its tooltip, for that frame.
+    show(1, 1)
+    flush()
+    tooltip:Hide()
+    local refresh = ns.Placement.refresh
+    ns.Placement.refresh = function() return false end
+    show(2)
+    test.check("an item entered from a spell hangs at the cursor while placement waits",
+        { panel:GetHeight(), atCursor() }, { 196, true })
+    ns.Placement.refresh = refresh
+    flush()
+    test.check("placement then keeps it there", atCursor(), true)
 end

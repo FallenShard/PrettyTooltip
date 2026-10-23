@@ -60,11 +60,11 @@ local function place()
     height = height * panelScale / scale
     if panel then unclamp() else reclamp() end
     if anchoredHeight and math.abs(height - anchoredHeight) < .01 then return true end
+    local x, y = snap(GameTooltip, OFFSET), snap(GameTooltip, OFFSET + height)
     placing = true
     local ok = pcall(function()
         GameTooltip:ClearAllPoints()
-        GameTooltip:SetPoint("TOPLEFT", tracker, "BOTTOMLEFT", snap(GameTooltip, OFFSET),
-            snap(GameTooltip, OFFSET + height))
+        GameTooltip:SetPoint("TOPLEFT", tracker, "BOTTOMLEFT", x, y)
     end)
     placing = false
     if not ok then
@@ -74,7 +74,19 @@ local function place()
     anchoredHeight = height
     -- Cursor placement replaces the default anchor. Release the old panel
     -- hold's geometry immediately, while Native can still defer its size fit.
-    if panel then pcall(ns.ui.alignPanel, panel, GameTooltip, true) end
+    if panel then
+        local aligned, moved = pcall(ns.ui.alignPanel, panel, GameTooltip, true)
+        -- Placement waits a frame for a pending comparison; until then the panel
+        -- would keep its last pin, a shorter tooltip's top. It hangs where the
+        -- tooltip does, as placement will put it.
+        if not (aligned and moved) then
+            local ratio = scale / panelScale
+            pcall(function()
+                panel:ClearAllPoints()
+                panel:SetPoint("TOPLEFT", tracker, "BOTTOMLEFT", snap(panel, x * ratio), snap(panel, y * ratio))
+            end)
+        end
+    end
     return true
 end
 
@@ -122,13 +134,18 @@ function ns.Cursor.register()
         -- stands rather than following the tooltip back to its own anchor.
         local panel = ns.ui and ns.ui.shownPanel(GameTooltip)
         local hiding = not util.call(GameTooltip.IsShown, GameTooltip)
-        if panel and (hiding or keepPanel) then pcall(ns.ui.pinPanel, panel) end
+        local pin = panel and (hiding or keepPanel)
+        -- Read before the restore: a shown tooltip's SetPoint moves its panel
+        -- to the restored anchor (Integration/Hooks.lua), so pin afterwards.
+        local left, top
+        if pin then left, top = util.number(panel:GetLeft()), util.number(panel:GetTop()) end
         -- Restore without SetOwner, which can clear the tooltip's content.
         local points = originalPoints
         local ok = pcall(function()
             GameTooltip:ClearAllPoints()
             for _, point in ipairs(points) do GameTooltip:SetPoint(unpack(point)) end
         end)
+        if pin then pcall(ns.ui.pinPanel, panel, left, top) end
         if not ok then return end
         originalPoints = nil
         if panel and not hiding and not keepPanel then pcall(ns.ui.alignPanel, panel, GameTooltip) end
@@ -184,7 +201,10 @@ function ns.Cursor.register()
     GameTooltip:HookScript("OnTooltipCleared", function()
         -- A refresh can reuse the same owner and anchor. Restore before
         -- forgetting it, so its next handover cannot save our cursor position.
-        restoreAnchor()
+        -- The panel stays where it stands: an action button refills its item
+        -- every .2 s, and the panel cannot follow it back to the cursor until
+        -- its comparisons finish, a frame or two later.
+        restoreAnchor(true)
         stop()
     end)
     GameTooltip:HookScript("OnHide", stop)

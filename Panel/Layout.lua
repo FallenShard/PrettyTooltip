@@ -930,9 +930,10 @@ local function alignPanel(panel, tooltip, force)
 end
 alignPanel = probe("align panel", alignPanel)
 
--- Keep a visible panel still while cursor following restores native anchors.
-local function pinPanel(panel)
-    local left, top = util.number(panel:GetLeft()), util.number(panel:GetTop())
+-- Keep a visible panel still while cursor following restores native anchors:
+-- where it stands, or at left and top, read before the restore moved it.
+local function pinPanel(panel, left, top)
+    if not (left and top) then left, top = util.number(panel:GetLeft()), util.number(panel:GetTop()) end
     if not (left and top) then return false end
     panel:ClearAllPoints()
     panel:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", left, top)

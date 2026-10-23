@@ -169,10 +169,22 @@ return function(test)
     handover(1)
     test.check("following again before the hide", point(), cursor)
     GameTooltip:Hide()
-    local alignedBefore = alignments
+    local alignedBefore, pinsBefore = alignments, pins
     GameTooltip:GetScript("OnTooltipCleared")()
     test.check("a hiding tooltip gets its anchor back, its panel pinned, not aligned to it",
-        { point(), pins, alignments - alignedBefore }, { default, 1, 0 })
+        { point(), pins - pinsBefore, alignments - alignedBefore }, { default, 1, 0 })
+
+    -- An action button refills a shown tooltip every .2 s; the panel must not
+    -- visit the default anchor while the refill brings the tooltip back.
+    GameTooltip:Show()
+    GameTooltip_SetDefaultAnchor(GameTooltip)
+    handover(1)
+    alignedBefore, pinsBefore = alignments, pins
+    GameTooltip:GetScript("OnTooltipCleared")()
+    test.check("a shown tooltip's refresh pins its panel rather than aligning it to the default anchor",
+        { point(), pins - pinsBefore, alignments - alignedBefore }, { default, 1, 0 })
+    handover(1)
+    test.check("the refill follows the cursor again", point(), cursor)
 
     -- After its fade the game leaves a parked tooltip shown, off the screen.
     -- A change of combat must not follow it to the cursor, or give it its
