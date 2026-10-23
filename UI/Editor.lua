@@ -235,7 +235,7 @@ for index, tooltipType in ipairs(TYPE_ORDER) do
     tab:SetPoint("BOTTOMLEFT", host, "TOPLEFT", (index - 1) * 68, 34)
     typeTabs[tooltipType] = tab
 end
-local examplesLabel = text(editor, "GameFontNormalSmall", "Examples:")
+local examplesLabel = text(editor, "GameFontNormalSmall", L["Examples:"])
 examplesLabel:SetPoint("BOTTOMLEFT", host, "TOPLEFT", 0, 11)
 local sampleTabs = {}
 for index = 1, MAX_SAMPLES do
@@ -798,8 +798,7 @@ end
 local lookupLabel = text(editor, "GameFontHighlightSmall")
 lookupLabel:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18, 11)
 local lookupBox = CreateFrame("EditBox", nil, editor)
-lookupBox:SetSize(CONTROLS_WIDTH - LABEL_WIDTH - 70, 22)
-lookupBox:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18 + LABEL_WIDTH, 6)
+lookupBox:SetHeight(22)
 skin:field(lookupBox, background(lookupBox, FIELD), outline(lookupBox, LINE))
 lookupBox:SetFontObject("GameFontHighlightSmall")
 lookupBox:SetTextInsets(8, 8, 0, 0)
@@ -823,7 +822,22 @@ local lookupClear = editorButton(editor, "Clear", 62, function()
     state.lookup = nil
     refresh()
 end)
-lookupClear:SetPoint("LEFT", lookupBox, "RIGHT", 8, 0)
+-- Fit the localized label and use the space of the hidden Clear button for
+-- the placeholder. On an actual ID, shrink the field to make room for Clear.
+local function layoutLookup()
+    local labelWidth = math.min(120, math.ceil(lookupLabel:GetStringWidth() + 4))
+    local startX = 18 + labelWidth + 6
+    local hasID = state.lookup ~= nil
+    local clearSpace = hasID and 70 or 0
+    local fieldWidth = math.max(90, CONTROLS_WIDTH - startX - clearSpace)
+    lookupBox:ClearAllPoints()
+    lookupBox:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", startX, 6)
+    lookupBox:SetWidth(fieldWidth)
+    lookupClear:ClearAllPoints()
+    lookupClear:SetPoint("LEFT", lookupBox, "RIGHT", 8, 0)
+    lookupPlaceholder:SetWidth(math.max(20, fieldWidth - 16))
+    lookupPlaceholder:SetWordWrap(false)
+end
 
 if ChatEdit_InsertLink then
     hooksecurefunc("ChatEdit_InsertLink", function(link)
@@ -838,7 +852,11 @@ refreshLookup = function()
     local hidden = TOOLTIP_TYPES[state.tooltipType].noLookup == true
     lookupLabel:SetShown(not hidden)
     lookupBox:SetShown(not hidden)
-    lookupLabel:SetText(L[TOOLTIP_TYPES[state.tooltipType].label:sub(1, -2) .. " ID"])
+    -- Never slice localized UTF-8 labels by bytes.
+    local idLabels = { item = "Item ID", spell = "Spell ID", object = "Object ID", unit = "Unit ID",
+        aura = "Buff ID", quest = "Quest ID", macro = "Macro ID" }
+    lookupLabel:SetText(L[idLabels[state.tooltipType] or "Item ID"])
+    layoutLookup()
     if not lookupBox:HasFocus() then
         lookupBox:SetText(state.lookup and tostring(state.lookup) or "")
         lookupPlaceholder:SetShown(state.lookup == nil)
