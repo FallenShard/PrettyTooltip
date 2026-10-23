@@ -7,6 +7,22 @@ if not (ui and ITEM) then
     return
 end
 
+-- PTSTAT_DIAGNOSTIC_V10: temporary read-only diagnostic command.
+local ptStatDebug = { version = "v11-inspect", rows = {} }
+SLASH_PRETTYTOOLTIPSTAT1 = "/ptstat"
+SlashCmdList.PRETTYTOOLTIPSTAT = function()
+    local d = ptStatDebug
+    print("|cff55ccff[PrettyTooltip v11]|r diagnostic active")
+    print("class=" .. tostring(d.classFile) .. " specIndex=" .. tostring(d.specIndex)
+        .. " specID=" .. tostring(d.specID) .. " apiStat=" .. tostring(d.apiStat)
+        .. " expected=" .. tostring(d.expected) .. " primary=" .. tostring(d.primary)
+        .. " inspectUnit=" .. tostring(d.inspectedUnit) .. " inspectSpec=" .. tostring(d.inspectedSpecID))
+    if #d.rows == 0 then print("No item stat rows captured. Hover over an item, then retry /ptstat") end
+    for i, r in ipairs(d.rows) do
+        if i > 12 then break end
+        print(i .. ": " .. tostring(r))
+    end
+end
 local util = ns.util
 local colors = ns.Palette.roles
 local isSecret, safeText, number = util.isSecret, util.safeText, util.number
@@ -191,6 +207,41 @@ local function withoutLabel(text, label)
     return text
 end
 
+-- Retail item tooltip inline icons may sit below the text baseline.
+-- Only adjust icons on Enchant/Quality lines; keep their size and crop fields.
+local function alignDetailIcons(text)
+    if type(text) ~= "string" then return text end
+    local plain = plainText(text)
+    if not (plain:find("附魔", 1, true) or plain:find("品质", 1, true)
+        or plain:find("Enchant", 1, true) or plain:find("Quality", 1, true)) then
+        return text
+    end
+    local function shift(tag, payload)
+        local fields = {}
+        for field in (payload .. ":"):gmatch("(.-):") do
+            fields[#fields + 1] = field
+        end
+        if #fields == 0 then return "|" .. tag .. ":" .. payload .. "|" .. (tag == "A" and "a" or "t") end
+        -- Format: asset:height:width:xOffset:yOffset[:crop...]
+        for i = 2, 5 do
+            if fields[i] == nil or fields[i] == "" then fields[i] = "0" end
+        end
+        local old = tonumber(fields[5])
+        if not old then return "|" .. tag .. ":" .. payload .. "|" .. (tag == "A" and "a" or "t") end
+        -- The crafted-quality icon sits lower than its label in the retail tooltip.
+        -- Keep the enchant alignment (+3) unchanged; lift quality an extra 4 px.
+        local qualityLine = plain:find("品质", 1, true) or plain:find("Quality", 1, true)
+        fields[5] = tostring(old + (qualityLine and 7 or 3))
+        return "|" .. tag .. ":" .. table.concat(fields, ":") .. "|" .. (tag == "A" and "a" or "t")
+    end
+    text = text:gsub("|A:([^|]+)|a", function(payload) return shift("A", payload) end)
+    text = text:gsub("|T([^|]+)|t", function(payload)
+        local p = payload:sub(1, 1) == ":" and payload:sub(2) or payload
+        return shift("T", p)
+    end)
+    return text
+end
+
 local function readCopyLine(model, left, right)
     if right ~= "" then return false end
     local text = plainText(left):match("^%s*(.-)%s*$")
@@ -201,7 +252,11 @@ local function readCopyLine(model, left, right)
     end
     local enchant = unformat(text, ENCHANTED_TOOLTIP_LINE)
     if enchant then
-        for _, row in ipairs(enchantRows(enchant)) do add(model.enchants, row, "") end
+        for _, row in ipairs(enchantRows(enchant)) do
+            local atlas = left:match("(|A:[^|]+|a)")
+            if atlas then row = alignDetailIcons(row .. " " .. atlas) end
+            add(model.enchants, row, "")
+        end
         return true
     end
     return false
@@ -347,11 +402,160 @@ local function finishRecipe(tooltip, model, data, game)
     end
 end
 
+-- Only inspect-slot tooltips should use the inspected unit's specialization.
+-- InspectFrame being open alone is insufficient (bags/chat may also be hovered).
+local function inspectedUnitForTooltip(tooltip)
+    local frame = _G.InspectFrame
+    if not frame or not frame.IsShown or not frame:IsShown() then return nil end
+    local unit = frame.unit
+    if type(unit) ~= "string" or not UnitExists or not UnitExists(unit) then return nil end
+    local owner = tooltip and tooltip.GetOwner and tooltip:GetOwner()
+    local depth = 0
+    while owner and depth < 16 do
+        if owner == frame then return unit end
+        if owner.GetName then
+            local name = owner:GetName()
+            if type(name) == "string" and name:find("^Inspect") then return unit end
+        end
+        owner = owner.GetParent and owner:GetParent()
+        depth = depth + 1
+    end
+    return nil
+end
+
+-- Read socketed gems and their stat descriptions from Blizzard item tooltip data.
+-- Matching against the gem's own description avoids confusing a gem bonus with
+-- the item's regular stats (both can use green +stat lines).
+-- Gem diagnostic: only records data; never changes tooltip rendering.
+local ptGemDebug = { lines = {} }
+SLASH_PRETTYTOOLTIPGEM1 = "/ptgem"
+SlashCmdList.PRETTYTOOLTIPGEM = function()
+    local d = ptGemDebug
+    print("|cff55ccff[PrettyTooltip gem]|r link=" .. tostring(d.link))
+    print("GetItemGem=" .. tostring(type(GetItemGem)) .. " found=" .. tostring(d.found)
+        .. " matched=" .. tostring(d.matched) .. " iconLine=" .. tostring(d.iconLine))
+    for i = 1, #d.lines do
+        if i > 35 then break end
+        print(tostring(i) .. ": " .. tostring(d.lines[i]))
+    end
+end
+local function ptGemSafe(v)
+    if isSecret(v) then return "<protected>" end
+    if type(v) ~= "string" then return tostring(v) end
+    return v:sub(1, 170)
+end
+
+-- Retail may not expose the legacy GetItemGem global. Read socketed gem IDs
+-- from the actual item hyperlink (itemID:enchantID:gem1:gem2:gem3:gem4),
+-- and use C_Item.GetItemGemID when available. Never infer gems from stat text.
+local function gemIDsFromLink(itemLink)
+    local result = {}
+    if type(itemLink) ~= "string" or isSecret(itemLink) then return result end
+    local payload = itemLink:match("|Hitem:([^|]+)|h") or itemLink:match("^item:(.+)$")
+    if not payload then return result end
+    local fields = {}
+    for part in (payload .. ":"):gmatch("(.-):") do fields[#fields + 1] = part end
+    -- fields[1]=item ID; fields[2]=enchant; fields[3..6]=gem slots.
+    for socket = 1, 4 do
+        local gemID = tonumber(fields[socket + 2])
+        if gemID and gemID > 0 then result[socket] = gemID end
+    end
+    return result
+end
+
+local function socketGemIcons(itemLink)
+    if type(itemLink) ~= "string" or isSecret(itemLink) then return end
+    local parsed = gemIDsFromLink(itemLink)
+    local gems = {}
+    local function normalize(value)
+        if type(value) ~= "string" then return nil end
+        value = plainText(value):gsub("%s+", ""):gsub("（", ""):gsub("）", ""):gsub("%(", ""):gsub("%)", "")
+        return value:gsub("%d+[%.%,]?%d*%%", "")
+    end
+    for socket = 1, 4 do
+        local gemID = parsed[socket]
+        if not gemID and C_Item and type(C_Item.GetItemGemID) == "function" then
+            local ok, value = pcall(C_Item.GetItemGemID, itemLink, socket)
+            if ok and type(value) == "number" and value > 0 then gemID = value end
+        end
+        if gemID then
+            local icon
+            if C_Item and type(C_Item.GetItemIconByID) == "function" then
+                local ok, value = pcall(C_Item.GetItemIconByID, gemID)
+                if ok then icon = value end
+            end
+            if not icon and type(GetItemIcon) == "function" then
+                local ok, value = pcall(GetItemIcon, gemID)
+                if ok then icon = value end
+            end
+            if not icon and C_Item and type(C_Item.GetItemInfoInstant) == "function" then
+                local ok, _, _, _, _, value = pcall(C_Item.GetItemInfoInstant, gemID)
+                if ok then icon = value end
+            end
+            if icon then
+                local gem = {icon=icon, bonus={}}
+                if C_TooltipInfo and C_TooltipInfo.GetHyperlink then
+                    local ok, data = pcall(C_TooltipInfo.GetHyperlink, "item:" .. gemID)
+                    if ok and type(data) == "table" and type(data.lines) == "table" then
+                        for _, line in ipairs(data.lines) do
+                            if type(line) == "table" and not isSecret(line) and not isSecret(line.leftText) then
+                                local desc = normalize(line.leftText)
+                                if desc and desc:find("+", 1, true) and desc:match("%d") then
+                                    gem.bonus[desc] = true
+                                end
+                            end
+                        end
+                    end
+                end
+                gems[#gems + 1] = gem
+            end
+        end
+    end
+    if #gems == 0 then return end
+    local used = {}
+    local function match(text)
+        local key = normalize(text)
+        if not key then return end
+        for i, gem in ipairs(gems) do
+            if not used[i] and gem.bonus[key] then
+                used[i] = true
+                return true
+            end
+        end
+    end
+    local icons = {}
+    for _, gem in ipairs(gems) do
+        icons[#icons + 1] = "|T" .. tostring(gem.icon) .. ":18:18:0:0|t"
+    end
+    return {match=match, icons=table.concat(icons, "  "), count=#gems}
+end
+
 local function readModel(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local itemInfo = getItemInfo(tooltip, data)
     local model = newItemModel()
     model.link = itemInfo
+    local gemIconLine = socketGemIcons(itemInfo)
+    ptGemDebug.link, ptGemDebug.found, ptGemDebug.matched = ptGemSafe(itemInfo), 0, 0
+    ptGemDebug.iconLine, ptGemDebug.lines = gemIconLine and "yes" or "no", {}
+    if type(itemInfo) == "string" and not isSecret(itemInfo) then
+        local ids = gemIDsFromLink(itemInfo)
+        for socket = 1, 4 do
+            if ids[socket] then
+                ptGemDebug.found = ptGemDebug.found + 1
+                ptGemDebug.lines[#ptGemDebug.lines+1] = "link gem" .. socket .. " id=" .. ids[socket]
+            end
+        end
+    end
+    if type(itemInfo) == "string" and type(GetItemGem) == "function" then
+        for slot = 1, 6 do
+            local ok, gn, gl = pcall(GetItemGem, itemInfo, slot)
+            if ok and type(gl) == "string" then
+                ptGemDebug.lines[#ptGemDebug.lines+1] = "legacy gem"..slot.." name="..ptGemSafe(gn).." link="..ptGemSafe(gl)
+            end
+        end
+    end
+    model.inspectedUnit = inspectedUnitForTooltip(tooltip)
     model.quality = getQuality(itemInfo, data, game)
     model.icon = game.itemIcon(itemInfo)
     model.level = getLevel(itemInfo, game)
@@ -387,12 +591,29 @@ local function readModel(tooltip, data, game)
         if line.lineIndex then
         local left, right = safeText(line.leftText), safeText(line.rightText)
         if not left or not right then return end
+        -- MidnightRatings transforms the actual text before PrettyTooltip models it.
+        -- This is an optional bridge; no dependency or settings changes are needed.
+        local bridge = ns.MidnightRatingsBridge
+        if bridge and bridge.Convert then
+            local lc = line.leftColor
+            local green = lc and not isSecret(lc) and type(lc) == "table"
+                and not isSecret(lc.r) and not isSecret(lc.g) and not isSecret(lc.b)
+                and type(lc.r) == "number" and type(lc.g) == "number" and type(lc.b) == "number"
+                and lc.g > lc.r + 0.2 and lc.g > lc.b + 0.2
+            left = bridge.Convert(left, green, false, false, line.lineIndex, tooltip, false)
+            right = bridge.Convert(right, false, false, false, line.lineIndex, tooltip, true)
+        end
         local lineType = line.type
         if line.lineIndex then model.lineIndices[line.lineIndex] = true end
         -- Read as the panel words it, each stat of a combined bonus apart.
         local wording = ns.TooltipData.itemWording(line)
         local original = wording and left
-        if wording then left = wording.display end
+        if wording then
+            left = wording.display
+            if bridge and bridge.Convert then left = bridge.Convert(left, false, false, false) end
+        end
+        left = alignDetailIcons(left)
+        -- Socket gem rows are replaced after model parsing, preserving row classification.
         local trimmed = left:match("^%s*(.-)%s*$")
         local startsQuest = unformat(trimmed, ITEM_STARTS_QUEST)
         if startsQuest or unformat(trimmed, ITEM_BIND_QUEST) then
@@ -522,7 +743,11 @@ local function readModel(tooltip, data, game)
             elseif isType(lineType, "ItemEnchantmentPermanent") and right == "" then
                 -- The enchant follows its label, "Enchanted:".
                 local text = util.trim(plainText(left))
-                for _, row in ipairs(enchantRows(text:match("^[^:]-:%s*(.+)$") or text)) do add(m.enchants, row, "") end
+                for _, row in ipairs(enchantRows(text:match("^[^:]-:%s*(.+)$") or text)) do
+                    local atlas = left:match("(|A:[^|]+|a)")
+                    if atlas then row = alignDetailIcons(row .. " " .. atlas) end
+                    add(m.enchants, row, "")
+                end
             elseif readCopyLine(m, left, right) then
                 -- Crafter or enchant, taken into their own rows.
             elseif trimmed:match("^<.+>$") then
@@ -548,12 +773,21 @@ local function readModel(tooltip, data, game)
 
     if not model.name or model.name == "" then return end
     local appended = appendedRows(tooltip, model.lineIndices)
-    if not appended then return end
-    local addAppended = ns.TooltipData.extrasAdder(model.extras)
+    -- No appended tooltip lines is normal. Continue into the socket-gem
+    -- post-processing below instead of abandoning the whole item model.
+    if not appended then appended = {} end
     for _, row in ipairs(appended) do
+        -- Appended GameTooltip rows bypass TooltipDataProcessor line processing.
+        local bridge = ns.MidnightRatingsBridge
+        if bridge and bridge.Convert then
+            row.left = bridge.Convert(row.left, false, false, false)
+            row.right = bridge.Convert(row.right, false, false, false)
+        end
+        row.left = alignDetailIcons(row.left)
+        -- Socket gem rows are replaced after model parsing.
         local trimmed = row.left:match("^%s*(.-)%s*$")
         if isStockChange(row.left) then
-            addAppended(row)
+            model.extras[#model.extras + 1] = row
         elseif model.created and not model.reagents and reagentList(trimmed) then
             model.reagents = reagentList(trimmed)
         elseif startsWith(trimmed, SELL_PRICE) then
@@ -563,9 +797,38 @@ local function readModel(tooltip, data, game)
             model.kinds[kind] = text
         elseif readCopyLine(model, row.left, row.right) then
             -- Crafter or enchant, taken into their own rows.
-        else
-            addAppended(row)
+        elseif trimmed ~= "" or row.right ~= "" then
+            model.extras[#model.extras + 1] = row
         end
+    end
+    -- Retail 12.x: class set bonuses may arrive as ordinary green lines,
+    -- before the set header, instead of ITEM_SET_BONUS_GRAY lines.
+    -- Collect them into the existing set-bonus section, preserving their order.
+    if model.setName then
+        local function isSetBonusRow(row)
+            local raw = plainText(row.left or "")
+            raw = util.trim(raw)
+            return raw:match("^%([2468]%)%s*套装")
+                or raw:match("^%([2468]%)%s*Set")
+                or raw:match("^套装%s*[:：]")
+                or raw:match("^Set%s*[:：]")
+        end
+        local function transfer(rows)
+            local kept = {}
+            for _, row in ipairs(rows) do
+                if isSetBonusRow(row) then
+                    -- Preserve original tooltip coloring where possible.
+                    row.active = row.active == nil and true or row.active
+                    model.setBonuses[#model.setBonuses + 1] = row
+                else
+                    kept[#kept + 1] = row
+                end
+            end
+            return kept
+        end
+        model.extras = transfer(model.extras)
+        model.effects = transfer(model.effects)
+        model.equipEffects = transfer(model.equipEffects)
     end
     -- Crafted gear can need a profession too; only a recipe teaches.
     local recipe = model.created or (model.skill and model.teaches)
@@ -603,17 +866,8 @@ local function readModel(tooltip, data, game)
             entry.requirement, entry.met = true, level.met
         end
     end
-    if model.madeBy then
-        local at = 1
-        for index, entry in ipairs(model.footerLeft) do
-            if entry.durability then at = index + 1 end
-        end
-        table.insert(model.footerLeft, at, {
-            left = util.fill(L["Made by %s"], model.madeBy),
-            right = "",
-            color = FLAVOR_GOLD,
-        })
-    end
+    -- Keep the crafter in the model; the view places it directly below
+    -- the crafted-quality row instead of in the metadata/footer block.
     local shown = {}
     -- The game's tooltip never says an item is a consumable, or what kind.
     if classID == CONSUMABLE_CLASS and type(className) == "string" and className ~= "" then
@@ -649,30 +903,63 @@ local function readModel(tooltip, data, game)
     model.quest = model.quest or classID == QUEST_CLASS
     model.comparison = isComparison(tooltip)
     model.equippedWith = model.comparison and game.isEquipped(model.link) == false or nil
-    return model
-end
-readModel = probe("read item", readModel)
-
--- Native details need identity and disenchant metadata, never the item's
--- stats, effects, appended native lines, or the Pretty presentation model.
-local function readDetails(tooltip, data, game)
-    if isSecret(data) or type(data) ~= "table" then return end
-    local itemInfo = getItemInfo(tooltip, data)
-    local id = number(data.id)
-    local shownID = type(itemInfo) == "string" and tonumber(itemInfo:match("item:(%d+)")) or number(itemInfo)
-    -- GetItem can name a recipe's crafted item. Details belong to the recipe.
-    if id and id ~= shownID then itemInfo = id end
-    local model = { link = itemInfo }
-    if ns.option("disenchant") and ns.disenchantFor then
-        local itemType = game.itemType(itemInfo)
-        if itemType and itemType.classID then
-            model.disenchant = ns.disenchantFor(itemType.classID, getQuality(itemInfo, data, game),
-                getLevel(itemInfo, game), itemType.equipLoc, itemType.id, game)
+    -- Identify gem stat effects, not gem item names. On retail, the tooltip
+    -- presents the effects as two-rating rows (e.g. +16 crit and +7 haste).
+    -- Only replace these rows when actual socketed gems were found on the item.
+    do
+        local groups = { {"primary", model.primary}, {"secondary", model.secondary},
+            {"extras", model.extras}, {"effects", model.effects},
+            {"enchants", model.enchants}, {"equipEffects", model.equipEffects} }
+        for _, g in ipairs(groups) do
+            for i, row in ipairs(g[2]) do
+                if #ptGemDebug.lines >= 32 then break end
+                ptGemDebug.lines[#ptGemDebug.lines+1] = g[1] .. "[" .. i .. "] " .. ptGemSafe(row.left)
+            end
+        end
+    end
+    if gemIconLine then
+        local function isGemEffect(value)
+            if type(value) ~= "string" then return false end
+            local clean = plainText(value)
+            -- Do not match regular single-stat bonuses or item proc effects.
+            local count = select(2, clean:gsub("%+%s*%d+", ""))
+            if count < 2 then return false end
+            local ratingNames = { "暴击", "爆击", "急速", "精通", "全能", "临机应变",
+                "Critical Strike", "Haste", "Mastery", "Versatility" }
+            local hits = 0
+            for _, name in ipairs(ratingNames) do
+                if clean:find(name, 1, true) then hits = hits + 1 end
+            end
+            return hits >= 2
+        end
+        local matches = 0
+        local first
+        -- Both native TooltipDataProcessor rows and appended GameTooltip rows
+        -- can carry socket effects, depending on the source of the item.
+        for _, group in ipairs({ model.secondary, model.extras }) do
+            for i = #group, 1, -1 do
+                local row = group[i]
+                if row and (gemIconLine.match(row.left) or
+                    (matches < gemIconLine.count and isGemEffect(row.left))) then
+                    if group == model.secondary then
+                        first = i
+                    end
+                    table.remove(group, i)
+                    matches = matches + 1
+                    if matches >= gemIconLine.count then break end
+                end
+            end
+            if matches >= gemIconLine.count then break end
+        end
+        ptGemDebug.matched = matches
+        if matches > 0 then
+            table.insert(model.secondary, first or (#model.secondary + 1),
+                { left = gemIconLine.icons, right = "", color = {1,1,1}, gemIcons = true })
         end
     end
     return model
 end
-readDetails = probe("read item details", readDetails)
+readModel = probe("read item", readModel)
 
 -- Where an effect's or enchant's text starts: after a marker and two spaces,
 -- as a stat's does.
@@ -809,25 +1096,35 @@ local DISENCHANT_GREY = { .55, .53, .50 }
 local DISENCHANT_TEXT = { .88, .84, .76 }
 
 local function disenchantHeading(result)
-    local row = { left = ROLL_DISENCHANT,
-        right = util.fill(L["Requires %s %s"], ns.Locale.skillName("Enchanting"), result.skill) }
-    if not result.player then
-        row.rightColor = DISENCHANT_GREY
-    elseif result.player < result.skill then
-        row.rightColor = UNUSABLE_COLOR
+    -- Retail disenchant predictions do not always have a skill requirement.
+    -- Do not format a nil requirement: doing so aborts the Shift details render.
+    local row = { left = ROLL_DISENCHANT, right = "" }
+    if type(result.skill) == "number" then
+        row.right = util.fill(L["Requires %s %s"], ns.Locale.skillName("Enchanting"), result.skill)
+        if not result.player then
+            row.rightColor = DISENCHANT_GREY
+        elseif result.player < result.skill then
+            row.rightColor = UNUSABLE_COLOR
+        end
     end
     return row
 end
 
 local function disenchantRows(result)
     local rows = {}
-    for _, entry in ipairs(result.rows) do
-        local count = entry.count[1] == entry.count[2] and (entry.count[1] > 1 and entry.count[1] .. " " or "")
-            or (entry.count[1] .. "\226\128\147" .. entry.count[2] .. " ")
+    for _, entry in ipairs(result.rows or {}) do
+        local low = entry.count and tonumber(entry.count[1]) or 1
+        local high = entry.count and tonumber(entry.count[2]) or low
+        local count = low == high and (low > 1 and low .. " " or "")
+            or (low .. "\226\128\147" .. high .. " ")
         local icon = entry.icon and ("|T" .. entry.icon .. ":0|t ") or ""
+        -- A missing chance means the Retail material mapping has no reliable
+        -- probability estimate; omit the percentage instead of crashing.
+        local chance = type(entry.chance) == "number" and
+            string.format("%g%%", math.floor(entry.chance * 10 + .5) / 10) or ""
         rows[#rows + 1] = {
             left = icon .. count .. (entry.name or "?"),
-            right = string.format("%g%%", math.floor(entry.chance * 10 + .5) / 10),
+            right = chance,
         }
     end
     if result.value then
@@ -1004,7 +1301,155 @@ local function drawStats(panel, model, styles, y)
         }, y, styles.armor, LARGE_COLOR)
     end
     if #model.armor > 0 then y = y + 5 end
-    y = drawGroup(panel, model.primary, y, styles.stats, { .90, .85, .74 })
+    -- Retail attributes: classify the actual localized line, including any
+    -- percentage appended by MidnightRatings. Do not depend on the old
+    -- Classic stat parser recognizing modern zhCN tooltip wording.
+    local function coloredStatRows(rows)
+        local result = {}
+        -- Retail 12.x: prefer the non-deprecated specialization namespace.
+        -- If its primaryStat is unavailable, use a class/spec fallback rather
+        -- than incorrectly treating every specialization as Intellect.
+        local primary
+        local specIndex
+        if C_SpecializationInfo and C_SpecializationInfo.GetSpecialization then
+            local ok, value = pcall(C_SpecializationInfo.GetSpecialization)
+            if ok and type(value) == "number" then specIndex = value end
+        end
+        if not specIndex and GetSpecialization then
+            local ok, value = pcall(GetSpecialization)
+            if ok and type(value) == "number" then specIndex = value end
+        end
+        local specID
+        if specIndex and C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo then
+            local ok, id, _, _, _, _, stat = pcall(C_SpecializationInfo.GetSpecializationInfo, specIndex)
+            if ok then
+                specID = id
+                ptStatDebug.apiStat = stat
+                if stat == 1 or stat == 2 or stat == 4 then primary = stat end
+            end
+        end
+        local _, classFile = UnitClass("player")
+        -- Class fallback covers clients with incomplete specialization metadata.
+        -- Spec indices are used only for hybrid classes; all others are fixed.
+        local fallback = {
+            WARRIOR = 1, DEATHKNIGHT = 1, HUNTER = 2, ROGUE = 2,
+            MAGE = 4, PRIEST = 4, WARLOCK = 4, EVOKER = 4,
+        }
+        local bySpec = {
+            PALADIN = { [1] = 4, [2] = 1, [3] = 1 },
+            SHAMAN = { [1] = 4, [2] = 2, [3] = 4 },
+            DRUID = { [1] = 4, [2] = 2, [3] = 2, [4] = 4 },
+            MONK = { [1] = 2, [2] = 4, [3] = 2 },
+            DEMONHUNTER = { [1] = 2, [2] = 2, [3] = 4 },
+        }
+        local expected = fallback[classFile] or (bySpec[classFile] and bySpec[classFile][specIndex])
+        -- Explicitly known current-class rules take precedence over stale
+        -- specialization metadata (which caused the all-Intellect regression).
+        if expected then primary = expected end
+        ptStatDebug.classFile, ptStatDebug.specIndex, ptStatDebug.specID = classFile, specIndex, specID
+        ptStatDebug.expected, ptStatDebug.primary = expected, primary
+        -- Inspect equipment: use the inspected player's specialization, never
+        -- the local player's. If unknown, do not force primary-stat coloring.
+        if model.inspectedUnit then
+            local inspectSpecID
+            if GetInspectSpecialization then
+                local ok, value = pcall(GetInspectSpecialization, model.inspectedUnit)
+                if ok and type(value) == "number" and value > 0 then inspectSpecID = value end
+            end
+            local inspectPrimary = {
+                [71]=1,[72]=1,[73]=1,[65]=4,[66]=1,[70]=1,
+                [250]=1,[251]=1,[252]=1,
+                [103]=2,[104]=2,[105]=4,[102]=4,
+                [253]=2,[254]=2,[255]=2,[259]=2,[260]=2,[261]=2,
+                [268]=2,[269]=2,[270]=4,[577]=2,[581]=2,
+                [62]=4,[63]=4,[64]=4,[256]=4,[257]=4,[258]=4,
+                [262]=4,[263]=2,[264]=4,[265]=4,[266]=4,[267]=4,
+                [1467]=4,[1468]=4,[1473]=4,
+            }
+            local resolved = inspectPrimary[inspectSpecID]
+            if not resolved and inspectSpecID and GetSpecializationInfoByID then
+                local ok, _, _, _, _, _, value = pcall(GetSpecializationInfoByID, inspectSpecID)
+                if ok and (value == 1 or value == 2 or value == 4) then resolved = value end
+            end
+            -- Unknown specs (including new ones) are left in their source color.
+            primary = resolved
+            ptStatDebug.inspectedUnit = model.inspectedUnit
+            ptStatDebug.inspectedSpecID = inspectSpecID
+        else
+            ptStatDebug.inspectedUnit = nil
+            ptStatDebug.inspectedSpecID = nil
+        end
+        local keys = {
+            { "STRENGTH", 1, "力量" },
+            { "AGILITY", 2, "敏捷" },
+            { "INTELLECT", 4, "智力" },
+        }
+        local secondaryNames = { "暴击", "急速", "精通", "全能", "吸血", "闪避", "加速", "爆击", "临机应变" }
+        for _, row in ipairs(rows) do
+            local entry = {}
+            for k, v in pairs(row) do entry[k] = v end
+            if type(entry.left) == "string" and not entry.gemIcons then
+                local original = entry.left
+                local clean = plainText(original)
+                local stat = ns.Stats and ns.Stats.read(clean)
+                local base = clean:match("^(.-)%s+%([%d%.,]+%%%s*%)") or clean
+                if not stat and ns.Stats then stat = ns.Stats.read(base) end
+                -- Resolve a primary-stat row by its explicit localized stat name.
+                -- The legacy stat parser can misclassify mixed-stat retail gear.
+                local primaryRowStat
+                for _, info in ipairs(keys) do
+                    local token = _G[info[1]] or info[3]
+                    if base:find(info[3], 1, true) or
+                        (type(token) == "string" and base:find(token, 1, true)) then
+                        primaryRowStat = info[2]
+                        break
+                    end
+                end
+                local rendered
+                if primaryRowStat then
+                    if primary and primaryRowStat ~= primary then
+                        rendered = "|cff888888" .. clean .. "|r"
+                    elseif primary and primaryRowStat == primary then
+                        rendered = "|cffffffff" .. clean .. "|r"
+                    end
+                elseif not primaryRowStat and stat and ns.Stats and ns.Stats.styleStat and not (base:find("暴击",1,true) or base:find("爆击",1,true) or base:find("急速",1,true) or base:find("精通",1,true) or base:find("全能",1,true)) then
+                    local _, colored = ns.Stats.styleStat(base, ns.option("statColors"), false)
+                    if colored and colored ~= base then
+                        rendered = colored .. clean:sub(#base + 1)
+                    end
+                end
+                if not rendered then
+                    for _, name in ipairs(secondaryNames) do
+                        if base:find(name, 1, true) then
+                            local hex = "00ff00"
+                            if ns.Stats and ns.Stats.categoryColors then
+                                local configured = ns.option and ns.option("statColorAttack")
+                                if type(configured) == "table" then
+                                    hex = ns.Stats.categoryColors("Attack") or hex
+                                end
+                            end
+                            rendered = "|cff" .. hex .. clean .. "|r"
+                            break
+                        end
+                    end
+                end
+                if #ptStatDebug.rows < 20 then
+                    ptStatDebug.rows[#ptStatDebug.rows + 1] = "stat=" .. tostring(stat and stat.key)
+                        .. " detected=" .. tostring(primaryRowStat)
+                        .. " base=" .. tostring(base) .. " render=" .. tostring(rendered)
+                end
+                if rendered then
+                    local marker = original:match("^(|T.-|t%s*)") or ""
+                    entry.left = marker .. rendered
+                    entry.color = { 1, 1, 1 }
+                end
+            end
+            result[#result + 1] = entry
+        end
+        return result
+    end
+    ptStatDebug.rows = {}
+    y = drawGroup(panel, coloredStatRows(model.primary), y, styles.stats, { .90, .85, .74 })
     -- The rest of the stats sit under a divider, whatever comes above them:
     -- a wand often has its damage and no primary stats.
     local above = #model.primary > 0 or #model.armor > 0 or model.weaponDps or model.weaponDamage
@@ -1012,16 +1457,15 @@ local function drawStats(panel, model, styles, y)
     if (#model.secondary > 0 or #model.equipEffects > 0) and above then
         y = divider(panel, y, GOLD_RULE, DIVIDER_AFTER)
     end
-    y = drawGroup(panel, model.secondary, y, styles.stats, { .90, .85, .74 })
+    y = drawGroup(panel, coloredStatRows(model.secondary), y, styles.stats, { .90, .85, .74 })
     y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     y = drawMarked(panel, model.enchants, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
     -- Use effects and flavor stand apart from the stats above them; first under
     -- the divider, they start where anything would.
     if #model.effects > 0 and y > top then y = y + 5 end
     y = drawEffects(panel, model.effects, y, styles.effects, { .48, .88, .48 })
-    if #model.flavor > 0 then
-        y = drawGroup(panel, model.flavor, y > top and y + 5 or y, styles.flavor, FLAVOR_GOLD)
-    end
+    -- Flavor text is rendered as a separate section after set information,
+    -- matching the original Blizzard item tooltip ordering.
     return y
 end
 
@@ -1157,8 +1601,66 @@ local function itemView(panel, model)
         section({ separator = { space = 2 }, kind = "rows", rows = { { left = QUEST_MARK .. model.startsQuest, right = "" } },
             style = styles.effects, color = colors.quest, gap = 5 })
     end
+    -- Place item metadata (upgrade, transmog, restrictions and special descriptions)
+    -- before armor and stats, as requested. Keep vendor price in the footer.
+    local bodyLeft, bodyRight, priceRight = {}, {}, {}
+    for _, row in ipairs(model.footerLeft) do bodyLeft[#bodyLeft + 1] = row end
+    for _, row in ipairs(model.footerRight) do
+        if row.sellPrice then
+            priceRight[#priceRight + 1] = row
+        else
+            bodyRight[#bodyRight + 1] = row
+        end
+    end
+    if #bodyLeft > 0 or #bodyRight > 0 then
+        local bodyModel = { footerLeft = bodyLeft }
+        section({ separator = { space = sectioned and 5 or 0 }, kind = "custom",
+            measure = function(p) return footerWidth(p, bodyModel, bodyRight, styles.footer) end,
+            draw = function(p, y) return drawFooter(p, bodyModel, bodyRight, styles.footer, y) end })
+        sectioned = true
+    end
+    -- 12.1.5: Additional lines supplied by Blizzard/other addons were previously
+    -- all rendered near the bottom. Put equipment metadata BEFORE armor instead.
+    -- Keep comparison / debug lines in the trailing extras area.
+    local leadingExtras, trailingExtras = {}, {}
+    for _, row in ipairs(model.extras) do
+        local content = util.trim(util.stripColors and util.stripColors(row.left or "") or (row.left or ""))
+        if content:find("Compared with", 1, true)
+            or content:find("Equipped with", 1, true)
+            or content:find("Item ID", 1, true)
+            or content:find("物品ID", 1, true)
+            or content:find("比较", 1, true) then
+            trailingExtras[#trailingExtras + 1] = row
+        else
+            leadingExtras[#leadingExtras + 1] = row
+        end
+    end
+    -- Place the creator immediately AFTER the crafting quality row.
+    -- The quality line is supplied as an extra by the retail tooltip; it is
+    -- not part of the item's regular metadata/footer rows.
+    if model.madeBy then
+        local creator = {
+            left = util.fill(L["Made by %s"], model.madeBy),
+            right = "",
+            color = FLAVOR_GOLD,
+        }
+        local insertAt = #leadingExtras + 1
+        for index, row in ipairs(leadingExtras) do
+            local raw = plainText(row.left or "")
+            if raw:find("品质", 1, true) or raw:find("Quality", 1, true) then
+                insertAt = index + 1
+                break
+            end
+        end
+        table.insert(leadingExtras, insertAt, creator)
+    end
+    if #leadingExtras > 0 then
+        section({ separator = { space = sectioned and 4 or 0 }, kind = "rows",
+            rows = leadingExtras, style = styles.extras, color = EXTRA_COLOR, gap = 2, wrap = true })
+        sectioned = true
+    end
     if hasStats(model) then
-        section({ separator = { divider = GOLD_RULE }, kind = "custom",
+        section({ separator = { divider = GOLD_RULE, before = sectioned and 5 or 0 }, kind = "custom",
             measure = function(p) return statsWidth(p, model, styles) end,
             draw = function(p, y) return drawStats(p, model, styles, y) end })
         sectioned = true
@@ -1169,6 +1671,12 @@ local function itemView(panel, model)
         section({ separator = { divider = GOLD_RULE, before = sectioned and DIVIDER_AFTER or 0 }, kind = "custom",
             measure = function(p) return setWidth(p, model, styles) end,
             draw = function(p, y) return drawSet(p, model, styles, y) end })
+        sectioned = true
+    end
+    -- Blizzard places flavor text after set pieces/bonuses, not above them.
+    if #model.flavor > 0 then
+        section({ separator = { space = 5 }, kind = "rows", rows = model.flavor,
+            style = styles.flavor, color = FLAVOR_GOLD, gap = 3, wrap = true })
         sectioned = true
     end
     if model.created then
@@ -1190,7 +1698,7 @@ local function itemView(panel, model)
             color = DISENCHANT_TEXT, gap = 2 })
         sectioned = true
     end
-    local extras = ui.withID(panel, model.extras, L["Item ID: %s"], itemID(model))
+    local extras = ui.withID(panel, trailingExtras, L["Item ID: %s"], itemID(model))
     if #extras > 0 then
         section({ separator = sectioned and { rule = EXTRAS_RULE, before = RULE_AFTER } or { space = 12 }, kind = "rows",
             rows = extras, style = styles.extras, color = EXTRA_COLOR, gap = 2, wrap = true })
@@ -1198,10 +1706,11 @@ local function itemView(panel, model)
 
     local footerRight = shownFooterRight(model)
     local footer
-    if #model.footerLeft > 0 or #footerRight > 0 then
+    if #priceRight > 0 then
+        local priceModel = { footerLeft = {} }
         footer = {
-            measure = function(p) return footerWidth(p, model, footerRight, styles.footer) end,
-            draw = function(p, y) return drawFooter(p, model, footerRight, styles.footer, y) end,
+            measure = function(p) return footerWidth(p, priceModel, priceRight, styles.footer) end,
+            draw = function(p, y) return drawFooter(p, priceModel, priceRight, styles.footer, y) end,
         }
     end
     return {
@@ -1263,4 +1772,4 @@ local function details(model, context)
 end
 
 ns.TooltipTypes[ITEM] = { read = readModel, render = render, key = getItemInfo, option = "itemPanels",
-    readDetails = readDetails, details = details, detailKeys = { "disenchant", "showIDs" } }
+    details = details, detailKeys = { "disenchant", "showIDs" } }
