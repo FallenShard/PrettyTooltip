@@ -302,6 +302,13 @@ local function onTooltipData(dataType, tooltip, data)
     local previousKey, previousDataType = panel.key, panel.dataType
     local key, valid = keyOf(TooltipTypes[dataType], tooltip, data)
     if not valid then restoreNative(tooltip); return end
+    -- DialogueUI hides its reward tooltip before each .2 s refill. Hidden earlier
+    -- this frame, the same item keeps its completed panel; drawn now, it would
+    -- miss rows other addons append after this call. Units return their health bar on hide.
+    local refill = panel.restorePending and panel.hiddenToken == panel.refreshToken
+        and dataType == Enum.TooltipDataType.Item and dataType == previousDataType
+        and key ~= nil and key == previousKey and panel.renderedDataType == dataType
+        and panel.fingerprint ~= nil
     panel.dataType = dataType
     panel.data = data
     panel.refreshToken = (panel.refreshToken or 0) + 1
@@ -318,8 +325,10 @@ local function onTooltipData(dataType, tooltip, data)
             end
             -- Keep native cleanup deferred, but never draw the old panel at
             -- an anchor reset by an action button's hide/clear sequence.
+            local wasShown = panel:IsShown()
             panel:Hide()
             scheduleRestore(hidden)
+            panel.hiddenToken = wasShown and panel.refreshToken or nil
             placement.hidden(hidden)
         end))
         tooltip:HookScript("OnTooltipCleared", probe("hook OnTooltipCleared", scheduleRestore))
@@ -448,9 +457,13 @@ local function onTooltipData(dataType, tooltip, data)
         tally("partial render deferred")
     -- Other first renders show the new item promptly. On refresh, retain the
     -- complete old panel until other addons have appended their rows.
-    elseif not panel:IsShown() or dataType ~= previousDataType or (key and key ~= previousKey) then
+    elseif (not panel:IsShown() and not refill) or dataType ~= previousDataType or (key and key ~= previousKey) then
         update(tooltip, data)
     else
+        if refill then
+            native.followParent(tooltip, panel)
+            panel:Show()
+        end
         if not panel.nativeAlpha then panel.nativeAlpha = util.number((util.call(tooltip.GetAlpha, tooltip))) end
         if not panel.nativeAlpha then restoreNative(tooltip); return end
         tooltip:SetAlpha(0)
