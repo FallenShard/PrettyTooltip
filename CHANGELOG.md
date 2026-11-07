@@ -1,3 +1,18 @@
+# PrettyTooltip 1.3.8
+
+## Tooltips
+
+- Fixed a flicker on action bar items with comparisons, when their tooltip follows the cursor.
+
+## Compatibility
+
+- **DialogueUI**: tooltips for quest reward items no longer jump up and down while other addons add their own rows.
+
+## Bug reports
+
+- Reworked `/ptip perf`: it now breaks down PrettyTooltip's work by hook, timer, and stage per tooltip update, so runs can be compared across versions.
+- Added `/ptip bench`, which times the hovered tooltip's refresh with PrettyTooltip off and on, and `/ptip perf ab`, which compares frame times with PrettyTooltip switched off and on. Both take a label to name the run in the report.
+
 # PrettyTooltip 1.3.7
 
 ## Tooltips
