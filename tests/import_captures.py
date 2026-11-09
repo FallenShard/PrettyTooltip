@@ -7,7 +7,7 @@ themselves. The player's and other players' names are replaced unless
 --keep-names is given. The newest capture's enums are saved as
 tests/harness/enums.lua, for fixtures captured before captures carried them.
 
-python tests/import_captures.py "C:/Program Files (x86)/World of Warcraft/_classic_beta_"
+python tests/import_captures.py "C:/Program Files (x86)/World of Warcraft/_forever_"
 python tests/import_captures.py <path to SavedVariables/PrettyTooltip.lua> --only frostbolt-r3
 python tests/import_captures.py <path> --rename hl-r3=holy-light-r5
 """

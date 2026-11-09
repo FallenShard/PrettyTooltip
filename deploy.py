@@ -7,7 +7,7 @@ from shutil import copy2
 
 
 DEFAULT_ADDONS_DIR = Path(
-    r"D:\Programs\World of Warcraft\_classic_beta_\Interface\AddOns"
+    r"D:\Programs\World of Warcraft\_forever_\Interface\AddOns"
 )
 TOC = "PrettyTooltip.toc"
 
