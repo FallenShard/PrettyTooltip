@@ -32,8 +32,20 @@ return function(test)
     test.check("a Skinnable badge and the section", { shown():find("Skinnable", 1, true) ~= nil,
         shown():find("Requires Skinning 100", 1, true) ~= nil }, { true, true })
     test.check("20 past what it needs is orange", ns.Palette.skillUpColor(100, 120), { 1, .50, .25 })
+    local function badgeIn(color)
+        local panel = ns.ui.renderPreview(CreateFrame("Frame", nil, UIParent), model, UNIT)
+        local code = "|cff" .. ns.Palette.numberCode(color) .. "Skinnable|r"
+        for _, font in ipairs(panel.pool) do
+            if font._shown and font._text and font._text:find(code, 1, true) then return true end
+        end
+        return false
+    end
+    test.check("the badge in the skill-up color", badgeIn({ 1, .50, .25 }), true)
     ns.setOption("gatheringLoot", false)
     test.check("hidden when turned off", shown():find("Requires Skinning", 1, true) ~= nil, false)
+    test.check("the badge keeps its color", badgeIn({ 1, .50, .25 }), true)
+    model.skinning.player = nil
+    test.check("without Skinning, the badge is leather brown", badgeIn({ .80, .62, .42 }), true)
 
     local alive = ns.ui.unitModel({ name = "Highland Raptor", level = 20, guid = guid })
     test.check("a living creature shows nothing of it", alive.skinning, nil)

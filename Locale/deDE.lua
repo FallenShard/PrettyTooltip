@@ -435,7 +435,7 @@ L["Guild or role"] = "Gilde oder Rolle"
 L["Level, race, and class"] = "Stufe, Volk und Klasse"
 L["The level in its difficulty color, unless set."] = "Die Stufe in ihrer Schwierigkeitsfarbe, wenn nicht gesetzt."
 L["Badges"] = "Schilder"
-L["Elite, rare, faction, PvP, AFK, and dead."] = "Elite, selten, Fraktion, PvP, AFK und tot."
+L["Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color."] = "Elite, selten, Fraktion, PvP, AFK, tot und Kürschnerbar in seiner Steigerungsfarbe."
 L["Skinning"] = "Kürschnerei"
 L["On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what it may give. Turned off by Gathering contents in the options."] =
     "Bei einer toten, häutbaren Kreatur: die nötige Kürschnerei in ihrer Steigerungsfarbe und was sie geben kann. Wird mit Sammeln in den Optionen abgeschaltet."

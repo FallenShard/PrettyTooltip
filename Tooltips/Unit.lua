@@ -326,7 +326,13 @@ local function badges(model)
     if model.afk then list[#list + 1] = { L["AFK"], MUTED } end
     if model.dnd then list[#list + 1] = { L["DND"], MUTED } end
     if model.dead then list[#list + 1] = { DEAD, TAPPED } end
-    if model.skinning then list[#list + 1] = { UNIT_SKINNABLE_LEATHER, SKINNABLE_COLOR } end
+    local skin = model.skinning
+    if skin then
+        -- The section with the skill needed waits for the details key; the
+        -- badge always shows, so it carries the skill-up color.
+        list[#list + 1] = { UNIT_SKINNABLE_LEATHER, ns.Palette.skillUpColor(skin.needed, skin.player)
+            or SKINNABLE_COLOR }
+    end
     return list
 end
 

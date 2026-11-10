@@ -211,7 +211,7 @@ ns.ELEMENTS = {
     { key = "unitInfo", label = "Level, race, and class", size = 12, color = colors.detail,
         tooltipType = "unit", note = "The level in its difficulty color, unless set." },
     { key = "unitBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "unit",
-        note = "Elite, rare, faction, PvP, AFK, and dead." },
+        note = "Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color." },
     { key = "unitSkinning", label = "Skinning", size = 11, color = colors.detail, tooltipType = "unit",
         note = "On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what "
             .. "it may give. Turned off by Gathering contents in the options." },

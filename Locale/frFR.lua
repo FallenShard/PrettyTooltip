@@ -433,7 +433,7 @@ L["Guild or role"] = "Guilde ou fonction"
 L["Level, race, and class"] = "Niveau, race et classe"
 L["The level in its difficulty color, unless set."] = "Le niveau dans sa couleur de difficulté, sauf réglage."
 L["Badges"] = "Plaques"
-L["Elite, rare, faction, PvP, AFK, and dead."] = "Élite, rare, faction, JcJ, ABS et mort."
+L["Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color."] = "Élite, rare, faction, JcJ, ABS, mort et Dépeçable dans sa couleur de progression."
 L["Skinning"] = "Dépeçage"
 L["On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what it may give. Turned off by Gathering contents in the options."] =
     "Sur une créature morte qui peut être dépecée : le Dépeçage requis, dans sa couleur de progression, et ce qu'elle peut donner. Désactivé par Récolte dans les options."
