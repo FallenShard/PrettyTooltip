@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Build a JSON database of WoW: Forever class spells, keyed by spell ID, from the game's own client tables.
 
-    python3 tools/forever_spells.py                          newest Forever beta build, compared with newest Classic Era
+    python3 tools/forever_spells.py                          newest live Forever build, compared with newest Classic Era
     python3 tools/forever_spells.py --build 1.60.1.70425     a specific build
     python3 tools/forever_spells.py --previous old.json      also report what changed since an earlier output
     python3 tools/forever_spells.py --offline                use only tables already downloaded
@@ -109,14 +109,15 @@ def get(url, retries=3):
 
 
 def newest_builds():
-    """(newest Forever build, newest Classic Era build) listed on wago.tools. Forever is 1.6x.x, Era is 1.15.x."""
+    """(newest Forever build, newest Classic Era build) listed on wago.tools. Forever is 1.6x.x, Era is 1.15.x.
+    Live Forever is the wowf product; wow_classic_beta stopped at the beta's last build."""
     products = json.loads(get(f'{WAGO}/api/builds'))
     def newest(pred, prefer):
         found = [b['version'] for p, bs in products.items() if p in prefer for b in bs if pred(b['version'])]
         if not found:
             found = [b['version'] for bs in products.values() for b in bs if pred(b['version'])]
         return max(found, key=version_key) if found else None
-    forever = newest(lambda v: re.match(r'1\.6\d\.', v), ('wow_classic_beta',))
+    forever = newest(lambda v: re.match(r'1\.6\d\.', v), ('wowf',))
     era = newest(lambda v: v.startswith('1.15.'), ('wow_classic_era',))
     return forever, era
 
