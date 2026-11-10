@@ -304,8 +304,8 @@ L["Class colors"] = "직업 색상"
 L["Reset all fonts and colors"] = "모든 글꼴과 색상 초기화"
 L["More options"] = "추가 설정"
 L["IDs"] = "ID"
-L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
-    "아이템, 주문, NPC의 ID를 다른 애드온 줄 아래, 툴팁 맨 아래에 표시합니다."
+L["The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "아이템, 주문, 오라, NPC의 ID를 다른 애드온 줄 아래, 툴팁 맨 아래에 표시합니다."
 L["Item ID: %s"] = "아이템 ID: %s"
 L["NPC ID: %s"] = "NPC ID: %s"
 

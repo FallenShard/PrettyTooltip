@@ -290,8 +290,8 @@ L["Class colors"] = "Цвета классов"
 L["Reset all fonts and colors"] = "Сбросить все шрифты и цвета"
 L["More options"] = "Другие настройки"
 L["IDs"] = "ID"
-L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
-    "ID предмета, заклинания или НИП внизу панели, под строками других аддонов."
+L["The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "ID предмета, заклинания, ауры или НИП внизу панели, под строками других аддонов."
 L["Item ID: %s"] = "ID предмета: %s"
 L["NPC ID: %s"] = "ID НИП: %s"
 

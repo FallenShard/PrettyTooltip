@@ -301,8 +301,8 @@ L["Class colors"] = "职业颜色"
 L["Reset all fonts and colors"] = "重置所有字体和颜色"
 L["More options"] = "更多选项"
 L["IDs"] = "ID"
-L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
-    "在面板底部、其他插件的行下方显示物品、法术或NPC的ID。"
+L["The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "在面板底部、其他插件的行下方显示物品、法术、光环或NPC的ID。"
 L["Item ID: %s"] = "物品ID：%s"
 L["NPC ID: %s"] = "NPC ID：%s"
 

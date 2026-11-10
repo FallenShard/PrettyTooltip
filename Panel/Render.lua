@@ -257,14 +257,14 @@ local function renderView(panel, tooltip, view)
     ui.finishPanel(panel, tooltip, y)
 end
 
--- The row naming what the panel shows by its ID, while IDs show.
-function ui.idRow(panel, format, id)
-    if id and ns.showsDetail("showIDs", panel) then return { left = util.fill(format, id), right = "" } end
+-- The row naming what the panel shows by its ID, while IDs show, or always.
+function ui.idRow(panel, format, id, always)
+    if id and (always or ns.showsDetail("showIDs", panel)) then return { left = util.fill(format, id), right = "" } end
 end
 
 -- Other addons' rows, then the ID row.
-function ui.withID(panel, extras, format, id)
-    local idRow = ui.idRow(panel, format, id)
+function ui.withID(panel, extras, format, id, always)
+    local idRow = ui.idRow(panel, format, id, always)
     if not idRow then return extras end
     local rows = {}
     for index, row in ipairs(extras) do rows[index] = row end

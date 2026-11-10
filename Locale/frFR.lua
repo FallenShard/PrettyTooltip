@@ -322,8 +322,8 @@ L["Class colors"] = "Couleurs des classes"
 L["Reset all fonts and colors"] = "Rétablir toutes les polices et couleurs"
 L["More options"] = "Plus d'options"
 L["IDs"] = "ID"
-L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
-    "L'ID de l'objet, du sort ou du PNJ en bas de son cadre, sous les lignes des autres addons."
+L["The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "L'ID de l'objet, du sort, de l'aura ou du PNJ en bas de son cadre, sous les lignes des autres addons."
 L["Item ID: %s"] = "ID d'objet : %s"
 L["NPC ID: %s"] = "ID de PNJ : %s"
 
