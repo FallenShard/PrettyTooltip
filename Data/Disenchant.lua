@@ -1,5 +1,7 @@
--- What an item disenchants into, from Classic's tables (Warcraft Wiki's
--- "Disenchanting tables"); the game has no API for them.
+-- What an item disenchants into; the game has no API for it. The bands are
+-- Forever's ItemDisenchantLoot (1.60.1.70888), by quality and item level. What
+-- each band gives is only on the server: Warcraft Wiki's "Disenchanting
+-- tables" for the same bands.
 local _, ns = ...
 
 local ARMOR, WEAPON = 4, 2
@@ -35,15 +37,18 @@ local GREEN = {
     { 46, 50, 11176, { 1, 2 }, 11175, { 1, 2 }, 11178, 75, 20, 5 },
     { 51, 55, 11176, { 2, 5 }, 16202, { 1, 2 }, 14343, 75, 20, 5 },
     { 56, 60, 16204, { 1, 2 }, 16203, { 1, 2 }, 14344, 75, 20, 5 },
-    { 61, 999, 16204, { 2, 5 }, 16203, { 2, 3 }, 14344, 75, 20, 5 },
+    { 61, 99, 16204, { 2, 5 }, 16203, { 2, 3 }, 14344, 75, 20, 5 },
 }
+-- Rare: { low, high, shard }. No source gives 5-15 and 16-20 their own
+-- yield; they take 21-25's.
 local BLUE = {
-    { 1, 25, 10978 }, { 26, 30, 11084 }, { 31, 35, 11138 }, { 36, 40, 11139 },
-    { 41, 45, 11177 }, { 46, 50, 11178 }, { 51, 55, 14343 }, { 56, 999, 14344 },
+    { 5, 15, 10978 }, { 16, 20, 10978 }, { 21, 25, 10978 }, { 26, 30, 11084 }, { 31, 35, 11138 },
+    { 36, 40, 11139 }, { 41, 45, 11177 }, { 46, 50, 11178 }, { 51, 55, 14343 }, { 56, 60, 14344 },
+    { 61, 99, 14344 },
 }
 local PURPLE = {
     { 40, 45, 11177, { 2, 4 } }, { 46, 50, 11178, { 2, 4 } }, { 51, 55, 14343, { 2, 4 } },
-    { 56, 60, NEXUS, { 1, 1 } }, { 61, 999, NEXUS, { 1, 2 } },
+    { 56, 60, NEXUS, { 1, 1 } }, { 61, 99, NEXUS, { 1, 2 } },
 }
 local NOT_DISENCHANTABLE = { INVTYPE_BODY = true, INVTYPE_TABARD = true }
 -- Wands enchanters make.
