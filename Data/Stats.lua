@@ -25,8 +25,27 @@ local CATEGORIES = {
 }
 local CATEGORY = {}
 for _, category in ipairs(CATEGORIES) do CATEGORY[category.key] = category end
+-- A client's own stats and colors (retail's Retail/Data/Stats.lua): its
+-- categories, which the editor lists apart under the label given, and stats.
+local contributions = ns.contributions("stats")
+local CATEGORY_GROUPS = {}
+for _, extra in ipairs(contributions) do
+    for _, category in ipairs(extra.categories or {}) do CATEGORY[category.key] = category end
+    if extra.categories then CATEGORY_GROUPS[#CATEGORY_GROUPS + 1] = { label = extra.label, categories = extra.categories } end
+end
 stats.CATEGORIES = CATEGORIES
-local STAT_MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  "
+stats.CATEGORY_GROUPS = CATEGORY_GROUPS
+-- The diamond before a stat, and the two spaces after it in a stat's text.
+stats.MARKER = "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t"
+local STAT_MARKER = stats.MARKER .. "  "
+
+-- A marker's 32 px art tinted a { r, g, b } color, as a greyed row's is.
+function stats.tintedMarker(marker, color)
+    local opening = marker:match("^(|T[^:|]+:[^:|]+:[^:|]+:[^:|]+:[^:|]+)")
+    if not opening then return marker end
+    local function byte(value) return math.floor(value * 255 + .5) end
+    return string.format("%s:32:32:0:32:0:32:%d:%d:%d|t", opening, byte(color[1]), byte(color[2]), byte(color[3]))
+end
 
 local function mod(name) return _G["ITEM_MOD_" .. name] end
 local function itemStat(name) return _G["TOOLTIP_ITEM_STAT_" .. name] end
@@ -98,6 +117,11 @@ local STATS = {
     MANA_REGEN = { category = "Mana", name = L["Mana per 5 sec"] },
     MANA = { category = "Mana", name = mod("MANA_SHORT"), line = mod("MANA") },
 }
+
+-- A client's own stats, as retail's ratings: "+120 Haste".
+for _, extra in ipairs(contributions) do
+    for key, def in pairs(extra.stats or {}) do STATS[key] = def end
+end
 
 -- A stat's name, as the panel shows it: "Fire Resistance", "Attack Power vs Undead".
 local function nameOf(stat)

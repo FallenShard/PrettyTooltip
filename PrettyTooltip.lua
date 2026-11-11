@@ -1,4 +1,6 @@
 -- Addon startup. Loads last; setup moves here as its modules are refactored.
+-- A client's .toc loads its own files among the shared ones, all before this
+-- one (Retail/README.md), so everything is in place when the addon starts.
 local addonName, ns = ...
 
 local started = false

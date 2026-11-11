@@ -413,10 +413,11 @@ function ns.capture(name)
         end
     end
     local version, build = GetBuildInfo()
-    entry.client = { version = version, build = build, locale = GetLocale() }
+    -- retail: loaded from retail's .toc, so the tests replay it with retail's files.
+    entry.client = { version = version, build = build, locale = GetLocale(), retail = ns.IsRetail() }
     -- The client's numbers for the types of tooltip and line the readers compare against.
     entry.enums = copyOf({ TooltipDataType = Enum.TooltipDataType, TooltipDataLineType = Enum.TooltipDataLineType,
-        ItemClass = Enum.ItemClass })
+        ItemClass = Enum.ItemClass, TooltipDataItemBinding = Enum.TooltipDataItemBinding })
     entry.present = present()
     entry.settings = copyOf(PrettyTooltipDB)
     entry.captured = date("%Y-%m-%d %H:%M")

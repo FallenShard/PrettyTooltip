@@ -45,40 +45,18 @@ local function isRequirement(text)
     return false
 end
 
--- No API links a node to what it yields or the skill it needs. Item IDs are
--- checked against the item's name, so a wrong entry is skipped, not shown.
-local NODES = {
-    ["Peacebloom"] = { 2447, 1 }, ["Silverleaf"] = { 765, 1 }, ["Earthroot"] = { 2449, 15 },
-    ["Mageroyal"] = { 785, 50 }, ["Briarthorn"] = { 2450, 70 }, ["Stranglekelp"] = { 3820, 85 },
-    ["Bruiseweed"] = { 2453, 100 }, ["Wild Steelbloom"] = { 3355, 115 },
-    ["Grave Moss"] = { 3369, 120 }, ["Kingsblood"] = { 3356, 125 }, ["Liferoot"] = { 3357, 150 },
-    ["Fadeleaf"] = { 3818, 160 }, ["Goldthorn"] = { 3821, 170 },
-    ["Khadgar's Whisker"] = { 3358, 185 }, ["Wintersbite"] = { 3819, 195 },
-    ["Firebloom"] = { 4625, 205 }, ["Purple Lotus"] = { 8831, 210 },
-    ["Arthas' Tears"] = { 8836, 220 }, ["Sungrass"] = { 8838, 230 }, ["Blindweed"] = { 8839, 235 },
-    ["Ghost Mushroom"] = { 8845, 245 }, ["Gromsblood"] = { 8846, 250 },
-    ["Golden Sansam"] = { 13464, 260 }, ["Dreamfoil"] = { 13463, 270 },
-    ["Mountain Silversage"] = { 13465, 280 }, ["Plaguebloom"] = { 13466, 285 },
-    ["Icecap"] = { 13467, 290 }, ["Black Lotus"] = { 13468, 300 },
-    ["Copper Vein"] = { 2770, 1 }, ["Tin Vein"] = { 2771, 65 },
-    ["Incendicite Mineral Vein"] = { 3340, 65 }, ["Silver Vein"] = { 2775, 75 },
-    ["Lesser Bloodstone Deposit"] = { 4278, 75 }, ["Iron Deposit"] = { 2772, 125 },
-    ["Indurium Mineral Vein"] = { 5833, 150 }, ["Gold Vein"] = { 2776, 155 },
-    ["Mithril Deposit"] = { 3858, 175 }, ["Truesilver Deposit"] = { 7911, 230 },
-    ["Dark Iron Deposit"] = { 11370, 230 }, ["Small Thorium Vein"] = { 10620, 245 },
-    ["Rich Thorium Vein"] = { 10620, 275 },
-}
-
 -- A node's English name, as the node data knows it, from the client's:
 -- "Kupferader" is "Copper Vein". An ooze covered node yields what the plain
 -- one does.
 local function nodeKey(name)
-    name = ns.nodeNames and ns.nodeNames[name] or name
+    name = ns.hasData("nodeNames") and ns.nodeNames[name] or name
     return (name:gsub("^Ooze Covered ", ""))
 end
 
+-- From Data/NodeSkills.lua, which only Forever loads: retail's nodes need
+-- other skill levels.
 local function nodeFor(name)
-    return NODES[nodeKey(name)]
+    return ns.hasData("nodeSkills") and ns.nodeSkills[nodeKey(name)] or nil
 end
 
 -- The item an object yields, by its name; for /ptip capture to record.
@@ -109,7 +87,7 @@ end
 local LOOT_ICON = 14
 local RARE = 5
 local function lootRows(name, game)
-    local loot = ns.nodeLoot and ns.nodeLoot[nodeKey(name)]
+    local loot = ns.hasData("nodeLoot") and ns.nodeLoot[nodeKey(name)]
     if not loot then return end
     local rows = {}
     for _, drop in ipairs(loot) do
@@ -144,7 +122,7 @@ local function completeModel(model, game)
         local name = itemInfo(node[1], game)
         -- A herb yields itself and a node yields an ore; anything else is a bad
         -- entry. The names to tell by are English, as the node data's.
-        local english = not (ns.nodeNames and ns.nodeNames[model.name])
+        local english = not (ns.hasData("nodeNames") and ns.nodeNames[model.name])
         if english and name and name ~= nodeKey(model.name) and not name:find(" Ore$") then node = nil end
     end
     if node then
