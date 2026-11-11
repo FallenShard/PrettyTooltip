@@ -2,7 +2,9 @@
 -- Forever's ItemDisenchantLoot (1.60.1.70888), by quality and item level. What
 -- each band gives is only on the server: Warcraft Wiki's "Disenchanting
 -- tables" for the same bands.
+-- Forever only: retail's .toc leaves this file out.
 local _, ns = ...
+ns.provideData("disenchant")
 
 local ARMOR, WEAPON = 4, 2
 local UNCOMMON, RARE, EPIC = 2, 3, 4
