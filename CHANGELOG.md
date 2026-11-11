@@ -1,3 +1,20 @@
+# PrettyTooltip 1.4.0
+
+## Retail
+
+- PrettyTooltip now runs on retail World of Warcraft as well as WoW Forever, from the same download: each game loads its own files. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+- Players show their specialization and realm, when the game's tooltip gives them. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+- Spells show their school, damage and healing per second and per mana read from their description, and the recharge and cooldown of spells with charges. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+- Items show their loot source, upgrade level, and transmog lines, retail's secondary stats, gems, sockets, and crafted quality, and grey out primary stats your specialization does not use. The "Shift click to socket" hint is hidden. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+- Fixed set bonuses and profession recipes showing incorrectly, and an error when opening some style editor pages. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+
+## Tooltips
+
+- Players from another realm show the realm beside their guild, in a style of its own (**Guild realm**, on by default). ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+- Minimap: the arrow for a node above or below you now sits on the right, after its skill, and names the game greys (indoors, another floor) stay grey. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+- Item enchants now come before Equip effects, as in the game's own tooltip. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+- The game's own tooltip, when it follows the cursor, is placed reliably even when its height is hidden from addons. ([#54](https://github.com/FallenShard/PrettyTooltip/pull/54) by [@kayti-wow](https://github.com/kayti-wow))
+
 # PrettyTooltip 1.3.9
 
 ## Tooltips
