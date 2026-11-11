@@ -1,3 +1,11 @@
+# PrettyTooltip 1.3.9
+
+## Tooltips
+
+- Buff and debuff panels no longer show the spell ID as their description when the game's `tooltipShowAuraSpellIDs` setting is on (other addons, such as Platynator, can turn it on). The ID now shows at the bottom of the panel, and the **IDs** detail option covers buffs and debuffs too. ([#49](https://github.com/FallenShard/PrettyTooltip/issues/49))
+- The **Skinnable** badge on a dead creature now shows in your Skinning skill-up color, so the difficulty shows without holding the details key. ([#50](https://github.com/FallenShard/PrettyTooltip/issues/50))
+- Spell power coefficients, spell schools, and weapon imbues now come from the live WoW Forever client instead of the beta, including its new and removed talents and changed spell ranks. NOTE: There are still spell coefficient issues and a new system will be in place for 1.4.0+.
+
 # PrettyTooltip 1.3.8
 
 ## Tooltips
