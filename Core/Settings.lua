@@ -419,14 +419,18 @@ function ns.resetStyles()
     changed()
 end
 
+-- Names are in capitals unless turned off; other parts only when turned on.
+function ns.capsDefault(element)
+    return element.caps or element.title == true
+end
+
 function ns.style(key)
     local element = ELEMENT_BY_KEY[key]
     local outline = ns.elementSetting(key, "outline") or ns.option("outline")
     local color = ns.elementSetting(key, "color")
     if type(color) ~= "table" then color = nil end
-    -- Names are in capitals unless turned off; other parts only when turned on.
     local caps = ns.elementSetting(key, "caps")
-    if caps == nil then caps = element.caps or element.title == true end
+    if caps == nil then caps = ns.capsDefault(element) end
     return {
         key = key,
         title = element.title,
