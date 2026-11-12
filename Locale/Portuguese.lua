@@ -74,6 +74,10 @@ locale.questTags = { Elite = true, Masmorra = true, Raide = true, Grupo = true, 
 -- The addon's own words: a first draft, for a Portuguese speaker to review.
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "Correio"
+L["Restyle mail messages"] = "Redesenhar mensagens de correio"
+
 -- The panels -------------------------------------------------------------------
 
 -- The spell strip. Portuguese spells measure their range in meters.
@@ -325,8 +329,8 @@ L["Class colors"] = "Cores das classes"
 L["Reset all fonts and colors"] = "Restaurar todas as fontes e cores"
 L["More options"] = "Mais opções"
 L["IDs"] = "IDs"
-L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
-    "O ID do item, feitiço ou PNJ na parte de baixo do painel, abaixo das linhas de outros addons."
+L["The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "O ID do item, feitiço, aura ou PNJ na parte de baixo do painel, abaixo das linhas de outros addons."
 L["Item ID: %s"] = "ID do item: %s"
 L["NPC ID: %s"] = "ID do PNJ: %s"
 
@@ -438,7 +442,7 @@ L["Guild or role"] = "Guilda ou função"
 L["Level, race, and class"] = "Nível, raça e classe"
 L["The level in its difficulty color, unless set."] = "O nível na cor de dificuldade, a menos que definido."
 L["Badges"] = "Placas"
-L["Elite, rare, faction, PvP, AFK, and dead."] = "Elite, raro, facção, JxJ, ausente e morto."
+L["Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color."] = "Elite, raro, facção, JxJ, ausente, morto e Esfolável na cor de progresso."
 L["Skinning"] = "Esfolamento"
 L["On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what it may give. Turned off by Gathering contents in the options."] =
     "Em uma criatura morta que pode ser esfolada: o Esfolamento necessário, na cor de progresso, e o que pode dar. Desligado por Coleta nas opções."
@@ -516,6 +520,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "Tecla para a dica do jogo"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"
+L["Always"] = "Sempre"
 L["Never"] = "Nunca"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] =
     "Segure Ctrl para ver a dica do jogo em vez do painel."
@@ -615,3 +620,32 @@ L["Ended by"] = "Concluída com"
 L["Started by"] = "Iniciada por"
 L["Found in"] = "Encontrado em"
 L["Rares"] = "Raros"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] = "O ID do item, feitiço ou PNJ na parte inferior do painel, abaixo das linhas de outros addons."
+L["Elite, rare, faction, PvP, AFK, and dead."] = "Elite, raro, facção, JxJ, ausente e morto."
+L["Mail armor"] = "Malha"
+L["Spell power"] = "Poder mágico"
+L["Mythic+ Rating Modifier"] = "Tecla modificadora da pontuação Mítica+"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Segure Ctrl para mostrar a pontuação Mítica+ e das masmorras na dica de jogador."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Segure Alt para mostrar a pontuação Mítica+ e das masmorras na dica de jogador."
+L["Show Mythic+ rating without holding a modifier key."] = "Mostrar sempre a pontuação Mítica+ sem segurar uma tecla modificadora."
+L["Mythic+ Rating"] = "Pontuação Mítica+"
+L["Mount"] = "Montaria"
+L["Collected"] = "Coletada"
+L["Not collected"] = "Não coletada"
+L["Examples:"] = "Exemplos:"
+L["Attachments"] = "Anexos"
+L["Mail title"] = "Título do correio"
+L["Attachments and prices"] = "Anexos e preços"
+L["Mail contents"] = "Conteúdo do correio"
+L["Total: 14 items"] = "Total: 14 itens"
+L["Cooked Crab Claw"] = "Garra de Caranguejo Cozida"
+L["Pyrite"] = "Pirita"
+L["%d items"] = "%d itens"
+L["Source"] = "Fonte"
+L["Raid Progress"] = "Progresso de raide"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"
