@@ -3,6 +3,11 @@
 -- entries its language words otherwise; any it leaves out stay English.
 local _, ns = ...
 local locale = ns.Locale
+local L = ns.L
+
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "Mail"
+L["Restyle mail messages"] = "Restyle mail"
 
 -- This file loads on every client, as the fallback; only the English one is
 -- English throughout.
@@ -117,3 +122,19 @@ for _, name in ipairs({ "Magic", "Curse", "Disease", "Poison" }) do locale.dispe
 
 -- The client's QuestInfo names, and "Group", which Forever's table lacks.
 for _, name in ipairs({ "Elite", "Dungeon", "Raid", "Group", "PvP" }) do locale.questTags[name] = true end
+
+
+-- Additional localization carried forward from the Diff branch.
+L["Total: 14 items"] = "Total: 14 items"
+L['Raid Progress'] = 'Raid Progress'
+L['Raid Progress Modifier'] = 'Raid Progress Modifier'
+L["Hold Ctrl to show the local character's current raid lockouts."] = "Hold Ctrl to show the local character's current raid lockouts."
+L["Hold Alt to show the local character's current raid lockouts."] = "Hold Alt to show the local character's current raid lockouts."
+L["Always show the local character's current raid lockouts."] = "Always show the local character's current raid lockouts."
+L["Mythic+ Rating"] = "Mythic+ Rating"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"
+L["Raid Short: Venomous Depths"] = "VA"
+
+L["Always"] = "Always"
