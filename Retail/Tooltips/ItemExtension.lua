@@ -260,7 +260,8 @@ local function readRetailLine(item, line, context)
         addSocket(item, original or left, "").color = colorOf(line.leftColor)
     elseif (LINE.ProfessionCraftingQuality and lineType == LINE.ProfessionCraftingQuality)
         or (right == "" and unformat(plain, PROFESSIONS_CRAFTING_QUALITY)) then
-        item.retail.craftingQuality = trimmed
+        item.retail.craftingQuality = ns.normalizeProfessionQualityAtlas
+            and ns.normalizeProfessionQualityAtlas(trimmed) or trimmed
     elseif right == "" and transmogOf(trimmed) then
         -- Without the appearance, the next line names it.
         local appearance = transmogOf(trimmed)
@@ -626,6 +627,24 @@ descriptor.extension = {
         -- placement cost, it joins the kinds under its name.
         if context.itemType and not context.recipe then readClassLine(model, context.itemType) end
         addDecorKinds(model)
+        -- Use MidnightRatings' own converted tooltip text/rates, without
+        -- replacing PrettyTooltip's stat colors or duplicating its formulas.
+        local bridge = ns.MidnightRatingsBridge
+        if bridge and bridge.Convert and type(model.secondary) == "table" then
+            for _, row in ipairs(model.secondary) do
+                local original = row.left
+                if type(original) == "string" and not isSecret(original) then
+                    local clean = util.plainText(original)
+                    if type(clean) == "string" and not clean:find("%%", 1, true) then
+                        local converted = bridge.Convert(clean)
+                        if type(converted) == "string" and converted ~= clean then
+                            local suffix = converted:match("(%s*%([^()]*%%[^()]*%))%s*$")
+                            if suffix then row.left = original .. suffix end
+                        end
+                    end
+                end
+            end
+        end
     end,
 
     extendView = function(view, model, context)
