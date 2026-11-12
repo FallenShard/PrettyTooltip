@@ -59,7 +59,7 @@ end
 palette.ARMOR = {
     { key = "Cloth", label = "Cloth", subClass = 1, color = { .90, .70, .78 } },
     { key = "Leather", label = "Leather", subClass = 2, color = { .78, .58, .35 } },
-    { key = "Mail", label = "Mail", subClass = 3, color = { .37, .75, .68 } },
+    { key = "Mail", label = "Mail armor", subClass = 3, color = { .37, .75, .68 } },
     { key = "Plate", label = "Plate", subClass = 4, color = { .68, .73, .80 } },
 }
 local ARMOR = {}
