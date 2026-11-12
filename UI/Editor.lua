@@ -797,16 +797,17 @@ local function applyLookup(entry)
 end
 
 local lookupLabel = text(editor, "GameFontHighlightSmall")
-lookupLabel:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18, 11)
+lookupLabel:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 0, 11)
+lookupLabel:SetWidth(64)
 local lookupBox = CreateFrame("EditBox", nil, editor)
-lookupBox:SetSize(CONTROLS_WIDTH - LABEL_WIDTH - 70, 22)
-lookupBox:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 18 + LABEL_WIDTH, 6)
+lookupBox:SetSize(CONTROLS_WIDTH - 112, 22)
+lookupBox:SetPoint("BOTTOMLEFT", host, "TOPRIGHT", 64, 6)
 skin:field(lookupBox, background(lookupBox, FIELD), outline(lookupBox, LINE))
 lookupBox:SetFontObject("GameFontHighlightSmall")
 lookupBox:SetTextInsets(8, 8, 0, 0)
 lookupBox:SetAutoFocus(false)
 lookupBox:SetMaxLetters(255)
-local lookupPlaceholder = text(lookupBox, "GameFontDisableSmall", "ID, or shift-click a link")
+local lookupPlaceholder = text(lookupBox, "GameFontDisableSmall", L["ID, or shift-click a link"])
 lookupPlaceholder:SetPoint("LEFT", 8, 0)
 lookupBox:SetScript("OnEnterPressed", function(self)
     self:ClearFocus()
@@ -824,7 +825,8 @@ local lookupClear = editorButton(editor, "Clear", 62, function()
     state.lookup = nil
     refresh()
 end)
-lookupClear:SetPoint("LEFT", lookupBox, "RIGHT", 8, 0)
+lookupClear:SetWidth(40)
+lookupClear:SetPoint("LEFT", lookupBox, "RIGHT", 6, 0)
 
 if ChatEdit_InsertLink then
     hooksecurefunc("ChatEdit_InsertLink", function(link)
@@ -1286,8 +1288,8 @@ toggles({
         .. "gathered, then the stone, gems, and other herbs it may give and the chance each time. On a dead "
         .. "creature that can be skinned, the Skinning it needs and the leather, hides, and scales it may give. "
         .. "From Classic's loot tables.", withData("nodeLoot", forTypes("object", "unit")) },
-    { "IDs", "showIDs", "The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows.",
-        forTypes("item", "spell", "unit") },
+    { "IDs", "showIDs", "The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' "
+        .. "rows.", forTypes("item", "spell", "unit", "aura") },
 })
 
 row("Stat colors", colorSwatches(ns.Stats.CATEGORIES, "statColor", function(key)
