@@ -73,6 +73,10 @@ locale.questTags = { Elite = true, Dungeon = true, Schlachtzug = true, Gruppe = 
 -- The addon's own words: a first draft, for a German speaker to review.
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "Post"
+L["Restyle mail messages"] = "Mail-Vorschauen neu gestalten"
+
 -- The panels -------------------------------------------------------------------
 
 -- The spell strip. German spells measure their range in meters.
@@ -324,8 +328,8 @@ L["Class colors"] = "Klassenfarben"
 L["Reset all fonts and colors"] = "Alle Schriften und Farben zurücksetzen"
 L["More options"] = "Weitere Optionen"
 L["IDs"] = "IDs"
-L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
-    "Die ID des Gegenstands, Zaubers oder NPCs unten im Rahmen, unter den Zeilen anderer Addons."
+L["The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "Die ID des Gegenstands, Zaubers, der Aura oder des NPCs unten im Rahmen, unter den Zeilen anderer Addons."
 L["Item ID: %s"] = "Gegenstands-ID: %s"
 L["NPC ID: %s"] = "NPC-ID: %s"
 
@@ -435,7 +439,7 @@ L["Guild or role"] = "Gilde oder Rolle"
 L["Level, race, and class"] = "Stufe, Volk und Klasse"
 L["The level in its difficulty color, unless set."] = "Die Stufe in ihrer Schwierigkeitsfarbe, wenn nicht gesetzt."
 L["Badges"] = "Schilder"
-L["Elite, rare, faction, PvP, AFK, and dead."] = "Elite, selten, Fraktion, PvP, AFK und tot."
+L["Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color."] = "Elite, selten, Fraktion, PvP, AFK, tot und Kürschnerbar in seiner Steigerungsfarbe."
 L["Skinning"] = "Kürschnerei"
 L["On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what it may give. Turned off by Gathering contents in the options."] =
     "Bei einer toten, häutbaren Kreatur: die nötige Kürschnerei in ihrer Steigerungsfarbe und was sie geben kann. Wird mit Sammeln in den Optionen abgeschaltet."
@@ -513,6 +517,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "Zusatztaste für den Standard-Tooltip"
 L["Ctrl"] = "Strg"
 L["Alt"] = "Alt"
+L["Always"] = "Immer"
 L["Never"] = "Nie"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] =
     "Haltet Strg, um statt des Rahmens den Tooltip des Spiels zu sehen."
@@ -612,3 +617,32 @@ L["Ended by"] = "Abgeschlossen bei"
 L["Started by"] = "Begonnen bei"
 L["Found in"] = "Zu finden in"
 L["Rares"] = "Seltene"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] = "Die ID des Gegenstands, Zaubers oder NPCs am unteren Rand seines Tooltips, unter den Zeilen anderer Addons."
+L["Elite, rare, faction, PvP, AFK, and dead."] = "Elite, selten, Fraktion, PvP, AFK und tot."
+L["Mail armor"] = "Kette"
+L["Spell power"] = "Zaubermacht"
+L["Mythic+ Rating Modifier"] = "Mythic+-Wertung: Modifikatortaste"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Halte Strg gedrückt, um die Mythic+-Wertung und die Dungeonwertungen im Spielertooltip anzuzeigen."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Halte Alt gedrückt, um die Mythic+-Wertung und die Dungeonwertungen im Spielertooltip anzuzeigen."
+L["Show Mythic+ rating without holding a modifier key."] = "Mythic+-Wertung ohne Modifikatortaste immer anzeigen."
+L["Mythic+ Rating"] = "Mythic+-Wertung"
+L["Mount"] = "Reittier"
+L["Collected"] = "Gesammelt"
+L["Not collected"] = "Nicht gesammelt"
+L["Examples:"] = "Beispiele:"
+L["Attachments"] = "Anhänge"
+L["Mail title"] = "Posttitel"
+L["Attachments and prices"] = "Anhänge und Preise"
+L["Mail contents"] = "Postinhalt"
+L["Total: 14 items"] = "Insgesamt: 14 Gegenstände"
+L["Cooked Crab Claw"] = "Gekochte Krebsschere"
+L["Pyrite"] = "Pyrit"
+L["%d items"] = "%d Gegenstände"
+L["Source"] = "Quelle"
+L["Raid Progress"] = "Schlachtzugsfortschritt"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"

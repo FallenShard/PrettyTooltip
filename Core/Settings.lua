@@ -70,6 +70,9 @@ local DEFAULTS = {
     editorStyle = "native",
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
+    -- These two additions are opt-in by modifier; NONE means never show.
+    mythicScoreKey = "NONE",
+    raidProgressKey = "NONE",
     bodyFont = nil,
     titleFont = nil,
     -- "NONE", "OUTLINE", or "THICKOUTLINE", for elements without their own.
@@ -216,7 +219,7 @@ ns.ELEMENTS = {
     { key = "unitInfo", label = "Level, race, and class", size = 12, color = colors.detail,
         tooltipType = "unit", note = "The level in its difficulty color, unless set." },
     { key = "unitBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "unit",
-        note = "Elite, rare, faction, PvP, AFK, and dead." },
+        note = "Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color." },
     { key = "unitSkinning", label = "Skinning", size = 11, color = colors.detail, tooltipType = "unit", needs = "skinningLoot",
         note = "On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what "
             .. "it may give. Turned off by Gathering contents in the options." },
@@ -260,7 +263,7 @@ ns.TOOLTIP_TYPES = {
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
     { label = "Flight paths", restyle = "taxiPanels", types = {} },
-    { label = "Mail", restyle = "mailPanels", types = {} },
+    { label = "Mail messages", restyle = "mailPanels", types = {} },
     { label = "Quests", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
     { label = "Macros", restyle = "macroPanels", cursor = "cursorMacros", types = { "Macro" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
@@ -459,6 +462,19 @@ end
 
 function ns.originalKeyDown() return keyDown(ns.option("originalKey")) end
 function ns.isOriginalKey(key) return isKey(ns.option("originalKey"), key) end
+
+-- Mythic+ rating and raid lockouts are hidden by default. NONE means never;
+-- ALWAYS keeps the section visible without a physical modifier key.
+function ns.mythicScoreKeyDown()
+    local name = ns.option("mythicScoreKey")
+    return name == "ALWAYS" or (name ~= "NONE" and keyDown(name))
+end
+function ns.isMythicScoreKey(key) return isKey(ns.option("mythicScoreKey"), key) end
+function ns.raidProgressKeyDown()
+    local name = ns.option("raidProgressKey")
+    return name == "ALWAYS" or (name ~= "NONE" and keyDown(name))
+end
+function ns.isRaidProgressKey(key) return isKey(ns.option("raidProgressKey"), key) end
 
 -- Whether the details show now: their key is held, or they always show.
 function ns.detailsKeyDown()

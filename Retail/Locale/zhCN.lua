@@ -36,3 +36,12 @@ L["Death Knight"] = "死亡骑士"
 L["Monk"] = "武僧"
 L["Demon Hunter"] = "恶魔猎手"
 L["Evoker"] = "唤魔师"
+
+
+-- Additional localization carried forward from the Diff branch.
+L['Mythic+ Rating Modifier'] = '大秘境评分修饰键'
+L['Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Ctrl 显示大秘境评分和副本成绩。'
+L['Hold Alt to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Alt 显示大秘境评分和副本成绩。'
+L['Show Mythic+ rating and dungeon scores without holding a modifier key.'] = '无需按键，始终显示大秘境评分和副本成绩。'
+L['Mythic+ Rating'] = '大秘境评分'
+L["Item Level"] = "物品等级"
