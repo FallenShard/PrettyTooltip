@@ -70,6 +70,10 @@ locale.questTags = { ["Элитный"] = true, ["Подземелье"] = true,
 
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "Почта"
+L["Restyle mail messages"] = "Перерисовать почтовые подсказки"
+
 
 -- The panels -----------------------------------
 L["Cast"] = "Применение"
@@ -290,8 +294,8 @@ L["Class colors"] = "Цвета классов"
 L["Reset all fonts and colors"] = "Сбросить все шрифты и цвета"
 L["More options"] = "Другие настройки"
 L["IDs"] = "ID"
-L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
-    "ID предмета, заклинания или НИП внизу панели, под строками других аддонов."
+L["The item's, spell's, aura's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "ID предмета, заклинания, ауры или НИП внизу панели, под строками других аддонов."
 L["Item ID: %s"] = "ID предмета: %s"
 L["NPC ID: %s"] = "ID НИП: %s"
 
@@ -391,7 +395,7 @@ L["Guild or role"] = "Гильдия или роль"
 L["Level, race, and class"] = "Уровень, раса и класс"
 L["The level in its difficulty color, unless set."] = "Уровень в цвете сложности, если не задан другой."
 L["Badges"] = "Метки"
-L["Elite, rare, faction, PvP, AFK, and dead."] = "Элита, редкость, фракция, PvP, отсутствие и смерть."
+L["Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color."] = "Элита, редкость, фракция, PvP, отсутствие, смерть и возможность снять шкуру в цвете сложности повышения."
 L["Skinning"] = "Снятие шкур"
 L["On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what it may give. Turned off by Gathering contents in the options."] = "Для мертвого существа со снимаемой шкурой: требуемый навык в цвете сложности повышения и возможная добыча. Отключается настройкой сбора ресурсов."
 L["Target and owner"] = "Цель и владелец"
@@ -461,6 +465,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "Клавиша игровой подсказки"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"
+L["Always"] = "Постоянно"
 L["Never"] = "Никогда"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] = "Удерживайте Ctrl, чтобы увидеть игровую подсказку вместо панели."
 L["Hold Alt to see the game's own tooltip instead of the panel."] = "Удерживайте Alt, чтобы увидеть игровую подсказку вместо панели."
@@ -544,3 +549,32 @@ L["Ended by"] = "Завершает"
 L["Started by"] = "Начинает"
 L["Found in"] = "Находится в"
 L["Rares"] = "Редкие существа"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] = "ID предмета, заклинания или NPC в нижней части подсказки, под строками других аддонов."
+L["Elite, rare, faction, PvP, AFK, and dead."] = "Элита, редкость, фракция, PvP, отсутствие и смерть."
+L["Mail armor"] = "Кольчуга"
+L["Spell power"] = "Сила заклинаний"
+L["Mythic+ Rating Modifier"] = "Клавиша-модификатор рейтинга эпохальных+"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Удерживайте Ctrl, чтобы показывать рейтинг эпохальных+ и результаты подземелий в подсказке игрока."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Удерживайте Alt, чтобы показывать рейтинг эпохальных+ и результаты подземелий в подсказке игрока."
+L["Show Mythic+ rating without holding a modifier key."] = "Всегда показывать рейтинг эпохальных+ без клавиши-модификатора."
+L["Mythic+ Rating"] = "Рейтинг эпохальных+"
+L["Mount"] = "Средство передвижения"
+L["Collected"] = "Получено"
+L["Not collected"] = "Не получено"
+L["Examples:"] = "Примеры:"
+L["Attachments"] = "Вложения"
+L["Mail title"] = "Заголовок письма"
+L["Attachments and prices"] = "Вложения и цены"
+L["Mail contents"] = "Содержимое письма"
+L["Total: 14 items"] = "Всего: 14 предметов"
+L["Cooked Crab Claw"] = "Варёная клешня краба"
+L["Pyrite"] = "Пирит"
+L["%d items"] = "%d предметов"
+L["Source"] = "Источник"
+L["Raid Progress"] = "Прогресс рейдов"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"
