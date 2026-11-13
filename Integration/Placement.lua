@@ -99,6 +99,15 @@ function placement.owns(tooltip)
     return panel ~= nil and not panel.nativeOnly and not panel.parked
 end
 
+-- A tooltip anchored to another that shows a panel goes by the panel, as the
+-- game's tooltip under it is another size: ForeverDungeonJournal's comparisons
+-- sit right of GameTooltip, and would land inside a wider panel.
+local function relativeFrame(frame)
+    local panel = frame and ui.panels[frame]
+    if panel and panel:IsShown() and placement.owns(frame) then return panel end
+    return frame
+end
+
 -- Offsets are in the native frame's units; relative anchors use their own
 -- effective scale. The Pretty size replaces the native size in this equation.
 local function sourceRect(state, panel, parentScale)
@@ -125,7 +134,7 @@ local function sourceRect(state, panel, parentScale)
             if point[1]:find("TOP") or point[1]:find("BOTTOM") then vertical = point end
         end
         local function anchor(point)
-            local target = point[2] or UIParent
+            local target = relativeFrame(point[2]) or UIParent
             local x, y, w, h = rect(target)
             if not x then return end
             local fx, fy = fractions(point[3])
@@ -200,7 +209,7 @@ local function anchorMain(state, panel, plan, main, parentScale)
                 own = index == 1 and (own:find("RIGHT") and "RIGHT" or "LEFT")
                     or (own:find("BOTTOM") and "BOTTOM" or "TOP")
             end
-            points[#points + 1] = { own, point[2] or UIParent, point[3],
+            points[#points + 1] = { own, relativeFrame(point[2]) or UIParent, point[3],
                 ui.snap(panel, point[4] * nativeScale / panelScale), ui.snap(panel, point[5] * nativeScale / panelScale) }
         end
     else
