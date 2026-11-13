@@ -47,6 +47,27 @@ return function(test)
     model.skinning.player = nil
     test.check("without Skinning, the badge is leather brown", badgeIn({ .80, .62, .42 }), true)
 
+    model.skinnable, model.skinnableColor = true, { .25, .75, .25 }
+    test.check("the game's own skill-up color", badgeIn({ .25, .75, .25 }), true)
+
+    -- Glade Viper is one of Forever's creatures, missing from Classic's tables.
+    model = ns.ui.unitModel({ name = "Glade Viper", level = 37, dead = true, skinnable = true,
+        skinnableColor = { .25, .75, .25 }, guid = "Creature-0-7085-0-4-263307-0EB3FBC227" })
+    skin = model.skinning
+    test.check("a creature missing from the tables needs what its level does, and gives nothing listed",
+        { skin and skin.needed, skin and #skin.rows }, { 185, 0 })
+    test.check("the game's color comes first", badgeIn({ .25, .75, .25 }), true)
+    ns.setOption("gatheringLoot", true)
+    test.check("the section has the Skinning it needs", shown():find("Requires Skinning 185", 1, true) ~= nil, true)
+    model.skinnableColor = nil
+    test.check("without it, the bands: red below what it needs", badgeIn(ns.Palette.roles.unmet), true)
+    local unknown = ns.ui.unitModel({ name = "Glade Viper", level = -1, dead = true, skinnable = true,
+        guid = "Creature-0-7085-0-4-263307-0EB3FBC227" })
+    test.check("nor a section without a level", unknown.skinning, nil)
+    local unmarked = ns.ui.unitModel({ name = "Glade Viper", level = 37, dead = true,
+        guid = "Creature-0-7085-0-4-263307-0EB3FBC227" })
+    test.check("nor one the game does not call skinnable", unmarked.skinning, nil)
+
     local alive = ns.ui.unitModel({ name = "Highland Raptor", level = 20, guid = guid })
     test.check("a living creature shows nothing of it", alive.skinning, nil)
 end

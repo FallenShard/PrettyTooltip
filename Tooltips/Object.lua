@@ -231,7 +231,10 @@ local function objectView(panel, model)
             left = skillText(skill),
             right = skill.player and util.fill(L["Your skill %s"], skill.player) or "",
             rightColor = colors.caption,
-            color = model.skillMet == false and UNMET_COLOR or model.skillColor or DETAIL_COLOR,
+            -- The game's color first: Forever's bands are not Classic's (Goldthorn,
+            -- 56 past 170, is yellow), and the shared ones are only a guess.
+            color = model.skillMet == false and UNMET_COLOR or model.skillColor
+                or ns.Palette.skillUpColor(skill.level, skill.player) or DETAIL_COLOR,
         }
     end
     for _, row in ipairs(model.details) do

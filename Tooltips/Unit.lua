@@ -146,14 +146,17 @@ local function npcID(guid)
         or guid:match("^Vehicle%-%d+%-%d+%-%d+%-%d+%-(%d+)%-"))
 end
 
+-- A creature missing from the loot tables that the game calls skinnable still
+-- gets the Skinning its level needs: the rule is Classic's, as the tables are.
 local function skinning(model, game)
     if not (model.dead and ns.hasData("skinningLoot")) then return end
     local creatureID = npcID(model.guid)
     local drops = creatureID and ns.skinningLoot(creatureID)
-    if not drops then return end
+    if not (drops or model.skinnable) then return end
     local needed = type(model.level) == "number" and model.level > 0 and skinningNeeded(model.level) or nil
+    if not (drops or needed) then return end
     local rows = {}
-    for _, drop in ipairs(drops) do
+    for _, drop in ipairs(drops or {}) do
         local icon = game.itemIcon(drop[1])
         local count = drop[4] == drop[5] and "" or (" (" .. util.fill(L["%s to %s"], drop[4], drop[5]) .. ")")
         local name = game.itemName(drop[1]) or drop[2]
@@ -311,6 +314,11 @@ local function readUnit(tooltip, data, game)
                     end
                 elseif text:match("^<.+>$") and not model.tag then
                     model.tag = text
+                elseif text == UNIT_SKINNABLE_LEATHER then
+                    -- Forever's creatures are mostly missing from Classic's
+                    -- loot tables, so the game's line is what says a corpse
+                    -- can be skinned, in the game's skill-up color.
+                    model.skinnable, model.skinnableColor = true, util.rgb(line.leftColor)
                 elseif SHOWN_ELSEWHERE[text] then
                     -- Shown as badges.
                 elseif LINE.UnitOwner and line.type == LINE.UnitOwner then
@@ -379,11 +387,11 @@ local function badges(model)
     if model.dnd then list[#list + 1] = { L["DND"], MUTED } end
     if model.dead then list[#list + 1] = { DEAD, TAPPED } end
     local skin = model.skinning
-    if skin then
+    if skin or model.skinnable then
         -- The section with the skill needed waits for the details key; the
         -- badge always shows, so it carries the skill-up color.
-        list[#list + 1] = { UNIT_SKINNABLE_LEATHER, ns.Palette.skillUpColor(skin.needed, skin.player)
-            or SKINNABLE_COLOR }
+        list[#list + 1] = { UNIT_SKINNABLE_LEATHER, model.skinnableColor
+            or (skin and ns.Palette.skillUpColor(skin.needed, skin.player)) or SKINNABLE_COLOR }
     end
     return list
 end

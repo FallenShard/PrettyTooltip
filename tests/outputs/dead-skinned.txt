@@ -1,0 +1,87 @@
+== tooltip model
+classification: "normal"
+color:
+  1: 1
+  2: 0.27
+  3: 0.22
+creature: "Beast"
+dead: true
+extras:
+  1:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "|cFFFFFF00[42] It Takes Guts|r"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+  2:
+    color:
+      1: 0.85
+      2: 0.7
+      3: 0
+    left: "   |cFFEEEEEE15/15 Beast Entrails"
+    right: ""
+    rightColor:
+      1: 0.6
+      2: 0.6
+      3: 0.63
+    textColor:
+      1: 1
+      2: 0.8235
+      3: 0
+      4: 1
+guid: "Creature-0-7085-0-4-263307-0EB3FBC227"
+isPlayer: false
+level: 37
+levelIndex: 2
+levelLine: "Level 37"
+lineIndices:
+  1: true
+  2: true
+  3: true
+  4: true
+name: "Glade Viper"
+pvp: false
+quests: {}
+reaction: 2
+skinnable: true
+skinnableColor:
+  1: 0.251
+  2: 0.7529
+  3: 0.251
+skinning:
+  needed: 185
+  player: 251
+  rows: {}
+tapped: false
+unit: "target"
+== tooltip render
+panel 260 x 190
+texture at -16,-16 0x0 rgb=1,0.27,0.22,0.385 glow
+texture at 0,0 0x0 rgb=1,0.7701,0.7543,0.9 TooltipBackground-Temp.png
+texture at 0,0 0x0 rgb=1,0.27,0.22,0.2205 TooltipBackground-Temp.png
+texture at 6,6 0x84 rgb=1,1,1,1 band
+texture at 19,21 38x38 rgb=1,1,1,1 WHITE8X8
+texture CENTER Texture CENTER 0,0 40x40 rgb=1,0.27,0.22,0.85 WHITE8X8
+texture TOP Texture BOTTOM 0,-5 40x16 rgb=0.4,0.4,0.4,0.9 WHITE8X8
+texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.07,0.07,0.07,1 WHITE8X8
+text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.775,0.775,0.775 "37"
+text at 67,21 w=174 size=17 rgb=1,0.27,0.22 "GLADE VIPER"
+text at 67,43 w=174 size=12 rgb=0.82,0.78,0.71 "Beast"
+text at 67,62 w=98 size=12 rgb=0.82,0.78,0.71 "|cffAFAFAFDead|r |cff999185·|r |cff79D379Skinnable|r"
+texture at 19,90 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,99 w=131 size=11 rgb=0.25,0.75,0.25 "Requires Skinning 185"
+text at 162,99 w=79 size=11 rgb=0.6,0.57,0.52 "Your skill 251"
+texture at 19,119 222x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,128 w=222 size=11 rgb=0.85,0.7,0 "|cFFFFFF00[42] It Takes Guts|r"
+text at 19,143 w=222 size=11 rgb=0.85,0.7,0 "   |cFFEEEEEE15/15 Beast Entrails"
+text at 19,158 w=222 size=11 rgb=0.6,0.6,0.63 "NPC ID: 263307"

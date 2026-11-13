@@ -1,0 +1,10 @@
+== tooltip as the game shows it
+ 1 "Glade Viper"
+ 2 "Level 37"
+ 3 "Corpse"
+ 4 "Skinnable"
+ 5 "|cFFFFFF00[42] It Takes Guts|r"
+ 6 "   |cFFEEEEEE15/15 Beast Entrails"
+   below the lines:
+   "Requires Skinning 185  ||  Your skill 251"
+   "NPC ID: 263307"
