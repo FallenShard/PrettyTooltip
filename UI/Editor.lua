@@ -1175,6 +1175,8 @@ end
 row("Padding", panelSize("padding", 8, 32), optionSetting("padding"))
 row("Min width", panelSize("minWidth", 120, 400), optionSetting("minWidth"))
 toggles({
+    { "Style game tooltips", "skinGameTooltips",
+        "The game's other tooltips, as on character stats, the action bar, and in the options, in the panel style." },
     { "Icon on the right", "iconRight",
         "Moves the item or spell icon, and the item level badge under it, to the right of the name." },
     { "Tint the panel", "qualityTint",

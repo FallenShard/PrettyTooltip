@@ -76,6 +76,7 @@ Integration\Hooks.lua
 Integration\Details.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
+Integration\NativeSkin.lua
 #@debug@
 UI\Capture.lua
 #@end-debug@

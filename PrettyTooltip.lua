@@ -12,6 +12,7 @@ function ns.start()
     if ns.Hooks then ns.Hooks.install() end
     if ns.Details then ns.Details.register() end
     if ns.Cursor then ns.Cursor.register() end
+    if ns.NativeSkin then ns.NativeSkin.register() end
     ns.Options.register()
     ns.Commands.register()
 end

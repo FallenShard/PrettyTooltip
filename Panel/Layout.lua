@@ -832,21 +832,15 @@ local function clampInsets(panel)
     return 0, math.max(0, tag:GetWidth() - panel:GetWidth()), tag:GetHeight() + EQUIPPED_TAG_GAP, 0
 end
 
--- Returns the header height the icon and badge need.
-local function drawChrome(panel, tooltip, style)
+-- The panel's backdrop and border in the chosen style, tinted by style.
+local function drawBackdrop(panel, style)
     applyBackdrop(panel, style)
     local px = pixel(panel)
     panel.edges[1]:SetHeight(2 * px)
     panel.edges[2]:SetHeight(px)
     panel.edges[3]:SetWidth(px)
     panel.edges[4]:SetWidth(px)
-    panel.badgeFill:ClearAllPoints()
-    panel.badgeFill:SetPoint("TOPLEFT", panel.badge, "TOPLEFT", px, -px)
-    panel.badgeFill:SetPoint("BOTTOMRIGHT", panel.badge, "BOTTOMRIGHT", -px, px)
-    -- Panels are shared across tooltip types; the one that wants a watermark shows it.
-    if panel.watermark then panel.watermark:Hide() end
     local color = style.color
-    panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
     local tinted = style.tint and ns.option("qualityTint")
     local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
@@ -924,6 +918,20 @@ local function drawChrome(panel, tooltip, style)
             colorNativeBorder(border, lean(tint, mix))
         end
     end
+end
+
+-- Returns the header height the icon and badge need.
+local function drawChrome(panel, tooltip, style)
+    panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
+    drawBackdrop(panel, style)
+    local px = pixel(panel)
+    panel.badgeFill:ClearAllPoints()
+    panel.badgeFill:SetPoint("TOPLEFT", panel.badge, "TOPLEFT", px, -px)
+    panel.badgeFill:SetPoint("BOTTOMRIGHT", panel.badge, "BOTTOMRIGHT", -px, px)
+    -- Panels are shared across tooltip types; the one that wants a watermark shows it.
+    if panel.watermark then panel.watermark:Hide() end
+    local color = style.color
+    local gradient = style.gradient
     local iconColor = gradient and (ns.option("iconRight") and gradient[2] or gradient[1]) or color
     panel.iconBorder:SetVertexColor(iconColor[1], iconColor[2], iconColor[3], .85)
     local native = nativeCloseButton(tooltip)
@@ -1087,6 +1095,9 @@ ns.ui = {
     tally = tally,
     renderPreview = renderPreview,
     defaultHeaderAlpha = defaultHeaderAlpha,
+    backdropStyle = backdropStyle,
+    createPanel = createPanel,
+    drawBackdrop = drawBackdrop,
     styleOf = styleOf,
     alignPanel = alignPanel,
     pinPanel = pinPanel,
