@@ -79,6 +79,24 @@ local EXTRA_COLOR = colors.extras
 local GOLD_RULE = { .78, .59, .32 }
 local FLAVOR_GOLD = colors.flavor
 local HEADER_ALPHA_TEXTURED, HEADER_ALPHA_PLAIN = .72, .96
+-- Classic's stone, the first of these the client can load: the grainy rock
+-- behind the game's character and spellbook frames, else the darker dialog
+-- stone, which needs a lighter base to show. tile is the size it repeats at.
+local CLASSIC_STONES = {
+    { path = "Interface\\FrameGeneral\\UI-Background-Rock", tile = 256, base = { .03, .03, .03 } },
+    { path = "Interface\\DialogFrame\\UI-DialogBox-Background", tile = 32, base = { .20, .20, .20 } },
+}
+-- How much of the accent the Classic border, stone, and base under it take:
+-- enough to tell the school or quality, not enough to read as a colored panel.
+local CLASSIC_BORDER_ACCENT, CLASSIC_STONE_ACCENT, CLASSIC_BASE_ACCENT = .2, .18, .05
+-- The bronze, diamond-cornered border of the game's dialogs, and how far in from
+-- the panel's edge the stone starts, so none of it shows past the border's corners.
+local CLASSIC_FRAME, CLASSIC_FRAME_INSET = "Dialog", 7
+
+-- White, leaning toward accent by amount (0 to 1).
+local function lean(accent, amount)
+    return { 1 - amount + amount * accent[1], 1 - amount + amount * accent[2], 1 - amount + amount * accent[3] }
+end
 local HALO_SPREAD = 16
 -- Must match MARGIN in art/make_glow.py.
 local HALO_MARGIN = 24
@@ -163,7 +181,7 @@ local function titleFont()
     return ellesmereInstalled() and ELLESMERE_BOLD or fontOf(GameTooltipHeaderText)
 end
 
--- "dialogue", "flat", or "native". Unchosen, DialogueUI's art while it is
+-- "dialogue", "flat", "native", or "classic". Unchosen, DialogueUI's art while it is
 -- installed and wanted; flat beside EllesmereUI, whose look it matches; else
 -- the game's own tooltip border.
 local function backdropStyle()
@@ -171,7 +189,7 @@ local function backdropStyle()
     if (chosen == "dialogue" or (chosen == nil and ns.option("dialogueBackdrop"))) and hasDialogueBackdrop() then
         return "dialogue"
     end
-    if chosen == "flat" or chosen == "native" then return chosen end
+    if chosen == "flat" or chosen == "native" or chosen == "classic" then return chosen end
     return ellesmereInstalled() and "flat" or "native"
 end
 
@@ -257,6 +275,10 @@ local function createPanel(parent)
         panel.glow:SetTextureSliceMode(1)
         panel.glow:SetBlendMode("ADD")
     end
+    -- The Classic style's stone, repeated over the backdrop.
+    panel.grain = roundLayout(panel:CreateTexture(nil, "BACKGROUND", nil, -5))
+    panel.grain:SetAllPoints(panel.background)
+    panel.grain:Hide()
     local function shade(orientation, from, to, a1, a2)
         local tex = roundLayout(panel:CreateTexture(nil, "BORDER", nil, 2))
         tex:SetColorTexture(1, 1, 1, 1)
@@ -329,12 +351,12 @@ local NATIVE_PIECES = { "TopLeftCorner", "TopRightCorner", "BottomLeftCorner", "
     "TopEdge", "BottomEdge", "LeftEdge", "RightEdge" }
 local NATIVE_INSET = 4
 
-local function nativeBorder(panel)
-    if panel.nativeBorder ~= nil then return panel.nativeBorder or nil end
-    panel.nativeBorder = false
+-- A frame over the panel wearing one of the game's nine-slice layouts, kept as
+-- panel[key]; its center is left out, so the panel's backdrop shows.
+local function sliceBorder(panel, key, layout)
+    if panel[key] ~= nil then return panel[key] or nil end
+    panel[key] = false
     if not (NineSliceUtil and NineSliceUtil.ApplyLayoutByName) then return end
-    local slice = GameTooltip and GameTooltip.NineSlice
-    local layout = slice and type(slice.layoutType) == "string" and slice.layoutType or "TooltipDefaultLayout"
     local frame = roundLayout(CreateFrame("Frame", nil, panel))
     frame:SetAllPoints()
     if not pcall(NineSliceUtil.ApplyLayoutByName, frame, layout) then
@@ -344,8 +366,14 @@ local function nativeBorder(panel)
     -- These textures are created by Blizzard's layout on our border frame.
     for _, region in ipairs({ frame:GetRegions() }) do roundLayout(region) end
     if frame.Center then frame.Center:Hide() end
-    panel.nativeBorder = frame
+    panel[key] = frame
     return frame
+end
+
+local function nativeBorder(panel)
+    local slice = GameTooltip and GameTooltip.NineSlice
+    local layout = slice and type(slice.layoutType) == "string" and slice.layoutType or "TooltipDefaultLayout"
+    return sliceBorder(panel, "nativeBorder", layout)
 end
 
 -- The accent when the panel has one, as items their quality and spells their
@@ -381,25 +409,40 @@ local function colorNativeBorder(border, tint, gradient)
     end
 end
 
+local function classicFrame(panel)
+    return sliceBorder(panel, "classicFrame", CLASSIC_FRAME)
+end
+
 -- Chosen per render so the option applies without a reload.
 local function applyBackdrop(panel, chrome)
     local parchment = chrome.quest and ns.option("questParchment") and hasDialogueBackdrop()
         and panel.background.SetTextureSliceMargins ~= nil
     local style = parchment and "parchment" or backdropStyle()
     local textured = style == "dialogue" and panel.glow ~= nil
-    local border = style == "native" and nativeBorder(panel) or nil
-    local mode = parchment and "parchment" or textured and "dialogue" or border and "native" or "flat"
+    -- Classic: the dialogs' bronze border, else the tooltip's, over grainy stone,
+    -- without the glow.
+    local classic = style == "classic"
+    local frame = classic and classicFrame(panel) or nil
+    local border = (style == "native" or classic and not frame) and nativeBorder(panel) or nil
+    local mode = parchment and "parchment" or textured and "dialogue" or classic and "classic"
+        or border and "native" or "flat"
     if panel.backdropMode == mode then return end
     panel.backdropMode = mode
     panel.textured = textured
     panel.parchment = parchment and true or false
-    panel.halo:SetShown(not parchment)
-    if panel.nativeBorder then panel.nativeBorder:SetShown(mode == "native") end
+    panel.classic = classic
+    panel.classicBorder = classic and (frame or border) or nil
+    panel.halo:SetShown(not parchment and not classic)
+    if panel.nativeBorder then panel.nativeBorder:SetShown(border ~= nil) end
+    if panel.classicFrame then panel.classicFrame:SetShown(frame ~= nil) end
     -- Inside the game's border, the backdrop takes the place of the game's own
     -- background, so none of it shows past the border's rounded corners.
     panel.background:ClearAllPoints()
     if border and border.Center then
         panel.background:SetAllPoints(border.Center)
+    elseif frame then
+        panel.background:SetPoint("TOPLEFT", panel, "TOPLEFT", CLASSIC_FRAME_INSET, -CLASSIC_FRAME_INSET)
+        panel.background:SetPoint("BOTTOMRIGHT", panel, "BOTTOMRIGHT", -CLASSIC_FRAME_INSET, CLASSIC_FRAME_INSET)
     else
         panel.background:SetAllPoints()
     end
@@ -416,6 +459,14 @@ local function applyBackdrop(panel, chrome)
         panel.background:SetColorTexture(1, 1, 1, 1)
         if panel.glow then panel.glow:Hide() end
     end
+    -- The stone is partly see-through, so the backdrop under it is a dark base.
+    if classic then
+        for _, stone in ipairs(CLASSIC_STONES) do
+            panel.stone = stone
+            if panel.grain:SetTexture(stone.path, "REPEAT", "REPEAT") ~= false then break end
+        end
+    end
+    panel.grain:SetShown(classic)
     local band = panel.header
     band:SetShown(not parchment)
     if textured then
@@ -427,7 +478,7 @@ local function applyBackdrop(panel, chrome)
     end
     for _, region in ipairs(panel.shades) do region:SetShown(mode == "flat") end
     for _, region in ipairs(panel.edges) do region:SetShown(mode == "flat") end
-    panel.inset = (textured or parchment) and 6 or border and NATIVE_INSET or 1
+    panel.inset = (textured or parchment) and 6 or frame and CLASSIC_FRAME_INSET or border and NATIVE_INSET or 1
     local inset = panel.inset
     panel.header:ClearAllPoints()
     panel.header:SetPoint("TOPLEFT", panel, "TOPLEFT", inset, -inset)
@@ -620,11 +671,39 @@ local function acquireTexture(panel, path, sublevel)
     return tex
 end
 
+-- Classic's separator: a faint grey line, fading out toward its outer ends.
+-- point is where it starts ("TOPLEFT" or "TOPRIGHT"); it fades away from there.
+local CLASSIC_LINE, CLASSIC_LINE_ALPHA = { .80, .80, .80 }, .28
+
+local function classicLine(panel, point, x, y, width)
+    local c, line = CLASSIC_LINE, acquireTexture(panel)
+    line:SetPoint(point, panel, point, x, -snap(panel, y))
+    line:SetSize(snap(panel, width), pixel(panel))
+    local faded, solid = CreateColor(c[1], c[2], c[3], 0), CreateColor(c[1], c[2], c[3], CLASSIC_LINE_ALPHA)
+    if point == "TOPLEFT" then
+        line:SetGradient("HORIZONTAL", faded, solid)
+    else
+        line:SetGradient("HORIZONTAL", solid, faded)
+    end
+end
+
+-- Two lines, each side wide, fading outward from the middle of the panel;
+-- unwidened, they meet there.
+local function classicRule(panel, y, side)
+    side = side or (panel.width - 2 * pad()) / 2
+    classicLine(panel, "TOPLEFT", pad(), y, side)
+    classicLine(panel, "TOPRIGHT", -pad(), y, side)
+end
+
 -- before is the gap above a separator; a hidden one takes its gap with it.
 local function rule(panel, y, color, before)
     if not ns.option("separators") then return y end
     if panel.parchment then color = inkColor(color) end
     y = y + (before or 0)
+    if panel.classic then
+        classicRule(panel, y)
+        return y + 9
+    end
     local line = acquireTexture(panel)
     line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y))
     line:SetSize(panel.width - 2 * pad(), pixel(panel))
@@ -636,6 +715,10 @@ local function divider(panel, y, color, before)
     if not ns.option("separators") then return y end
     if panel.parchment then color = inkColor(color) end
     y = y + (before or 0)
+    if panel.classic then
+        classicRule(panel, y + 5)
+        return y + 18
+    end
     local px, side = pixel(panel), snap(panel, (panel.width - 2 * pad() - 18) / 2)
     local left = acquireTexture(panel)
     left:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y + 5))
@@ -661,6 +744,10 @@ local function caption(panel, y, text, style, color)
     if ns.option("separators") then
         local side = (panel.width - 2 * pad() - width) / 2 - 8
         local middle = y + math.floor(style.size / 2) + 1
+        if panel.classic then
+            classicRule(panel, middle, side)
+            return y + style.size + 9
+        end
         for _, point in ipairs({ { "TOPLEFT", pad() }, { "TOPRIGHT", -pad() } }) do
             local line = acquireTexture(panel)
             line:SetPoint(point[1], panel, point[1], point[2], -snap(panel, middle))
@@ -745,21 +832,15 @@ local function clampInsets(panel)
     return 0, math.max(0, tag:GetWidth() - panel:GetWidth()), tag:GetHeight() + EQUIPPED_TAG_GAP, 0
 end
 
--- Returns the header height the icon and badge need.
-local function drawChrome(panel, tooltip, style)
+-- The panel's backdrop and border in the chosen style, tinted by style.
+local function drawBackdrop(panel, style)
     applyBackdrop(panel, style)
     local px = pixel(panel)
     panel.edges[1]:SetHeight(2 * px)
     panel.edges[2]:SetHeight(px)
     panel.edges[3]:SetWidth(px)
     panel.edges[4]:SetWidth(px)
-    panel.badgeFill:ClearAllPoints()
-    panel.badgeFill:SetPoint("TOPLEFT", panel.badge, "TOPLEFT", px, -px)
-    panel.badgeFill:SetPoint("BOTTOMRIGHT", panel.badge, "BOTTOMRIGHT", -px, px)
-    -- Panels are shared across tooltip types; the one that wants a watermark shows it.
-    if panel.watermark then panel.watermark:Hide() end
     local color = style.color
-    panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
     local tinted = style.tint and ns.option("qualityTint")
     local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
@@ -768,6 +849,12 @@ local function drawChrome(panel, tooltip, style)
     local glow = ns.option("glowAlpha" .. suffix) or 1
     if panel.parchment then
         panel.background:SetVertexColor(1, 1, 1, body)
+    elseif panel.classic then
+        local base, wash = panel.stone.base, CLASSIC_BASE_ACCENT * strength
+        panel.background:SetVertexColor(base[1] + tint[1] * wash, base[2] + tint[2] * wash,
+            base[3] + tint[3] * wash, body)
+        local stone = lean(tint, CLASSIC_STONE_ACCENT * strength)
+        panel.grain:SetVertexColor(stone[1], stone[2], stone[3], 1)
     elseif panel.textured then
         panel.background:SetVertexColor(1 - .45 * strength + .45 * strength * tint[1],
             1 - .45 * strength + .45 * strength * tint[2],
@@ -791,7 +878,8 @@ local function drawChrome(panel, tooltip, style)
     else
         panel.halo:SetVertexColor(.6, .6, .6, .18 * glow)
     end
-    local headerAlpha = panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
+    -- Classic shows no band until a slider asks for one.
+    local headerAlpha = panel.classic and 0 or panel.textured and HEADER_ALPHA_TEXTURED or HEADER_ALPHA_PLAIN
     local bottomAlpha = ns.headerAlpha(style.tooltipType, "Bottom") or headerAlpha
     local topAlpha = ns.headerAlpha(style.tooltipType, "Top") or headerAlpha
     if gradient then
@@ -819,7 +907,31 @@ local function drawChrome(panel, tooltip, style)
     if panel.backdropMode == "native" then
         panel.nativeBorder:SetFrameLevel(panel:GetFrameLevel() + 1)
         colorNativeBorder(panel.nativeBorder, style.tint, style.tint and gradient)
+    elseif panel.classicBorder then
+        -- The border, leaning a little toward the item's quality or the spell's school.
+        local border = panel.classicBorder
+        border:SetFrameLevel(panel:GetFrameLevel() + 1)
+        local mix = CLASSIC_BORDER_ACCENT * strength
+        if strength > 0 and gradient then
+            colorNativeBorder(border, nil, { lean(gradient[1], mix), lean(gradient[2], mix) })
+        else
+            colorNativeBorder(border, lean(tint, mix))
+        end
     end
+end
+
+-- Returns the header height the icon and badge need.
+local function drawChrome(panel, tooltip, style)
+    panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
+    drawBackdrop(panel, style)
+    local px = pixel(panel)
+    panel.badgeFill:ClearAllPoints()
+    panel.badgeFill:SetPoint("TOPLEFT", panel.badge, "TOPLEFT", px, -px)
+    panel.badgeFill:SetPoint("BOTTOMRIGHT", panel.badge, "BOTTOMRIGHT", -px, px)
+    -- Panels are shared across tooltip types; the one that wants a watermark shows it.
+    if panel.watermark then panel.watermark:Hide() end
+    local color = style.color
+    local gradient = style.gradient
     local iconColor = gradient and (ns.option("iconRight") and gradient[2] or gradient[1]) or color
     panel.iconBorder:SetVertexColor(iconColor[1], iconColor[2], iconColor[3], .85)
     local native = nativeCloseButton(tooltip)
@@ -846,12 +958,17 @@ local function drawChrome(panel, tooltip, style)
     end
     panel.iconBorder:SetSize(iconSize + 2 * px, iconSize + 2 * px)
     -- Icons carry their own dark frame in the outer texels; cropping it lets
-    -- the art meet the panel's colored border directly.
-    panel.icon:SetTexCoord(.08, .92, .08, .92)
+    -- the art meet the panel's colored border directly. Classic keeps the
+    -- game's frame instead.
+    if panel.classic then
+        panel.icon:SetTexCoord(0, 1, 0, 1)
+    else
+        panel.icon:SetTexCoord(.08, .92, .08, .92)
+    end
     if style.icon then
         panel.icon:SetTexture(style.icon)
         panel.icon:Show()
-        panel.iconBorder:Show()
+        panel.iconBorder:SetShown(not panel.classic)
     else
         panel.icon:Hide()
         panel.iconBorder:Hide()
@@ -909,7 +1026,13 @@ local function pinPanel(panel, left, top)
 end
 
 local function finishPanel(panel, tooltip, y)
-    panel:SetHeight(snap(panel, y + pad() - 2))
+    local height = y + pad() - 2
+    panel:SetHeight(snap(panel, height))
+    if panel.classic then
+        -- Repeated at the stone's tile size, not stretched with the panel.
+        local tile = panel.stone.tile
+        panel.grain:SetTexCoord(0, panel.width / tile, 0, height / tile)
+    end
     alignPanel(panel, tooltip)
     panel:Show()
 end
@@ -951,7 +1074,9 @@ local function renderPreview(anchor, model, dataType)
 end
 
 local function defaultHeaderAlpha()
-    if backdropStyle() == "dialogue" then return HEADER_ALPHA_TEXTURED end
+    local style = backdropStyle()
+    if style == "dialogue" then return HEADER_ALPHA_TEXTURED end
+    if style == "classic" then return 0 end
     return HEADER_ALPHA_PLAIN
 end
 
@@ -970,6 +1095,9 @@ ns.ui = {
     tally = tally,
     renderPreview = renderPreview,
     defaultHeaderAlpha = defaultHeaderAlpha,
+    backdropStyle = backdropStyle,
+    createPanel = createPanel,
+    drawBackdrop = drawBackdrop,
     styleOf = styleOf,
     alignPanel = alignPanel,
     pinPanel = pinPanel,

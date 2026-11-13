@@ -697,13 +697,15 @@ return function(fixture, enums, report, strings)
         "TopEdge", "BottomEdge", "LeftEdge", "RightEdge", "Center" }
     NineSliceUtil = {
         ApplyLayoutByName = function(frame, layout)
-            if layout ~= "TooltipDefaultLayout" and layout ~= "ButtonFrameTemplateNoPortrait" then
+            local prefix = ({ TooltipDefaultLayout = "tooltip-", ButtonFrameTemplateNoPortrait = "tooltip-",
+                Dialog = "dialog-" })[layout]
+            if not prefix then
                 error("no layout " .. tostring(layout))
             end
             frame._layout = layout
             for _, piece in ipairs(PIECES) do
                 frame[piece] = frame[piece] or frame:CreateTexture(piece)
-                frame[piece]._texture = "tooltip-" .. piece
+                frame[piece]._texture = prefix .. piece
                 frame[piece]._width, frame[piece]._height = piece:find("Edge") and 0 or 16, piece:find("Edge") and 0 or 16
             end
         end,

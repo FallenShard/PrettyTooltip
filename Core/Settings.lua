@@ -64,8 +64,10 @@ local DEFAULTS = {
     -- DialogueUI's brown paper for quests and quest items, when installed.
     questParchment = false,
     -- nil chooses: DialogueUI's art when installed, flat with EllesmereUI, else
-    -- the game's own tooltip border. "native", "flat", or "dialogue" to pick one.
+    -- the game's own tooltip border. "native", "flat", "dialogue", or "classic" to pick one.
     backdropStyle = nil,
+    -- The game's own tooltips the panel does not replace, in the panel style.
+    skinGameTooltips = false,
     -- The editor's frame treatment, independent of the tooltips it previews.
     editorStyle = "native",
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
@@ -419,14 +421,18 @@ function ns.resetStyles()
     changed()
 end
 
+-- Names are in capitals unless turned off; other parts only when turned on.
+function ns.capsDefault(element)
+    return element.caps or element.title == true
+end
+
 function ns.style(key)
     local element = ELEMENT_BY_KEY[key]
     local outline = ns.elementSetting(key, "outline") or ns.option("outline")
     local color = ns.elementSetting(key, "color")
     if type(color) ~= "table" then color = nil end
-    -- Names are in capitals unless turned off; other parts only when turned on.
     local caps = ns.elementSetting(key, "caps")
-    if caps == nil then caps = element.caps or element.title == true end
+    if caps == nil then caps = ns.capsDefault(element) end
     return {
         key = key,
         title = element.title,
