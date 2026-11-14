@@ -214,8 +214,19 @@ return function(test)
         RegisterAddOnCategory = function() end,
     }
     ns.Options.register()
+    local function descendants(frame)
+        local children = {}
+        local function visit(parent)
+            for _, child in ipairs({ parent:GetChildren() }) do
+                children[#children + 1] = child
+                visit(child)
+            end
+        end
+        visit(frame)
+        return children
+    end
     local combatBox
-    for _, child in ipairs({ page:GetChildren() }) do
+    for _, child in ipairs(descendants(page)) do
         if child:GetObjectType() == "CheckButton" then
             for _, label in ipairs({ child:GetRegions() }) do
                 if label:GetText() == "Disable in combat" then combatBox = child end

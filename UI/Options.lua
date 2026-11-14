@@ -51,8 +51,16 @@ function ns.Options.register()
         if ns.openEditor then ns.openEditor() end
     end)
 
+    local canvas = page
+    local scroll = CreateFrame("ScrollFrame", nil, canvas, "UIPanelScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", 0, -96)
+    scroll:SetPoint("BOTTOMRIGHT", -28, 8)
+    page = CreateFrame("Frame", nil, scroll)
+    page:SetSize(820, 660)
+    scroll:SetScrollChild(page)
+
     -- Two columns: the types of tooltip on the left, the other settings on the right.
-    local COLUMNS_TOP = -100
+    local COLUMNS_TOP = -4
     local leftColumn = { x = 16, y = COLUMNS_TOP }
     local rightColumn = { x = 440, y = COLUMNS_TOP }
 
@@ -106,6 +114,58 @@ function ns.Options.register()
             .. "its position is left to the game and other addons.")
         leftColumn.y = leftColumn.y - 22
     end
+
+    section(leftColumn, "Tooltip fading")
+    local fadeBox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    fadeBox:SetSize(24, 24)
+    fadeBox:SetPoint("TOPLEFT", leftColumn.x + 8, leftColumn.y + 4)
+    local fadeLabel = fadeBox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+    fadeLabel:SetPoint("LEFT", fadeBox, "RIGHT", 6, 0)
+    fadeLabel:SetText(L["Use Blizzard timings"])
+    fadeBox:SetHitRectInsets(0, -(fadeLabel:GetStringWidth() + 8), 0, 0)
+    fadeBox:SetScript("OnClick", function(self)
+        setOption("customFade", not self:GetChecked())
+        refreshControls()
+    end)
+    fadeBox.refresh = function() fadeBox:SetChecked(not ns.option("customFade")) end
+    controls[#controls + 1] = fadeBox
+    explain(fadeBox, "Use Blizzard timings", "Mirror the game's own tooltip delay and fade. Turn off to choose custom timings below.")
+    leftColumn.y = leftColumn.y - 34
+
+    local function timingSlider(key, title, index)
+        local label = page:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        label:SetPoint("TOPLEFT", leftColumn.x + 12, leftColumn.y)
+        label:SetText(L[title])
+        local slider = CreateFrame("Slider", nil, page, "MinimalSliderTemplate")
+        slider:SetOrientation("HORIZONTAL")
+        slider:SetPoint("TOPLEFT", leftColumn.x + 12, leftColumn.y - 20)
+        slider:SetSize(230, 19)
+        slider:SetMinMaxValues(0, 5)
+        slider:SetValueStep(.1)
+        if slider.SetObeyStepOnDrag then slider:SetObeyStepOnDrag(true) end
+        local value = slider:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        value:SetPoint("LEFT", slider, "RIGHT", 12, 0)
+        slider:SetScript("OnValueChanged", function(self, seconds)
+            if self.updating then return end
+            seconds = math.floor(seconds * 10 + .5) / 10
+            setOption(key, seconds)
+            value:SetText(string.format("%.1f s", seconds))
+        end)
+        slider.refresh = function()
+            slider.updating = true
+            local delay, duration = ns.fadeTiming()
+            local seconds = index == 1 and delay or duration
+            slider:SetValue(seconds)
+            value:SetText(string.format("%.1f s", seconds))
+            slider:SetEnabled(ns.option("customFade"))
+            slider.updating = false
+        end
+        controls[#controls + 1] = slider
+        explain(slider, title, "Custom timing in seconds. Set both Hide delay and Fade duration to zero to hide instantly.")
+        leftColumn.y = leftColumn.y - 54
+    end
+    timingSlider("hideDelay", "Hide delay", 1)
+    timingSlider("fadeDuration", "Fade duration", 2)
 
     -- A choice of values for one setting, each { value, label, note }, as radio
     -- buttons down the column.
@@ -211,21 +271,22 @@ function ns.Options.register()
     explain(scaleSlider, "Global scale", "Scales every PrettyTooltip panel, including text, icons, spacing, and bars. "
         .. "100% is the default. Individual text settings are preserved.")
 
-    page:SetScript("OnShow", refreshControls)
+    page = canvas
+    canvas:SetScript("OnShow", refreshControls)
     -- Hooks the settings window calls on canvas pages: when it shows them, and
     -- from its Defaults button.
-    page.OnRefresh = refreshControls
-    page.OnDefault = function()
+    canvas.OnRefresh = refreshControls
+    canvas.OnDefault = function()
         ns.resetOptions()
         if ns.refreshEditorStyle then ns.refreshEditorStyle() end
         refreshControls()
     end
 
     if Settings and Settings.RegisterCanvasLayoutCategory and Settings.RegisterAddOnCategory then
-        category = Settings.RegisterCanvasLayoutCategory(page, page.name)
+        category = Settings.RegisterCanvasLayoutCategory(canvas, canvas.name)
         Settings.RegisterAddOnCategory(category)
     elseif InterfaceOptions_AddCategory then
-        InterfaceOptions_AddCategory(page)
+        InterfaceOptions_AddCategory(canvas)
     end
     refreshControls()
 end

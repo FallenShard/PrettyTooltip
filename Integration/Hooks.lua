@@ -112,6 +112,7 @@ end
 update = probe("update", update)
 
 local function finishTooltip(tooltip, panel, data, token)
+    if panel.fade then return end
     if not util.canModify(tooltip) or panel.refreshToken ~= token or not util.call(tooltip.IsShown, tooltip)
         or not showsDataType(tooltip, panel) then return end
     local pending = panel.contentPending
@@ -247,7 +248,7 @@ end)
 -- new item post-call replaces it in that frame.
 local function scheduleRestore(tooltip)
     local panel = panels[tooltip]
-    if not panel or panel.nativeOnly then return end
+    if not panel or panel.nativeOnly or panel.fade then return end
     if panel.data and panel.data.fromLines then panel.data = nil end
     panel.restorePending = true
     panel.contentPending = nil
@@ -323,9 +324,12 @@ local function onTooltipData(dataType, tooltip, data)
         tooltip:HookScript("OnHide", probe("hook OnHide", function(hidden)
             if panel.nativeOnly then return end
             if native.hiddenByParent(hidden) then
-                native.followParent(hidden, panel)
+                if panel.fade then restoreNative(hidden) else native.followParent(hidden, panel) end
                 return
             end
+            -- A custom delay can outlive the client's own Hide. Do not
+            -- re-show the native tooltip or let cleanup dismiss the panel.
+            if native.fadeOut(hidden, true) then return end
             -- Keep native cleanup deferred, but never draw the old panel at
             -- an anchor reset by an action button's hide/clear sequence.
             local wasShown = panel:IsShown()
@@ -340,6 +344,7 @@ local function onTooltipData(dataType, tooltip, data)
         local function onNativeShown(shown)
             if panel.nativeOnly then return end
             if not util.canModify(shown) then return end
+            if panel.fade then native.unpark(shown) end
             native.followParent(shown, panel)
             if panel.restorePending or panel.comparisonPending or panel.contentPending then
                 if panel.nativeAlpha then shown:SetAlpha(0) end
@@ -399,11 +404,12 @@ local function onTooltipData(dataType, tooltip, data)
         -- A faded tooltip stays off the screen while hidden by its parent;
         -- EllesmereUI's modifier would otherwise reveal it at its old anchor.
         tooltip:HookScript("OnHide", probe("hook OnHide unpark", function(hidden)
-            if not native.hiddenByParent(hidden) then native.unpark(hidden) end
+            if not panel.fade and not native.hiddenByParent(hidden) then native.unpark(hidden) end
         end))
         panel.hooked = true
         panel:SetScript("OnUpdate", probe("panel update", function(self, elapsed)
-            if not util.canModify(tooltip) then self:Hide(); return end
+            if not util.canModify(tooltip) then native.cancelFade(self); self:Hide(); return end
+            if native.updateFade(tooltip, self, elapsed) then return end
             local alpha = util.number((util.call(tooltip.GetAlpha, tooltip)))
             if self.nativeAlpha and not alpha then
                 self.nativeAlpha = nil

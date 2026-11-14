@@ -56,9 +56,13 @@ return function(test)
         RegisterAddOnCategory = function() end }
     ns.Options.register()
     local slider
-    for _, child in ipairs({ page:GetChildren() }) do
-        if child:GetObjectType() == "Slider" then slider = child end
+    local function findScale(frame)
+        for _, child in ipairs({ frame:GetChildren() }) do
+            if child:GetObjectType() == "Slider" and child:GetValue() == 125 then slider = child end
+            findScale(child)
+        end
     end
+    findScale(page)
     test.check("the main options expose the saved percentage", slider:GetValue(), 125)
     slider:GetScript("OnValueChanged")(slider, 70)
     test.check("one slider changes all tooltip sizes", ns.tooltipScale(), .7)

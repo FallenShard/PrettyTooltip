@@ -18,6 +18,10 @@ return function(test)
         pending = {}
         for _, callback in ipairs(callbacks) do callback() end
     end
+    -- Exercise the optional legacy instant-hide mode in these parking checks.
+    ns.setOption("customFade", true)
+    ns.setOption("hideDelay", 0)
+    ns.setOption("fadeDuration", 0)
     ns.Hooks.install()
     local callback = world.postCalls[33][1]
     GameTooltip_SetDefaultAnchor = function(frame)
