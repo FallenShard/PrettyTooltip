@@ -9,7 +9,7 @@ return function(test)
     }
     -- The files only Forever's .toc loads; the first two have retail stand-ins.
     local FOREVER_ONLY = { "Data/Schools.lua", "Data/Imbues.lua", "Data/Disenchant.lua", "Data/Nodes.lua",
-        "Data/NodeNames.lua", "Data/NodeSkills.lua", "Data/Skinning.lua", "Data/SpellRanks.lua",
+        "Data/NodeNames.lua", "Data/NodeSkills.lua", "Data/Skinning.lua", "Data/SpellParts.lua",
         "Data/Coefficients.lua" }
     local DATA_SETS = { "disenchant", "coefficients", "nodeLoot", "nodeNames", "nodeSkills", "skinningLoot" }
 

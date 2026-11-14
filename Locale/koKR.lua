@@ -131,6 +131,12 @@ L["Spell Power Coefficient over time"] = "지속 피해 주문력 계수"
 L["Healing Power Coefficient"] = "치유량 계수"
 L["Healing Power Coefficient over time"] = "지속 치유 계수"
 L["each"] = "각각"
+L["Proc"] = "발동"
+L["Judgement"] = "심판"
+L["Judgement, stunned target"] = "심판, 기절한 대상"
+L["Per swing, fast weapon"] = "타격당, 빠른 무기"
+L["Per swing, slow weapon"] = "타격당, 느린 무기"
+L["Extra to the first targets"] = "첫 대상들에게 추가"
 
 -- Stats ------------------------------------------------------------------------
 

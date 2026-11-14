@@ -6,7 +6,9 @@ return function(test)
     local function localizedLabels(locale, L)
         local missing = {}
         for _, key in ipairs({ "Spell Power Coefficient", "Spell Power Coefficient over time",
-            "Healing Power Coefficient", "Healing Power Coefficient over time", "each", "%s to %s" }) do
+            "Healing Power Coefficient", "Healing Power Coefficient over time", "each", "%s to %s", "Proc", "Judgement",
+            "Judgement, stunned target", "Per swing, fast weapon", "Per swing, slow weapon",
+            "Extra to the first targets" }) do
             -- Reading through L's metatable would silently accept English fallback.
             local value = rawget(L, key)
             if type(value) ~= "string" or value == "" or value == key then missing[#missing + 1] = key end
@@ -117,7 +119,7 @@ return function(test)
 
     for _, case in ipairs(cases) do
         local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Locale/Locale.lua", "Locale/English.lua",
-            "Locale/" .. case.file .. ".lua", "Game/Game.lua", "Data/Schools.lua", "Data/SpellRanks.lua",
+            "Locale/" .. case.file .. ".lua", "Game/Game.lua", "Data/Schools.lua", "Data/SpellParts.lua",
             "Game/SpellAmounts.lua", "Data/Coefficients.lua" }, { client = { locale = case.locale } })
         local util, L = ns.util, ns.L
         localizedLabels(case.locale, L)
@@ -127,7 +129,8 @@ return function(test)
         local function row(share, base, bonus, each)
             return number(share) .. "% · " .. base .. " + " .. bonus .. (each and " " .. L["each"] or "")
         end
-        local function check(spellID, cast, cost, expected, expectedRates, healing)
+        -- timing: for each row, whether it is the amount over time.
+        local function check(spellID, cast, cost, expected, expectedRates, timing, healing)
             local rows, rates = ns.spellPowerRows({ spellID = spellID, name = "?", description = { case.text[spellID] },
                 cast = { cast, L["Cast"] }, cost = cost and { tostring(cost), MANA } }, "FFFFFF", game)
             local values, labels, rateValues = {}, {}, {}
@@ -139,31 +142,31 @@ return function(test)
             test.check(case.locale .. ": " .. spellID .. " amounts and coefficients", values, expected)
             test.check(case.locale .. ": " .. spellID .. " rates", rateValues, expectedRates)
             local caption = healing and "Healing Power Coefficient" or "Spell Power Coefficient"
-            local rank = ns.spellRanks[spellID]
             local expectedLabels = {}
-            if rank[2] then expectedLabels[#expectedLabels + 1] = L[caption] end
-            if rank[3] then expectedLabels[#expectedLabels + 1] = L[caption .. " over time"] end
+            for _, overTime in ipairs(timing) do
+                expectedLabels[#expectedLabels + 1] = L[caption .. (overTime and " over time" or "")]
+            end
             test.check(case.locale .. ": " .. spellID .. " translated captions", labels, expectedLabels)
         end
         check(2136, SPELL_CAST_TIME_INSTANT, 40, { row("42.9", range(27, 36), 12) },
-            { number("29.0"), number("1.09") })
+            { number("29.0"), number("1.09") }, { false })
         check(1042, util.fill(SPELL_DURATION_SEC, number("2.5")), 275, { row("71.4", range(211, 265), 214) },
-            { number("180.8"), number("1.64") }, true)
+            { number("180.8"), number("1.64") }, { false }, true)
         check(145, util.fill(SPELL_DURATION_SEC, number("2.5")), 65,
-            { row("71.4", range(45, 62), 21), row("0.0", "6", 0) }, { number("30.8"), number("1.24") })
+            { row("71.4", range(45, 62), 21), row("0.0", "6", 0) }, { number("30.8"), number("1.24") }, { false, true })
         check(837, util.fill(SPELL_DURATION_SEC, number("1.7")), 35, { row("59.7", range(45, 51), 17) },
-            { number("38.2"), number("1.86") })
+            { number("38.2"), number("1.86") }, { false })
         check(139, SPELL_CAST_TIME_INSTANT, 100, { row("100.0", "100", 300) },
-            { number("26.7"), number("4.00") }, true)
+            { number("26.7"), number("4.00") }, { true }, true)
         check(8936, util.fill(SPELL_DURATION_SEC, "2"), 100,
             { row("28.6", range(215, 265), 85), row("49.7", "201", 149) },
-            { number("179.2"), number("6.75") }, true)
-        check(5143, SPELL_CAST_CHANNELED, 1055, { row("85.8", "225", 5, true) },
-            { number("230.0"), number("1.09") })
-        check(740, SPELL_CAST_CHANNELED, 1000, { row("33.5", "1405", 20, true) },
-            { number("712.5"), number("7.12") }, true)
+            { number("179.2"), number("6.75") }, { false, true }, true)
+        check(5143, SPELL_CAST_CHANNELED, 1055, { row("28.6", "222", 8, true) },
+            { number("230.0"), number("1.09") }, { true })
+        check(740, SPELL_CAST_CHANNELED, 1000, { row("6.7", "1405", 20, true) },
+            { number("712.5"), number("7.12") }, { true }, true)
         check(17, SPELL_CAST_TIME_INSTANT, 100, { row("10.0", "120", 30) },
-            { number("100.0"), number("1.50") }, true)
+            { number("100.0"), number("1.50") }, { false }, true)
         test.check(case.locale .. ": enabled after native wording checks", ns.Locale.features.coefficients, true)
         local filtered = ns.spellPowerRows({ spellID = 2136, name = "?", cast = { SPELL_CAST_TIME_INSTANT },
             description = { "40 % · " .. util.fill(SPELL_DURATION_SEC, "5") .. " · " .. case.text[2136] } }, "FFFFFF", game)

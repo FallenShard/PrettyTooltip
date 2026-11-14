@@ -46,7 +46,7 @@ end
 -- from one asks first (ns.hasData). A name not listed here stops the load.
 local dataSets = {
     disenchant = false, -- Data/Disenchant.lua
-    coefficients = false, -- Data/Coefficients.lua, with Data/SpellRanks.lua
+    coefficients = false, -- Data/Coefficients.lua, with Data/SpellParts.lua
     nodeLoot = false, -- Data/Nodes.lua
     nodeNames = false, -- Data/NodeNames.lua
     nodeSkills = false, -- Data/NodeSkills.lua

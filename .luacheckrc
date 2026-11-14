@@ -96,6 +96,7 @@ read_globals = {
     "C_PaperDollInfo", "GetWeaponEnchantInfo", "GetInventoryItemTexture",
     "GetLocale", "GetBuildInfo", "GetAddOnMetadata", "GetTime", "IsAltKeyDown", "IsControlKeyDown", "IsShiftKeyDown", "InCombatLockdown",
     "GetSpellInfo", "GetSpellDescription", "GetSpellTexture", "GetSpellBonusDamage", "GetSpellBonusHealing", "GetMacroInfo", "GetMacroIndexByName",
+    "IsPlayerSpell", "C_ClassTalents", "C_Traits",
     "GetNumMacros", "GetMacroSpell", "GetMacroItem", "MAX_ACCOUNT_MACROS", "GetPetActionInfo",
     "NumTaxiNodes", "TaxiNodeName", "TaxiNodeCost", "TaxiNodeGetType", "TaxiNodeOnButtonEnter",
     "TAXINODEYOUAREHERE", "UpdateAddOnMemoryUsage", "GetAddOnMemoryUsage", "GetPhysicalScreenSize", "PixelUtil",

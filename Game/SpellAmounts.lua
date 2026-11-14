@@ -124,6 +124,24 @@ local function readAmounts(text, rank)
     return direct, periodic
 end
 
+-- Every number a description prints, in order: "175 to 189" is two, "1.5" and
+-- "1,234" one. Must match NUMBER in tools/spell_formulas.py, which counts them
+-- for Data/SpellParts.lua.
+local function numbersIn(text)
+    local list, pos = {}, 1
+    while true do
+        local start, stop = text:find("%d+", pos)
+        if not start then return list end
+        local _, more = text:find("^[%.,]%d+", stop + 1)
+        while more do
+            stop = more
+            _, more = text:find("^[%.,]%d+", stop + 1)
+        end
+        list[#list + 1] = readNumber(text:sub(start, stop))
+        pos = stop + 1
+    end
+end
+
 -- The strip's cast, as Tooltips/Spell.lua words it: the game's "Instant" or
 -- "Channeled", or a duration in seconds, "2.5 sec".
 local function isInstant(cast)
@@ -217,6 +235,7 @@ end
 
 ns.SpellAmounts = {
     readAmounts = readAmounts,
+    numbersIn = numbersIn,
     isInstant = isInstant,
     isChanneled = isChanneled,
     castTime = castTime,

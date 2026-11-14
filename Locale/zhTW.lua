@@ -132,6 +132,12 @@ L["Spell Power Coefficient over time"] = "持續傷害法術能量係數"
 L["Healing Power Coefficient"] = "治療能量係數"
 L["Healing Power Coefficient over time"] = "持續治療能量係數"
 L["each"] = "每個"
+L["Proc"] = "觸發"
+L["Judgement"] = "審判"
+L["Judgement, stunned target"] = "審判，昏迷的目標"
+L["Per swing, fast weapon"] = "每次攻擊，快速武器"
+L["Per swing, slow weapon"] = "每次攻擊，慢速武器"
+L["Extra to the first targets"] = "對首批目標額外"
 
 -- Stats ------------------------------------------------------------------------
 

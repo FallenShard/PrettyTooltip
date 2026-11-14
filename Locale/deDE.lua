@@ -144,6 +144,12 @@ L["Spell Power Coefficient over time"] = "Zaubermachtkoeffizient über Zeit"
 L["Healing Power Coefficient"] = "Heilkraftkoeffizient"
 L["Healing Power Coefficient over time"] = "Heilkraftkoeffizient über Zeit"
 L["each"] = "je"
+L["Proc"] = "Auslösung"
+L["Judgement"] = "Richturteil"
+L["Judgement, stunned target"] = "Richturteil, betäubtes Ziel"
+L["Per swing, fast weapon"] = "Pro Schlag, schnelle Waffe"
+L["Per swing, slow weapon"] = "Pro Schlag, langsame Waffe"
+L["Extra to the first targets"] = "Zusätzlich für die ersten Ziele"
 
 -- Stats --------------------------------------------------------------------------
 

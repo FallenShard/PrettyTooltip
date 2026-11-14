@@ -2,7 +2,7 @@
 -- checked in game (30 spell damage) and on foreverchanges.pro.
 return function(test)
     local ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Locale/Locale.lua", "Locale/English.lua",
-        "Game/Game.lua", "Data/Schools.lua", "Data/SpellRanks.lua", "Game/SpellAmounts.lua", "Data/Coefficients.lua" })
+        "Game/Game.lua", "Data/Schools.lua", "Data/SpellParts.lua", "Game/SpellAmounts.lua", "Data/Coefficients.lua" })
     -- The player's power, given as the game would answer it.
     local game = { spellDamage = function() return 30 end, spellHealing = function() return 300 end }
 
@@ -38,12 +38,12 @@ return function(test)
         "Healing Power Coefficient | 71.4% · 211 to 265 + 214")
     test.check("an unknown spell is an estimate", rows("Mystery Bolt", "2.5 sec",
         "Hits the target for 221 to 261 Shadow damage."), "Spell Power Coefficient | ~71.4% · 200 to 240 + 21")
-    test.check("a channel's amount each second gains its share of the whole", rows("Arcane Missiles", "Channeled",
+    test.check("a channel's amount each second gains one missile's share", rows("Arcane Missiles", "Channeled",
         "Launches Arcane Missiles at the enemy, causing 230 Arcane damage each second for 5 sec."),
-        "Spell Power Coefficient over time | 143.0% · 222 + 8 each")
+        "Spell Power Coefficient over time | 28.6% · 222 + 8 each")
     test.check("a heal every few seconds, which never says heal", rows("Tranquility", "Channeled",
         "Regenerates all nearby group members for 1425 every 2 sec for 10 sec."),
-        "Healing Power Coefficient over time | 33.5% · 1405 + 20 each")
+        "Healing Power Coefficient over time | 6.7% · 1405 + 20 each")
     test.check("an unknown channeled spell shows nothing", rows("Mystery Channel", "Channeled",
         "Channels a mystery, causing 230 Arcane damage each second for 5 sec."), "none")
     test.check("a physical ability shows nothing", rows("Shield Bash", "Instant",

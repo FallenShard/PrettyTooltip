@@ -303,6 +303,27 @@ function game.spellHealing()
     return number((call(GetSpellBonusHealing)))
 end
 
+function game.knowsSpell(spellID)
+    if not IsPlayerSpell then return false end
+    return call(IsPlayerSpell, spellID) == true
+end
+
+-- A stance, form, or set bonus is an aura on the player too.
+function game.hasAura(spellID)
+    local getter = C_UnitAuras and C_UnitAuras.GetPlayerAuraBySpellID
+    if not getter then return false end
+    return call(getter, spellID) ~= nil
+end
+
+-- The player's rank in a talent, by its trait node; 0 when not taken.
+function game.talentRank(nodeID)
+    if not (C_ClassTalents and C_ClassTalents.GetActiveConfigID and C_Traits and C_Traits.GetNodeInfo) then return 0 end
+    local configID = call(C_ClassTalents.GetActiveConfigID)
+    local info = configID and call(C_Traits.GetNodeInfo, configID, nodeID)
+    if type(info) ~= "table" then return 0 end
+    return number(info.activeRank) or number(info.currentRank) or 0
+end
+
 -- The mana a spell costs the player: none here, as Forever's tooltips give the
 -- mana itself. A client whose tooltips give a share of base mana replaces it
 -- (retail's Retail/Game/GameExtension.lua).

@@ -130,6 +130,12 @@ L["Spell Power Coefficient over time"] = "持续伤害法术强度系数"
 L["Healing Power Coefficient"] = "治疗强度系数"
 L["Healing Power Coefficient over time"] = "持续治疗强度系数"
 L["each"] = "每个"
+L["Proc"] = "触发"
+L["Judgement"] = "审判"
+L["Judgement, stunned target"] = "审判，昏迷的目标"
+L["Per swing, fast weapon"] = "每次攻击，快速武器"
+L["Per swing, slow weapon"] = "每次攻击，慢速武器"
+L["Extra to the first targets"] = "对首批目标额外"
 
 -- Stats ------------------------------------------------------------------------
 

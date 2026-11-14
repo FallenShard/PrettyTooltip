@@ -50,7 +50,7 @@ Callbacks run inside the reader's and renderer's protected calls: an error falls
 
 ### 3. Data only Forever loads: `ns.hasData`
 
-Classic's tables do not hold for retail, so retail's `.toc` leaves out `Data/Disenchant.lua`, `Data/Coefficients.lua` with `Data/SpellRanks.lua`, `Data/Nodes.lua`, `Data/NodeNames.lua`, `Data/NodeSkills.lua`, and `Data/Skinning.lua`. Each such file says `-- Forever only:` in its header and calls `ns.provideData(name)`; code that draws from one asks `ns.hasData(name)` first. The names are listed in `Core/Util.lua`, and an unknown one stops the load. A style part drawn from one names it in `needs` (`Core/Settings.lua`), and the editor offers it only where it is loaded.
+Classic's tables do not hold for retail, so retail's `.toc` leaves out `Data/Disenchant.lua`, `Data/Coefficients.lua` with `Data/SpellParts.lua`, `Data/Nodes.lua`, `Data/NodeNames.lua`, `Data/NodeSkills.lua`, and `Data/Skinning.lua`. Each such file says `-- Forever only:` in its header and calls `ns.provideData(name)`; code that draws from one asks `ns.hasData(name)` first. The names are listed in `Core/Util.lua`, and an unknown one stops the load. A style part drawn from one names it in `needs` (`Core/Settings.lua`), and the editor offers it only where it is loaded.
 
 ## Adding to retail
 

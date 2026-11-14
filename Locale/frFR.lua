@@ -142,6 +142,12 @@ L["Spell Power Coefficient over time"] = "Coefficient de puissance des sorts sur
 L["Healing Power Coefficient"] = "Coefficient de puissance des soins"
 L["Healing Power Coefficient over time"] = "Coefficient de puissance des soins sur la durée"
 L["each"] = "chacun"
+L["Proc"] = "Déclenchement"
+L["Judgement"] = "Jugement"
+L["Judgement, stunned target"] = "Jugement, cible étourdie"
+L["Per swing, fast weapon"] = "Par coup, arme rapide"
+L["Per swing, slow weapon"] = "Par coup, arme lente"
+L["Extra to the first targets"] = "En plus pour les premières cibles"
 
 -- Stats --------------------------------------------------------------------------
 

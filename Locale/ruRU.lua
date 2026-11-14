@@ -131,6 +131,12 @@ L["Spell Power Coefficient over time"] = "Коэффициент силы зак
 L["Healing Power Coefficient"] = "Коэффициент силы исцеления"
 L["Healing Power Coefficient over time"] = "Коэффициент силы исцеления для периодического исцеления"
 L["each"] = "каждый"
+L["Proc"] = "Срабатывание"
+L["Judgement"] = "Правосудие"
+L["Judgement, stunned target"] = "Правосудие, оглушенная цель"
+L["Per swing, fast weapon"] = "За удар, быстрое оружие"
+L["Per swing, slow weapon"] = "За удар, медленное оружие"
+L["Extra to the first targets"] = "Дополнительно первым целям"
 
 -- Stats -----------------------------------
 L["All Stats"] = "ко всем характеристикам"
