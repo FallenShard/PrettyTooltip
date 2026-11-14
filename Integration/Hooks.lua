@@ -271,8 +271,42 @@ local checkComparison = probe("timer comparison check", function(tooltip, panel)
     end
 end)
 
-local function onTooltipData(dataType, tooltip, data)
+-- Other addons read items through tooltips of their own that never show: Pawn,
+-- Syndicator and others set one up with SetHyperlink dozens of times in a
+-- refresh. The game hands each fill to every post-call, and drawing a panel
+-- for each was most of the cost of a bag tooltip. Only the game's own tooltips
+-- are drawn at once; any other waits a frame and is drawn if it turned out to
+-- be shown and anchored somewhere, as a tooltip of an addon's own window is.
+local displayTooltips = setmetatable({}, { __mode = "k" })
+local probing = setmetatable({}, { __mode = "k" })
+ns.skippedTooltips = {}
+
+local function isDisplayTooltip(tooltip)
+    return displayTooltips[tooltip] or panels[tooltip] or tooltip == GameTooltip
+        or tooltip == ItemRefTooltip or isComparison(tooltip)
+end
+
+local onTooltipData
+local function onTooltipDataUnknown(dataType, tooltip, data)
+    if probing[tooltip] then return end
+    probing[tooltip] = true
+    C_Timer.After(0, function()
+        probing[tooltip] = nil
+        if util.canModify(tooltip) and util.call(tooltip.IsShown, tooltip) == true
+            and (util.number(util.call(tooltip.GetNumPoints, tooltip)) or 0) > 0 then
+            displayTooltips[tooltip] = true
+            onTooltipData(dataType, tooltip, data)
+        else
+            local name = util.call(tooltip.GetName, tooltip)
+            name = type(name) == "string" and name or "<unnamed>"
+            ns.skippedTooltips[name] = (ns.skippedTooltips[name] or 0) + 1
+        end
+    end)
+end
+
+function onTooltipData(dataType, tooltip, data)
     if not util.canModify(tooltip) then return end
+    if not isDisplayTooltip(tooltip) then return onTooltipDataUnknown(dataType, tooltip, data) end
     if isSecret(data) or type(data) ~= "table" or isSecret(data.lines) or type(data.lines) ~= "table" then
         restoreNative(tooltip)
         return
