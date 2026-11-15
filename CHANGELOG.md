@@ -1,12 +1,3 @@
-# PrettyTooltip 1.4.1
-
-## Tooltip fading
-
-- Restored Blizzard's normal tooltip delay and fade by default, mirroring the client's native timing instead of hiding the PrettyTooltip panel immediately.
-- Added **Use Blizzard timings**, **Hide delay**, and **Fade duration** under **Tooltip fading** in `/ptip options`. Custom timings range from 0 to 5 seconds in 0.1-second steps; both zero restores instant hiding.
-- New hovers cancel a pending fade immediately. Cursor-following tooltips stay at their last position while fading, and hidden parent windows dismiss their panels.
-- Made the main settings columns scrollable so the new controls remain accessible on smaller screens.
-
 # PrettyTooltip 1.3.8
 
 ## Tooltips

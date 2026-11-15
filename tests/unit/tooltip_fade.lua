@@ -6,8 +6,9 @@ return function(test)
         lines = { { left = { text = "Mailbox" } } } }
     local ns, world = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Core/TooltipPlacement.lua",
         "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
-        "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua", "Integration/Native.lua", "Integration/Placement.lua",
-        "Integration/Hooks.lua", "Integration/Cursor.lua", "UI/Options.lua" }, fixture)
+        "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Item.lua", "Tooltips/Object.lua", "Integration/Native.lua",
+        "Integration/Placement.lua", "Integration/Hooks.lua", "Integration/Cursor.lua", "UI/Samples.lua",
+        "UI/EditorSkin.lua", "UI/Editor.lua" }, fixture)
     local tooltip = world.main
     local queued = {}
     C_Timer.After = function(_, callback) queued[#queued + 1] = callback end
@@ -125,22 +126,32 @@ return function(test)
     ns.setOption("fadeDuration", 0 / 0)
     test.check("invalid values get finite defaults", { ns.fadeTiming() }, { 1, 1 })
 
-    local page
-    Settings = { RegisterCanvasLayoutCategory = function(frame) page = frame return {} end,
-        RegisterAddOnCategory = function() end }
-    ns.Options.register()
-    local sliders = {}
-    local function visit(frame)
-        for _, child in ipairs({ frame:GetChildren() }) do
-            if child:GetObjectType() == "Slider" and child:GetValue() <= 5 then sliders[#sliders + 1] = child end
-            visit(child)
+    ns.resetOptions()
+    ns.openEditor()
+    local editor = PrettyTooltipEditor
+    editor:GetScript("OnShow")(editor)
+    local sliders, customBox = {}, nil
+    for _, widget in ipairs(world.objects) do
+        if widget:GetObjectType() == "Slider" then
+            local low, high = widget:GetMinMaxValues()
+            if low == 0 and high == 5 then sliders[#sliders + 1] = widget end
+        elseif widget:GetObjectType() == "CheckButton" then
+            for _, label in ipairs({ widget:GetRegions() }) do
+                if label:GetText() == "Custom fade timings" then customBox = widget end
+            end
         end
     end
-    visit(page)
-    test.check("options expose both timing sliders", #sliders, 2)
+    test.check("the editor exposes custom fade timings", customBox:GetChecked(), false)
+    test.check("the editor exposes both timing sliders", #sliders, 2)
+    test.check("custom sliders stay hidden with native timings", sliders[1]:GetParent():GetParent():IsShown(), false)
+    customBox:SetChecked(true)
+    customBox:GetScript("OnClick")(customBox)
+    test.check("enabling custom timings shows their controls",
+        { ns.option("customFade"), sliders[1]:GetParent():GetParent():IsShown() }, { true, true })
     sliders[1]:GetScript("OnValueChanged")(sliders[1], 2.5)
     sliders[2]:GetScript("OnValueChanged")(sliders[2], .5)
     test.check("sliders save independent timings", { ns.fadeTiming() }, { 2.5, .5 })
-    page.OnDefault()
-    test.check("Defaults returns to native timings", ns.option("customFade"), false)
+    customBox:SetChecked(false)
+    customBox:GetScript("OnClick")(customBox)
+    test.check("turning custom timings off restores native fading", ns.option("customFade"), false)
 end

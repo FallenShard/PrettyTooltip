@@ -181,7 +181,3 @@ Each opens a window with its findings already selected, under a line naming the 
 `tests/` runs the addon outside the game against captured tooltips and checks, for both games: `pip install -r tests/requirements.txt`, then `python tests/run.py`. `tests/README.md` describes capturing, importing, and the expected outputs.
 
 `art/README.md` describes each texture and how it is made.
-
-## Tooltip fading (fork)
-
-Open `/ptip options` and scroll to **Tooltip fading**. **Use Blizzard timings** is on by default: the panel mirrors the game client's own delay and fade, with no guessed timing constants. Uncheck it to set **Hide delay** and **Fade duration** independently from 0 to 5 seconds (0.1-second steps). Custom values initially use 1 second each; setting both to zero keeps instant hiding. A new hover replaces a fading panel immediately. Sticky item links and comparison panels retain their normal close behavior. These settings affect PrettyTooltip's replacement hover panel; Blizzard-layout tooltips keep the game's behavior.

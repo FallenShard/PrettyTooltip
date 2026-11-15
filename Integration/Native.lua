@@ -100,7 +100,8 @@ end
 
 -- An owner or content refresh can reuse the parked anchor. Restore ours only
 -- while it is still parked; the game or another addon may already have moved it.
--- Preserve fresh native anchors while removing any leftover parked point.
+-- A shown tooltip keeps its points through SetOwner, so the game's own anchor
+-- can land beside the parked one, stretching the tooltip to zero height.
 local function unpark(tooltip)
     local panel = panels[tooltip]
     local parked = panel and panel.parked

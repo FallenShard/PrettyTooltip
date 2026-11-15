@@ -36,19 +36,8 @@ return function(test)
     test.check("settings category registered", registered == category, true)
     test.check("settings page starts hidden", page:IsShown(), false)
     -- The first checkbox controls item panels; it must use the saved false.
-    local function descendants(frame)
-        local children = {}
-        local function visit(parent)
-            for _, child in ipairs({ parent:GetChildren() }) do
-                children[#children + 1] = child
-                visit(child)
-            end
-        end
-        visit(frame)
-        return children
-    end
     local firstCheckbox
-    for _, child in ipairs(descendants(page)) do
+    for _, child in ipairs(page._children) do
         if child._kind == "CheckButton" then firstCheckbox = child break end
     end
     test.check("controls use settings saved after file loading", firstCheckbox:GetChecked(), false)
