@@ -78,7 +78,7 @@ Spells that deal magic damage or heal show their spell power under the descripti
 
 Units under the cursor get a panel with their portrait, the name in class color (players) or reaction color (NPCs: red hostile, yellow neutral, green friendly, grey when tapped by someone else), the guild or an NPC's role, and the level, race, and class or creature type, the level in its difficulty color. Badges mark elites, rares, bosses, a player's faction, PvP, AFK, DND, and the dead. Below sit what the unit is targeting (in red when it is you), and the unit's quest lines. Rows other addons add are kept below, and the game's own health bar closes the panel; the game fills it, as WoW Forever keeps unit health from addons. Elites, rares, rare elites, and bosses show the dragon from the game's target frame behind the header, and players their faction's crest.
 
-**Class colors** under **Unit Details** in the style editor has a swatch for each of the nine classes. Overrides apply to player names, panel tints and glows, the guild's lighter shade, player targets, and players on the minimap. Click to choose a color, right-click for the default, or reset the row to clear all class overrides. With no override, the game's current class color is used, including changes made by other addons.
+**Class colors** under **Unit Details** in the style editor has a swatch for each of the nine classes. Overrides apply to player names, panel tints and glows, the guild's lighter shade, and player targets. Click to choose a color, right-click for the default, or reset the row to clear all class overrides. With no override, the game's current class color is used, including changes made by other addons.
 
 ## Buffs and debuffs
 

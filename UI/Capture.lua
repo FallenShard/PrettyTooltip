@@ -241,16 +241,6 @@ local function recordPetAction(record, data)
     for slot = 1, NUM_PET_ACTION_SLOTS or 10 do record("GetPetActionInfo", GetPetActionInfo, slot) end
 end
 
--- The minimap's blips: the units a player in the list may be, for their class.
-local function recordMinimap(record)
-    for _, unit in ipairs(ns.Game.NEARBY_UNITS) do
-        if record("UnitName", UnitName, unit) then
-            record("UnitIsPlayer", UnitIsPlayer, unit)
-            record("UnitClass", UnitClass, unit)
-        end
-    end
-end
-
 -- The frame a tooltip is for: its name and ID, and a flight map pin's node.
 local function ownerOf(tooltip)
     local owner = tooltip:GetOwner()
@@ -351,8 +341,6 @@ local function captureTooltip(tooltip)
             attempt("object", recordObject, record, data)
         elseif dataType == TYPES.Macro then
             attempt("macro", recordMacro, record, tooltip, data)
-        elseif dataType == TYPES.MinimapMouseover then
-            attempt("minimap", recordMinimap, record)
         elseif dataType == TYPES.PetAction then
             attempt("pet action", recordPetAction, record, data)
         end

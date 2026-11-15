@@ -1,22 +1,15 @@
 == tooltip model
-blips:
-  1:
-    name: "Topper McNabb"
-  2:
-    name: "Thomas Miller"
-  3:
-    name: "Shade Baby"
-  4:
-    name: "Doomdoll Nightbane"
-  5:
-    name: "Kam Dar"
-  6:
-    name: "Mini Rae"
-  7:
-    name: "Trumpstein Ill"
 extras: {}
 lineIndices:
   1: true
+lines:
+  1: "Topper McNabb"
+  2: "Thomas Miller"
+  3: "Shade Baby"
+  4: "Doomdoll Nightbane"
+  5: "Kam Dar"
+  6: "Mini Rae"
+  7: "Trumpstein Ill"
 == tooltip render
 panel 146 x 153
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow

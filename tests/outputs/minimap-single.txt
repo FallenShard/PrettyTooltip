@@ -1,18 +1,11 @@
 == tooltip model
-blips:
-  1:
-    arrow: "|TInterface\\Minimap\\Minimap-PositionArrows:0:0:0:0:16:32:0:16:0:16|t"
-    meta: "Herbalism 70"
-    metaColor:
-      1: 1
-      2: 1
-      3: 0
-    name: "Briarthorn"
 extras: {}
 lineIndices:
   1: true
+lines:
+  1: "|TInterface\\Minimap\\Minimap-PositionArrows:0:0:0:0:16:32:0:16:0:16|tBriarthorn"
 == tooltip render
-panel 202 x 51
+panel 110 x 51
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x0 rgb=1,1,1,1 WHITE8X8
@@ -24,5 +17,4 @@ texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-TopEdge
 texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-BottomEdge
 texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-LeftEdge
 texture unplaced 0x0 rgb=0.8,0.8,0.8,1 tooltip-RightEdge
-text at 19,17 w=60 size=12 rgb=0.96,0.92,0.84 "Briarthorn"
-text at 91,17 w=92 size=12 rgb=1,1,0 "Herbalism 70 |TInterface\\Minimap\\Minimap-PositionArrows:12:12:0:0:16:32:0:16:0:16|t"
+text at 19,17 w=72 size=12 rgb=0.96,0.92,0.84 "|TInterface\\Minimap\\Minimap-PositionArrows:0:0:0:0:16:32:0:16:0:16|tBriarthorn"

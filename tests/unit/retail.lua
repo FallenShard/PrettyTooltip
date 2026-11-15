@@ -71,7 +71,7 @@ return function(test)
         ns.spellSchool("Starsurge"), ns.spellSchool("Demonbolt"), ns.spellSchool("Frostfire Bolt"),
         ns.spellSchool("Chaos Bolt") }, { "Frost", nil, "Arcane", "Shadow", "Frostfire", nil })
     test.check("retail's imbues", { ns.imbues[5401] ~= nil, ns.imbues[1] }, { true, nil })
-    test.check("retail knows no Classic herb or ore node", ns.gatheringNode("Copper Vein"), nil)
+    test.check("retail knows no Classic herb or ore node", ns.objectYield("Copper Vein"), nil)
     test.check("retail answers the game's questions its own way", {
         source(ns.Game.spellManaCost), source(ns.Game.globalCooldown), source(ns.Game.classSpecs),
         source(ns.TooltipData.inactiveColor) }, { "@Retail/Game/GameExtension.lua", "@Retail/Game/GameExtension.lua",
@@ -86,7 +86,7 @@ return function(test)
     test.check("Forever has its data", dataSets(ns), { true, true, true, true, true, true })
     test.check("Forever's spell schools", { ns.spellSchool(nil, 7322), ns.spellSchool(nil, 116) }, { "Frost", "Frost" })
     test.check("Forever's imbues", { ns.imbues[1] ~= nil, ns.imbues[5401] }, { true, nil })
-    test.check("Forever knows Classic nodes", ns.gatheringNode("Copper Vein"), { level = 1, skill = "Mining" })
+    test.check("Forever knows Classic nodes", ns.objectYield("Copper Vein"), 2770)
     test.check("Forever's game answers", { ns.Game.spellManaCost(133), ns.Game.globalCooldown(), ns.Game.classSpecs(1) },
         { nil, 1.5, nil })
     test.check("Forever marks no line inactive", ns.TooltipData.inactiveColor({ r = .5, g = .5, b = .5 }), nil)

@@ -238,6 +238,10 @@ return function(fixture, enums, report, strings)
         return self:GetScale() * (self._parent and self._parent:GetEffectiveScale() or 1)
     end
     function Object:GetScale() return self._scale or 1 end
+    function Object:SetWordWrap(wrap) self._wordWrap = wrap end
+    function Object:CanWordWrap() return self._wordWrap ~= false end
+    function Object:SetMaxLines(lines) self._maxLines = lines end
+    function Object:GetMaxLines() return self._maxLines or 0 end
     function Object:SetAlpha(alpha) self._alpha = alpha end
     function Object:GetAlpha() return self._alpha end
     function Object:SetFrameLevel(level) self._level = level end

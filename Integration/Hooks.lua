@@ -335,6 +335,15 @@ local function onTooltipData(dataType, tooltip, data)
             placement.hidden(hidden)
         end))
         tooltip:HookScript("OnTooltipCleared", probe("hook OnTooltipCleared", scheduleRestore))
+        -- A panel sized by the game's tooltip, as the minimap's secret text, redraws as
+        -- it resizes: the game sizes it after the data arrives, and refreshes it too
+        -- often for the next frame's redraw to happen.
+        tooltip:HookScript("OnSizeChanged", probe("hook OnSizeChanged", function(resized)
+            local tooltipType = TooltipTypes[panel.dataType]
+            if panel.nativeOnly or not (tooltipType and tooltipType.followsNativeSize) or not panel:IsShown()
+                or not panel.data or not util.canModify(resized) or not showsDataType(resized, panel) then return end
+            update(resized, panel.data)
+        end))
         -- Every refresh re-shows the tooltip at its natural size and full
         -- opacity. Waiting for the next OnUpdate lets one frame of it draw.
         local function onNativeShown(shown)

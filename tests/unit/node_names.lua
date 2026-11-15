@@ -12,7 +12,7 @@ return function(test)
     ns = test.load({ "Core/Util.lua", "Data/NodeNames.lua" }, {})
     test.check("enUS: no names to map", next(ns.nodeNames), nil)
 
-    -- The reader and the minimap with a German client's names, as the data
+    -- The reader with a German client's names, as the data
     -- file would leave them.
     local function german(_, loaded)
         loaded.nodeNames = { ["Kupferader"] = "Copper Vein", ["Schlammbedeckte Silberader"] = "Silver Vein",
@@ -23,9 +23,9 @@ return function(test)
     ns = test.load({ "Core/Util.lua", "Core/Palette.lua", "Core/Settings.lua", "Locale/Locale.lua",
         "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Nodes.lua", german, "Data/NodeSkills.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua" }, capture)
-    test.check("a vein by the client's name", ns.gatheringNode("Kupferader"), { level = 1, skill = "Mining" })
-    test.check("an ooze covered one", ns.gatheringNode("Schlammbedeckte Silberader"), { level = 75, skill = "Mining" })
-    test.check("a herb", ns.gatheringNode("Beulengras"), { level = 100, skill = "Herbalism" })
+    test.check("a vein by the client's name", ns.objectYield("Kupferader"), 2770)
+    test.check("an ooze covered one", ns.objectYield("Schlammbedeckte Silberader"), 2775)
+    test.check("a herb", ns.objectYield("Beulengras"), 2453)
     local model = ns.ui.objectModel({ name = "Beulengras", skill = "Herbalism" })
     test.check("its skill level and loot", { model.skillRow.level, #model.loot }, { 100, 1 })
 end
