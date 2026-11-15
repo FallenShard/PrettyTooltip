@@ -253,6 +253,13 @@ L["Separators"] = "구분선"
 L["The gold dividers between sections and the thin rules above other addons' rows. Off, they are hidden along with the space around them."] =
     "구역 사이의 금색 구분선과 다른 애드온의 행 위에 표시되는 가는 선입니다. 끄면 선과 주변 여백이 함께 사라집니다."
 L["School colors"] = "주문 계열 색상"
+L["Tooltip fading"] = "툴팁 사라짐"
+L["Custom fade timings"] = "사라짐 시간 직접 설정"
+L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
+    "유닛과 월드 개체는 게임과 같은 방식으로 서서히 사라집니다. 켜면 아래 시간을 따르며, 둘 다 0이면 즉시 숨겨집니다."
+L["Fade delay"] = "사라짐 지연"
+L["Fade duration"] = "사라짐 시간"
+L[" sec"] = "초"
 L["%s Panel"] = "%s 패널"
 L["Show icon"] = "아이콘 표시"
 L["The icon or portrait in the header, for the kind of tooltip shown."] = "현재 툴팁 종류에 맞는 아이콘 또는 초상화를 머리글에 표시합니다."

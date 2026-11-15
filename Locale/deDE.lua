@@ -270,6 +270,13 @@ L["Separators"] = "Trennlinien"
 L["The gold dividers between sections and the thin rules above other addons' rows. Off, they are hidden along with the space around them."] =
     "Die goldenen Trenner zwischen den Abschnitten und die feinen Linien über den Zeilen anderer Addons. Aus: Sie werden mitsamt ihrem Abstand ausgeblendet."
 L["School colors"] = "Schulfarben"
+L["Tooltip fading"] = "Tooltips ausblenden"
+L["Custom fade timings"] = "Eigene Ausblendzeiten"
+L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
+    "Einheiten und Weltobjekte blenden aus, wie das Spiel sie ausblendet. An: Sie folgen stattdessen den Zeiten unten; beide auf null blendet sie sofort aus."
+L["Fade delay"] = "Ausblendverzögerung"
+L["Fade duration"] = "Ausblenddauer"
+L[" sec"] = " Sek."
 L["%s Panel"] = "Rahmen: %s"
 L["Show icon"] = "Symbol zeigen"
 L["The icon or portrait in the header, for the kind of tooltip shown."] =

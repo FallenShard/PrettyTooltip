@@ -32,6 +32,10 @@ return function(test)
         if font._shown and font._text and font._text ~= "" then shown[#shown + 1] = ns.util.plainText(font._text) end
     end
     test.check("no skill, class color or arrow of its own", shown, { "Peacebloom", "Copper Vein", "Thrall" })
+    test.check("readable, in the game's gold when the line has no color of its own", model.color, { 1, .82, 0 })
+    capture.data.lines[1].leftColor = { r = .2, g = .4, b = .6 }
+    test.check("and in its own color when it has one",
+        ns.TooltipTypes[MINIMAP].read(world.main, capture.data, ns.Game).color, { .2, .4, .6 })
 
     local secret = { __secret = true }
     ns, world, capture = load(secret)
@@ -45,6 +49,7 @@ return function(test)
     local hidden = panel.hiddenPool and panel.hiddenPool[1]
     test.check("drawn unread, every line of it", { hidden and hidden._shown, hidden and issecretvalue(hidden._text),
         hidden and hidden:CanWordWrap(), hidden and hidden:GetMaxLines() }, { true, true, true, 0 })
+    test.check("in the game's gold, which is secret with the text", { hidden._color[1], hidden._color[2], hidden._color[3] }, { 1, .82, 0 })
     test.check("as wide as the game's text, with the panel's padding",
         panel.width, ns.ui.snap(panel, 46 + 4 + 2 * ns.ui.pad()))
 

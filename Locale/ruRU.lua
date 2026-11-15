@@ -249,6 +249,13 @@ L["Washes the panel in the item's quality color, or the spell's school or resour
 L["Separators"] = "Разделители"
 L["The gold dividers between sections and the thin rules above other addons' rows. Off, they are hidden along with the space around them."] = "Золотые разделители между разделами и тонкие линии над строками других аддонов. При отключении скрываются вместе с отступами вокруг них."
 L["School colors"] = "Цвета школ"
+L["Tooltip fading"] = "Исчезновение подсказок"
+L["Custom fade timings"] = "Своё время исчезновения"
+L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
+    "Подсказки к существам и объектам мира исчезают так же, как в игре. При включении они следуют времени ниже; если оба значения равны нулю, они скрываются сразу."
+L["Fade delay"] = "Задержка затухания"
+L["Fade duration"] = "Длительность затухания"
+L[" sec"] = " сек."
 L["%s Panel"] = "Панель: %s"
 L["Show icon"] = "Показывать значок"
 L["The icon or portrait in the header, for the kind of tooltip shown."] = "Значок или портрет в заголовке подсказки выбранного типа."

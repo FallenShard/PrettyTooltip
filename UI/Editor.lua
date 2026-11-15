@@ -632,7 +632,8 @@ end
 
 -- Other controls -------------------------------------------------------------
 
-local function slider(width, current, set, low, high, suffix)
+local function slider(width, current, set, low, high, suffix, step)
+    step = step or 1
     local holder = CreateFrame("Frame", nil, content)
     holder:SetSize(width, 22)
     local bar = CreateFrame("Slider", nil, holder, "MinimalSliderTemplate")
@@ -641,7 +642,7 @@ local function slider(width, current, set, low, high, suffix)
     bar:SetPoint("LEFT", 0, 0)
     bar:SetSize(width - 46, 16)
     bar:SetMinMaxValues(low or SIZE_MIN, high or SIZE_MAX)
-    bar:SetValueStep(1)
+    bar:SetValueStep(step)
     if bar.SetObeyStepOnDrag then bar:SetObeyStepOnDrag(true) end
     local track = fill(bar, "BACKGROUND", LINE)
     track:SetPoint("LEFT")
@@ -656,14 +657,14 @@ local function slider(width, current, set, low, high, suffix)
     value:SetJustifyH("RIGHT")
     bar:SetScript("OnValueChanged", function(self, number)
         if self.updating then return end
-        number = math.floor(number + .5)
+        number = math.floor(number / step + .5) * step
         if number ~= current() then
             set(number)
             refresh()
         end
     end)
     bar:EnableMouseWheel(true)
-    bar:SetScript("OnMouseWheel", function(self, delta) self:SetValue(self:GetValue() + delta) end)
+    bar:SetScript("OnMouseWheel", function(self, delta) self:SetValue(self:GetValue() + delta * step) end)
     local updateSteppers = skin:slider(bar, track, parts)
     skin:bind(function(native)
         value:SetFontObject(native and "GameFontNormal" or "GameFontHighlight")
@@ -1185,6 +1186,25 @@ toggles({
 })
 row("School colors", colorSwatches(ns.Palette.SCHOOLS, "schoolColor", ns.Palette.school),
     colorGroupSetting(ns.Palette.SCHOOLS, "schoolColor"), nil, true)
+
+section("Tooltip fading")
+toggles({
+    { "Custom fade timings", "customFade",
+        "Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once." },
+})
+local function customFade() return ns.option("customFade") end
+row("Fade delay", slider(FIELD_WIDTH, function()
+    local delay = ns.fadeTiming()
+    return delay
+end, function(seconds)
+    ns.setOption("hideDelay", seconds)
+end, 0, 5, L[" sec"], .1), optionSetting("hideDelay"), customFade)
+row("Fade duration", slider(FIELD_WIDTH, function()
+    local _, duration = ns.fadeTiming()
+    return duration
+end, function(seconds)
+    ns.setOption("fadeDuration", seconds)
+end, 0, 5, L[" sec"], .1), optionSetting("fadeDuration"), customFade)
 
 -- The tooltip type shown -----------------------------------------------------------
 

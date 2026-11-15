@@ -8,6 +8,10 @@ local DEFAULTS = {
     -- "pretty" draws panels for the types turned on below; "blizzard" keeps
     -- the game's own tooltips everywhere.
     layout = "pretty",
+    -- Default: mirror the client's native fade, including its built-in delay.
+    customFade = false,
+    hideDelay = 1,
+    fadeDuration = 1,
     itemPanels = true,
     -- The game's own item tooltip shortens Equip effects, in its colors but for magic.
     liteWording = true,
@@ -88,6 +92,16 @@ function ns.option(key)
     local db = PrettyTooltipDB
     if type(db) == "table" and db[key] ~= nil then return db[key] end
     return DEFAULTS[key]
+end
+
+-- Custom durations are bounded and never used while Blizzard timing is on.
+function ns.fadeTiming()
+    local function seconds(key)
+        local value = ns.util.number(ns.option(key))
+        if not value or value ~= value then return 1 end
+        return math.max(0, math.min(5, value))
+    end
+    return seconds("hideDelay"), seconds("fadeDuration")
 end
 
 function ns.tooltipScale()

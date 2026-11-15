@@ -16,6 +16,9 @@ local EXTRAS_RULE = { .50, .50, .54 }
 -- The game's tooltip pads its lines this much on each side, when its frame
 -- will not say.
 local NATIVE_PAD = 10
+-- The game's color for its minimap line, secret with the text: every capture
+-- has it, retail's too. Greys come as color codes in the text.
+local NATIVE_COLOR = { 1, .82, 0 }
 
 local function minimapKey(_, data)
     if isSecret(data.lines) or type(data.lines) ~= "table" then return end
@@ -57,6 +60,7 @@ local function readMinimap(tooltip, data)
         if isSecret(line) or not line or isSecret(line.lineIndex) then return end
         if line.lineIndex then
             model.lineIndices[line.lineIndex] = true
+            model.color = model.color or util.rgb(line.leftColor) or NATIVE_COLOR
             local text = line.leftText
             if isSecret(text) then
                 -- One secret line, which the tooltip's size is all of.
@@ -82,28 +86,30 @@ end
 
 -- The secret text in the game's font at the game's size, as only that fills
 -- the room the game measured: scaled, a name a pixel short wraps.
-local function hiddenSection(model, style)
+local function hiddenSection(model)
     local block = model.block
     local font = { path = block.path, size = block.size, flags = block.flags, spacing = block.spacing }
     -- A few pixels over, for the game's rounding.
     local width, height = math.ceil(block.width) + 4, math.ceil(block.height)
     return { kind = "custom", measure = function() return width end, draw = function(panel, y)
-        ui.hiddenBlockAt(panel, model.hidden, ui.pad(), y, panel.width - 2 * ui.pad(), font, style.color or colors.title)
+        ui.hiddenBlockAt(panel, model.hidden, ui.pad(), y, panel.width - 2 * ui.pad(), font, model.color)
         panel.rowTail = 3
         return y + height
     end }
 end
 
--- A list, a row each, as narrow as its longest row.
+-- The game's text as it wrote it, in its color: the panel adds only its frame.
 local function minimapView(model)
-    local style = ui.styleOf("objectDetails")
     local sections
     if model.hidden then
-        sections = { hiddenSection(model, style) }
+        sections = { hiddenSection(model) }
     else
+        local style = {}
+        for key, value in pairs(ui.styleOf("objectDetails")) do style[key] = value end
+        style.color = nil
         local rows = {}
         for index, text in ipairs(model.lines) do rows[index] = { left = text } end
-        sections = { { kind = "rows", rows = rows, style = style, color = colors.title, gap = 3 } }
+        sections = { { kind = "rows", rows = rows, style = style, color = model.color, gap = 3 } }
     end
     if #model.extras > 0 then
         sections[2] = { separator = { rule = EXTRAS_RULE }, kind = "rows", rows = model.extras,

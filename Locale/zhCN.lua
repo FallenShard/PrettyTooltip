@@ -252,6 +252,13 @@ L["Separators"] = "分隔线"
 L["The gold dividers between sections and the thin rules above other addons' rows. Off, they are hidden along with the space around them."] =
     "各区段之间的金色分隔线，以及其他插件信息上方的细线。关闭后同时隐藏分隔线及其周围的间距。"
 L["School colors"] = "法术学派颜色"
+L["Tooltip fading"] = "提示淡出"
+L["Custom fade timings"] = "自定义淡出时间"
+L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
+    "单位和世界物体的提示会像游戏中一样淡出。开启后改用下方的时间；两者都为零时立即隐藏。"
+L["Fade delay"] = "淡出延迟"
+L["Fade duration"] = "淡出时长"
+L[" sec"] = "秒"
 L["%s Panel"] = "%s面板"
 L["Show icon"] = "显示图标"
 L["The icon or portrait in the header, for the kind of tooltip shown."] = "在顶部显示当前提示类型对应的图标或头像。"
