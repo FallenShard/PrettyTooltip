@@ -194,7 +194,7 @@ function palette.schoolIn(text, phrases, only)
     return found
 end
 
--- A class spell's school comes from Data/Schools.lua, by its ID or name. Otherwise
+-- A class or racial spell's school comes from Data/Schools.lua, by its ID or name. Otherwise
 -- the text must name damage or spells, as "40 Fire damage" or "your Fire
 -- spells", so "Fire Elementals" and "Rapid Fire" cannot change the color.
 -- Spell names may supply a leading school instead.

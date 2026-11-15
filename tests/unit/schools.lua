@@ -15,4 +15,7 @@ return function(test)
     test.check("every rank shares its name's entry", ns.spellSchool("Frostbolt"), "Frost")
     test.check("a spell of two schools has its own", ns.spellSchool("Frostfire Bolt"), "Frostfire")
     test.check("and its own color", ns.util.hex(ns.Palette.schools.Frostfire), "2EC7B8")
+    test.check("a magic racial has its school though its wording names none",
+        detect({ "Read the leylines to find your way." }, "Read Leyline", 1259705), "Arcane")
+    test.check("a physical racial stays without one", ns.spellSchool("Stoneform", 20594), nil)
 end
