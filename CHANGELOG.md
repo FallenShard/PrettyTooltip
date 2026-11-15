@@ -1,3 +1,17 @@
+# PrettyTooltip 1.4.1
+
+## Tooltips
+
+- Panels for units, unit frames, and world objects now fade out with the game's own fade when the cursor leaves them, instead of vanishing at once. **Custom fade timings** in the style editor sets a **Fade delay** and **Fade duration** of your own (0 to 5 seconds each); both at zero hides them at once. Other tooltips still hide at once, as the game's do. ([#64](https://github.com/FallenShard/PrettyTooltip/pull/64) by [@adambowles](https://github.com/adambowles), [#60](https://github.com/FallenShard/PrettyTooltip/issues/60))
+- Minimap: Blizzard recently removed nearly all data reading capabilities from minimap tooltips. The panel now shows the game's own text, in its font and color, inside the PrettyTooltip frame. Herb and ore skill levels and player class colors are no longer shown on the minimap, as the names cannot be read.
+- Skinnable creatures, herbs, and ore now show the game's own skill-up color, including creatures missing from Classic's loot tables. ([#50](https://github.com/FallenShard/PrettyTooltip/issues/50))
+- Other addons' tooltips placed beside a PrettyTooltip panel, such as ForeverDungeonJournal's item comparisons, now line up with the panel instead of overlapping it. ([#56](https://github.com/FallenShard/PrettyTooltip/issues/56))
+
+## Spells
+
+- Spell power now shows a row for each component of a spell: Holy Shock's damage or heal, a seal's strike, its Judgement, and Seal of Command's Judgement on a stunned target, Immolate's hit and its burn. Talents that change a coefficient are counted. Coefficients come from the live WoW Forever client (build 1.60.1.70938), including Wild Growth's doubled coefficient and Wrack's rework. Volley no longer shows a spell power estimate it does not have.
+- The High Order Skyborne racial Read Leyline now shows as Arcane; Skysight, Walk on Air, and the Gnome racial Eureka! show as Nature. ([#62](https://github.com/FallenShard/PrettyTooltip/issues/62))
+
 # PrettyTooltip 1.4.0
 
 ## Retail
