@@ -71,6 +71,10 @@ locale.questTags = { ["정예"] = true, ["던전"] = true, ["공격대"] = true,
 
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "우편"
+L["Restyle mail messages"] = "우편 툴팁 다시 꾸미기"
+
 -- The panels -------------------------------------------------------------------
 
 L["Cast"] = "시전"
@@ -493,6 +497,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "기본 툴팁 보조키"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"
+L["Always"] = "항상"
 L["Never"] = "사용 안 함"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] = "Ctrl을 누르면 패널 대신 게임의 기본 툴팁을 표시합니다."
 L["Hold Alt to see the game's own tooltip instead of the panel."] = "Alt를 누르면 패널 대신 게임의 기본 툴팁을 표시합니다."
@@ -575,3 +580,32 @@ L["Ended by"] = "완료 NPC"
 L["Started by"] = "시작 NPC"
 L["Found in"] = "발견 위치"
 L["Rares"] = "희귀"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] = "아이템, 주문 또는 NPC의 ID로, 툴팁 패널 하단의 다른 애드온 행 아래에 표시됩니다."
+L["Elite, rare, faction, PvP, AFK, and dead."] = "정예, 희귀, 진영, PvP, 자리 비움 및 죽음 상태입니다."
+L["Mail armor"] = "사슬"
+L["Spell power"] = "주문력"
+L["Mythic+ Rating Modifier"] = "쐐기돌 평점 보조 키"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Ctrl 키를 누르고 있으면 플레이어 툴팁에 쐐기돌 총점과 던전별 점수가 표시됩니다."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Alt 키를 누르고 있으면 플레이어 툴팁에 쐐기돌 총점과 던전별 점수가 표시됩니다."
+L["Show Mythic+ rating without holding a modifier key."] = "보조 키를 누르지 않아도 쐐기돌 평점을 항상 표시합니다."
+L["Mythic+ Rating"] = "쐐기돌 평점"
+L["Mount"] = "탈것"
+L["Collected"] = "수집함"
+L["Not collected"] = "미수집"
+L["Examples:"] = "예시:"
+L["Attachments"] = "첨부 아이템"
+L["Mail title"] = "우편 제목"
+L["Attachments and prices"] = "첨부 아이템 및 가격"
+L["Mail contents"] = "우편 내용"
+L["Total: 14 items"] = "총 14개 아이템"
+L["Cooked Crab Claw"] = "익힌 게 집게발"
+L["Pyrite"] = "황철석"
+L["%d items"] = "아이템 %d개"
+L["Source"] = "획득처"
+L["Raid Progress"] = "공격대 진행도"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"

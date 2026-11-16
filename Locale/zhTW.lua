@@ -72,6 +72,10 @@ locale.questTags = { ["精英"] = true, ["地下城"] = true, ["團隊"] = true,
 
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "郵件"
+L["Restyle mail messages"] = "重繪郵件提示"
+
 -- The panels -------------------------------------------------------------------
 
 L["Cast"] = "施法"
@@ -492,6 +496,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "原版提示輔助鍵"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"
+L["Always"] = "常駐"
 L["Never"] = "永不"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] = "按住Ctrl可顯示遊戲原版提示，取代重繪面板。"
 L["Hold Alt to see the game's own tooltip instead of the panel."] = "按住Alt可顯示遊戲原版提示，取代重繪面板。"
@@ -574,3 +579,38 @@ L["Ended by"] = "完成NPC"
 L["Started by"] = "起始NPC"
 L["Found in"] = "所在位置"
 L["Rares"] = "稀有"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] = "物品、法術或 NPC 的 ID，顯示在面板底部、其他插件資訊列下方。"
+L["Elite, rare, faction, PvP, AFK, and dead."] = "精英、稀有、陣營、PvP、暫離和死亡狀態。"
+L["Mail armor"] = "鎖甲"
+L["Spell power"] = "法術能量"
+L["Show Mythic+ rating without holding a modifier key."] = "無須按住修飾鍵，始終顯示傳奇鑰石評分。"
+L["Mount"] = "坐騎"
+L["Collected"] = "已收藏"
+L["Not collected"] = "未收藏"
+L["Examples:"] = "範例："
+L["Attachments"] = "附件"
+L["Mail title"] = "郵件標題"
+L["Attachments and prices"] = "附件與價格"
+L["Mail contents"] = "郵件內容"
+L["Total: 14 items"] = "總計：14件物品"
+L["Cooked Crab Claw"] = "煮熟的蟹爪"
+L["Pyrite"] = "黃鐵礦"
+L["%d items"] = "%d 件物品"
+L["Mythic+ Rating Modifier"] = "傳奇鑰石評分修飾鍵"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "按住 Ctrl 時，在玩家提示中顯示傳奇鑰石總評分與各地城評分。"
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "按住 Alt 時，在玩家提示中顯示傳奇鑰石總評分與各地城評分。"
+L["Mythic+ Rating"] = "傳奇鑰石評分"
+L["Source"] = "來源"
+L['Raid Progress'] = '團隊副本'
+L['Raid Progress Modifier'] = '團隊副本修飾鍵'
+L["Hold Ctrl to show the local character's current raid lockouts."] = '按住 Ctrl 顯示目前角色本週團隊副本進度。'
+L["Hold Alt to show the local character's current raid lockouts."] = '按住 Alt 顯示目前角色本週團隊副本進度。'
+L["Always show the local character's current raid lockouts."] = '始終顯示目前角色本週團隊副本進度。'
+L["Raid Short: Tidal Hollows"] = "潮縛石窟"
+L["Raid Short: Venomous Abyss"] = "烈毒之淵"
+L["Raid Short: Kishix Unbound"] = "基希克斯破封"
+L["General"] = "一般"
+L["Modifier Keys"] = "修飾鍵"

@@ -34,7 +34,7 @@ local function quoted(text) return '"' .. text .. '"' end
 -- The types in the editor's order; dataType names the game's tooltip type and
 -- model the completer the tooltip file shares.
 local TYPES = {
-    { key = "mail", label = "Mail", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
+    { key = "mail", label = "Mail messages", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
         noLookup = true, samples = { { label = "Attachments", fields = {
             attachments = {
                 { link = "|cffffffffCooked Crab Claw|r", count = 9, icon = { item = 2682 },
