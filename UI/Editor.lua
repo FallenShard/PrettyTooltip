@@ -1187,19 +1187,19 @@ toggles({
 row("School colors", colorSwatches(ns.Palette.SCHOOLS, "schoolColor", ns.Palette.school),
     colorGroupSetting(ns.Palette.SCHOOLS, "schoolColor"), nil, true)
 
-section("Tooltip fading")
+section(L["Tooltip fading"])
 toggles({
     { "Custom fade timings", "customFade",
         "Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once." },
 })
 local function customFade() return ns.option("customFade") end
-row("Fade delay", slider(FIELD_WIDTH, function()
+row(L["Fade delay"], slider(FIELD_WIDTH, function()
     local delay = ns.fadeTiming()
     return delay
 end, function(seconds)
     ns.setOption("hideDelay", seconds)
 end, 0, 5, L[" sec"], .1), optionSetting("hideDelay"), customFade)
-row("Fade duration", slider(FIELD_WIDTH, function()
+row(L["Fade duration"], slider(FIELD_WIDTH, function()
     local _, duration = ns.fadeTiming()
     return duration
 end, function(seconds)
