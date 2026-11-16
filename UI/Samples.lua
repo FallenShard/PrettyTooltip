@@ -34,14 +34,14 @@ local function quoted(text) return '"' .. text .. '"' end
 -- The types in the editor's order; dataType names the game's tooltip type and
 -- model the completer the tooltip file shares.
 local TYPES = {
-    { key = "mail", label = "Mail", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
+    { key = "mail", label = "Mail messages", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
         noLookup = true, samples = { { label = "Attachments", fields = {
             attachments = {
-                { link = "|cffffffffCooked Crab Claw|r", count = 9, icon = { item = 2682 },
-                    prices = { { left = "Vendor", right = { money = 25 } }, { left = "Auction", right = { money = 97 } } } },
-                { link = "|cff1eff00Pyrite|r", count = 5, icon = { item = 249391 },
-                    prices = { { left = "Vendor", right = { money = 100 } }, { left = "Auction", right = { money = 109 } } } },
-            }, totals = { { left = "Total: 14 items", right = { money = 1418 } } },
+                { link = "|cffffffff" .. L["Cooked Crab Claw"] .. "|r", count = 9, icon = { item = 2682 },
+                    prices = { { left = L["Vendor"], right = { money = 25 } }, { left = L["Auction"], right = { money = 97 } } } },
+                { link = "|cff1eff00" .. L["Pyrite"] .. "|r", count = 5, icon = { item = 249391 },
+                    prices = { { left = L["Vendor"], right = { money = 100 } }, { left = L["Auction"], right = { money = 109 } } } },
+            }, totals = { { left = L["Total: 14 items"], right = { money = 1418 } } },
         } } } },
     {
         key = "item", label = "Items", dataType = "Item", model = "itemModel", first = "title", noun = "item",
@@ -145,7 +145,7 @@ local TYPES = {
                         rightColor = PALE } },
                     created = {
                         name = itemName(250508, "Veteran's Gloves"), quality = 2, icon = "Interface\\Icons\\INV_Gauntlets_05",
-                        slot = L["Mail"] .. DOT .. INVTYPE_HAND, armorClass = "Mail",
+                        slot = L["Mail armor"] .. DOT .. INVTYPE_HAND, armorClass = "Mail",
                         levelRequirement = { text = fill(ITEM_MIN_LEVEL, 15), met = true },
                         armor = { { left = fill(ARMOR_TEMPLATE, 115), right = "", value = "115" } },
                         primary = { statLine("STRENGTH", 5), statLine("AGILITY", 3), statLine("STAMINA", 5) },
@@ -186,7 +186,8 @@ local TYPES = {
             {
                 label = "Ability",
                 fields = {
-                    name = spellName(72, "Shield Bash"), rank = fill(L["Rank %s"], 1), icon = { spell = 72 },
+                    name = spellName(72, "Shield Bash"), rank = fill(L["Rank %s"], 1),
+                    icon = { spell = 72, fallback = "Interface\\Icons\\Ability_Warrior_ShieldBash" },
                     cost = { "10", RAGE }, power = "Rage", cast = { SPELL_CAST_TIME_INSTANT, L["Cast"] },
                     cooldown = { fill(SPELL_DURATION_SEC, 12), L["Cooldown"] }, range = { MELEE, L["Range"] },
                     requirements = { { left = fill(SPELL_EQUIPPED_ITEM, L["Shields"]), right = "", color = { 1, .34, .28 } } },
@@ -199,7 +200,8 @@ local TYPES = {
             {
                 label = "Heal",
                 fields = {
-                    name = spellName(635, "Holy Light"), rank = fill(L["Rank %s"], 1), icon = { spell = 635 },
+                    name = spellName(635, "Holy Light"), rank = fill(L["Rank %s"], 1),
+                    icon = { spell = 635, fallback = "Interface\\Icons\\Spell_Holy_HolyBolt" },
                     cost = { "35", MANA }, power = "Mana", cast = { fill(SPELL_DURATION_SEC, "2.5"), L["Cast"] },
                     range = { fill(L["%s yd"], 40), L["Range"] },
                     spellPower = 10,
@@ -401,12 +403,12 @@ end
 
 -- Markers ----------------------------------------------------------------------
 
-local function icon(getter, id)
+local function icon(getter, id, fallback)
     if getter then
         local ok, found = pcall(getter, id)
         if ok and found then return found end
     end
-    return QUESTION_MARK
+    return fallback or QUESTION_MARK
 end
 
 local function money(marker)
@@ -421,11 +423,22 @@ local function resolve(value)
     if value.item and next(value, next(value)) == nil then
         return icon(C_Item and C_Item.GetItemIconByID, value.item)
     end
-    if value.spell and next(value, next(value)) == nil then
-        return icon(C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, value.spell)
+    if value.spell then
+        return icon(C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, value.spell, value.fallback)
     end
-    if value.itemName then return ns.Game.itemName(value.itemName) or value[1] end
-    if value.spellName then return ns.Game.spellName(value.spellName) or value[1] end
+    if value.itemName then
+        -- Prefer the localized fixed sample label before asynchronous item data.
+        -- This keeps the editor preview localized on its first draw after login/reload.
+        local translated = L[value[1]]
+        if translated ~= value[1] then return translated end
+        return ns.Game.itemName(value.itemName) or translated
+    end
+    if value.spellName then
+        -- Prefer the localized editor sample name over a missing or English client lookup.
+        local translated = L[value[1]]
+        if translated and translated ~= value[1] then return translated end
+        return ns.Game.spellName(value.spellName) or translated or value[1]
+    end
     if value.questName then return ns.Game.questName(value.questName) or L[value[1]] end
     if value.money then return money(value) end
     local copy = {}
