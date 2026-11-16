@@ -274,9 +274,9 @@ L["The gold dividers between sections and the thin rules above other addons' row
     "Los divisores dorados entre secciones y las líneas finas sobre las filas de otros addons. Desactivado, se ocultan junto con el espacio que los rodea."
 L["School colors"] = "Colores de escuela"
 L["Tooltip fading"] = "Desvanecimiento de las descripciones"
-L["Custom fade timings"] = "Tiempos de desvanecimiento propios"
-L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
-    "Las unidades y los objetos del mundo se desvanecen como los desvanece el juego. Activado, siguen en su lugar los tiempos de abajo; ambos a cero los ocultan al instante."
+L["Enable tooltip fading"] = "Activar el desvanecimiento de las descripciones"
+L["Off, panels for units and world objects hide as soon as the cursor leaves them. On, they fade with the timings below; both at zero hides them at once."] =
+    "Desactivado, las descripciones de unidades y objetos del mundo se ocultan en cuanto el cursor sale de ellos. Activado, se desvanecen con los tiempos de abajo; ambos a cero las ocultan al instante."
 L["Fade delay"] = "Retraso del desvanecimiento"
 L["Fade duration"] = "Duración del desvanecimiento"
 L[" sec"] = " s"

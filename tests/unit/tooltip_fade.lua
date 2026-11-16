@@ -1,4 +1,4 @@
--- Fade lifecycle: native timing is mirrored, custom timing survives native Hide,
+-- Fade lifecycle: off hides at once, the timings survive native Hide,
 -- and a new hover or a hidden parent cannot leave stale content on screen.
 return function(test)
     local fixture = { enums = { TooltipDataType = { Item = 0, Object = 33 } },
@@ -37,42 +37,12 @@ return function(test)
         tooltip:GetScript("OnHide")(tooltip)
     end
     local function alpha() return math.floor(panel:GetAlpha() * 100 + .5) end
-    test.check("Blizzard timing is the default", ns.option("customFade"), false)
+    test.check("fading is off by default", ns.option("fadeTooltips"), false)
     tooltip:FadeOut()
-    step(.5)
-    test.check("the native delay keeps the panel opaque", { panel:IsShown(), alpha() }, { true, 100 })
-    -- C++ writes alpha without going through the Lua SetAlpha hook.
-    tooltip._alpha = .4
-    step(.1)
-    test.check("default fade mirrors the actual client alpha", alpha(), 40)
-    tooltip._alpha = 0
-    step(.01)
-    test.check("zero alpha completes even a native fade that stays shown", { panel:IsShown(), panel.fade == nil }, { false, true })
-    panel = show()
-    tooltip:FadeOut()
-    tooltip._alpha = 1
-    step(.1)
-    step(.1)
-    test.check("the game holding its tooltip at 1 is not the fade's end", { panel:IsShown(), alpha() }, { true, 100 })
-    tooltip._alpha = .03
-    step(.1)
-    tooltip._alpha = 1
-    step(.01)
-    test.check("the game's alpha back at 1 ends the fade, its 0 unseen", { panel:IsShown(), panel.fade == nil },
-        { false, true })
-    panel = show()
-    tooltip:FadeOut()
-    step(4.9)
-    test.check("a fade the game never writes holds the panel a while", panel:IsShown(), true)
-    step(.1)
-    test.check("and no longer than the limit", { panel:IsShown(), panel.fade == nil }, { false, true })
-    panel = show()
-    tooltip:FadeOut()
-    hide()
-    step(.01)
-    test.check("native hide also completes the default fade", { panel:IsShown(), panel.fade == nil }, { false, true })
+    test.check("off, the panel hides as the cursor leaves", { panel:IsShown(), panel.fade == nil }, { false, true })
+    flush()
 
-    ns.setOption("customFade", true)
+    ns.setOption("fadeTooltips", true)
     ns.setOption("hideDelay", 2)
     ns.setOption("fadeDuration", 1)
     panel = show()
@@ -108,7 +78,7 @@ return function(test)
 
     panel = show()
     hide()
-    test.check("a tooltip the game hides, as an item's, hides at once with custom timings",
+    test.check("a tooltip the game hides, as an item's, hides at once with fading on",
         { panel:IsShown(), panel.fade == nil }, { false, true })
     flush()
     panel = show()
@@ -152,28 +122,35 @@ return function(test)
     ns.openEditor()
     local editor = PrettyTooltipEditor
     editor:GetScript("OnShow")(editor)
-    local sliders, customBox = {}, nil
+    local sliders, fadeBox = {}, nil
     for _, widget in ipairs(world.objects) do
         if widget:GetObjectType() == "Slider" then
             local low, high = widget:GetMinMaxValues()
             if low == 0 and high == 5 then sliders[#sliders + 1] = widget end
         elseif widget:GetObjectType() == "CheckButton" then
             for _, label in ipairs({ widget:GetRegions() }) do
-                if label:GetText() == "Custom fade timings" then customBox = widget end
+                if label:GetText() == "Enable tooltip fading" then fadeBox = widget end
             end
         end
     end
-    test.check("the editor exposes custom fade timings", customBox:GetChecked(), false)
+    test.check("the editor offers tooltip fading, off", fadeBox:GetChecked(), false)
     test.check("the editor exposes both timing sliders", #sliders, 2)
-    test.check("custom sliders stay hidden with native timings", sliders[1]:GetParent():GetParent():IsShown(), false)
-    customBox:SetChecked(true)
-    customBox:GetScript("OnClick")(customBox)
-    test.check("enabling custom timings shows their controls",
-        { ns.option("customFade"), sliders[1]:GetParent():GetParent():IsShown() }, { true, true })
+    test.check("the sliders stay hidden while fading is off", sliders[1]:GetParent():GetParent():IsShown(), false)
+    fadeBox:SetChecked(true)
+    fadeBox:GetScript("OnClick")(fadeBox)
+    test.check("enabling fading shows its timings",
+        { ns.option("fadeTooltips"), sliders[1]:GetParent():GetParent():IsShown() }, { true, true })
     sliders[1]:GetScript("OnValueChanged")(sliders[1], 2.5)
     sliders[2]:GetScript("OnValueChanged")(sliders[2], .5)
     test.check("sliders save independent timings", { ns.fadeTiming() }, { 2.5, .5 })
-    customBox:SetChecked(false)
-    customBox:GetScript("OnClick")(customBox)
-    test.check("turning custom timings off restores native fading", ns.option("customFade"), false)
+    fadeBox:SetChecked(false)
+    fadeBox:GetScript("OnClick")(fadeBox)
+    test.check("turning fading off saves it", ns.option("fadeTooltips"), false)
+
+    PrettyTooltipDB = { customFade = true }
+    ns.migrateOptions()
+    test.check("1.4.1's custom timings keep fading on", { PrettyTooltipDB.fadeTooltips, PrettyTooltipDB.customFade }, { true, nil })
+    PrettyTooltipDB = { customFade = false }
+    ns.migrateOptions()
+    test.check("1.4.1's game-mirrored fade turns off", { ns.option("fadeTooltips"), PrettyTooltipDB.customFade }, { false, nil })
 end

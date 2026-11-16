@@ -1189,22 +1189,22 @@ row("School colors", colorSwatches(ns.Palette.SCHOOLS, "schoolColor", ns.Palette
 
 section("Tooltip fading")
 toggles({
-    { "Custom fade timings", "customFade",
-        "Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once." },
+    { "Enable tooltip fading", "fadeTooltips",
+        "Off, panels for units and world objects hide as soon as the cursor leaves them. On, they fade with the timings below; both at zero hides them at once." },
 })
-local function customFade() return ns.option("customFade") end
+local function fadeTooltips() return ns.option("fadeTooltips") end
 row("Fade delay", slider(FIELD_WIDTH, function()
     local delay = ns.fadeTiming()
     return delay
 end, function(seconds)
     ns.setOption("hideDelay", seconds)
-end, 0, 5, L[" sec"], .1), optionSetting("hideDelay"), customFade)
+end, 0, 5, L[" sec"], .1), optionSetting("hideDelay"), fadeTooltips)
 row("Fade duration", slider(FIELD_WIDTH, function()
     local _, duration = ns.fadeTiming()
     return duration
 end, function(seconds)
     ns.setOption("fadeDuration", seconds)
-end, 0, 5, L[" sec"], .1), optionSetting("fadeDuration"), customFade)
+end, 0, 5, L[" sec"], .1), optionSetting("fadeDuration"), fadeTooltips)
 
 -- The tooltip type shown -----------------------------------------------------------
 

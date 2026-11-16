@@ -271,9 +271,9 @@ L["The gold dividers between sections and the thin rules above other addons' row
     "Die goldenen Trenner zwischen den Abschnitten und die feinen Linien über den Zeilen anderer Addons. Aus: Sie werden mitsamt ihrem Abstand ausgeblendet."
 L["School colors"] = "Schulfarben"
 L["Tooltip fading"] = "Tooltips ausblenden"
-L["Custom fade timings"] = "Eigene Ausblendzeiten"
-L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
-    "Einheiten und Weltobjekte blenden aus, wie das Spiel sie ausblendet. An: Sie folgen stattdessen den Zeiten unten; beide auf null blendet sie sofort aus."
+L["Enable tooltip fading"] = "Tooltips ausblenden lassen"
+L["Off, panels for units and world objects hide as soon as the cursor leaves them. On, they fade with the timings below; both at zero hides them at once."] =
+    "Aus: Tooltips von Einheiten und Weltobjekten verschwinden, sobald der Mauszeiger sie verlässt. An: Sie blenden mit den Zeiten unten aus; beide auf null blendet sie sofort aus."
 L["Fade delay"] = "Ausblendverzögerung"
 L["Fade duration"] = "Ausblenddauer"
 L[" sec"] = " Sek."

@@ -161,4 +161,21 @@ return function(test)
         if font:IsShown() and ns.util.plainText(font:GetText() or ""):find("Коэффициент", 1, true) then coefficients = true end
     end
     test.check("ruRU: rendered spells show localized coefficient rows", coefficients, true)
+
+    -- Too wide for its quarter of the widest panel, the value shrinks to stay on
+    -- one line above its caption; the others keep their size.
+    spell = ns.ui.spellModel({ name = "Огненный шар", rank = "Уровень 1", cost = { "25", "Мана" },
+        cast = { "Мгновенное действие", "Применение" }, cooldown = { "1,5 сек.", "Восстановление" },
+        range = { "30 м", "Радиус" }, description = { "Наносит 16 ед. урона от огня." } })
+    panel = ns.ui.renderPreview(CreateFrame("Frame", nil, UIParent), spell, SPELL)
+    local sizes = {}
+    for _, font in ipairs(panel.pool) do
+        if font:IsShown() then sizes[font:GetText() or ""] = select(2, font:GetFont()) end
+    end
+    local valueSize = ns.ui.styleOf("spellValues").size
+    test.check("ruRU: a strip value too wide for its cell shrinks, a short one does not",
+        { sizes["Мгновенное действие"] < valueSize, sizes["1,5 сек."] }, { true, valueSize })
+    test.check("ruRU: and the shrunk value fits its cell", ns.ui.measureStyled(panel, "Мгновенное действие",
+        { size = sizes["Мгновенное действие"], font = ns.ui.styleOf("spellValues").font })
+        <= (panel.width - 2 * ns.ui.pad()) / 4 - 4, true)
 end

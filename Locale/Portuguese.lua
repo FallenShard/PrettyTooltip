@@ -272,9 +272,9 @@ L["The gold dividers between sections and the thin rules above other addons' row
     "Os divisores dourados entre as seções e as linhas finas acima das linhas de outros addons. Desligado, eles somem junto com o espaço ao redor."
 L["School colors"] = "Cores das escolas"
 L["Tooltip fading"] = "Esmaecimento das dicas"
-L["Custom fade timings"] = "Tempos de esmaecimento próprios"
-L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
-    "Unidades e objetos do mundo esmaecem como o jogo os esmaece. Ligado, eles seguem os tempos abaixo; ambos em zero os escondem na hora."
+L["Enable tooltip fading"] = "Ativar esmaecimento das dicas"
+L["Off, panels for units and world objects hide as soon as the cursor leaves them. On, they fade with the timings below; both at zero hides them at once."] =
+    "Desligado, as dicas de unidades e objetos do mundo somem assim que o cursor sai deles. Ligado, elas esmaecem com os tempos abaixo; ambos em zero as escondem na hora."
 L["Fade delay"] = "Atraso do esmaecimento"
 L["Fade duration"] = "Duração do esmaecimento"
 L[" sec"] = " s"
