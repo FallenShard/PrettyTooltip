@@ -73,6 +73,10 @@ locale.questTags = { Elite = true, Dungeon = true, Schlachtzug = true, Gruppe = 
 -- The addon's own words: a first draft, for a German speaker to review.
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "Post"
+L["Restyle mail messages"] = "Mail-Vorschauen neu gestalten"
+
 -- The panels -------------------------------------------------------------------
 
 -- The spell strip. German spells measure their range in meters.
@@ -144,12 +148,6 @@ L["Spell Power Coefficient over time"] = "Zaubermachtkoeffizient über Zeit"
 L["Healing Power Coefficient"] = "Heilkraftkoeffizient"
 L["Healing Power Coefficient over time"] = "Heilkraftkoeffizient über Zeit"
 L["each"] = "je"
-L["Proc"] = "Auslösung"
-L["Judgement"] = "Richturteil"
-L["Judgement, stunned target"] = "Richturteil, betäubtes Ziel"
-L["Per swing, fast weapon"] = "Pro Schlag, schnelle Waffe"
-L["Per swing, slow weapon"] = "Pro Schlag, langsame Waffe"
-L["Extra to the first targets"] = "Zusätzlich für die ersten Ziele"
 
 -- Stats --------------------------------------------------------------------------
 
@@ -270,13 +268,6 @@ L["Separators"] = "Trennlinien"
 L["The gold dividers between sections and the thin rules above other addons' rows. Off, they are hidden along with the space around them."] =
     "Die goldenen Trenner zwischen den Abschnitten und die feinen Linien über den Zeilen anderer Addons. Aus: Sie werden mitsamt ihrem Abstand ausgeblendet."
 L["School colors"] = "Schulfarben"
-L["Tooltip fading"] = "Tooltips ausblenden"
-L["Custom fade timings"] = "Eigene Ausblendzeiten"
-L["Units and world objects fade as the game fades them. On, they follow the timings below instead; both at zero hides them at once."] =
-    "Einheiten und Weltobjekte blenden aus, wie das Spiel sie ausblendet. An: Sie folgen stattdessen den Zeiten unten; beide auf null blendet sie sofort aus."
-L["Fade delay"] = "Ausblendverzögerung"
-L["Fade duration"] = "Ausblenddauer"
-L[" sec"] = " Sek."
 L["%s Panel"] = "Rahmen: %s"
 L["Show icon"] = "Symbol zeigen"
 L["The icon or portrait in the header, for the kind of tooltip shown."] =
@@ -526,6 +517,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "Zusatztaste für den Standard-Tooltip"
 L["Ctrl"] = "Strg"
 L["Alt"] = "Alt"
+L["Always"] = "Immer"
 L["Never"] = "Nie"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] =
     "Haltet Strg, um statt des Rahmens den Tooltip des Spiels zu sehen."
@@ -625,3 +617,32 @@ L["Ended by"] = "Abgeschlossen bei"
 L["Started by"] = "Begonnen bei"
 L["Found in"] = "Zu finden in"
 L["Rares"] = "Seltene"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+L["Elite, rare, faction, PvP, AFK, and dead."] = "Elite, selten, Fraktion, PvP, AFK und tot."
+L["Mail armor"] = "Kette"
+L["Spell power"] = "Zaubermacht"
+L["Mythic+ Rating Modifier"] = "Mythic+-Wertung: Modifikatortaste"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Halte Strg gedrückt, um die Mythic+-Wertung und die Dungeonwertungen im Spielertooltip anzuzeigen."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Halte Alt gedrückt, um die Mythic+-Wertung und die Dungeonwertungen im Spielertooltip anzuzeigen."
+L["Show Mythic+ rating without holding a modifier key."] = "Mythic+-Wertung ohne Modifikatortaste immer anzeigen."
+L["Mythic+ Rating"] = "Mythic+-Wertung"
+L["Mount"] = "Reittier"
+L["Collected"] = "Gesammelt"
+L["Not collected"] = "Nicht gesammelt"
+L["Examples:"] = "Beispiele:"
+L["Attachments"] = "Anhänge"
+L["Mail title"] = "Posttitel"
+L["Attachments and prices"] = "Anhänge und Preise"
+L["Mail contents"] = "Postinhalt"
+L["Total: 14 items"] = "Insgesamt: 14 Gegenstände"
+L["Cooked Crab Claw"] = "Gekochte Krebsschere"
+L["Pyrite"] = "Pyrit"
+L["%d items"] = "%d Gegenstände"
+L["Source"] = "Quelle"
+L["Raid Progress"] = "Schlachtzugsfortschritt"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"
