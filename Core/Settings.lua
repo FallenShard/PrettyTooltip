@@ -74,6 +74,9 @@ local DEFAULTS = {
     editorStyle = "native",
     -- "ALT", "CTRL", or "NONE". Shift is the game's comparison key.
     originalKey = "ALT",
+    -- These two additions are opt-in by modifier; NONE means never show.
+    mythicScoreKey = "NONE",
+    raidProgressKey = "NONE",
     bodyFont = nil,
     titleFont = nil,
     -- "NONE", "OUTLINE", or "THICKOUTLINE", for elements without their own.
@@ -88,12 +91,6 @@ local DEFAULTS = {
     headerBottomAlpha = nil,
 }
 
-function ns.option(key)
-    local db = PrettyTooltipDB
-    if type(db) == "table" and db[key] ~= nil then return db[key] end
-    return DEFAULTS[key]
-end
-
 -- Custom durations are bounded and never used while Blizzard timing is on.
 function ns.fadeTiming()
     local function seconds(key)
@@ -102,6 +99,12 @@ function ns.fadeTiming()
         return math.max(0, math.min(5, value))
     end
     return seconds("hideDelay"), seconds("fadeDuration")
+end
+
+function ns.option(key)
+    local db = PrettyTooltipDB
+    if type(db) == "table" and db[key] ~= nil then return db[key] end
+    return DEFAULTS[key]
 end
 
 function ns.tooltipScale()
@@ -274,7 +277,7 @@ ns.TOOLTIP_TYPES = {
     { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
     { label = "Flight paths", restyle = "taxiPanels", types = {} },
-    { label = "Mail", restyle = "mailPanels", types = {} },
+    { label = "Mail messages", restyle = "mailPanels", types = {} },
     { label = "Quests", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
     { label = "Macros", restyle = "macroPanels", cursor = "cursorMacros", types = { "Macro" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
@@ -473,6 +476,19 @@ end
 
 function ns.originalKeyDown() return keyDown(ns.option("originalKey")) end
 function ns.isOriginalKey(key) return isKey(ns.option("originalKey"), key) end
+
+-- Mythic+ rating and raid lockouts are hidden by default. NONE means never;
+-- ALWAYS keeps the section visible without a physical modifier key.
+function ns.mythicScoreKeyDown()
+    local name = ns.option("mythicScoreKey")
+    return name == "ALWAYS" or (name ~= "NONE" and keyDown(name))
+end
+function ns.isMythicScoreKey(key) return isKey(ns.option("mythicScoreKey"), key) end
+function ns.raidProgressKeyDown()
+    local name = ns.option("raidProgressKey")
+    return name == "ALWAYS" or (name ~= "NONE" and keyDown(name))
+end
+function ns.isRaidProgressKey(key) return isKey(ns.option("raidProgressKey"), key) end
 
 -- Whether the details show now: their key is held, or they always show.
 function ns.detailsKeyDown()
