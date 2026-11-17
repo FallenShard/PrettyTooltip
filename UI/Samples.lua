@@ -34,15 +34,6 @@ local function quoted(text) return '"' .. text .. '"' end
 -- The types in the editor's order; dataType names the game's tooltip type and
 -- model the completer the tooltip file shares.
 local TYPES = {
-    { key = "mail", label = "Mail", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
-        noLookup = true, samples = { { label = "Attachments", fields = {
-            attachments = {
-                { link = "|cffffffffCooked Crab Claw|r", count = 9, icon = { item = 2682 },
-                    prices = { { left = "Vendor", right = { money = 25 } }, { left = "Auction", right = { money = 97 } } } },
-                { link = "|cff1eff00Pyrite|r", count = 5, icon = { item = 249391 },
-                    prices = { { left = "Vendor", right = { money = 100 } }, { left = "Auction", right = { money = 109 } } } },
-            }, totals = { { left = "Total: 14 items", right = { money = 1418 } } },
-        } } } },
     {
         key = "item", label = "Items", dataType = "Item", model = "itemModel", first = "title", noun = "item",
         samples = {
@@ -210,47 +201,6 @@ local TYPES = {
         },
     },
     {
-        key = "object", label = "Objects", dataType = "Object", model = "objectModel", first = "objectTitle",
-        noun = "object", noLookup = true,
-        samples = {
-            {
-                label = "Herb",
-                fields = { name = L["Bruiseweed"], skill = "Herbalism", skillColor = { 1, .5, .25 } },
-                -- Completing the model asks the game for them.
-                after = { prices = { { SELL_PRICE, { money = 40 } }, { L["Auction"], { money = 1250 } } } },
-            },
-            {
-                label = "Ore",
-                fields = {
-                    name = L["Mithril Deposit"], skill = "Mining", skillMet = false,
-                    details = { { left = fill(LOCKED_WITH_SPELL, skill("Mining")), right = "", requirement = true, met = false } },
-                    extras = { { left = fill(L["Gathered here %s times"], 12), right = "", color = { .17, .51, .77 } } },
-                },
-            },
-            {
-                label = "Chest",
-                fields = {
-                    name = L["Battered Chest"], skill = "Lockpicking",
-                    details = {
-                        { left = LOCKED, right = "" },
-                        { left = fill(ITEM_MIN_SKILL, skill("Lockpicking"), 25), right = "", requirement = true, met = true },
-                    },
-                },
-            },
-            {
-                label = "Quest",
-                fields = {
-                    name = L["Sealed Supply Crate"],
-                    quests = {
-                        { left = L["Heavy Supplies"], right = "", title = true },
-                        { left = "- " .. L["Supply Crate: 2/5"], right = "" },
-                        { left = "- " .. L["Report to the quartermaster"], right = "", completed = true },
-                    },
-                },
-            },
-        },
-    },
-    {
         key = "unit", label = "Units", dataType = "Unit", model = "unitModel", first = "unitName", noun = "unit",
         noLookup = true,
         samples = {
@@ -303,6 +253,47 @@ local TYPES = {
                 fields = {
                     name = L["Azuregos"], iconPath = "Interface\\Icons\\INV_Misc_Head_Dragon_01",
                     level = -1, creature = L["Dragonkin"], classification = "worldboss", reaction = 2, healthShare = .91,
+                },
+            },
+        },
+    },
+    {
+        key = "object", label = "Objects", dataType = "Object", model = "objectModel", first = "objectTitle",
+        noun = "object", noLookup = true,
+        samples = {
+            {
+                label = "Herb",
+                fields = { name = L["Bruiseweed"], skill = "Herbalism", skillColor = { 1, .5, .25 } },
+                -- Completing the model asks the game for them.
+                after = { prices = { { SELL_PRICE, { money = 40 } }, { L["Auction"], { money = 1250 } } } },
+            },
+            {
+                label = "Ore",
+                fields = {
+                    name = L["Mithril Deposit"], skill = "Mining", skillMet = false,
+                    details = { { left = fill(LOCKED_WITH_SPELL, skill("Mining")), right = "", requirement = true, met = false } },
+                    extras = { { left = fill(L["Gathered here %s times"], 12), right = "", color = { .17, .51, .77 } } },
+                },
+            },
+            {
+                label = "Chest",
+                fields = {
+                    name = L["Battered Chest"], skill = "Lockpicking",
+                    details = {
+                        { left = LOCKED, right = "" },
+                        { left = fill(ITEM_MIN_SKILL, skill("Lockpicking"), 25), right = "", requirement = true, met = true },
+                    },
+                },
+            },
+            {
+                label = "Quest",
+                fields = {
+                    name = L["Sealed Supply Crate"],
+                    quests = {
+                        { left = L["Heavy Supplies"], right = "", title = true },
+                        { left = "- " .. L["Supply Crate: 2/5"], right = "" },
+                        { left = "- " .. L["Report to the quartermaster"], right = "", completed = true },
+                    },
                 },
             },
         },
@@ -392,6 +383,15 @@ local TYPES = {
             },
         },
     },
+    { key = "mail", label = "Mail", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
+        noLookup = true, samples = { { label = "Attachments", fields = {
+            attachments = {
+                { link = "|cffffffffCooked Crab Claw|r", count = 9, icon = { item = 2682 },
+                    prices = { { left = "Vendor", right = { money = 25 } }, { left = "Auction", right = { money = 97 } } } },
+                { link = "|cff1eff00Pyrite|r", count = 5, icon = { item = 249391 },
+                    prices = { { left = "Vendor", right = { money = 100 } }, { left = "Auction", right = { money = 109 } } } },
+            }, totals = { { left = "Total: 14 items", right = { money = 1418 } } },
+        } } } },
 }
 -- A client's own parts in the samples (retail's Retail/UI/Samples.lua), each a
 -- function given the samples and the helpers that make them.
