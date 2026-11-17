@@ -581,7 +581,7 @@ end
 -- A rule after the block above, as far below its letters as the next block
 -- starts below it.
 local function ruleAfter(panel, y, color)
-    return ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, ui.RULE_SPACE - (panel.rowTail or 0))
+    return ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, ui.sectionSpace(ui.RULE_SPACE) - (panel.rowTail or 0))
 end
 
 -- The strip, requirements, and description of the spell or the one nested in
@@ -625,7 +625,7 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
     -- A talent's next rank, a step dimmer, under its caption.
     local talent = part.talent
     if talent and (#body.nextSentences > 0 or #talent.details > 0) then
-        y = ui.caption(panel, y + 4, util.upper(L["Next Rank"]), styles.spellCaptions, colors.caption)
+        y = ui.caption(panel, y + ui.sectionSpace(4), util.upper(L["Next Rank"]), styles.spellCaptions, colors.caption)
         y = ui.drawGroup(panel, talent.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
         for _, sentence in ipairs(body.nextSentences) do
             y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },

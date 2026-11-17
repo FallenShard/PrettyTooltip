@@ -243,6 +243,8 @@ L["Blizzard border"] = "블리자드 테두리"
 L["Flat"] = "단색"
 L["Padding"] = "안쪽 여백"
 L["Min width"] = "최소 너비"
+L["Row spacing"] = "줄 간격"
+L["Section spacing"] = "구역 간격"
 L["Icon on the right"] = "아이콘을 오른쪽에 표시"
 L["Moves the item or spell icon, and the item level badge under it, to the right of the name."] =
     "아이템 또는 주문 아이콘과 그 아래의 아이템 레벨 배지를 이름 오른쪽으로 옮깁니다."

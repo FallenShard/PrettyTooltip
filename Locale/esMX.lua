@@ -257,6 +257,8 @@ L["Blizzard border"] = "Borde de Blizzard"
 L["Flat"] = "Plano"
 L["Padding"] = "Margen interior"
 L["Min width"] = "Ancho mín."
+L["Row spacing"] = "Espacio entre filas"
+L["Section spacing"] = "Espacio entre secciones"
 L["Icon on the right"] = "Icono a la derecha"
 L["Moves the item or spell icon, and the item level badge under it, to the right of the name."] =
     "Mueve el icono del objeto o hechizo, y la placa de nivel de objeto bajo él, a la derecha del nombre."

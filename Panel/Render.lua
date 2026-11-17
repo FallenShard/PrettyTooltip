@@ -173,17 +173,19 @@ local DIVIDER_SPACE, RULE_SPACE = 13, 9
 
 local function drawSeparator(panel, y, separator, after)
     if not separator then return y end
-    local before = separator.before
+    local before = separator.before and ui.sectionSpace(separator.before)
     if before == nil and after and panel.rowTail then
         -- A divider draws its line 5 below where it starts.
-        before = separator.divider and DIVIDER_SPACE - 5 - panel.rowTail or RULE_SPACE - panel.rowTail
+        before = separator.divider and ui.sectionSpace(DIVIDER_SPACE) - 5 - panel.rowTail
+            or ui.sectionSpace(RULE_SPACE) - panel.rowTail
     end
     if separator.divider then return ui.divider(panel, y, separator.divider, before) end
     if separator.rule then return ui.rule(panel, y, separator.rule, before) end
     if separator.caption then
-        return ui.caption(panel, y + (separator.before or 0), separator.caption, separator.style, separator.color)
+        return ui.caption(panel, y + ui.sectionSpace(separator.before or 0), separator.caption, separator.style,
+            separator.color)
     end
-    return y + (separator.space or 0)
+    return y + ui.sectionSpace(separator.space or 0)
 end
 
 local DRAW = {
@@ -241,12 +243,13 @@ local function renderView(panel, tooltip, view)
     local y = ui.titleTop()
     for _, item in ipairs(view.header) do
         if item.text and item.after then
-            y = y + drawPaired(panel, item, pad() + leftIndent, y) + item.gap
+            y = y + drawPaired(panel, item, pad() + leftIndent, y) + ui.rowGap(item.gap)
         elseif item.text then
             y = y + ui.styledAt(panel, item.text, pad() + leftIndent, y, inner - indent, item.style, item.color)
-                + item.gap
+                + ui.rowGap(item.gap)
         elseif item.badges and #item.badges > 0 then
-            y = drawBadges(panel, item.badges, pad() + leftIndent, y + (item.before or 0), item.style) + item.gap
+            y = drawBadges(panel, item.badges, pad() + leftIndent, y + (item.before or 0), item.style)
+                + ui.rowGap(item.gap)
         elseif item.rows then
             for _, row in ipairs(item.rows) do
                 y = ui.drawRow(panel, row, y, item.style, item.color, leftIndent, item.gap, rightIndent)
@@ -258,7 +261,7 @@ local function renderView(panel, tooltip, view)
     if #view.header > 0 or view.icon then
         -- A header alone ends as far below its last line as its first is from the top.
         local alone = #view.sections == 0 and not hasFooter
-        y = math.max(alone and y or y + 6, headerMin)
+        y = math.max(alone and y or y + ui.sectionSpace(6), headerMin)
         panel.header:SetHeight(y - panel.inset)
     else
         -- Sections alone, as the minimap's list: as much room above as below.

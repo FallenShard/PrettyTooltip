@@ -14,7 +14,8 @@ return function(test)
         if object.prettyTooltipPreview then panel = object.prettyTooltipPreview end
         if object:GetObjectType() == "Slider" then
             local low, high = object:GetMinMaxValues()
-            if low == 50 and high == 150 then scaleSlider = object end
+            -- The first: the spacing sliders under it share its range.
+            if low == 50 and high == 150 and not scaleSlider then scaleSlider = object end
         end
     end
     test.check("the editor draws the sample at the saved global scale", panel:GetScale(), 1.5)

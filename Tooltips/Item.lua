@@ -1468,7 +1468,7 @@ local function drawStats(panel, model, styles, y)
         or #model.weaponBonus > 0
     local underDivider
     if (#model.secondary > 0 or #model.equipEffects > 0) and above then
-        y = divider(panel, y, GOLD_RULE, DIVIDER_AFTER)
+        y = divider(panel, y, GOLD_RULE, ui.sectionSpace(DIVIDER_AFTER))
         underDivider = y
     end
     y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
@@ -1567,7 +1567,9 @@ local function drawCreated(panel, created, styles, y)
     y = math.max(y, top + CREATED_ICON + 2) + 8
     local stats = hasStats(created)
     if stats then y = drawStats(panel, created, styles, y) end
-    if created.setName then y = drawSet(panel, created, styles, divider(panel, y, GOLD_RULE, stats and 11 or 0)) end
+    if created.setName then y = drawSet(panel, created, styles,
+        divider(panel, y, GOLD_RULE, ui.sectionSpace(stats and 11 or 0)))
+    end
     -- Its footer's lines, as whose classes may use it or an appearance not yet
     -- collected, under the rest: the recipe's footer is its own.
     local footer = {}

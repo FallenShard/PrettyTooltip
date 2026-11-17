@@ -83,6 +83,9 @@ local DEFAULTS = {
     tooltipScale = 1,
     padding = 19,
     minWidth = 260,
+    -- Multiply the space between rows, and around rules, dividers, and captions.
+    rowSpacing = 1,
+    sectionSpacing = 1,
     headerTopAlpha = nil,
     headerBottomAlpha = nil,
 }
@@ -100,6 +103,12 @@ function ns.fadeTiming()
         return math.max(0, math.min(5, value))
     end
     return seconds("hideDelay"), seconds("fadeDuration")
+end
+
+function ns.spacing(key)
+    local scale = ns.util.number(ns.option(key))
+    if not scale or scale ~= scale then return 1 end
+    return math.max(.5, math.min(1.5, scale))
 end
 
 function ns.tooltipScale()

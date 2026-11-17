@@ -41,6 +41,9 @@ local ICON_SIZE = 43
 local function pad() return ns.option("padding") end
 local function titleTop() return pad() + 2 end
 local function minWidth() return ns.option("minWidth") end
+-- Whole units, so the default spacing draws exactly as before.
+local function rowGap(gap) return math.floor(gap * ns.spacing("rowSpacing") + .5) end
+local function sectionSpace(space) return math.floor(space * ns.spacing("sectionSpacing") + .5) end
 
 -- One screen pixel in a region's units. A line one unit thick covers one
 -- pixel only at some UI scales; elsewhere its edges round apart, and alike
@@ -603,7 +606,7 @@ local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
     local left = row.left
     local right = row.right
     local leftColor = row.color or color
-    indent, gap, rightIndent = indent or 0, gap or 3, rightIndent or 0
+    indent, gap, rightIndent = indent or 0, rowGap(gap or 3), rightIndent or 0
     -- What the row leaves under its letters, its line's leading and the gap:
     -- a divider or rule after it counts this in (Panel/Render.lua).
     local lineHeight = math.floor(style.size * 1.15 + .5)
@@ -649,7 +652,7 @@ local function rule(panel, y, color, before)
     line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y))
     line:SetSize(panel.width - 2 * pad(), pixel(panel))
     line:SetVertexColor(color[1], color[2], color[3], .45)
-    return y + 9
+    return y + sectionSpace(9)
 end
 
 local function divider(panel, y, color, before)
@@ -670,12 +673,12 @@ local function divider(panel, y, color, before)
     center:SetSize(10, 10)
     if panel.parchment then center:SetVertexColor(.35, .21, .10, .9)
     else center:SetVertexColor(.9, .76, .48, .9) end
-    return y + 18
+    return y + 5 + sectionSpace(13)
 end
 
 -- A section's name centered between two rules.
 local function caption(panel, y, text, style, color)
-    y = y + 4
+    y = y + sectionSpace(4)
     local width = measureStyled(panel, text, style) + 2
     styledAt(panel, text, (panel.width - width) / 2, y, width, style, color or colors.caption, "CENTER")
     if ns.option("separators") then
@@ -688,7 +691,7 @@ local function caption(panel, y, text, style, color)
             line:SetVertexColor(GOLD_RULE[1] * .52, GOLD_RULE[2] * .52, GOLD_RULE[3] * .52, .8)
         end
     end
-    return y + style.size + 9
+    return y + style.size + sectionSpace(9)
 end
 
 local function drawGroup(panel, list, y, style, color, indent, gap, rightIndent)
@@ -980,6 +983,8 @@ ns.TooltipTypes = TooltipTypes
 
 ns.ui = {
     COLUMN_GAP = COLUMN_GAP,
+    rowGap = rowGap,
+    sectionSpace = sectionSpace,
     ICON_SIZE = ICON_SIZE,
     probe = probe,
     bodyFont = bodyFont,

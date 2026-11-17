@@ -242,6 +242,8 @@ L["Blizzard border"] = "暴雪边框"
 L["Flat"] = "简约"
 L["Padding"] = "内边距"
 L["Min width"] = "最小宽度"
+L["Row spacing"] = "行间距"
+L["Section spacing"] = "分区间距"
 L["Icon on the right"] = "图标居右"
 L["Moves the item or spell icon, and the item level badge under it, to the right of the name."] =
     "将物品或法术图标及其下方的物品等级徽标移到名称右侧。"

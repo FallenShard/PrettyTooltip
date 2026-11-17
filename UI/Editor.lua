@@ -1174,6 +1174,17 @@ local function panelSize(key, low, high)
 end
 row("Padding", panelSize("padding", 8, 32), optionSetting("padding"))
 row("Min width", panelSize("minWidth", 120, 400), optionSetting("minWidth"))
+-- In steps of 5%; the default is saved as no setting.
+local function spacing(key)
+    return slider(FIELD_WIDTH, function()
+        return math.floor(ns.spacing(key) * 100 + .5)
+    end, function(percent)
+        percent = math.floor(percent / 5 + .5) * 5
+        ns.setOption(key, percent ~= 100 and percent / 100 or nil)
+    end, 50, 150, "%")
+end
+row("Row spacing", spacing("rowSpacing"), optionSetting("rowSpacing"))
+row("Section spacing", spacing("sectionSpacing"), optionSetting("sectionSpacing"))
 toggles({
     { "Icon on the right", "iconRight",
         "Moves the item or spell icon, and the item level badge under it, to the right of the name." },

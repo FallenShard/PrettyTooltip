@@ -270,7 +270,7 @@ local function objectivesSection(model, styles, after)
             return need
         end,
         draw = function(panel, y)
-            y = ui.caption(panel, y + (after and 4 or 0), OBJECTIVES_LABEL, styles.questCaption, colors.caption)
+            y = ui.caption(panel, y + ui.sectionSpace(after and 4 or 0), OBJECTIVES_LABEL, styles.questCaption, colors.caption)
             for _, row in ipairs(model.objectives) do
                 checkbox(panel, y, row.completed, style.size)
                 y = ui.drawRow(panel, row, y, style, row.completed and DONE_COLOR or colors.objective,

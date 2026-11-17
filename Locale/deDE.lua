@@ -260,6 +260,8 @@ L["Blizzard border"] = "Blizzard-Rahmen"
 L["Flat"] = "Flach"
 L["Padding"] = "Innenabstand"
 L["Min width"] = "Mindestbreite"
+L["Row spacing"] = "Zeilenabstand"
+L["Section spacing"] = "Abschnittsabstand"
 L["Icon on the right"] = "Symbol rechts"
 L["Moves the item or spell icon, and the item level badge under it, to the right of the name."] =
     "Setzt das Gegenstands- oder Zaubersymbol und die Gegenstandsstufe darunter rechts neben den Namen."
