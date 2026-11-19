@@ -1187,7 +1187,7 @@ toggles({
 row("School colors", colorSwatches(ns.Palette.SCHOOLS, "schoolColor", ns.Palette.school),
     colorGroupSetting(ns.Palette.SCHOOLS, "schoolColor"), nil, true)
 
-section("Tooltip fading")
+section(L["Tooltip fading"])
 toggles({
     { "Enable tooltip fading", "fadeTooltips",
         "Off, panels for units and world objects hide as soon as the cursor leaves them. On, they fade with the timings below; both at zero hides them at once." },

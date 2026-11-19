@@ -10,7 +10,7 @@ How it works: asks wago.tools for the newest build, downloads about 15 DB2 table
 (https://wago.tools/db2/<Table>/csv?build=<version>), and joins them. Which spells belong to a class comes from
 SkillLineAbility; an ability's damage is followed through the spells it triggers and the spells its tooltip reads
 from. Standard library only. Downloads are cached in the temp folder (prettytooltip-wago/<build>/), since a build's
-tables never change. tools/make_spell_parts.py builds the database with this, for Data/SpellParts.lua.
+tables never change. tools/make_coefficients.py builds the database with this, for Data/SpellRanks.lua.
 
 Limits: wago.tools serves tables as the build shipped, without later hotfixes. A few scaling values exist only
 on Blizzard's servers; the ones Blizzard has stated in its beta notes are in SERVER_SCALING below, and are used

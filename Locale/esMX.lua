@@ -70,6 +70,10 @@ locale.questTags = { ["Élite"] = true, Calabozo = true, Banda = true, Grupo = t
 
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "Correo"
+L["Restyle mail messages"] = "Rediseñar correos"
+
 -- The panels -------------------------------------------------------------------
 
 -- The spell strip. Spanish spells measure their range in meters.
@@ -141,12 +145,6 @@ L["Spell Power Coefficient over time"] = "Coeficiente de poder con hechizos en e
 L["Healing Power Coefficient"] = "Coeficiente de poder de sanación"
 L["Healing Power Coefficient over time"] = "Coeficiente de poder de sanación en el tiempo"
 L["each"] = "cada uno"
-L["Proc"] = "Activación"
-L["Judgement"] = "Sentencia"
-L["Judgement, stunned target"] = "Sentencia, objetivo aturdido"
-L["Per swing, fast weapon"] = "Por golpe, arma rápida"
-L["Per swing, slow weapon"] = "Por golpe, arma lenta"
-L["Extra to the first targets"] = "Adicional a los primeros objetivos"
 
 -- Stats --------------------------------------------------------------------------
 
@@ -525,6 +523,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "Tecla para la descripción del juego"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"
+L["Always"] = "Siempre"
 L["Never"] = "Nunca"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] =
     "Mantén presionado Ctrl para ver la descripción del juego en lugar del panel."
@@ -627,3 +626,32 @@ L["Ended by"] = "Se entrega a"
 L["Started by"] = "La inicia"
 L["Found in"] = "Se encuentra en"
 L["Rares"] = "Raros"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+L["Elite, rare, faction, PvP, AFK, and dead."] = "Élite, raro, facción, JcJ, AUS y muerto."
+L["Mail armor"] = "Malla"
+L["Spell power"] = "Poder con hechizos"
+L["Mythic+ Rating Modifier"] = "Tecla modificadora de puntuación de Míticas+"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Mantén Ctrl para mostrar la puntuación de Míticas+ y de las calabozos en la descripción del jugador."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Mantén Alt para mostrar la puntuación de Míticas+ y de los calabozos en la descripción del jugador."
+L["Show Mythic+ rating without holding a modifier key."] = "Mostrar siempre la puntuación de Míticas+ sin mantener presionada una tecla modificadora."
+L["Mythic+ Rating"] = "Puntuación de Míticas+"
+L["Mount"] = "Montura"
+L["Collected"] = "Coleccionada"
+L["Not collected"] = "No coleccionada"
+L["Examples:"] = "Ejemplos:"
+L["Attachments"] = "Adjuntos"
+L["Mail title"] = "Título del correo"
+L["Attachments and prices"] = "Adjuntos y precios"
+L["Mail contents"] = "Contenido del correo"
+L["Total: 14 items"] = "Total: 14 objetos"
+L["Cooked Crab Claw"] = "Pinza de cangrejo cocida"
+L["Pyrite"] = "Pirita"
+L["%d items"] = "%d objetos"
+L["Source"] = "Fuente"
+L["Raid Progress"] = "Progreso de banda"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"

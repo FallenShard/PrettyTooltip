@@ -70,6 +70,10 @@ locale.questTags = { ["Элитный"] = true, ["Подземелье"] = true,
 
 local L = ns.L
 
+-- Distinguish the mailbox tooltip from the mail armor type.
+L["Mail messages"] = "Почта"
+L["Restyle mail messages"] = "Перерисовать почтовые подсказки"
+
 
 -- The panels -----------------------------------
 L["Cast"] = "Применение"
@@ -131,12 +135,6 @@ L["Spell Power Coefficient over time"] = "Коэффициент силы зак
 L["Healing Power Coefficient"] = "Коэффициент силы исцеления"
 L["Healing Power Coefficient over time"] = "Коэффициент силы исцеления для периодического исцеления"
 L["each"] = "каждый"
-L["Proc"] = "Срабатывание"
-L["Judgement"] = "Правосудие"
-L["Judgement, stunned target"] = "Правосудие, оглушенная цель"
-L["Per swing, fast weapon"] = "За удар, быстрое оружие"
-L["Per swing, slow weapon"] = "За удар, медленное оружие"
-L["Extra to the first targets"] = "Дополнительно первым целям"
 
 -- Stats -----------------------------------
 L["All Stats"] = "ко всем характеристикам"
@@ -474,6 +472,7 @@ L["Keep the game's own tooltips. Item Equip effects are shortened, and the detai
 L["Default Tooltip Modifier"] = "Клавиша игровой подсказки"
 L["Ctrl"] = "Ctrl"
 L["Alt"] = "Alt"
+L["Always"] = "Постоянно"
 L["Never"] = "Никогда"
 L["Hold Ctrl to see the game's own tooltip instead of the panel."] = "Удерживайте Ctrl, чтобы увидеть игровую подсказку вместо панели."
 L["Hold Alt to see the game's own tooltip instead of the panel."] = "Удерживайте Alt, чтобы увидеть игровую подсказку вместо панели."
@@ -557,3 +556,32 @@ L["Ended by"] = "Завершает"
 L["Started by"] = "Начинает"
 L["Found in"] = "Находится в"
 L["Rares"] = "Редкие существа"
+
+
+-- Additional localization carried forward from the Diff branch.
+L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+L["Elite, rare, faction, PvP, AFK, and dead."] = "Элита, редкость, фракция, PvP, отсутствие и смерть."
+L["Mail armor"] = "Кольчуга"
+L["Spell power"] = "Сила заклинаний"
+L["Mythic+ Rating Modifier"] = "Клавиша-модификатор рейтинга эпохальных+"
+L["Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips."] = "Удерживайте Ctrl, чтобы показывать рейтинг эпохальных+ и результаты подземелий в подсказке игрока."
+L["Hold Alt to show Mythic+ rating and dungeon scores on player tooltips."] = "Удерживайте Alt, чтобы показывать рейтинг эпохальных+ и результаты подземелий в подсказке игрока."
+L["Show Mythic+ rating without holding a modifier key."] = "Всегда показывать рейтинг эпохальных+ без клавиши-модификатора."
+L["Mythic+ Rating"] = "Рейтинг эпохальных+"
+L["Mount"] = "Средство передвижения"
+L["Collected"] = "Получено"
+L["Not collected"] = "Не получено"
+L["Examples:"] = "Примеры:"
+L["Attachments"] = "Вложения"
+L["Mail title"] = "Заголовок письма"
+L["Attachments and prices"] = "Вложения и цены"
+L["Mail contents"] = "Содержимое письма"
+L["Total: 14 items"] = "Всего: 14 предметов"
+L["Cooked Crab Claw"] = "Варёная клешня краба"
+L["Pyrite"] = "Пирит"
+L["%d items"] = "%d предметов"
+L["Source"] = "Источник"
+L["Raid Progress"] = "Прогресс рейдов"
+L["Raid Short: Tidal Hollows"] = "TH"
+L["Raid Short: Venomous Abyss"] = "VA"
+L["Raid Short: Kishix Unbound"] = "KU"

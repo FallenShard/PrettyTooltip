@@ -36,3 +36,11 @@ L["Death Knight"] = "死亡騎士"
 L["Monk"] = "武僧"
 L["Demon Hunter"] = "惡魔獵人"
 L["Evoker"] = "喚能師"
+
+
+-- Additional localization carried forward from the Diff branch.
+L['Mythic+ Rating Modifier'] = '傳奇鑰石評分快捷鍵'
+L['Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Ctrl 顯示傳奇鑰石評分及副本成績。'
+L['Hold Alt to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Alt 顯示傳奇鑰石評分及副本成績。'
+L['Show Mythic+ rating and dungeon scores without holding a modifier key.'] = '無需按鍵，始終顯示傳奇鑰石評分及副本成績。'
+L['Mythic+ Rating'] = '傳奇鑰石評分'

@@ -49,12 +49,16 @@ Panel\Layout.lua
 Panel\Render.lua
 Retail\Tooltips\Item.lua
 Tooltips\Item.lua
+Retail\Integration\MidnightRatings.lua
 Retail\Tooltips\ItemExtension.lua
 Retail\Tooltips\Spell.lua
 Tooltips\Spell.lua
 Retail\Tooltips\SpellExtension.lua
 Tooltips\Object.lua
 Tooltips\Unit.lua
+Retail\Tooltips\Unit.lua
+Retail\Tooltips\MythicScore.lua
+Retail\Tooltips\RaidProgress.lua
 Retail\Tooltips\UnitExtension.lua
 Tooltips\Aura.lua
 Tooltips\Imbue.lua
