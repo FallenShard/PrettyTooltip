@@ -8,8 +8,7 @@ local DEFAULTS = {
     -- "pretty" draws panels for the types turned on below; "blizzard" keeps
     -- the game's own tooltips everywhere.
     layout = "pretty",
-    -- Default: mirror the client's native fade, including its built-in delay.
-    customFade = false,
+    fadeTooltips = false,
     hideDelay = 1,
     fadeDuration = 1,
     itemPanels = true,
@@ -92,6 +91,12 @@ local DEFAULTS = {
 }
 
 -- Custom durations are bounded and never used while Blizzard timing is on.
+function ns.option(key)
+    local db = PrettyTooltipDB
+    if type(db) == "table" and db[key] ~= nil then return db[key] end
+    return DEFAULTS[key]
+end
+
 function ns.fadeTiming()
     local function seconds(key)
         local value = ns.util.number(ns.option(key))
@@ -143,12 +148,15 @@ local function setOption(key, value)
 end
 ns.setOption = setOption
 
--- 1.3's item lite mode was the game's item tooltip; it is now items not restyled.
 function ns.migrateOptions()
     local db = PrettyTooltipDB
-    if type(db) ~= "table" or db.itemLite == nil then return end
+    if type(db) ~= "table" then return end
+    -- 1.3's item lite mode was the game's item tooltip; it is now items not restyled.
     if db.itemLite == true then db.itemPanels = false end
     db.itemLite = nil
+    -- 1.4.1's custom timings were the only fade a player chose; its default mirrored the game's.
+    if db.customFade == true then db.fadeTooltips = true end
+    db.customFade = nil
 end
 
 function ns.resetOptions()

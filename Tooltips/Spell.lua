@@ -37,6 +37,8 @@ local RANK_BADGE = { .60, .56, .50 }
 local REMAINING_COLOR = { 1, .60, .25 }
 local UNMET_COLOR = colors.unmet
 local STRIP_HEIGHT = 34
+-- The smallest a strip value or caption shrinks to fit its cell.
+local MIN_STRIP_SIZE = 8
 -- Spells have one title line, so a smaller icon keeps the header short.
 local ICON_SIZE = 38
 -- Spells are tinted a little less than items; the school is only a hint.
@@ -528,6 +530,19 @@ local function bodyWidth(panel, part, body, styles)
     return need
 end
 
+-- A cell's text in a size that keeps it on one line: the panel grows for its
+-- cells only up to its widest, so a long wording (Russian's "Instant", two
+-- words) would wrap onto the caption under it.
+local function fitted(panel, text, style, width)
+    if measureStyled(panel, text, style) <= width then return style end
+    local fit = {}
+    for key, value in pairs(style) do fit[key] = value end
+    repeat
+        fit.size = fit.size - 1
+    until fit.size <= MIN_STRIP_SIZE or measureStyled(panel, text, fit) <= width
+    return fit
+end
+
 local function drawStrip(panel, model, y, color, styles)
     local values, captions = styles.spellValues, styles.spellCaptions
     local cells = stripCells(model)
@@ -541,8 +556,9 @@ local function drawStrip(panel, model, y, color, styles)
         if power then
             valueColor = { power[1] * .45 + .55, power[2] * .45 + .55, power[3] * .45 + .55 }
         end
-        styledAt(panel, cell[1], x, y, cellWidth, values, valueColor, "CENTER")
-        styledAt(panel, util.upper(cell[2]), x, y + captionOffset, cellWidth, captions,
+        local caption = util.upper(cell[2])
+        styledAt(panel, cell[1], x, y, cellWidth, fitted(panel, cell[1], values, cellWidth - 4), valueColor, "CENTER")
+        styledAt(panel, caption, x, y + captionOffset, cellWidth, fitted(panel, caption, captions, cellWidth - 4),
             colors.caption, "CENTER")
         if index > 1 then
             local separator = ui.acquireTexture(panel)

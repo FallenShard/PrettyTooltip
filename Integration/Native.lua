@@ -65,12 +65,10 @@ end
 
 -- A world unit's tooltip fades out once the mouse leaves the unit, the game
 -- setting its alpha every frame, past the SetAlpha hook. Keep it off screen
--- while our panel mirrors the native fade or runs the selected custom timing.
+-- while our panel hides or runs the player's fade timings.
 
 -- Off the screen, where a fading tooltip goes so its alpha no longer matters.
 local PARKED = -10000
--- Seconds a panel follows the game's fade at most, should the game never end it.
-local NATIVE_FADE_LIMIT = 5
 
 -- Moves a fading tooltip off the screen, saving its anchors for reuse.
 -- Hiding the tooltip instead would run its OnHide under the addon's taint.
@@ -137,16 +135,15 @@ local function fadeOut(tooltip)
     local panel = panels[tooltip]
     if not (panel and panel:IsShown() and panel.nativeAlpha and util.call(tooltip.IsShown, tooltip)) then return end
     if panel.fade then return end
-    local custom = ns.option("customFade")
     local delay, duration = ns.fadeTiming()
     -- Pin before parking: the panel must not follow the invisible native tip.
-    if tooltip ~= GameTooltip or ui.isComparison(tooltip) or (custom and delay + duration == 0)
+    if tooltip ~= GameTooltip or ui.isComparison(tooltip) or not ns.option("fadeTooltips") or delay + duration == 0
         or not ui.pinPanel(panel) or not park(tooltip, panel) then
         panel:Hide()
         park(tooltip, panel)
         return
     end
-    panel.fade = { elapsed = 0, custom = custom, delay = delay, duration = duration }
+    panel.fade = { elapsed = 0, delay = delay, duration = duration }
     -- Invalidate content/restore timers queued before the mouse left.
     panel.refreshToken = (panel.refreshToken or 0) + 1
     panel.restorePending, panel.contentPending = false, nil
@@ -184,31 +181,12 @@ local function updateFade(tooltip, panel, elapsed)
         return true
     end
     fade.elapsed = fade.elapsed + elapsed
-    if fade.custom then
-        if fade.elapsed >= fade.delay + fade.duration then
-            restoreNative(tooltip)
-            return true
-        end
-        if fade.elapsed > fade.delay then
-            panel:SetAlpha(1 - (fade.elapsed - fade.delay) / fade.duration)
-        end
-    else
-        -- Blizzard's native FadeOut is implemented by the client, not Lua.
-        -- Mirror it rather than guessing constants that can vary by client.
-        if util.call(tooltip.IsShown, tooltip) ~= true then
-            restoreNative(tooltip)
-            return true
-        end
-        local alpha = util.number((util.call(tooltip.GetAlpha, tooltip)))
-        if not alpha or fade.elapsed >= NATIVE_FADE_LIMIT then restoreNative(tooltip); return true end
-        -- Alpha starts at zero because PrettyTooltip suppresses the original.
-        -- Leave the panel opaque until the client writes its first fade alpha.
-        -- The game's fade only falls, then puts the tooltip back at 1, shown:
-        -- a rise ends it, as reading between frames can miss its 0.
-        if fade.started and (alpha <= 0 or alpha > fade.last) then restoreNative(tooltip); return true end
-        if alpha > 0 then fade.started = true end
-        fade.last = alpha
-        if fade.started then panel:SetAlpha(math.max(0, math.min(1, alpha))) end
+    if fade.elapsed >= fade.delay + fade.duration then
+        restoreNative(tooltip)
+        return true
+    end
+    if fade.elapsed > fade.delay then
+        panel:SetAlpha(1 - (fade.elapsed - fade.delay) / fade.duration)
     end
     return true
 end

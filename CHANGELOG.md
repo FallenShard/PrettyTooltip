@@ -1,3 +1,13 @@
+# PrettyTooltip 1.4.2
+
+## Tooltips
+
+- Tooltip fading is now off by default: panels for units, unit frames, and world objects hide as soon as the cursor leaves them, as they did before 1.4.1. **Enable tooltip fading** in the style editor turns it on, with the **Fade delay** and **Fade duration** below it. Fading with the game's own timing is gone; if you had turned on custom fade timings in 1.4.1, fading stays on.
+
+## Spells
+
+- A cast time, cost, or cooldown too long for its place in the spell strip, such as Russian's "Мгновенное действие", now shrinks to stay on one line instead of wrapping onto the caption under it. ([#58](https://github.com/FallenShard/PrettyTooltip/issues/58))
+
 # PrettyTooltip 1.4.1
 
 ## Tooltips
