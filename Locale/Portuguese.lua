@@ -624,6 +624,7 @@ L["Rares"] = "Raros"
 
 -- Additional localization carried forward from the Diff branch.
 L["The item's, spell's, or NPC's ID at the bottom of its panel, under other addons' rows."] =
+    "O ID do item, feitiço ou PNJ na parte inferior do painel, abaixo das linhas de outros addons."
 L["Elite, rare, faction, PvP, AFK, and dead."] = "Elite, raro, facção, JxJ, ausente e morto."
 L["Mail armor"] = "Malha"
 L["Spell power"] = "Poder mágico"
