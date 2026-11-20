@@ -1,0 +1,76 @@
+== tooltip model
+armor: {}
+comparison: false
+effects: {}
+enchants: {}
+equipEffects: {}
+extras: {}
+flavor:
+  1:
+    left: "\"An exquisitely intact piece of Highmaul antiquity. The Steamwheedle Preservation Society would be interested in this relic.\""
+    right: ""
+footerLeft: {}
+footerRight: {}
+header:
+  1:
+    color:
+      1: 0
+      2: 0.8
+      3: 1
+    left: "Warbound"
+    right: ""
+icon: 1017867
+kinds: {}
+level: 1
+lineIndices:
+  1: true
+  2: true
+  3: true
+link: "|cnIQ3:|Hitem:118100::::::::90:264:::::::::|h[Highmaul Relic]|h|r"
+name: "Highmaul Relic"
+nameColor:
+  1: 0
+  2: 0.4392
+  3: 0.8667
+primary: {}
+quality: 3
+quest: false
+retail:
+  cosmetic: false
+  cosmeticColor: false
+  craftingQuality: false
+  decorCost: false
+  decorKind: false
+  illusion: false
+  keystone: false
+  source: false
+  sourceColor: false
+  transmog: false
+  upgrade: false
+secondary: {}
+setBonuses: {}
+setItems: {}
+sockets: {}
+weaponBonus: {}
+== tooltip render
+panel 308 x 185
+texture at 7,7 0x0 rgb=0.046,0.0595,0.079,0.9 color
+texture TOPLEFT Texture TOPLEFT 0,0 0x0 rgb=0.8776,0.9262,0.9964,1 UI-Background-Rock
+texture at 7,7 0x69 rgb=1,1,1,1 WHITE8X8
+texture at 19,21 43x43 rgb=1,1,1,1 1017867
+texture unplaced 16x16 rgb=0.864,0.918,0.996,1 dialog-TopLeftCorner
+texture unplaced 16x16 rgb=0.864,0.918,0.996,1 dialog-TopRightCorner
+texture unplaced 16x16 rgb=0.864,0.918,0.996,1 dialog-BottomLeftCorner
+texture unplaced 16x16 rgb=0.864,0.918,0.996,1 dialog-BottomRightCorner
+texture unplaced 0x0 rgb=0.864,0.918,0.996,1 dialog-TopEdge
+texture unplaced 0x0 rgb=0.864,0.918,0.996,1 dialog-BottomEdge
+texture unplaced 0x0 rgb=0.864,0.918,0.996,1 dialog-LeftEdge
+texture unplaced 0x0 rgb=0.864,0.918,0.996,1 dialog-RightEdge
+text at 72,21 w=217 size=19 rgb=0.32,0.59,0.98 "HIGHMAUL RELIC"
+text at 72,47 w=217 size=12 rgb=0,0.8,1 "Warbound"
+texture at 19,81 135x1 rgb=1,1,1,1 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-81 135x1 rgb=1,1,1,1 WHITE8X8
+text at 19,94 w=270 size=12 rgb=0.86,0.74,0.45 "\"An exquisitely intact piece of Highmaul antiquity. The Steamwheedle Preservation Society would be interested in this relic.\""
+texture at 19,144 135x1 rgb=1,1,1,1 WHITE8X8
+texture TOPRIGHT panel TOPRIGHT -19,-144 135x1 rgb=1,1,1,1 WHITE8X8
+text at 19,153 w=270 size=11 rgb=0.6,0.6,0.63 "Item ID: 118100"
