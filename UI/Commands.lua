@@ -111,6 +111,14 @@ local function handleCommand(message)
         if ns.traceTooltips then ns.traceTooltips(math.min(10, math.max(1, tonumber(traceSeconds) or 4))) end
         return
     end
+    -- /ptip scanners: tooltips of other addons left unstyled because they never show.
+    if wanted == "scanners" then
+        local names = {}
+        for name, count in pairs(ns.skippedTooltips or {}) do names[#names + 1] = ("%s x%d"):format(name, count) end
+        table.sort(names)
+        print("PrettyTooltip: hidden tooltips of other addons, skipped: " .. (#names > 0 and table.concat(names, ", ") or "none yet"))
+        return
+    end
     if wanted == "anchors" then
         if ns.dumpAnchors then pcall(ns.dumpAnchors) end
         return
