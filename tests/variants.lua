@@ -6,6 +6,8 @@ return {
     Item = {
         -- The panel's own flat look, which the game's border replaces by default.
         flat = { settings = { backdropStyle = "flat" } },
+        -- The Classic panel style: the game's stone and border.
+        classic = { settings = { backdropStyle = "classic" } },
         -- The game's tooltip, its Equip effects shortened and original colors kept,
         -- with the details appended while Shift is held.
         blizzard = { settings = { layout = "blizzard" }, native = true },
@@ -15,6 +17,7 @@ return {
     },
     Spell = {
         flat = { settings = { backdropStyle = "flat" } },
+        classic = { settings = { backdropStyle = "classic" } },
         blizzard = { settings = { layout = "blizzard" }, native = true },
         plain = { settings = { iconSpells = false, spellPower = false, spellRates = false, qualityTint = false, separators = false } },
     },

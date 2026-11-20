@@ -37,6 +37,7 @@ local BACKDROP_STYLES = {
     { value = "native", text = "Blizzard border" },
     { value = "flat", text = "Flat" },
     { value = "dialogue", text = "DialogueUI" },
+    { value = "classic", text = "Classic" },
 }
 local OUTLINES = {
     { value = "NONE", text = "None" },
@@ -1030,7 +1031,7 @@ allCapsLabel:SetPoint("LEFT", allCaps, "RIGHT", 2, 1)
 allCaps:SetHitRectInsets(0, -(allCapsLabel:GetStringWidth() + 6), 0, 0)
 allCaps:SetScript("OnClick", function(self)
     local checked = self:GetChecked() and true or false
-    if checked == (selectedElement().title == true) then
+    if checked == ns.capsDefault(selectedElement()) then
         ns.setElementSetting(state.selected, "caps", nil)
     else
         ns.setElementSetting(state.selected, "caps", checked)
@@ -1039,7 +1040,7 @@ allCaps:SetScript("OnClick", function(self)
 end)
 allCaps.refresh = function()
     local caps = ns.elementSetting(state.selected, "caps")
-    if caps == nil then caps = selectedElement().title == true end
+    if caps == nil then caps = ns.capsDefault(selectedElement()) end
     allCaps:SetChecked(caps)
 end
 controls[#controls + 1] = allCaps
@@ -1175,6 +1176,8 @@ end
 row("Padding", panelSize("padding", 8, 32), optionSetting("padding"))
 row("Min width", panelSize("minWidth", 120, 400), optionSetting("minWidth"))
 toggles({
+    { "Style game tooltips", "skinGameTooltips",
+        "The game's other tooltips, as on character stats, the action bar, and in the options, in the panel style." },
     { "Icon on the right", "iconRight",
         "Moves the item or spell icon, and the item level badge under it, to the right of the name." },
     { "Tint the panel", "qualityTint",
