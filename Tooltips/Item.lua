@@ -263,9 +263,58 @@ local function withoutLabel(text, label)
     return text
 end
 
+-- Retail can send a profession-quality atlas either as normal markup or as
+-- its bare payload. Normalize the latter before any text parser sees it.
+local function normalizeProfessionQualityAtlas(text)
+    if type(text) ~= "string" or text:find("|A:Professions%-ChatIcon%-Quality%-") then return text end
+    local full = text:match("(Professions%-ChatIcon%-Quality%-[%w%-]+:%d+:%d+:%-?%d+:%-?%d+)")
+    if full then
+        return (text:gsub("Professions%-ChatIcon%-Quality%-[%w%-]+:%d+:%d+:%-?%d+:%-?%d+",
+            function(payload) return "|A:" .. payload .. "|a" end))
+    end
+    local short = text:match("(Professions%-ChatIcon%-Quality%-[%w%-]+:%d+:%d+)")
+    if short then
+        local normalized = short .. ":0:0"
+        local result = text:gsub("%s*Professions%-ChatIcon%-Quality%-[%w%-]+:%d+:%d+", "|A:" .. normalized .. "|a")
+        return (result:gsub("!%s*$", ""))
+    end
+    return text
+end
+ns.normalizeProfessionQualityAtlas = normalizeProfessionQualityAtlas
+
+local function extractEnchantQuality(text)
+    if type(text) ~= "string" then return text, nil end
+    text = normalizeProfessionQualityAtlas(text)
+    local icon = text:match("(|A:Professions%-ChatIcon%-Quality%-[^|]+|a)")
+    if icon then
+        return (text:gsub("%s*|A:Professions%-ChatIcon%-Quality%-[^|]+|a", "")), icon
+    end
+    return text, nil
+end
+
+local function alignCraftingQuality(text)
+    if type(text) ~= "string" then return text end
+    return (text:gsub("|A:(Professions%-ChatIcon%-Quality%-[^|]+)|a", function(payload)
+        local fields = {}
+        for field in (payload .. ":"):gmatch("(.-):") do fields[#fields + 1] = field end
+        if #fields < 3 then return "|A:" .. payload .. "|a" end
+        local y = tonumber(fields[5]) or 0
+        fields[4], fields[5] = fields[4] or "0", tostring(y + 4)
+        return "|A:" .. table.concat(fields, ":") .. "|a"
+    end))
+end
+
+local function localizeEnchantConjunction(text)
+    if type(text) ~= "string" then return text end
+    local locale = GetLocale and GetLocale()
+    if locale ~= "zhCN" and locale ~= "zhTW" then return text end
+    return (text:gsub("%s*&%s*", "和"))
+end
+
 local function readCopyLine(model, left, right)
     if right ~= "" then return false end
-    local text = plainText(left):match("^%s*(.-)%s*$")
+    local cleanLeft, qualityIcon = extractEnchantQuality(left)
+    local text = plainText(cleanLeft):match("^%s*(.-)%s*$")
     local maker = unformat(text, ITEM_CREATED_BY)
     if maker then
         model.madeBy = maker
@@ -273,7 +322,10 @@ local function readCopyLine(model, left, right)
     end
     local enchant = unformat(text, ENCHANTED_TOOLTIP_LINE)
     if enchant then
-        for _, row in ipairs(enchantRows(enchant)) do add(model.enchants, row, "") end
+        for _, row in ipairs(enchantRows(enchant)) do
+            if qualityIcon then row = row .. " " .. qualityIcon end
+            add(model.enchants, alignCraftingQuality(localizeEnchantConjunction(row)), "")
+        end
         return true
     end
     return false
@@ -646,9 +698,14 @@ local function readContent(read, line, context, left, right, trimmed, original)
     elseif isType(lineType, "FlavorText") or trimmed:match('^".+"$') then
         add(item.flavor, left, right)
     elseif isType(lineType, "ItemEnchantmentPermanent") and right == "" then
-        -- The enchant follows its label, "Enchanted:".
-        local text = util.trim(plainText(left))
-        for _, row in ipairs(enchantRows(text:match("^[^:]-:%s*(.+)$") or text)) do add(item.enchants, row, "") end
+        -- The enchant follows its label, "Enchanted:". Extract the crafting
+        -- quality atlas first: otherwise the naked atlas payload is shown as text.
+        local cleanLeft, qualityIcon = extractEnchantQuality(left)
+        local text = util.trim(plainText(cleanLeft))
+        for _, row in ipairs(enchantRows(text:match("^[^:]-:%s*(.+)$") or text)) do
+            if qualityIcon then row = row .. " " .. qualityIcon end
+            add(item.enchants, alignCraftingQuality(localizeEnchantConjunction(row)), "")
+        end
     elseif readCopyLine(item, left, right) then
         -- Crafter or enchant, taken into their own rows.
     elseif trimmed:match("^<.+>$") then
