@@ -51,13 +51,30 @@ function ns.Options.register()
         if ns.openEditor then ns.openEditor() end
     end)
 
-    -- Two columns: the types of tooltip on the left, the other settings on the right.
-    local COLUMNS_TOP = -100
+    -- Match the repaired 1.4.1 layout: keep the page header fixed and put
+    -- both settings columns inside a scrollable canvas. Without this, the
+    -- longer 1.4.2 right column extends below Blizzard's Settings page.
+    local scroll = CreateFrame("ScrollFrame", nil, page, "UIPanelScrollFrameTemplate")
+    scroll:SetPoint("TOPLEFT", page, "TOPLEFT", 16, -100)
+    scroll:SetPoint("BOTTOMRIGHT", page, "BOTTOMRIGHT", -30, 12)
+    scroll:EnableMouseWheel(true)
+
+    local canvas = CreateFrame("Frame", nil, scroll)
+    canvas:SetSize(700, 760)
+    scroll:SetScrollChild(canvas)
+    scroll:SetScript("OnMouseWheel", function(self, delta)
+        local current = self:GetVerticalScroll() or 0
+        local maximum = self:GetVerticalScrollRange() or 0
+        self:SetVerticalScroll(math.max(0, math.min(maximum, current - delta * 42)))
+    end)
+
+    -- Both columns share the same scrollable canvas.
+    local COLUMNS_TOP = -8
     local leftColumn = { x = 16, y = COLUMNS_TOP }
     local rightColumn = { x = 440, y = COLUMNS_TOP }
 
     local function section(column, text)
-        local header = page:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        local header = canvas:CreateFontString(nil, "ARTWORK", "GameFontNormal")
         header:SetPoint("TOPLEFT", column.x, column.y)
         header:SetText(L[text])
         column.y = column.y - 24
@@ -65,7 +82,7 @@ function ns.Options.register()
 
     section(leftColumn, "Restyled Tooltips")
     for index, heading in ipairs({ "Restyle", "Follow cursor" }) do
-        local label = page:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+        local label = canvas:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
         label:SetPoint("TOPLEFT", leftColumn.x + 244 + (index - 1) * 90, leftColumn.y)
         label:SetText(L[heading])
     end
@@ -73,7 +90,7 @@ function ns.Options.register()
 
     -- The Blizzard layout restyles no kind, so a kind's own box has no say then.
     local function typeBox(x, key, title, text, followsLayout)
-        local button = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+        local button = CreateFrame("CheckButton", nil, canvas, "UICheckButtonTemplate")
         button:SetSize(24, 24)
         button:SetPoint("TOPLEFT", x, leftColumn.y + 4)
         if key then
@@ -93,7 +110,7 @@ function ns.Options.register()
     end
 
     for _, tooltipType in ipairs(ns.TOOLTIP_TYPES) do
-        local label = page:CreateFontString(nil, "ARTWORK",
+        local label = canvas:CreateFontString(nil, "ARTWORK",
             tooltipType.restyle and "GameFontHighlight" or "GameFontDisable")
         label:SetPoint("TOPLEFT", leftColumn.x + 8, leftColumn.y - 1)
         label:SetText(L[tooltipType.label])
@@ -109,10 +126,10 @@ function ns.Options.register()
 
     -- A choice of values for one setting, each { value, label, note }, as radio
     -- buttons down the column.
-    local function radios(column, choices, current, pick)
+    local function radios(column, choices, current, pick, isEnabled)
         for _, choice in ipairs(choices) do
             local value, label, note = choice[1], choice[2], choice[3]
-            local button = CreateFrame("CheckButton", nil, page, "UIRadioButtonTemplate")
+            local button = CreateFrame("CheckButton", nil, canvas, "UIRadioButtonTemplate")
             button:SetPoint("TOPLEFT", column.x + 8, column.y)
             local caption = button:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
             caption:SetPoint("LEFT", button, "RIGHT", 6, 0)
@@ -122,7 +139,12 @@ function ns.Options.register()
                 pick(value)
                 refreshControls()
             end)
-            button.refresh = function() button:SetChecked(current() == value) end
+            button.refresh = function()
+                local enabled = not isEnabled or isEnabled()
+                button:SetEnabled(enabled)
+                caption:SetFontObject(enabled and "GameFontHighlight" or "GameFontDisable")
+                button:SetChecked(current() == value)
+            end
             controls[#controls + 1] = button
             explain(button, label, note)
             column.y = column.y - 22
@@ -130,8 +152,12 @@ function ns.Options.register()
         column.y = column.y - 12
     end
 
-    local function optionRadios(column, key, choices)
-        radios(column, choices, function() return ns.option(key) end, function(value) setOption(key, value) end)
+    local function optionRadios(column, key, choices, isEnabled)
+        radios(column, choices, function()
+            local value = ns.option(key)
+            -- Convert the old removed NONE choice to the legacy default modifier.
+            return value == "NONE" and "ALT" or value
+        end, function(value) setOption(key, value) end, isEnabled)
     end
 
     section(rightColumn, "Layout Style")
@@ -157,7 +183,7 @@ function ns.Options.register()
     })
 
     section(rightColumn, "Follow cursor")
-    local combatBox = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
+    local combatBox = CreateFrame("CheckButton", nil, canvas, "UICheckButtonTemplate")
     combatBox:SetSize(24, 24)
     combatBox:SetPoint("TOPLEFT", rightColumn.x + 8, rightColumn.y + 4)
     local combatLabel = combatBox:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
@@ -173,6 +199,26 @@ function ns.Options.register()
         "Use the default tooltip position during combat, then resume following the cursor afterward.")
     rightColumn.y = rightColumn.y - 34
 
+    -- Mythic+ and raid progression are Retail-only features. Do not create
+    -- their modifier controls at all on Forever, where the feature modules
+    -- are not loaded.
+    if ns.Retail then
+        -- Choices remain available only while their matching Unit Details
+        -- option is enabled in the style editor.
+        section(rightColumn, "Mythic+ Rating Modifier")
+        optionRadios(rightColumn, "mythicScoreKey", {
+            { "CTRL", "Ctrl", "Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips." },
+            { "ALT", "Alt", "Hold Alt to show Mythic+ rating and dungeon scores on player tooltips." },
+            { "ALWAYS", "Always", "Show Mythic+ rating without holding a modifier key." },
+        }, function() return ns.option("mythicScoreEnabled") end)
+        section(rightColumn, "Raid Progress Modifier")
+        optionRadios(rightColumn, "raidProgressKey", {
+            { "CTRL", "Ctrl", "Hold Ctrl to show the local character's current raid lockouts." },
+            { "ALT", "Alt", "Hold Alt to show the local character's current raid lockouts." },
+            { "ALWAYS", "Always", "Always show the local character's current raid lockouts." },
+        }, function() return ns.option("raidProgressEnabled") end)
+    end
+
     section(rightColumn, "Style Editor Appearance")
     radios(rightColumn, {
         { "native", "Blizzard", "Use the game's settings frame borders and controls." },
@@ -183,7 +229,7 @@ function ns.Options.register()
     end)
 
     section(rightColumn, "Global scale")
-    local scaleSlider = CreateFrame("Slider", nil, page, "MinimalSliderTemplate")
+    local scaleSlider = CreateFrame("Slider", nil, canvas, "MinimalSliderTemplate")
     scaleSlider:SetOrientation("HORIZONTAL")
     scaleSlider:SetPoint("TOPLEFT", rightColumn.x + 12, rightColumn.y)
     -- Leave room for the percentage inside the right column. The template
@@ -211,7 +257,16 @@ function ns.Options.register()
     explain(scaleSlider, "Global scale", "Scales every PrettyTooltip panel, including text, icons, spacing, and bars. "
         .. "100% is the default. Individual text settings are preserved.")
 
-    page:SetScript("OnShow", refreshControls)
+    -- Size the scroll child for the longest column, so the bottom options are
+    -- reachable at every UI scale and screen resolution.
+    canvas:SetWidth(700)
+    canvas:SetHeight(math.max(720, -rightColumn.y + 64, -leftColumn.y + 48))
+    scroll:SetVerticalScroll(0)
+
+    page:SetScript("OnShow", function()
+        scroll:SetVerticalScroll(0)
+        refreshControls()
+    end)
     -- Hooks the settings window calls on canvas pages: when it shows them, and
     -- from its Defaults button.
     page.OnRefresh = refreshControls
