@@ -55,6 +55,8 @@ Tooltips\Spell.lua
 Retail\Tooltips\SpellExtension.lua
 Tooltips\Object.lua
 Tooltips\Unit.lua
+Retail\Tooltips\MythicScore.lua
+Retail\Tooltips\RaidProgress.lua
 Retail\Tooltips\UnitExtension.lua
 Tooltips\Aura.lua
 Tooltips\Imbue.lua
@@ -76,9 +78,6 @@ Integration\Hooks.lua
 Integration\Details.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
-#@debug@
-UI\Capture.lua
-#@end-debug@
 UI\Report.lua
 UI\Debug.lua
 UI\Commands.lua
