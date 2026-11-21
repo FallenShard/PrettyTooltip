@@ -43,6 +43,7 @@ Tooltips\Item.lua
 Tooltips\Spell.lua
 Tooltips\Object.lua
 Tooltips\Unit.lua
+Forever\Tooltips\UnitSpecialization.lua
 Tooltips\Aura.lua
 Tooltips\Imbue.lua
 Tooltips\Quest.lua
@@ -61,9 +62,6 @@ Integration\Hooks.lua
 Integration\Details.lua
 Integration\ItemLite.lua
 Integration\Cursor.lua
-#@debug@
-UI\Capture.lua
-#@end-debug@
 UI\Report.lua
 UI\Debug.lua
 UI\Commands.lua
