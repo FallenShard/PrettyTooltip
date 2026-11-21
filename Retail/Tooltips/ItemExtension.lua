@@ -234,6 +234,7 @@ local function readRetailLine(item, line, context)
     local left, right, trimmed, original = context.leftText, context.rightText, context.text, context.originalText
     local lineType = line.type
     local plain = plainText(trimmed)
+
     if afterTransmogHeader(context.data.lines, context.lineNumber) and trimmed ~= "" and right == "" then
         item.retail.transmog = util.trim(plain)
     elseif (LINE.ItemUpgradeLevel and lineType == LINE.ItemUpgradeLevel) or upgradeOf(plain) then
@@ -260,7 +261,8 @@ local function readRetailLine(item, line, context)
         addSocket(item, original or left, "").color = colorOf(line.leftColor)
     elseif (LINE.ProfessionCraftingQuality and lineType == LINE.ProfessionCraftingQuality)
         or (right == "" and unformat(plain, PROFESSIONS_CRAFTING_QUALITY)) then
-        item.retail.craftingQuality = trimmed
+        item.retail.craftingQuality = ns.normalizeProfessionQualityAtlas
+            and ns.normalizeProfessionQualityAtlas(trimmed) or trimmed
     elseif right == "" and transmogOf(trimmed) then
         -- Without the appearance, the next line names it.
         local appearance = transmogOf(trimmed)
