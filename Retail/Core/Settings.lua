@@ -10,7 +10,7 @@ settings.DEFAULTS = {
     -- Retail's "<Shift Right Click to Socket>" under an item's sockets.
     socketHint = true,
     -- Player item level and progression rows are controlled in Unit Details.
-    unitItemLevelEnabled = true,
+    unitItemLevelEnabled = false,
     mythicScoreEnabled = false,
     raidProgressEnabled = false,
     mythicScoreKey = "ALT",
