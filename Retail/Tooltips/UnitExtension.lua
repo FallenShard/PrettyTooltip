@@ -161,15 +161,6 @@ local function appendPreviewRows(model)
     model._prettyTooltipProgressPreviewAdded = true
 
     local L = ns.L or {}
-    -- A stable sample specialization keeps the editor preview independent of
-    -- the current character's inspected/native tooltip data.
-    if ns.option("unitTalentEnabled") then
-        local specName = "Restoration"
-        local className = "Shaman"
-        local sample = "|cffffd200" .. (L["Specialization"] or "专精") .. "：|r"
-            .. "|cff0070dd" .. specName .. " " .. className .. "|r"
-        appendRows(model, { { left = sample, right = "" } })
-    end
     -- Keep the unit preview representative of the live player tooltip.
     if ns.option("unitItemLevelEnabled") then
         local row = itemLevelRow(61, true)
@@ -195,7 +186,7 @@ descriptor.extension = {
     -- A player's specialization, named with the class.
     afterRead = function(model, context)
         if model.isPlayer then
-            if ns.option("unitTalentEnabled") then readSpec(model, context.game) end
+            readSpec(model, context.game)
             -- Item level is independently configurable from Mythic+ and raid rows.
             if model.unit and not model.isPreview and ns.option("unitItemLevelEnabled") then
                 local row = itemLevelRow(playerItemLevel(model.unit))
