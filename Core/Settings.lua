@@ -57,9 +57,9 @@ local DEFAULTS = {
     spellRates = true,
     -- The game's health bar at the bottom of unit panels.
     unitHealthBar = true,
-    -- Player item level and specialization are available on both clients.
-    unitItemLevelEnabled = true,
-    unitTalentEnabled = true,
+    -- Player item level is shared; the specialization toggle is Forever-only.
+    unitItemLevelEnabled = false,
+    unitTalentEnabled = false,
     -- The item's, spell's, or NPC's ID under the other addons' rows.
     showIDs = true,
     -- "SHIFT" shows disenchant results, the spell power rows, gathering
