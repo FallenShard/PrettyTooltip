@@ -463,12 +463,23 @@ local function selectPart(key)
     -- The part's settings head the column.
     columnBar:SetValue(0)
     if not hasPart(key) and not state.lookup then
+        local originalSample = state.sample
+        local found = false
         for index = 1, #samples() do
-            if index ~= state.sample then
+            if index ~= originalSample then
                 state.sample = index
                 drawSample()
-                if hasPart(key) then break end
+                if hasPart(key) then
+                    found = true
+                    break
+                end
             end
+        end
+        -- Some parts have no representative sample. Do not leave the editor
+        -- on the last unrelated sample (often a quest item) when none has it.
+        if not found then
+            state.sample = originalSample
+            drawSample()
         end
     end
     refresh()
