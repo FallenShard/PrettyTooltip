@@ -75,7 +75,7 @@ local function weekly(data)
         local success, name, _, _, difficulty, locked, _, _, isRaid, _, _, total, progress = pcall(GetSavedInstanceInfo, i)
         if success and safe(name) and safe(difficulty) and safe(progress) and safe(total)
             and locked == true and isRaid == true and type(progress)=="number" and type(total)=="number" then
-            for j, raid in ipairs(raids) do
+            for j in ipairs(raids) do
                 local matching = false
                 if type(name)=="string" then
                     if j==1 then matching = name=="潮缚石窟" or name=="The Tidebound Grotto"

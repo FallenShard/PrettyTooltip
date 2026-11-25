@@ -7,7 +7,7 @@ return function(test)
         "Locale/Locale.lua", "Locale/English.lua", "Game/Game.lua", "Game/TooltipData.lua", "Data/Stats.lua",
         "Panel/Layout.lua", "Panel/Render.lua", "Tooltips/Object.lua", "Tooltips/Aura.lua", "Integration/Native.lua", "Integration/Placement.lua",
         "Integration/Hooks.lua", "Integration/ItemLite.lua", "Integration/Cursor.lua",
-        "UI/Commands.lua", "UI/Capture.lua" }, fixture)
+        "UI/Commands.lua" }, fixture)
     local tooltip, secret, locked = world.main, world.secret, world.secretTable
     local realKey = ns.TooltipTypes[33].key
     ns.Hooks.install()

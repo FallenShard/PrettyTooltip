@@ -1429,13 +1429,13 @@ editor:SetScript("OnEvent", function(_, event, id, success)
     if not editor:IsShown() then return end
     if ns.util.isSecret(id) or ns.util.isSecret(success) then return end
     if event == "GET_ITEM_INFO_RECEIVED" then
-        if not state.lookup then
+        if not state.lookup and state.tooltipType ~= "quest" and success ~= false then
             refresh()
-        elseif state.tooltipType == "item" and id == state.lookup then
+        elseif state.tooltipType == "item" and id == state.lookup and success ~= false then
             refresh()
         end
     elseif event == "SPELL_DATA_LOAD_RESULT" then
-        if not state.lookup and success ~= false then refresh() end
+        if not state.lookup and state.tooltipType ~= "quest" and success ~= false then refresh() end
     elseif event == "QUEST_DATA_LOAD_RESULT" and success and state.tooltipType == "quest" then
         local sample = samples()[state.sample]
         if sample and sample.questID == id then refresh() end

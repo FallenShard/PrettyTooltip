@@ -215,7 +215,7 @@ return function(test)
     }
     ns.Options.register()
     local combatBox
-    for _, child in ipairs({ page:GetChildren() }) do
+    for _, child in ipairs({ test.settingsCanvas(page):GetChildren() }) do
         if child:GetObjectType() == "CheckButton" then
             for _, label in ipairs({ child:GetRegions() }) do
                 if label:GetText() == "Disable in combat" then combatBox = child end

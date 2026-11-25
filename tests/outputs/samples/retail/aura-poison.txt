@@ -8,7 +8,7 @@ duration: 12
 expires: 1009
 extras: {}
 harmful: true
-icon: "Interface\\Icons\\INV_Misc_QuestionMark"
+icon: "Interface\\Icons\\Ability_Rogue_DualWeild"
 name: "Deadly Poison"
 remaining: "9 seconds remaining"
 stacks: 3
@@ -18,7 +18,7 @@ panel 260 x 164
 texture at -16,-16 0x0 rgb=0,0.6,0,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
-texture at 19,21 38x38 rgb=1,1,1,1 INV_Misc_QuestionMark
+texture at 19,21 38x38 rgb=1,1,1,1 Ability_Rogue_DualWeild
 texture CENTER Texture CENTER 0,0 40x40 rgb=0,0.6,0,0.85 WHITE8X8
 texture unplaced 16x16 rgb=0,0.6,0,1 tooltip-TopLeftCorner
 texture unplaced 16x16 rgb=0,0.6,0,1 tooltip-TopRightCorner

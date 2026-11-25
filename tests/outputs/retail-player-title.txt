@@ -76,7 +76,7 @@ texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.14,0.0476,0.0392,1 WHITE8X8
 text CENTER Texture CENTER 0,0 w=0 size=10 rgb=1,0.703,0.676 "??"
 text at 67,21 w=204 size=17 rgb=1,0.96,0.41 "SOMEBODY THE STORM-EATER"
 text at 67,43 w=204 size=12 rgb=1,0.98,0.705 "<Some Guild>"
-text at 67,59 w=204 size=12 rgb=0.82,0.78,0.71 "Orc Rogue"
+text at 67,59 w=204 size=12 rgb=0.82,0.78,0.71 "|cffFF5E54Orc|r |cffFFF569Rogue|r"
 text at 19,94 w=252 size=11 rgb=0.6,0.6,0.63 "Subtlety Rogue"
 text at 19,124 w=252 size=11 rgb=0.08333,0.85,0.08333 "<Right click for Frame Settings>"
 texture at 134,6 150x144 rgb=0.9,0.25,0.2,0.12 faction-horde

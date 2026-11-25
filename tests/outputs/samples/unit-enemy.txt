@@ -8,6 +8,7 @@ creature: "Humanoid"
 extras: {}
 healthShare: 0.64
 iconPath: "Interface\\Icons\\INV_Misc_Head_Human_01"
+isPreview: true
 level: 15
 name: "Defias Pillager"
 quests:

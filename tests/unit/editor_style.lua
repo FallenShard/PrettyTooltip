@@ -43,7 +43,7 @@ return function(test)
     }
     ns.Options.register()
     local nativeChoice, flatChoice
-    for _, child in ipairs({ page:GetChildren() }) do
+    for _, child in ipairs({ test.settingsCanvas(page):GetChildren() }) do
         if child:GetObjectType() == "CheckButton" then
             for _, label in ipairs({ child:GetRegions() }) do
                 if label:GetText() == "Blizzard" then nativeChoice = child end

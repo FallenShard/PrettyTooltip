@@ -12,8 +12,11 @@ Each file here is named for the shared file it serves, and that name says when i
 | `Retail/<path>.lua`, where retail's `.toc` leaves `<path>.lua` out | in its place | stands in for it: `Retail/Data/Schools.lua`, `Retail/Data/Imbues.lua` |
 | `Retail/<path>Extension.lua` | just after `<path>.lua` | changes what that file does (`descriptor.extension`, `ns.replace`) |
 | `Retail/Retail.lua` | first | starts `ns.Retail`, where retail's files share their parts |
+| `Retail/Tooltips/MythicScore.lua`, `Retail/Tooltips/RaidProgress.lua` | after `Tooltips/Unit.lua`, before `Retail/Tooltips/UnitExtension.lua` | provide Retail-only unit detail helpers |
 
 Retail's `.toc` is Forever's with these placed, and without the files only Forever loads. `tests/unit/retail.lua` checks that it follows this rule, that every file here is named for a shared one, and that every Forever-only file says so in its header. In unit tests, `test.retail(files)` turns a list of shared files into retail's by the same rule.
+
+`Forever/Tooltips/UnitSpecialization.lua` is a Forever-only behavior module, loaded after the shared unit reader. It is excluded from Retail. The unit helper exceptions above are explicitly checked by the test harness.
 
 ## The three ways in
 

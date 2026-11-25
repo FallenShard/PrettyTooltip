@@ -8,7 +8,7 @@ duration: 24
 expires: 1016
 extras: {}
 harmful: true
-icon: "Interface\\Icons\\INV_Misc_QuestionMark"
+icon: "Interface\\Icons\\Spell_Shadow_CurseOfSargeras"
 name: "Curse of Agony"
 remaining: "16 seconds remaining"
 text: "Causes 84 Shadow damage over 24 sec. This damage is dealt slowly at first, and builds up as the Curse reaches its full duration."
@@ -17,7 +17,7 @@ panel 308 x 211
 texture at -16,-16 0x0 rgb=0.6,0,1,0.385 glow
 texture TOPLEFT Center TOPLEFT 0,0 0x0 rgb=1,1,1,1 color
 texture at 4,4 0x67 rgb=1,1,1,1 WHITE8X8
-texture at 19,21 38x38 rgb=1,1,1,1 INV_Misc_QuestionMark
+texture at 19,21 38x38 rgb=1,1,1,1 Spell_Shadow_CurseOfSargeras
 texture CENTER Texture CENTER 0,0 40x40 rgb=0.6,0,1,0.85 WHITE8X8
 texture unplaced 16x16 rgb=0.6,0,1,1 tooltip-TopLeftCorner
 texture unplaced 16x16 rgb=0.6,0,1,1 tooltip-TopRightCorner

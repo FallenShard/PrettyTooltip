@@ -1,4 +1,5 @@
--- Forever-only unit specialization and talent-point row.
+-- Forever unit specialization and talent-point row.
+-- Forever only: talent trees and specialization display.
 -- Ported from HuTip/TalentInfo.lua, with PrettyTooltip's unit-model integration.
 local _, ns = ...
 local UNIT = Enum and Enum.TooltipDataType and Enum.TooltipDataType.Unit
@@ -364,7 +365,7 @@ local function foreverItemLevel(unit)
     return nil
 end
 
-local function itemLevelRow(value, preview)
+local function itemLevelRow(value)
     value = SafeNumber(value)
     if not value or value <= 0 then return nil end
     local color = value <= 285 and "808080" or value <= 298 and "1eff00"
@@ -399,7 +400,7 @@ local function afterRead(model)
                 .. ":12:12:0:0:10:10:0:10:0:10|t |cffD1C7B5(31/0/0)|r")
         end
         if ns.option("unitItemLevelEnabled") then
-            addRow(model, itemLevelRow(61, true))
+            addRow(model, itemLevelRow(61))
         end
         return
     end
