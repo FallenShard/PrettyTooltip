@@ -93,22 +93,22 @@ local function mailView(model)
                 color = price.textColor or price.color or colors.caption,
                 rightColor = price.rightColor or colors.detail, indent = 24 }
         end
-        sections[#sections + 1] = { kind = "rows", rows = rows, style = ui.styleOf("mailPrices"), gap = 4,
+        sections[#sections + 1] = { kind = "rows", rows = rows, style = ui.styleOf("mailPrices", "mail"), gap = 4,
             separator = { space = 6 } }
     end
     if #model.extras > 0 then
-        sections[#sections + 1] = { kind = "rows", rows = model.extras, style = ui.styleOf("extras"), color = colors.detail, gap = 3 }
+        sections[#sections + 1] = { kind = "rows", rows = model.extras, style = ui.styleOf("extras", "mail"), color = colors.detail, gap = 3 }
     end
-    local header = { { text = model.name, style = ui.styleOf("mailTitle"), color = colors.title, gap = 4 } }
+    local header = { { text = model.name, style = ui.styleOf("mailTitle", "mail"), color = colors.title, gap = 4 } }
     if count then
         header[#header + 1] = { text = string.format(ns.L["%d items"], count),
-            style = ui.styleOf("mailPrices"), color = colors.caption, gap = 4 }
+            style = ui.styleOf("mailPrices", "mail"), color = colors.caption, gap = 4 }
     end
     return { tooltipType = MAIL, color = colors.neutral,
         icon = ns.option("iconMail") and "Interface\\Icons\\INV_Letter_15" or nil, iconSize = 36,
         header = header,
         sections = sections,
-        footer = #model.totals > 0 and { rows = model.totals, style = ui.styleOf("mailPrices"), color = colors.detail, gap = 4 } or nil }
+        footer = #model.totals > 0 and { rows = model.totals, style = ui.styleOf("mailPrices", "mail"), color = colors.detail, gap = 4 } or nil }
 end
 
 ui.mailModel = function(fields)

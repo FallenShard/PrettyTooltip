@@ -122,17 +122,23 @@ return function(test)
     ns.openEditor()
     local editor = PrettyTooltipEditor
     editor:GetScript("OnShow")(editor)
-    local sliders, fadeBox = {}, nil
+    local sliders, fadeBox, generalPage = {}, nil, nil
     for _, widget in ipairs(world.objects) do
         if widget:GetObjectType() == "Slider" then
-            local low, high = widget:GetMinMaxValues()
-            if low == 0 and high == 5 then sliders[#sliders + 1] = widget end
+            for _, label in ipairs({ widget:GetParent():GetParent():GetRegions() }) do
+                if label.GetText and label:GetText() == "Fade Delay" then sliders[1] = widget end
+                if label.GetText and label:GetText() == "Fade Duration" then sliders[2] = widget end
+            end
         elseif widget:GetObjectType() == "CheckButton" then
             for _, label in ipairs({ widget:GetRegions() }) do
-                if label:GetText() == "Enable tooltip fading" then fadeBox = widget end
+                if label:GetText() == "Enable Tooltip Fading" then fadeBox = widget end
             end
+        elseif widget.label and widget.label.GetText and widget.label:GetText() == "Tooltips" then
+            generalPage = widget
         end
     end
+    -- Fading is on the shared Tooltips page.
+    generalPage:GetScript("OnClick")(generalPage)
     test.check("the editor offers tooltip fading, off", fadeBox:GetChecked(), false)
     test.check("the editor exposes both timing sliders", #sliders, 2)
     test.check("the sliders stay hidden while fading is off", sliders[1]:GetParent():GetParent():IsShown(), false)

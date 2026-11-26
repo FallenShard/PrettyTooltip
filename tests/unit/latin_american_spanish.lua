@@ -51,7 +51,7 @@ return function(test)
     model.icon, model.level, model.equippable = 133042, 31, true
     local panel = ns.ui.renderPreview(CreateFrame("Frame", nil, UIParent), model, ITEM)
     test.check("esMX: the item badge uses the client's abbreviation", panel.badgeText:GetText(), "Niv 31")
-    test.check("esMX: regional UI terms", { ns.L["Cost"], ns.L["Dungeon"], ns.L["Use and other effects"] },
+    test.check("esMX: regional UI terms", { ns.L["Cost"], ns.L["Dungeon"], ns.L["Use and Other Effects"] },
         { "Costo", "Calabozo", "Uso y otros efectos" })
 
     model = read(ITEM, { "Diseño: jubón de anillas de cobre", "Requiere Herrería (35)",

@@ -546,11 +546,11 @@ end
 local function drawStrip(panel, model, y, color, styles)
     local values, captions = styles.spellValues, styles.spellCaptions
     local cells = stripCells(model)
-    local cellWidth = (panel.width - 2 * pad()) / #cells
+    local cellWidth = (panel.width - 2 * pad(panel)) / #cells
     local captionOffset = math.max(CAPTION_OFFSET, values.size + 4)
     local height = math.max(STRIP_HEIGHT, captionOffset + captions.size + 8)
     for index, cell in ipairs(cells) do
-        local x = pad() + (index - 1) * cellWidth
+        local x = pad(panel) + (index - 1) * cellWidth
         local valueColor = cell.implied and colors.caption or TITLE_COLOR
         local power = cell == model.cost and POWER_COLORS[model.power]
         if power then
@@ -581,7 +581,7 @@ end
 -- A rule after the block above, as far below its letters as the next block
 -- starts below it.
 local function ruleAfter(panel, y, color)
-    return ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, ui.sectionSpace(ui.RULE_SPACE) - (panel.rowTail or 0))
+    return ui.rule(panel, y, { color[1] * .7, color[2] * .7, color[3] * .7 }, ui.sectionSpace(ui.RULE_SPACE, panel) - (panel.rowTail or 0))
 end
 
 -- The strip, requirements, and description of the spell or the one nested in
@@ -603,7 +603,7 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
         -- Hidden lines are the cooldown left, in combat: in its color, as out of it.
         for _, text in ipairs(hidden) do
             local style = styles.spellDetails
-            y = y + ui.hiddenTextAt(panel, text, pad(), y, panel.width - 2 * pad(), style, REMAINING_COLOR) + 2
+            y = y + ui.hiddenTextAt(panel, text, pad(panel), y, panel.width - 2 * pad(panel), style, REMAINING_COLOR) + 2
             panel.rowTail = math.floor(style.size * 1.15 + .5) - style.size + 2
         end
     end
@@ -625,7 +625,7 @@ local function drawBody(panel, part, body, y, color, styles, numberCode)
     -- A talent's next rank, a step dimmer, under its caption.
     local talent = part.talent
     if talent and (#body.nextSentences > 0 or #talent.details > 0) then
-        y = ui.caption(panel, y + ui.sectionSpace(4), util.upper(L["Next Rank"]), styles.spellCaptions, colors.caption)
+        y = ui.caption(panel, y + ui.sectionSpace(4, panel), util.upper(L["Next Rank"]), styles.spellCaptions, colors.caption)
         y = ui.drawGroup(panel, talent.details, y, styles.spellDetails, DETAIL_COLOR, 0, 2)
         for _, sentence in ipairs(body.nextSentences) do
             y = ui.drawRow(panel, { left = colorNumbers(sentence, numberCode) },
@@ -658,7 +658,7 @@ local function spellStyles()
     local styles = {}
     for _, element in ipairs(ns.ELEMENTS) do
         if element.tooltipType == "spell" or element.tooltipType == "shared" then
-            styles[element.key] = ui.styleOf(element.key)
+            styles[element.key] = ui.styleOf(element.key, "spell")
         end
     end
     return styles
@@ -703,7 +703,7 @@ local function spellView(panel, model, more)
                 return math.max(measureStyled(p, nested.name, titleStyle), bodyWidth(p, nested, nestedBody, styles))
             end,
             draw = function(p, y)
-                y = y + styledAt(p, nested.name, pad(), y, p.width - 2 * pad(), titleStyle, TITLE_COLOR) + 6
+                y = y + styledAt(p, nested.name, pad(panel), y, p.width - 2 * pad(panel), titleStyle, TITLE_COLOR) + 6
                 return drawBody(p, nested, nestedBody, y, color, styles, numberCode)
             end }
     end

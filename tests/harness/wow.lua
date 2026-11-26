@@ -297,6 +297,7 @@ return function(fixture, enums, report, strings)
             self._font = { path = font._font.path, size = font._font.size, flags = font._font.flags }
         end
     end
+    Object.CopyFontObject = Object.SetFontObject
     function Object:SetTextColor(r, g, b, a) self._color = { r, g, b, a or 1 } end
     function Object:GetTextColor() return self._color[1], self._color[2], self._color[3], self._color[4] end
     function Object:SetJustifyH(justify) self._justifyH = justify end
@@ -568,6 +569,44 @@ return function(fixture, enums, report, strings)
                 frame[part] = new("Texture", nil, frame)
                 frame[part]:SetTexture("panel-button-" .. part)
             end
+        elseif template == "SettingsDropdownWithButtonsTemplate" then
+            frame:SetSize(260, 26)
+            local dropdown = new("DropdownButton", nil, frame)
+            dropdown.Text = new("FontString", nil, dropdown)
+            frame.Dropdown, frame.Label = dropdown, new("FontString", nil, frame)
+            frame.DecrementButton = new("Button", nil, frame)
+            frame.IncrementButton = new("Button", nil, frame)
+            function dropdown:SetupMenu(generator) self._generator = generator self:GenerateMenu() end
+            function dropdown:GenerateMenu()
+                local description = { entries = {} }
+                function description:SetScrollMode(height) self.scrollHeight = height end
+                function description:CreateRadio(text, selected, respond)
+                    local entry = { text = text, selected = selected, respond = respond }
+                    function entry:AddInitializer(callback) self.initialize = callback end
+                    function entry:AddResetter(callback) self.reset = callback end
+                    self.entries[#self.entries + 1] = entry
+                    return entry
+                end
+                if self._generator then self._generator(self, description) end
+                self._description, self._selected = description, nil
+                for index, entry in ipairs(description.entries) do
+                    if entry.selected() then self._selected = index self.Text:SetText(entry.text) break end
+                end
+                frame.DecrementButton:SetEnabled(self._selected ~= nil and self._selected > 1)
+                frame.IncrementButton:SetEnabled(self._selected ~= nil and self._selected < #description.entries)
+            end
+            function dropdown:GetMenuDescription() return self._description end
+            function dropdown:OpenMenu() self:GenerateMenu() self._open = true end
+            function dropdown:CloseMenu() self._open = false end
+            function dropdown:IsMenuOpen() return self._open == true end
+            for _, step in ipairs({ { frame.DecrementButton, -1 }, { frame.IncrementButton, 1 } }) do
+                local button, direction = step[1], step[2]
+                button:SetScript("OnClick", function()
+                    if not button:IsEnabled() or not dropdown._selected then return end
+                    dropdown._description.entries[dropdown._selected + direction].respond()
+                    dropdown:GenerateMenu()
+                end)
+            end
         elseif template == "UISliderTemplate" or template == "InsetFrameTemplate" then
             frame.NineSlice = new("Frame", nil, frame)
             if template == "InsetFrameTemplate" then
@@ -690,6 +729,7 @@ return function(fixture, enums, report, strings)
         font._font = { path = "Fonts\\FRIZQT__.TTF", size = fontName:find("Large") and 16
             or fontName:find("Small") and 10 or fontName:find("Header") and 14 or 12, flags = "" }
     end
+    CreateFont = function(name) return new("Font", name, nil) end
     ColorPickerFrame = new("Frame", "ColorPickerFrame", UIParent)
     ChatFrame1 = new("ScrollingMessageFrame", "ChatFrame1", UIParent)
     for _, tooltipName in ipairs({ "GameTooltip", "ItemRefTooltip", "ShoppingTooltip1", "ShoppingTooltip2" }) do
@@ -701,7 +741,7 @@ return function(fixture, enums, report, strings)
         "TopEdge", "BottomEdge", "LeftEdge", "RightEdge", "Center" }
     NineSliceUtil = {
         ApplyLayoutByName = function(frame, layout)
-            if layout ~= "TooltipDefaultLayout" and layout ~= "ButtonFrameTemplateNoPortrait" then
+            if layout ~= "TooltipDefaultLayout" and layout ~= "ButtonFrameTemplateNoPortrait" and layout ~= "InsetFrameTemplate" then
                 error("no layout " .. tostring(layout))
             end
             frame._layout = layout

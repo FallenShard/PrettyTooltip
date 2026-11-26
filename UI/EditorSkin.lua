@@ -4,6 +4,29 @@ local _, ns = ...
 local WHITE = "Interface\\Buttons\\WHITE8X8"
 local INPUT = "Interface\\Common\\Common-Input-Border"
 local GOLD = { .93, .80, .52 }
+local PALETTES = {
+    flat = {
+        window = { .040, .037, .033 }, edge = { .21, .19, .155 },
+    },
+}
+-- ShadowOverlayTemplate's pieces, as SharedUIPanelTemplates.xml turns its one corner.
+local INNER_TINT, SHADOW_SIZE = .35, 32
+local SHADOW_CORNERS = {
+    { point = "TOPLEFT", coords = { 0, 0, 0, 1, 1, 0, 1, 1 } },
+    { point = "TOPRIGHT", coords = { 0, 1, 1, 1, 0, 0, 1, 0 } },
+    { point = "BOTTOMLEFT", coords = { 1, 0, 0, 0, 1, 1, 0, 1 } },
+    { point = "BOTTOMRIGHT", coords = { 1, 1, 1, 0, 0, 1, 0, 0 } },
+}
+local SHADOW_EDGES = {
+    { file = "Top", across = true, { "TOPLEFT", "TOPLEFT", "TOPRIGHT" }, { "TOPRIGHT", "TOPRIGHT", "TOPLEFT" } },
+    { file = "Bottom", across = true, { "BOTTOMLEFT", "BOTTOMLEFT", "BOTTOMRIGHT" }, { "BOTTOMRIGHT", "BOTTOMRIGHT", "BOTTOMLEFT" } },
+    { file = "Left", { "TOPLEFT", "TOPLEFT", "BOTTOMLEFT" }, { "BOTTOMLEFT", "BOTTOMLEFT", "TOPLEFT" } },
+    { file = "Right", { "TOPRIGHT", "TOPRIGHT", "BOTTOMRIGHT" }, { "BOTTOMRIGHT", "BOTTOMRIGHT", "TOPRIGHT" } },
+}
+
+local function surfaceColor(region, color)
+    region:SetVertexColor(color[1], color[2], color[3], 1)
+end
 
 local function shown(regions, visible)
     for _, region in ipairs(regions) do region:SetShown(visible) end
@@ -37,32 +60,118 @@ function ns.EditorSkin.create()
 
     skin.templateParts = templateParts
 
-    function skin:surface(frame, bg, edges, window)
-        -- SettingsFrameTemplate itself belongs to the settings addon, which
-        -- may not be loaded yet. Its shared background and border are already
-        -- available, so use those without loading or modifying SettingsPanel.
-        local art = CreateFrame("Frame", nil, frame,
-            window and "FlatPanelBackgroundTemplate" or "InsetFrameTemplate")
-        art:SetFrameLevel(frame:GetFrameLevel())
-        if window then
-            art:SetFrameLevel(0)
-            art:SetPoint("TOPLEFT", 7, -18)
-            art:SetPoint("BOTTOMRIGHT", -3, 3)
-        else
-            art:SetAllPoints()
+    function skin:settingsLayout(frame, left, top, right, bottom, sidebarX, previewX)
+        -- Native border pieces resize independently; the complete settings
+        -- frame atlas contains a divider at a fixed position and cannot be
+        -- stretched or cropped safely for this three-column window.
+        local border = CreateFrame("Frame", nil, frame)
+        border:SetFrameLevel(frame:GetFrameLevel())
+        border:SetPoint("TOPLEFT", left, -top)
+        border:SetPoint("BOTTOMRIGHT", -right, bottom)
+        NineSliceUtil.ApplyLayoutByName(border, "InsetFrameTemplate")
+        if border.Center then border.Center:Hide() end
+        local pieces, rules = {}, {}
+        for _, x in ipairs({ sidebarX, previewX }) do
+            local divider = frame:CreateTexture(nil, "ARTWORK")
+            divider:SetAtlas("!UI-Frame-InnerLeftTile")
+            divider:SetVertTile(true)
+            divider:SetPoint("TOPLEFT", x, -top - 3)
+            divider:SetPoint("BOTTOMLEFT", x, bottom + 3)
+            divider:SetWidth(3)
+            pieces[#pieces + 1] = divider
+            local rule = frame:CreateTexture(nil, "ARTWORK")
+            rule:SetTexture(WHITE)
+            rule:SetVertexColor(.21, .19, .155, 1)
+            rule:SetPoint("TOPLEFT", x, -top)
+            rule:SetPoint("BOTTOMLEFT", x, bottom)
+            rule:SetWidth(1)
+            rules[#rules + 1] = rule
         end
-        local border
-        if window then
-            border = CreateFrame("Frame", nil, frame)
-            border:SetAllPoints()
-            border:SetFrameLevel(frame:GetFrameLevel())
-            NineSliceUtil.ApplyLayoutByName(border, "ButtonFrameTemplateNoPortrait")
+        -- The settings window darkens its inner area with Options_InnerFrame,
+        -- which cannot be stretched either; a tint and the game's inner shadow
+        -- on each column stand in for it, under every control and text.
+        local shading = {}
+        local function shade(x, relativePoint, toX)
+            local tint = frame:CreateTexture(nil, "BACKGROUND", nil, 7)
+            tint:SetColorTexture(0, 0, 0, INNER_TINT)
+            tint:SetPoint("TOPLEFT", x, -top - 2)
+            tint:SetPoint("BOTTOMRIGHT", frame, relativePoint, toX, bottom + 2)
+            shading[#shading + 1] = tint
+            local corners = {}
+            for _, corner in ipairs(SHADOW_CORNERS) do
+                local piece = frame:CreateTexture(nil, "BORDER")
+                piece:SetTexture("Interface\\Common\\ShadowOverlay-Corner")
+                piece:SetTexCoord(unpack(corner.coords))
+                piece:SetSize(SHADOW_SIZE, SHADOW_SIZE)
+                piece:SetPoint(corner.point, tint)
+                corners[corner.point] = piece
+                shading[#shading + 1] = piece
+            end
+            for _, edge in ipairs(SHADOW_EDGES) do
+                local piece = frame:CreateTexture(nil, "BORDER")
+                piece:SetTexture("Interface\\Common\\ShadowOverlay-" .. edge.file)
+                if edge.across then piece:SetHeight(SHADOW_SIZE) else piece:SetWidth(SHADOW_SIZE) end
+                piece:SetPoint(edge[1][1], corners[edge[1][2]], edge[1][3])
+                piece:SetPoint(edge[2][1], corners[edge[2][2]], edge[2][3])
+                shading[#shading + 1] = piece
+            end
         end
+        shade(left, "BOTTOMLEFT", sidebarX)
+        shade(sidebarX + 3, "BOTTOMLEFT", previewX)
+        shade(previewX + 3, "BOTTOMRIGHT", -right)
         self:bind(function(native)
-            flat(bg, edges, not native)
-            art:SetShown(native)
-            if border then border:SetShown(native) end
+            border:SetShown(native)
+            shown(pieces, native)
+            shown(rules, not native)
+            shown(shading, native)
         end)
+    end
+
+    function skin:surface(frame, bg, edges, window)
+        -- SettingsFrameTemplate uses this background with the game's own
+        -- PANEL_BACKGROUND_COLOR. Inherit its artwork, tint, and opacity.
+        local base = CreateFrame("Frame", nil, frame, "FlatPanelBackgroundTemplate")
+        base:SetFrameLevel(math.max(0, frame:GetFrameLevel() - 1))
+        if window then
+            base:SetPoint("TOPLEFT", 7, -18)
+            base:SetPoint("BOTTOMRIGHT", -3, 3)
+        else
+            base:SetAllPoints()
+        end
+        local border = CreateFrame("Frame", nil, frame)
+        border:SetAllPoints()
+        border:SetFrameLevel(frame:GetFrameLevel())
+        NineSliceUtil.ApplyLayoutByName(border, window and "ButtonFrameTemplateNoPortrait" or "InsetFrameTemplate")
+        if border.Center then border.Center:Hide() end
+        self:bind(function(native)
+            local palette = PALETTES.flat
+            flat(bg, edges, not native)
+            if bg then surfaceColor(bg, palette.window) end
+            base:SetShown(native)
+            for _, edge in ipairs(edges) do surfaceColor(edge, palette.edge) end
+            border:SetShown(native)
+        end)
+        frame.editorSurface = { nativeBackground = base, flatBackground = bg }
+    end
+
+    -- Sections share the surrounding background in both appearances.
+    function skin:group(bg, edges, header, accent)
+        local expanded = false
+        local function update(open)
+            expanded = open
+            bg:SetShown(not self.native and expanded)
+            header:Hide()
+            shown(edges, false)
+            if edges[2] then edges[2]:SetShown(not self.native and expanded) edges[2]:SetAlpha(.35) end
+            accent:Hide()
+        end
+        self:bind(function()
+            local palette = PALETTES.flat
+            surfaceColor(bg, palette.window)
+            for _, edge in ipairs(edges) do surfaceColor(edge, palette.edge) end
+            update(expanded)
+        end)
+        return update
     end
 
     function skin:button(button, bg, edges, parts)
@@ -114,7 +223,7 @@ function ns.EditorSkin.create()
         self:bind(paint)
     end
 
-    function skin:field(frame, bg, edges, arrow)
+    function skin:field(frame, bg, edges)
         local parts = {}
         for index, coords in ipairs({ { 0, .0625 }, { .0625, .9375 }, { .9375, 1 } }) do
             local part = frame:CreateTexture(nil, "BORDER")
@@ -130,18 +239,31 @@ function ns.EditorSkin.create()
             end
             parts[index] = part
         end
-        local icon
-        if arrow then
-            icon = frame:CreateTexture(nil, "ARTWORK")
-            icon:SetTexture("Interface\\Buttons\\UI-ScrollBar-ScrollDownButton-Up")
-            icon:SetSize(20, 20)
-            icon:SetPoint("RIGHT", -2, 0)
-        end
         self:bind(function(native)
             flat(bg, edges, not native)
             shown(parts, native)
-            if icon then icon:SetShown(native) arrow:SetShown(not native) end
         end)
+    end
+
+    -- The same combo box used by Blizzard's settings: a beveled value field
+    -- with real menu-driven previous/next buttons, not an edit-box border.
+    function skin:dropdown(frame, bg, edges, arrow)
+        local control = CreateFrame("Frame", nil, frame, "SettingsDropdownWithButtonsTemplate")
+        control:SetAllPoints()
+        control.Dropdown:SetWidth(math.max(40, frame:GetWidth() - 64))
+        control.Label:Hide()
+        control:Hide()
+        frame.nativeControl = control
+        self:bind(function(native)
+            flat(bg, edges, not native)
+            arrow:SetShown(not native)
+            frame.label:SetShown(not native)
+            frame:EnableMouse(not native)
+            frame:SetHeight(native and 26 or 22)
+            frame.extraHeight = native and 4 or 0
+            control:SetShown(native)
+        end)
+        return control
     end
 
     function skin:slider(bar, track, parts)

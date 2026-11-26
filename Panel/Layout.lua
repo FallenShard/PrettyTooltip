@@ -17,7 +17,7 @@ local function fontOf(object)
     local path = object and object.GetFont and object:GetFont()
     return path or STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 end
-local function bodyFont() return ns.fontPath(ns.option("bodyFont")) or fontOf(GameTooltipText) end
+local function bodyFont(tooltipType) return ns.fontPath(ns.option("bodyFont", tooltipType)) or fontOf(GameTooltipText) end
 -- A file that fails to load leaves the string without a font, and SetText errors.
 -- Each string remembers the font it was given: redrawing a panel mostly sets
 -- the font a string already has, and the call costs the same either way.
@@ -38,12 +38,12 @@ local PROSE_WIDTH = 270
 local COLUMN_GAP = 12
 local ICON_SIZE = 43
 -- The padding at the sides; the top has 2 more, the bottom 2 less.
-local function pad() return ns.option("padding") end
-local function titleTop() return pad() + 2 end
-local function minWidth() return ns.option("minWidth") end
+local function pad(panel) return ns.option("padding", panel and panel.tooltipType) end
+local function titleTop(panel) return pad(panel) + 2 end
+local function minWidth(panel) return ns.option("minWidth", panel and panel.tooltipType) end
 -- Whole units, so the default spacing draws exactly as before.
-local function rowGap(gap) return math.floor(gap * ns.spacing("rowSpacing") + .5) end
-local function sectionSpace(space) return math.floor(space * ns.spacing("sectionSpacing") + .5) end
+local function rowGap(gap, panel) return math.floor(gap * ns.spacing("rowSpacing", panel and panel.tooltipType) + .5) end
+local function sectionSpace(space, panel) return math.floor(space * ns.spacing("sectionSpacing", panel and panel.tooltipType) + .5) end
 
 -- One screen pixel in a region's units. A line one unit thick covers one
 -- pixel only at some UI scales; elsewhere its edges round apart, and alike
@@ -157,8 +157,8 @@ local function ellesmereInstalled()
     return hasEllesmere
 end
 
-local function titleFont()
-    local chosen = ns.fontPath(ns.option("titleFont"))
+local function titleFont(tooltipType)
+    local chosen = ns.fontPath(ns.option("titleFont", tooltipType))
     if chosen then return chosen end
     -- Expressway has no Hangul or Chinese; use the client's header font there.
     local locale = GetLocale()
@@ -169,8 +169,9 @@ end
 -- "dialogue", "flat", or "native". Unchosen, DialogueUI's art while it is
 -- installed and wanted; flat beside EllesmereUI, whose look it matches; else
 -- the game's own tooltip border.
-local function backdropStyle()
-    local chosen = ns.option("backdropStyle")
+local function backdropStyle(tooltipType)
+    local chosen = ns.option("backdropStyle", tooltipType)
+    if chosen == "automatic" then chosen = nil end
     if (chosen == "dialogue" or (chosen == nil and ns.option("dialogueBackdrop"))) and hasDialogueBackdrop() then
         return "dialogue"
     end
@@ -178,10 +179,12 @@ local function backdropStyle()
     return ellesmereInstalled() and "flat" or "native"
 end
 
-local function styleOf(key)
-    local style = ns.style(key)
+local function styleOf(key, tooltipType)
+    local element = ns.ELEMENT_BY_KEY[key]
+    tooltipType = tooltipType or (element.tooltipType or "item")
+    local style = ns.style(key, tooltipType)
     style.customFont = style.font ~= nil
-    style.font = style.font or (style.title and titleFont() or bodyFont())
+    style.font = style.font or (style.title and titleFont(tooltipType) or bodyFont(tooltipType))
     return style
 end
 
@@ -209,9 +212,9 @@ local function capitalize(text)
     return table.concat(out)
 end
 
-local function asStyle(style)
+local function asStyle(style, panel)
     if type(style) == "table" then return style end
-    return { size = style, font = bodyFont(), flags = "" }
+    return { size = style, font = bodyFont(panel and panel.tooltipType), flags = "" }
 end
 
 -- Rounding is per region, not inherited. Configure each owned region once,
@@ -388,7 +391,7 @@ end
 local function applyBackdrop(panel, chrome)
     local parchment = chrome.quest and ns.option("questParchment") and hasDialogueBackdrop()
         and panel.background.SetTextureSliceMargins ~= nil
-    local style = parchment and "parchment" or backdropStyle()
+    local style = parchment and "parchment" or backdropStyle(chrome.tooltipType)
     local textured = style == "dialogue" and panel.glow ~= nil
     local border = style == "native" and nativeBorder(panel) or nil
     local mode = parchment and "parchment" or textured and "dialogue" or border and "native" or "flat"
@@ -459,7 +462,7 @@ local function textAt(panel, content, x, y, width, size, color, fontPath, align,
     font:ClearAllPoints()
     font:SetPoint("TOPLEFT", panel, "TOPLEFT", x, -y)
     font:SetWidth(width)
-    setFont(font, fontPath or bodyFont(), size, flags)
+    setFont(font, fontPath or bodyFont(panel.tooltipType), size, flags)
     align = align or "LEFT"
     if font.prettyTooltipAlign ~= align then
         font:SetJustifyH(align)
@@ -544,10 +547,10 @@ local function showHidden(font, content, color)
 end
 
 local function hiddenTextAt(panel, content, x, y, width, style, color)
-    style = asStyle(style)
+    style = asStyle(style, panel)
     local font = hiddenFont(panel, x, y, width, 1)
     color = style.color or (panel.parchment and inkColor(color)) or color
-    setFont(font, style.font or bodyFont(), style.size, style.flags)
+    setFont(font, style.font or bodyFont(panel.tooltipType), style.size, style.flags)
     if font.SetSpacing then font:SetSpacing(0) end
     return showHidden(font, content, color) and style.size + 2 or 0
 end
@@ -570,7 +573,7 @@ end
 local texturesCounted
 local function measure(panel, text, size, fontPath, flags)
     local font = panel.measure
-    setFont(font, fontPath or bodyFont(), size, flags)
+    setFont(font, fontPath or bodyFont(panel.tooltipType), size, flags)
     if texturesCounted == nil then
         texturesCounted = textWidth(font, "|TInterface\\Icons\\INV_Misc_QuestionMark:12|t") > 6
     end
@@ -587,7 +590,7 @@ end
 
 local function rowWidth(panel, row, style)
     if row.blank then return 0 end
-    style = asStyle(style)
+    style = asStyle(style, panel)
     local width = measureStyled(panel, row.left, style)
     if row.right and row.right ~= "" then
         -- The 2 matches the slack drawRow gives the right column.
@@ -596,34 +599,34 @@ local function rowWidth(panel, row, style)
     return width
 end
 
-local function headerInsets(indent)
-    if ns.option("iconRight") then return 0, indent end
+local function headerInsets(indent, panel)
+    if ns.option("iconRight", panel and panel.tooltipType) then return 0, indent end
     return indent, 0
 end
 
 local function drawRow(panel, row, y, style, color, indent, gap, rightIndent)
-    style = asStyle(style)
+    style = asStyle(style, panel)
     local left = row.left
     local right = row.right
     local leftColor = row.color or color
-    indent, gap, rightIndent = indent or 0, rowGap(gap or 3), rightIndent or 0
+    indent, gap, rightIndent = indent or 0, rowGap(gap or 3, panel), rightIndent or 0
     -- What the row leaves under its letters, its line's leading and the gap:
     -- a divider or rule after it counts this in (Panel/Render.lua).
     local lineHeight = math.floor(style.size * 1.15 + .5)
     panel.rowTail = lineHeight - style.size + gap
     -- A blank row, as another addon's between its sections: one empty line.
     if row.blank then return y + lineHeight + gap end
-    local w = panel.width - 2 * pad() - indent - rightIndent
+    local w = panel.width - 2 * pad(panel) - indent - rightIndent
     if right and right ~= "" then
         local rightWidth = math.min(measureStyled(panel, right, style) + 2,
             math.max(w * .5, w - measureStyled(panel, left, style) - COLUMN_GAP))
-        local leftHeight = styledAt(panel, left, pad() + indent, y,
+        local leftHeight = styledAt(panel, left, pad(panel) + indent, y,
             w - rightWidth - COLUMN_GAP, style, leftColor)
-        local rightHeight = styledAt(panel, right, panel.width - pad() - rightIndent - rightWidth, y,
+        local rightHeight = styledAt(panel, right, panel.width - pad(panel) - rightIndent - rightWidth, y,
             rightWidth, style, row.rightColor or leftColor, "RIGHT")
         return y + math.max(leftHeight, rightHeight) + gap
     end
-    return y + styledAt(panel, left, pad() + indent, y, w, style, leftColor) + gap
+    return y + styledAt(panel, left, pad(panel) + indent, y, w, style, leftColor) + gap
 end
 
 local function acquireTexture(panel, path, sublevel)
@@ -645,27 +648,27 @@ end
 
 -- before is the gap above a separator; a hidden one takes its gap with it.
 local function rule(panel, y, color, before)
-    if not ns.option("separators") then return y end
+    if not ns.option("separators", panel.tooltipType) then return y end
     if panel.parchment then color = inkColor(color) end
     y = y + (before or 0)
     local line = acquireTexture(panel)
-    line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y))
-    line:SetSize(panel.width - 2 * pad(), pixel(panel))
+    line:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(panel), -snap(panel, y))
+    line:SetSize(panel.width - 2 * pad(panel), pixel(panel))
     line:SetVertexColor(color[1], color[2], color[3], .45)
-    return y + sectionSpace(9)
+    return y + sectionSpace(9, panel)
 end
 
 local function divider(panel, y, color, before)
-    if not ns.option("separators") then return y end
+    if not ns.option("separators", panel.tooltipType) then return y end
     if panel.parchment then color = inkColor(color) end
     y = y + (before or 0)
-    local px, side = pixel(panel), snap(panel, (panel.width - 2 * pad() - 18) / 2)
+    local px, side = pixel(panel), snap(panel, (panel.width - 2 * pad(panel) - 18) / 2)
     local left = acquireTexture(panel)
-    left:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -snap(panel, y + 5))
+    left:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(panel), -snap(panel, y + 5))
     left:SetSize(side, px)
     left:SetVertexColor(color[1] * .52, color[2] * .52, color[3] * .52, .8)
     local right = acquireTexture(panel)
-    right:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(), -snap(panel, y + 5))
+    right:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(panel), -snap(panel, y + 5))
     right:SetSize(side, px)
     right:SetVertexColor(color[1] * .52, color[2] * .52, color[3] * .52, .8)
     local center = acquireTexture(panel, ART .. "stat-marker")
@@ -673,25 +676,25 @@ local function divider(panel, y, color, before)
     center:SetSize(10, 10)
     if panel.parchment then center:SetVertexColor(.35, .21, .10, .9)
     else center:SetVertexColor(.9, .76, .48, .9) end
-    return y + 5 + sectionSpace(13)
+    return y + 5 + sectionSpace(13, panel)
 end
 
 -- A section's name centered between two rules.
 local function caption(panel, y, text, style, color)
-    y = y + sectionSpace(4)
+    y = y + sectionSpace(4, panel)
     local width = measureStyled(panel, text, style) + 2
     styledAt(panel, text, (panel.width - width) / 2, y, width, style, color or colors.caption, "CENTER")
-    if ns.option("separators") then
-        local side = (panel.width - 2 * pad() - width) / 2 - 8
+    if ns.option("separators", panel.tooltipType) then
+        local side = (panel.width - 2 * pad(panel) - width) / 2 - 8
         local middle = y + math.floor(style.size / 2) + 1
-        for _, point in ipairs({ { "TOPLEFT", pad() }, { "TOPRIGHT", -pad() } }) do
+        for _, point in ipairs({ { "TOPLEFT", pad(panel) }, { "TOPRIGHT", -pad(panel) } }) do
             local line = acquireTexture(panel)
             line:SetPoint(point[1], panel, point[1], point[2], -snap(panel, middle))
             line:SetSize(snap(panel, side), pixel(panel))
             line:SetVertexColor(GOLD_RULE[1] * .52, GOLD_RULE[2] * .52, GOLD_RULE[3] * .52, .8)
         end
     end
-    return y + style.size + sectionSpace(9)
+    return y + style.size + sectionSpace(9, panel)
 end
 
 local function drawGroup(panel, list, y, style, color, indent, gap, rightIndent)
@@ -753,7 +756,7 @@ local function getEquippedTag(panel)
     tag.fill:SetTexture(WHITE)
     tag.fill:SetVertexColor(.07, .055, .05, 1)
     tag.text = roundLayout(tag:CreateFontString(nil, "OVERLAY"))
-    tag.text:SetFont(bodyFont(), 10)
+    tag.text:SetFont(bodyFont(panel.tooltipType), 10)
     tag.text:SetTextColor(.93, .80, .52)
     tag.text:SetPoint("CENTER")
     panel.equipped = tag
@@ -783,12 +786,11 @@ local function drawChrome(panel, tooltip, style)
     if panel.watermark then panel.watermark:Hide() end
     local color = style.color
     panel:SetFrameLevel(tooltip:GetFrameLevel() + 5)
-    local tinted = style.tint and ns.option("qualityTint")
+    local tinted = style.tint and ns.option("qualityTint", style.tooltipType)
     local tint = tinted and style.tint or { .5, .5, .5 }
     local strength = tinted and (style.strength or 1) or 0
-    local suffix = ns.TYPE_SUFFIX[style.tooltipType] or ""
-    local body = ns.option("backdropAlpha" .. suffix) or ns.BACKDROP_ALPHA
-    local glow = ns.option("glowAlpha" .. suffix) or 1
+    local body = ns.option("backdropAlpha", style.tooltipType)
+    local glow = ns.option("glowAlpha", style.tooltipType)
     if panel.parchment then
         panel.background:SetVertexColor(1, 1, 1, body)
     elseif panel.textured then
@@ -843,7 +845,7 @@ local function drawChrome(panel, tooltip, style)
         panel.nativeBorder:SetFrameLevel(panel:GetFrameLevel() + 1)
         colorNativeBorder(panel.nativeBorder, style.tint, style.tint and gradient)
     end
-    local iconColor = gradient and (ns.option("iconRight") and gradient[2] or gradient[1]) or color
+    local iconColor = gradient and (ns.option("iconRight", style.tooltipType) and gradient[2] or gradient[1]) or color
     panel.iconBorder:SetVertexColor(iconColor[1], iconColor[2], iconColor[3], .85)
     local native = nativeCloseButton(tooltip)
     if native and native:IsShown() then
@@ -862,10 +864,10 @@ local function drawChrome(panel, tooltip, style)
     local iconSize = snap(panel, style.iconSize or ICON_SIZE)
     panel.icon:SetSize(iconSize, iconSize)
     panel.icon:ClearAllPoints()
-    if ns.option("iconRight") then
-        panel.icon:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(), -titleTop())
+    if ns.option("iconRight", style.tooltipType) then
+        panel.icon:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -pad(panel), -titleTop(panel))
     else
-        panel.icon:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -titleTop())
+        panel.icon:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(panel), -titleTop(panel))
     end
     panel.iconBorder:SetSize(iconSize + 2 * px, iconSize + 2 * px)
     -- Icons carry their own dark frame in the outer texels; cropping it lets
@@ -879,10 +881,10 @@ local function drawChrome(panel, tooltip, style)
         panel.icon:Hide()
         panel.iconBorder:Hide()
     end
-    local headerMin = style.icon and titleTop() + iconSize + 12 or 0
+    local headerMin = style.icon and titleTop(panel) + iconSize + 12 or 0
     if style.badge then
         local badge = panel.badge
-        local text = styleOf("badge")
+        local text = styleOf("badge", style.tooltipType)
         -- The plate takes the panel's accent unless given its own color.
         local plate = style.badgeColor or color
         local textColor = text.color or { plate[1] * .45 + .55, plate[2] * .45 + .55,
@@ -898,7 +900,7 @@ local function drawChrome(panel, tooltip, style)
         panel.badgeFill:Show()
         panel.badgeText:Show()
         if panel.hits then panel.hits[#panel.hits + 1] = { key = "badge", region = badge } end
-        headerMin = titleTop() + iconSize + BADGE_GAP + height + 10
+        headerMin = titleTop(panel) + iconSize + BADGE_GAP + height + 10
     else
         panel.badge:Hide()
         panel.badgeFill:Hide()
@@ -932,7 +934,7 @@ local function pinPanel(panel, left, top)
 end
 
 local function finishPanel(panel, tooltip, y)
-    panel:SetHeight(snap(panel, y + pad() - 2))
+    panel:SetHeight(snap(panel, y + pad(panel) - 2))
     alignPanel(panel, tooltip)
     panel:Show()
 end
@@ -973,8 +975,8 @@ local function renderPreview(anchor, model, dataType)
     return panel
 end
 
-local function defaultHeaderAlpha()
-    if backdropStyle() == "dialogue" then return HEADER_ALPHA_TEXTURED end
+local function defaultHeaderAlpha(tooltipType)
+    if backdropStyle(tooltipType) == "dialogue" then return HEADER_ALPHA_TEXTURED end
     return HEADER_ALPHA_PLAIN
 end
 

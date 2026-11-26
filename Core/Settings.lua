@@ -2,6 +2,7 @@
 -- variables arrive after the files run; this file creates no UI or hooks.
 local _, ns = ...
 local colors = ns.Palette.roles
+local TYPE_KEYS, LEGACY_KEYS = {}, {}
 
 local DEFAULTS = {
     iconRight = false,
@@ -76,7 +77,8 @@ local DEFAULTS = {
     bodyFont = nil,
     titleFont = nil,
     -- "NONE", "OUTLINE", or "THICKOUTLINE", for elements without their own.
-    outline = "NONE",
+    titleOutline = "NONE",
+    bodyOutline = "NONE",
     -- The panels' inner padding, and the width a panel is at least.
     -- Every part's text size is multiplied by this.
     fontScale = 1,
@@ -88,12 +90,51 @@ local DEFAULTS = {
     sectionSpacing = 1,
     headerTopAlpha = nil,
     headerBottomAlpha = nil,
+    backdropAlpha = .9,
+    glowAlpha = 1,
+    restyle = true,
 }
 
-function ns.option(key)
+-- Existing per-type keys remain readable. New overrides are kept together;
+-- nothing is copied from the shared defaults into a type's settings.
+function ns.tooltipSetting(tooltipType, key)
+    local db = PrettyTooltipDB
+    if type(db) ~= "table" then return nil end
+    local types = db.tooltips
+    local own = type(types) == "table" and types[tooltipType]
+    if type(own) == "table" and own[key] ~= nil then return own[key] end
+    local legacy = TYPE_KEYS[tooltipType] and TYPE_KEYS[tooltipType][key]
+    if legacy then return db[legacy] end
+    return nil
+end
+
+function ns.option(key, tooltipType)
+    local legacy = LEGACY_KEYS[key]
+    if legacy then return ns.option(legacy.key, legacy.tooltipType) end
+    if tooltipType then
+        local own = ns.tooltipSetting(tooltipType, key)
+        if own ~= nil then return own end
+    end
     local db = PrettyTooltipDB
     if type(db) == "table" and db[key] ~= nil then return db[key] end
+    if tooltipType and DEFAULTS[key] == nil then
+        local oldKey = TYPE_KEYS[tooltipType] and TYPE_KEYS[tooltipType][key]
+        if oldKey and DEFAULTS[oldKey] ~= nil then return DEFAULTS[oldKey] end
+        if key == "followCursor" then return false end
+    end
     return DEFAULTS[key]
+end
+
+-- Saved and unlike the default. The options page once saved every box clicked,
+-- so a saved value can be the default.
+function ns.optionChanged(key)
+    local legacy = LEGACY_KEYS[key]
+    if legacy then return ns.tooltipSetting(legacy.tooltipType, legacy.key) ~= nil end
+    local db = PrettyTooltipDB
+    if type(db) ~= "table" or db[key] == nil then return false end
+    -- A switch with no default listed is off.
+    if db[key] == false and DEFAULTS[key] == nil then return false end
+    return db[key] ~= DEFAULTS[key]
 end
 
 function ns.fadeTiming()
@@ -105,14 +146,14 @@ function ns.fadeTiming()
     return seconds("hideDelay"), seconds("fadeDuration")
 end
 
-function ns.spacing(key)
-    local scale = ns.util.number(ns.option(key))
+function ns.spacing(key, tooltipType)
+    local scale = ns.util.number(ns.option(key, tooltipType))
     if not scale or scale ~= scale then return 1 end
     return math.max(.5, math.min(1.5, scale))
 end
 
-function ns.tooltipScale()
-    local scale = ns.util.number(ns.option("tooltipScale"))
+function ns.tooltipScale(tooltipType)
+    local scale = ns.util.number(ns.option("tooltipScale", tooltipType))
     if not scale or scale ~= scale then return 1 end
     return math.max(.5, math.min(1.5, scale))
 end
@@ -137,15 +178,32 @@ local function changed() ns.settingsVersion = ns.settingsVersion + 1 end
 -- What is saved for a setting: nil while it is at its default.
 function ns.savedOption(key)
     local db = PrettyTooltipDB
-    return type(db) == "table" and db[key] or nil
+    if type(db) == "table" then return db[key] end
+    return nil
 end
 
 local function setOption(key, value)
     if type(PrettyTooltipDB) ~= "table" then PrettyTooltipDB = {} end
+    local legacy = LEGACY_KEYS[key]
+    local types = PrettyTooltipDB.tooltips
+    local own = legacy and type(types) == "table" and types[legacy.tooltipType]
+    if type(own) == "table" then own[legacy.key] = nil end
     PrettyTooltipDB[key] = value
     changed()
 end
 ns.setOption = setOption
+
+function ns.setTooltipSetting(tooltipType, key, value)
+    if type(PrettyTooltipDB) ~= "table" then PrettyTooltipDB = {} end
+    local types = type(PrettyTooltipDB.tooltips) == "table" and PrettyTooltipDB.tooltips or {}
+    local own = type(types[tooltipType]) == "table" and types[tooltipType] or {}
+    own[key] = value
+    types[tooltipType] = next(own) and own or nil
+    PrettyTooltipDB.tooltips = next(types) and types or nil
+    local legacy = TYPE_KEYS[tooltipType] and TYPE_KEYS[tooltipType][key]
+    if legacy then PrettyTooltipDB[legacy] = nil end
+    changed()
+end
 
 function ns.migrateOptions()
     local db = PrettyTooltipDB
@@ -156,6 +214,17 @@ function ns.migrateOptions()
     -- 1.4.1's custom timings were the only fade a player chose; its default mirrored the game's.
     if db.customFade == true then db.fadeTooltips = true end
     db.customFade = nil
+    -- An outline once shared by titles and body text stands where neither has its own.
+    local function splitOutline(own)
+        if own.outline == nil then return end
+        if own.titleOutline == nil then own.titleOutline = own.outline end
+        if own.bodyOutline == nil then own.bodyOutline = own.outline end
+        own.outline = nil
+    end
+    splitOutline(db)
+    for _, own in pairs(type(db.tooltips) == "table" and db.tooltips or {}) do
+        if type(own) == "table" then splitOutline(own) end
+    end
 end
 
 function ns.resetOptions()
@@ -167,66 +236,66 @@ end
 -- while the color is automatic. needs: the data set the part is drawn from (ns.hasData), when only some clients
 -- load it; the editor offers the part where it is loaded. Retail's own parts are in Retail/Core/Settings.lua.
 ns.ELEMENTS = {
-    { key = "mailTitle", label = "Mail title", size = 16, title = true, color = colors.title, tooltipType = "mail" },
-    { key = "mailPrices", label = "Attachments and prices", size = 12, color = colors.detail, tooltipType = "mail" },
-    { key = "title", label = "Item name", size = 19, title = true, color = { 1, 1, 1 },
+    { key = "mailTitle", label = "Mail Title", size = 16, title = true, color = colors.title, tooltipType = "mail" },
+    { key = "mailPrices", label = "Attachments and Prices", size = 12, color = colors.detail, tooltipType = "mail" },
+    { key = "title", label = "Item Name", size = 19, title = true, color = { 1, 1, 1 },
         note = "Quality color unless set." },
-    { key = "subtitle", label = "Type and slot", size = 13, color = { .9, .9, .9 },
+    { key = "subtitle", label = "Type and Slot", size = 13, color = { .9, .9, .9 },
         note = "Half the quality color, red for a type you cannot use." },
-    { key = "header", label = "Binding and level", size = 12, color = { .78, .72, .63 },
+    { key = "header", label = "Binding and Level", size = 12, color = { .78, .72, .63 },
         note = "The required level is red while you are below it." },
-    { key = "dps", label = "Damage per second", size = 18, color = { .90, .93, .95 } },
-    { key = "damage", label = "Damage and speed", size = 12, color = { .62, .65, .70 } },
+    { key = "dps", label = "Damage per Second", size = 18, color = { .90, .93, .95 } },
+    { key = "damage", label = "Damage and Speed", size = 12, color = { .62, .65, .70 } },
     { key = "armor", label = "Armor", size = 16, color = { .90, .93, .95 } },
     { key = "stats", label = "Stats", size = 13, color = { .90, .85, .74 },
         note = "Colored by category unless set." },
-    { key = "equipEffects", label = "Equip effects", size = 13, color = { .48, .88, .48 },
+    { key = "equipEffects", label = "Equip Effects", size = 13, color = { .48, .88, .48 },
         note = "On-hit numbers use the spell tooltip's school colors unless set." },
     { key = "enchants", label = "Enchants", size = 13, color = { .30, .90, .30 } },
-    { key = "effects", label = "Use and other effects", size = 13, color = { .48, .88, .48 } },
-    { key = "flavor", label = "Flavor text", size = 12, color = colors.flavor },
-    { key = "setName", label = "Set name and count", size = 15, title = true,
+    { key = "effects", label = "Use and Other Effects", size = 13, color = { .48, .88, .48 } },
+    { key = "flavor", label = "Flavor Text", size = 12, color = colors.flavor },
+    { key = "setName", label = "Set Name and Count", size = 15, title = true,
         color = { 1, .76, .18 } },
-    { key = "setItems", label = "Set pieces", size = 12, color = { .94, .89, .77 },
+    { key = "setItems", label = "Set Pieces", size = 12, color = { .94, .89, .77 },
         note = "Owned pieces bright, missing ones grey, unless set." },
-    { key = "setBonuses", label = "Set bonuses", size = 12, color = { .48, .88, .48 },
+    { key = "setBonuses", label = "Set Bonuses", size = 12, color = { .48, .88, .48 },
         note = "Active bonuses green, inactive ones grey, unless set." },
-    { key = "extras", label = "Other addons' rows", size = 11, color = colors.extras,
+    { key = "extras", label = "Other Addons' Rows", size = 11, color = colors.extras,
         tooltipType = "shared" },
     { key = "footer", label = "Footer", size = 11, color = colors.detail,
         note = "Durability, crafter, requirements, and sell price." },
-    { key = "badge", label = "Item level badge", size = 10, color = { .9, .9, .9 } },
-    { key = "createdName", label = "Crafted item's name", size = 14, title = true, color = { 1, 1, 1 },
+    { key = "badge", label = "Item Level Badge", size = 10, color = { .9, .9, .9 } },
+    { key = "createdName", label = "Crafted Item's Name", size = 14, title = true, color = { 1, 1, 1 },
         note = "On recipes; quality color unless set." },
     { key = "reagents", label = "Reagents", size = 12, color = { .90, .85, .74 },
         note = "On recipes; the count you carry red while short, unless set." },
-    { key = "caption", label = "Section captions", size = 9, color = colors.caption, caps = true,
+    { key = "caption", label = "Section Captions", size = 9, color = colors.caption, caps = true,
         note = "Creates and Reagents on recipes." },
-    { key = "disenchant", label = "Disenchant results", size = 11, color = colors.detail, needs = "disenchant",
+    { key = "disenchant", label = "Disenchant Results", size = 11, color = colors.detail, needs = "disenchant",
         note = "The Enchanting needed red while yours is too low, grey without Enchanting, unless set." },
-    { key = "spellTitle", label = "Spell name", size = 17, title = true,
+    { key = "spellTitle", label = "Spell Name", size = 17, title = true,
         color = colors.title, tooltipType = "spell" },
-    { key = "spellBadges", label = "School and rank badges", size = 12, color = { .9, .9, .9 },
+    { key = "spellBadges", label = "School and Rank Badges", size = 12, color = { .9, .9, .9 },
         tooltipType = "spell", note = "Colored by school unless set." },
-    { key = "spellValues", label = "Cost, cast, cooldown, range", size = 13,
+    { key = "spellValues", label = "Cost, Cast, Cooldown, Range", size = 13,
         color = { .96, .92, .84 }, tooltipType = "spell",
         note = "The cost takes its resource color unless set." },
-    { key = "spellCaptions", label = "Strip captions", size = 9, color = colors.caption,
+    { key = "spellCaptions", label = "Strip Captions", size = 9, color = colors.caption,
         tooltipType = "spell" },
-    { key = "spellDetails", label = "Requirements and details", size = 11,
+    { key = "spellDetails", label = "Requirements and Details", size = 11,
         color = colors.detail, tooltipType = "spell",
         note = "Unmet requirements red, time remaining orange, unless set." },
     { key = "spellText", label = "Description", size = 12, color = colors.description,
         tooltipType = "spell", note = "Numbers in the school color unless set." },
-    { key = "objectTitle", label = "Object name", size = 17, title = true,
+    { key = "objectTitle", label = "Object Name", size = 17, title = true,
         color = colors.title, tooltipType = "object" },
-    { key = "objectKind", label = "Kind of object", size = 12, color = { .9, .9, .9 },
+    { key = "objectKind", label = "Kind of Object", size = 12, color = { .9, .9, .9 },
         tooltipType = "object", note = "Tinted by the skill it needs, unless set." },
-    { key = "objectDetails", label = "Skill and requirements", size = 12,
+    { key = "objectDetails", label = "Skill and Requirements", size = 12,
         color = colors.detail, tooltipType = "object",
         note = "The skill in its skill-up color, unmet requirements red, unless set." },
-    { key = "objectQuests", label = "Quest lines", size = 12, color = colors.objective,
-        tooltipType = "object", note = "Quest names gold, finished objectives green, unless set." },
+    { key = "objectQuests", label = "Quest Lines", size = 12, color = colors.objective,
+        tooltipType = "object", note = "Quest names yellow, finished objectives green, unless set." },
     { key = "objectLoot", label = "Contents", size = 11, color = colors.detail, tooltipType = "object", needs = "nodeLoot",
         note = "A herb or ore node's yield over its taps, then what else it may hold and the chance each tap. "
             .. "Turned off by Gathering contents in the options." },
@@ -234,68 +303,69 @@ ns.ELEMENTS = {
         tooltipType = "object", note = "The yielded item's sell price, and its auction price with Auctionator." },
     { key = "unitName", label = "Name", size = 17, title = true, color = { 1, 1, 1 },
         tooltipType = "unit", note = "Class color for players, reaction color for NPCs, unless set." },
-    { key = "unitGuild", label = "Guild or role", size = 12, color = { .9, .9, .9 }, tooltipType = "unit" },
-    { key = "unitRealm", label = "Guild realm", size = 11, color = colors.detail, tooltipType = "unit",
+    { key = "unitGuild", label = "Guild or Role", size = 12, color = { .9, .9, .9 }, tooltipType = "unit" },
+    { key = "unitRealm", label = "Guild Realm", size = 11, color = colors.detail, tooltipType = "unit",
         note = "Beside the guild, for a guild from another realm. Turned off by Guild realm in the options." },
-    { key = "unitInfo", label = "Level, race, and class", size = 12, color = colors.detail,
+    { key = "unitInfo", label = "Level, Race, and Class", size = 12, color = colors.detail,
         tooltipType = "unit", note = "The level in its difficulty color, unless set." },
     { key = "unitBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "unit",
         note = "Elite, rare, faction, PvP, AFK, dead, and Skinnable in its skill-up color." },
     { key = "unitSkinning", label = "Skinning", size = 11, color = colors.detail, tooltipType = "unit", needs = "skinningLoot",
         note = "On a dead creature that can be skinned: the Skinning it needs, in its skill-up color, and what "
             .. "it may give. Turned off by Gathering contents in the options." },
-    { key = "unitDetails", label = "Target and owner", size = 11, color = colors.detail,
+    { key = "unitDetails", label = "Target and Owner", size = 11, color = colors.detail,
         tooltipType = "unit" },
-    { key = "unitQuests", label = "Quest lines", size = 12, color = colors.objective,
-        tooltipType = "unit", note = "Quest names gold, finished objectives green, unless set." },
+    { key = "unitQuests", label = "Quest Lines", size = 12, color = colors.objective,
+        tooltipType = "unit", note = "Quest names yellow, finished objectives green, unless set." },
     { key = "auraName", label = "Name", size = 15, title = true, color = colors.title,
         tooltipType = "aura" },
     { key = "auraBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "aura",
         note = "Buff or debuff, dispel type in the game's colors, and stacks." },
     { key = "auraText", label = "Description", size = 12, color = colors.description,
         tooltipType = "aura", note = "Numbers in the aura's color unless set." },
-    { key = "auraTime", label = "Time and caster", size = 11, color = { .88, .78, .60 },
+    { key = "auraTime", label = "Time and Caster", size = 11, color = { .88, .78, .60 },
         tooltipType = "aura" },
-    { key = "questTitle", label = "Quest name", size = 16, title = true, color = colors.title,
+    { key = "questTitle", label = "Quest Name", size = 16, title = true, color = colors.title,
         tooltipType = "quest" },
     { key = "questInfo", label = "Dungeon", size = 12, color = colors.detail, tooltipType = "quest" },
     { key = "questBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "quest",
         note = "The level in its difficulty color, tags, and where the quest stands." },
     { key = "questText", label = "Description", size = 12, color = colors.flavor, tooltipType = "quest" },
-    { key = "questCaption", label = "Section caption", size = 9, color = colors.caption,
+    { key = "questCaption", label = "Section Caption", size = 9, color = colors.caption,
         tooltipType = "quest", caps = true },
     { key = "questObjectives", label = "Objectives", size = 12, color = colors.objective,
         tooltipType = "quest", note = "Finished objectives green unless set." },
     { key = "macroName", label = "Name", size = 15, title = true, color = colors.title,
         tooltipType = "macro" },
     { key = "macroBadges", label = "Badges", size = 12, color = { .9, .9, .9 }, tooltipType = "macro" },
-    { key = "macroText", label = "Macro lines", size = 12, color = colors.detail, tooltipType = "macro",
-        note = "Commands gold, conditions grey, unless set." },
+    { key = "macroText", label = "Macro Lines", size = 12, color = colors.detail, tooltipType = "macro",
+        note = "Commands yellow, conditions grey, unless set." },
 }
 -- types are Enum.TooltipDataType names; ones missing on this client are skipped.
+-- editor names a kind's page in the style editor; the rest are under Other tooltips.
 ns.TOOLTIP_TYPES = {
-    { label = "Items", restyle = "itemPanels", cursor = "cursorItems", types = { "Item" } },
-    { label = "Spells", restyle = "spellPanels", cursor = "cursorSpells", types = { "Spell" } },
-    { label = "Players and NPCs", restyle = "unitPanels", cursor = "cursorUnits",
+    { label = "Items", editor = "item", restyle = "itemPanels", cursor = "cursorItems", types = { "Item" } },
+    { label = "Spells", editor = "spell", restyle = "spellPanels", cursor = "cursorSpells", types = { "Spell" } },
+    { label = "Players and NPCs", editor = "unit", restyle = "unitPanels", cursor = "cursorUnits",
         types = { "Unit", "Corpse" } },
-    { label = "Buffs and debuffs", restyle = "auraPanels", cursor = "cursorAuras",
+    { label = "Buffs and Debuffs", editor = "aura", restyle = "auraPanels", cursor = "cursorAuras",
         types = { "UnitAura" } },
-    { label = "Weapon imbues", restyle = "imbuePanels", types = {} },
-    { label = "Herbs, ore, chests, and other objects", restyle = "objectPanels",
+    { label = "Weapon Imbues", restyle = "imbuePanels", types = {} },
+    { label = "Herbs, Ore, Chests, and Other Objects", editor = "object", restyle = "objectPanels",
         cursor = "cursorObjects", types = { "Object" } },
-    { label = "Flight paths", restyle = "taxiPanels", types = {} },
-    { label = "Mail", restyle = "mailPanels", types = {} },
-    { label = "Quests", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
-    { label = "Macros", restyle = "macroPanels", cursor = "cursorMacros", types = { "Macro" } },
+    { label = "Flight Paths", restyle = "taxiPanels", types = {} },
+    { label = "Mail", editor = "mail", restyle = "mailPanels", types = {} },
+    { label = "Quests", editor = "quest", restyle = "questPanels", cursor = "cursorQuests", types = { "Quest", "QuestPartyProgress" } },
+    { label = "Macros", editor = "macro", restyle = "macroPanels", cursor = "cursorMacros", types = { "Macro" } },
     { label = "Currencies", cursor = "cursorCurrencies", types = { "Currency" } },
-    { label = "Dungeon and raid lockouts", cursor = "cursorLockouts", types = { "InstanceLock" } },
-    { label = "Pet abilities", restyle = "petPanels", cursor = "cursorPetActions", types = { "PetAction" } },
+    { label = "Dungeon and Raid Lockouts", cursor = "cursorLockouts", types = { "InstanceLock" } },
+    { label = "Pet Abilities", restyle = "petPanels", cursor = "cursorPetActions", types = { "PetAction" } },
     { label = "Minimap", restyle = "minimapPanels", cursor = "cursorMinimap", types = { "MinimapMouseover" } },
-    { label = "Mounts, toys, and pets", cursor = "cursorCollections",
+    { label = "Mounts, Toys, and Pets", cursor = "cursorCollections",
         types = { "Mount", "Toy", "CompanionPet", "BattlePet" } },
     { label = "Achievements", cursor = "cursorAchievements", types = { "Achievement" } },
     { label = "Totems", cursor = "cursorTotems", types = { "Totem" } },
-    { label = "Flyout buttons", cursor = "cursorFlyouts", types = { "Flyout" } },
+    { label = "Flyout Buttons", cursor = "cursorFlyouts", types = { "Flyout" } },
 }
 
 -- A client's own defaults and parts (retail's Retail/Core/Settings.lua), each
@@ -414,20 +484,46 @@ ns.BACKDROP_ALPHA = .9
 ns.TYPE_SUFFIX = { item = "Items", spell = "Spells", object = "Objects", unit = "Units", aura = "Auras", quest = "Quests",
     macro = "Macros", mail = "Mail" }
 
+local function legacyKey(tooltipType, key, oldKey)
+    TYPE_KEYS[tooltipType] = TYPE_KEYS[tooltipType] or {}
+    TYPE_KEYS[tooltipType][key] = oldKey
+    LEGACY_KEYS[oldKey] = { tooltipType = tooltipType, key = key }
+end
+for tooltipType, suffix in pairs(ns.TYPE_SUFFIX) do
+    for _, key in ipairs({ "icon", "headerTopAlpha", "headerBottomAlpha", "backdropAlpha", "glowAlpha" }) do
+        legacyKey(tooltipType, key, key .. suffix)
+    end
+end
+for _, kind in ipairs(ns.TOOLTIP_TYPES) do
+    local tooltipType = kind.editor or kind.restyle or kind.cursor
+    if kind.restyle then legacyKey(tooltipType, "restyle", kind.restyle) end
+    if kind.cursor then legacyKey(tooltipType, "followCursor", kind.cursor) end
+end
+
 -- The header band's opacity at an edge ("Top" or "Bottom") for a tooltip type; one
 -- without its own follows the setting shared by all, and nil means the default.
 function ns.headerAlpha(tooltipType, edge)
-    local suffix = ns.TYPE_SUFFIX[tooltipType]
-    local own = suffix and ns.option("header" .. edge .. "Alpha" .. suffix)
-    if own ~= nil then return own end
-    return ns.option("header" .. edge .. "Alpha")
+    return ns.option("header" .. edge .. "Alpha", tooltipType)
+end
+
+ns.TOOLTIP_STYLE_KEYS = { "tooltipScale", "fontScale", "bodyFont", "titleFont", "titleSize", "bodySize",
+    "titleOutline", "bodyOutline", "titleColor", "bodyColor", "titleCaps", "bodyCaps", "padding", "minWidth",
+    "rowSpacing", "sectionSpacing", "backdropStyle", "backdropAlpha", "glowAlpha", "headerTopAlpha", "headerBottomAlpha",
+    "icon", "iconRight", "qualityTint", "separators" }
+
+function ns.resetTooltipStyles(tooltipType)
+    for _, key in ipairs(ns.TOOLTIP_STYLE_KEYS) do ns.setTooltipSetting(tooltipType, key, nil) end
 end
 
 function ns.resetStyles()
     if type(PrettyTooltipDB) ~= "table" then return end
     PrettyTooltipDB.styles = nil
-    PrettyTooltipDB.bodyFont, PrettyTooltipDB.titleFont, PrettyTooltipDB.outline = nil, nil, nil
-    PrettyTooltipDB.headerTopAlpha, PrettyTooltipDB.headerBottomAlpha = nil, nil
+    for _, key in ipairs(ns.TOOLTIP_STYLE_KEYS) do
+        -- These layout and visibility preferences have always survived a text-style reset.
+        if key:match("^title") or key:match("^body") or key:find("Alpha", 1, true) then
+            PrettyTooltipDB[key] = nil
+        end
+    end
     for key in pairs(PrettyTooltipDB) do
         if type(key) == "string" and (key:match("^statColor%u") or key:match("^schoolColor%u")
             or key:match("^classColor%u") or key:match("^armorColor%u")) then
@@ -440,25 +536,50 @@ function ns.resetStyles()
         PrettyTooltipDB["backdropAlpha" .. suffix] = nil
         PrettyTooltipDB["glowAlpha" .. suffix] = nil
     end
+    for _, own in pairs(type(PrettyTooltipDB.tooltips) == "table" and PrettyTooltipDB.tooltips or {}) do
+        if type(own) == "table" then
+            for _, key in ipairs(ns.TOOLTIP_STYLE_KEYS) do
+                if key:match("^title") or key:match("^body") or key:find("Alpha", 1, true) then own[key] = nil end
+            end
+        end
+    end
     changed()
 end
 
-function ns.style(key)
+-- A field resolves independently: part, type's title/body style, shared role,
+-- then the part's original default. "automatic" explicitly restores semantic colors.
+function ns.elementValue(key, field, tooltipType, inherited)
     local element = ELEMENT_BY_KEY[key]
-    local outline = ns.elementSetting(key, "outline") or ns.option("outline")
-    local color = ns.elementSetting(key, "color")
+    tooltipType = tooltipType or (element.tooltipType or "item")
+    local own
+    if not inherited then own = ns.elementSetting(key, field) end
+    if own ~= nil then return own end
+    local role = element.title and "title" or "body"
+    local property = role .. field:sub(1, 1):upper() .. field:sub(2)
+    if field == "font" then property = role == "title" and "titleFont" or "bodyFont" end
+    local value = ns.tooltipSetting(tooltipType, property)
+    if value == nil then value = ns.option(property) end
+    if value ~= nil and value ~= "automatic" then return value end
+    if value == "automatic" and (field == "font" or field == "color") then return value end
+    if field == "size" then return element.size end
+    if field == "caps" then return element.caps or element.title == true end
+    return nil
+end
+
+function ns.style(key, tooltipType)
+    local element = ELEMENT_BY_KEY[key]
+    tooltipType = tooltipType or (element.tooltipType or "item")
+    local outline = ns.elementValue(key, "outline", tooltipType)
+    local color = ns.elementValue(key, "color", tooltipType)
     if type(color) ~= "table" then color = nil end
-    -- Names are in capitals unless turned off; other parts only when turned on.
-    local caps = ns.elementSetting(key, "caps")
-    if caps == nil then caps = element.caps or element.title == true end
     return {
         key = key,
         title = element.title,
-        size = (tonumber(ns.elementSetting(key, "size")) or element.size) * ns.option("fontScale"),
-        font = ns.fontPath(ns.elementSetting(key, "font")),
+        size = (tonumber(ns.elementValue(key, "size", tooltipType)) or element.size) * ns.option("fontScale", tooltipType),
+        font = ns.fontPath(ns.elementValue(key, "font", tooltipType)),
         flags = (outline == "OUTLINE" or outline == "THICKOUTLINE") and outline or "",
         color = color and { color[1], color[2], color[3] },
-        caps = caps,
+        caps = ns.elementValue(key, "caps", tooltipType),
     }
 end
 

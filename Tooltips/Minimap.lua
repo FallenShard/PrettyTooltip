@@ -92,7 +92,7 @@ local function hiddenSection(model)
     -- A few pixels over, for the game's rounding.
     local width, height = math.ceil(block.width) + 4, math.ceil(block.height)
     return { kind = "custom", measure = function() return width end, draw = function(panel, y)
-        ui.hiddenBlockAt(panel, model.hidden, ui.pad(), y, panel.width - 2 * ui.pad(), font, model.color)
+        ui.hiddenBlockAt(panel, model.hidden, ui.pad(panel), y, panel.width - 2 * ui.pad(panel), font, model.color)
         panel.rowTail = 3
         return y + height
     end }
@@ -105,7 +105,7 @@ local function minimapView(model)
         sections = { hiddenSection(model) }
     else
         local style = {}
-        for key, value in pairs(ui.styleOf("objectDetails")) do style[key] = value end
+        for key, value in pairs(ui.styleOf("objectDetails", "minimap")) do style[key] = value end
         style.color = nil
         local rows = {}
         for index, text in ipairs(model.lines) do rows[index] = { left = text } end
@@ -113,7 +113,7 @@ local function minimapView(model)
     end
     if #model.extras > 0 then
         sections[2] = { separator = { rule = EXTRAS_RULE }, kind = "rows", rows = model.extras,
-            style = ui.styleOf("extras"), color = ui.EXTRA_COLOR, gap = 2, wrap = true }
+            style = ui.styleOf("extras", "minimap"), color = ui.EXTRA_COLOR, gap = 2, wrap = true }
     end
     return { tooltipType = "object", color = colors.neutral, header = {}, sections = sections, minWidth = 0 }
 end

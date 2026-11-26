@@ -12,10 +12,10 @@ Top to bottom, an item panel shows:
 
 - **Header.** The icon with an item level badge, the name in its quality color, and a subtitle with the item's type and slot, such as `Mail · Head` or `Staff · Two-Hand`. The subtitle also names what the game leaves unsaid: `Consumable · Potion`, `Crafting Reagent`, `Scarce`. The binding sits below it, with the required level at the right, red while you are below it. The whole panel is tinted by quality; quest items, and items that begin a quest, are tinted quest gold.
 - **Retail's source, upgrade, and transmogrification.** On retail, where the item comes from (`Heroic`, `Mythic`) sits under its name, its upgrade level (`Myth 2/6`) under the subtitle, and what it is transmogrified to, with any weapon illusion, after the binding. A crafted item's quality, with the game's quality icon, follows the upgrade level. Each is its own part in the style editor: **Source**, **Upgrade level**, **Crafted quality**, and **Transmogrification**.
-- **Gems and sockets.** On retail, after the enchants: each socketed gem with its icon and its stat in that stat's color, its enchantment indented under it, empty sockets with the game's socket icon, and the socket bonus, green once active. The style editor's **Gems and sockets** part sets their look, and its **Socket hint** switch hides the game's `<Shift Right Click to Socket>` line.
+- **Gems and sockets.** On retail, after the enchants: each socketed gem with its icon and its stat in that stat's color, its enchantment indented under it, empty sockets with the game's socket icon, and the socket bonus, green once active. The style editor's **Gems and sockets** part sets their look, and its **Socket Hint** switch hides the game's `<Shift Right Click to Socket>` line.
 - **Weapon damage.** DPS as the prominent row, with damage and speed beneath it.
-- **Armor and stats.** Armor (and a shield's block under it), then the stats in two blocks: the primary attributes, and everything else under a divider. Long stat wording is shortened (see below), and each stat is colored by kind. On retail, the primary stats your specialization does not use stay grey, as the game shows them. Retail's Critical Strike, Haste, Mastery, and Versatility each have a color of their own, and Leech, Avoidance, and Speed share one; set them under **Secondary stat colors** in the style editor, and their font under its **Secondary stats** part.
-- **Equip effects and enchants.** Equip effects that are not a plain stat, such as a zone-limited speed bonus, join the stat list in green without the `Equip:` prefix. A chance on hit joins them too, marked with a small sword instead of its `Chance on hit:` prefix. Its numbers follow the spell tooltip's highlighting: a lighter school color when the description names that school's damage, or a neutral highlight otherwise. Holyfire blends Holy and Fire. These highlights follow **Stat colors** and a custom **Equip effects** color in the panel. Enchants follow as green rows marked with a sparkle, one per bonus: `Enchanted: Stamina +1 and Armor +8` becomes `+1 Stamina` and `+8 Armor`.
+- **Armor and stats.** Armor (and a shield's block under it), then the stats in two blocks: the primary attributes, and everything else under a divider. Long stat wording is shortened (see below), and each stat is colored by kind. On retail, the primary stats your specialization does not use stay grey, as the game shows them. Retail's Critical Strike, Haste, Mastery, and Versatility each have a color of their own, and Leech, Avoidance, and Speed share one; set them under **Secondary Stat Colors** in the style editor, and their font under its **Secondary stats** part.
+- **Equip effects and enchants.** Equip effects that are not a plain stat, such as a zone-limited speed bonus, join the stat list in green without the `Equip:` prefix. A chance on hit joins them too, marked with a small sword instead of its `Chance on hit:` prefix. Its numbers follow the spell tooltip's highlighting: a lighter school color when the description names that school's damage, or a neutral highlight otherwise. Holyfire blends Holy and Fire. These highlights follow **Stat Colors** and a custom **Equip effects** color in the panel. Enchants follow as green rows marked with a sparkle, one per bonus: `Enchanted: Stamina +1 and Armor +8` becomes `+1 Stamina` and `+8 Armor`.
 - **Use effects and flavor text,** as the game words them, each use effect marked with a small gear instead of its `Use:` prefix.
 - **Item set.** The set name and how many pieces you own, the pieces you own highlighted, and the set bonuses, with active ones highlighted.
 - **Disenchant.** For green, blue, and purple armor and weapons: what the item disenchants into, each result with its icon, count, and chance, and the Enchanting it needs, red while your skill is too low and grey if you have no Enchanting. The chances are Classic's published tables (Warcraft Wiki's *Disenchanting tables*); the game has no way to ask. Turned off under **Item Details** in the style editor.
@@ -42,7 +42,7 @@ Common Equip wordings become short stat rows:
 
 ### The Blizzard layout
 
-With **Layout Style** set to **Blizzard** on the options page, every tooltip keeps the game's own look, and so does each kind whose **Restyle** box is off. Items keep the game's tooltip with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat colors** is on. Combined bonuses split into separate lines. **Abbreviated Equip Effects** under **Item Details** in the style editor turns this off.
+With **Layout Style** set to **Blizzard** on the style editor's **General** page, every tooltip keeps the game's own look, and so does each kind whose Restyle setting is off. Items keep the game's tooltip with selected Equip effects shortened as in the table above and the game's line colors kept, except for magic: spell power, spell hit and crit, penetration, and healing power in their stat colors, and the damage of chance on hit effects in its school's color, while **Stat Colors** is on. Combined bonuses split into separate lines. **Abbreviated Equip Effects** under **Item Details** in the style editor turns this off.
 
 While the **Tooltip Details Modifier** is held (Shift by default), the details a panel would show appear at the bottom of the game's tooltip, below every other addon's rows: disenchant results, the spell power breakdown and rates, gathering contents, and IDs, each as its switch in the style editor allows. They show and hide as the key is pressed and released, in combat too. Holding the **Default Tooltip Modifier** shows the game's tooltip as it is, with neither.
 
@@ -60,9 +60,9 @@ Each stat value takes a color and its name a lighter shade of the same hue. The 
 | Mana regeneration | Periwinkle |
 | Spell schools and resistances | Arcane, Fire, Frost, Holy, Nature, and Shadow each in their own color |
 
-Set **School colors** under **All Tooltips** in the style editor. The same choices color spell panels, school badges, highlighted numbers, item spell-power and resistance stats, school weapon damage, and macro accents. Holyfire and Frostfire have their own swatches; their panel gradients follow their two component schools. Click a swatch to choose its color, right-click it for the default, or use the row's reset to restore every school. With no overrides, the original colors are kept.
+Set **School Colors** under **All Tooltips > Appearance** in the style editor. The same choices color spell panels, school badges, highlighted numbers, item spell-power and resistance stats, school weapon damage, and macro accents. Holyfire and Frostfire have their own swatches; their panel gradients follow their two component schools. Click a swatch to choose its color, right-click it for the default, or use the row's reset to restore every school. With no overrides, the original colors are kept.
 
-Turn on **Armor colors** under **Item Details** to tell armor types apart at a glance: the type that leads the subtitle, as *Plate* in *Plate · Chest*, takes its own color (cloth rose, leather tan, mail teal, plate steel), and the rest of the line keeps the quality color. A type the game shows in red, because you cannot wear it, stays red. Cloaks are left alone, since every class wears them. Each type has a swatch below the switch; the switch is off by default.
+Turn on **Armor Colors** under **Item Details** to tell armor types apart at a glance: the type that leads the subtitle, as *Plate* in *Plate · Chest*, takes its own color (cloth pink, leather light brown, mail blue-green, plate blue-gray), and the rest of the line keeps the quality color. A type the game shows in red, because you cannot wear it, stays red. Cloaks are left alone, since every class wears them. Each type has a swatch beside the switch; the switch is off by default.
 
 ## Spell tooltips
 
@@ -78,7 +78,7 @@ Spells that deal magic damage or heal show their spell power under the descripti
 
 Units under the cursor get a panel with their portrait, the name in class color (players) or reaction color (NPCs: red hostile, yellow neutral, green friendly, grey when tapped by someone else), the guild or an NPC's role, and the level, race, and class or creature type, the level in its difficulty color. Badges mark elites, rares, bosses, a player's faction, PvP, AFK, DND, and the dead. Below sit what the unit is targeting (in red when it is you), and the unit's quest lines. Rows other addons add are kept below, and the game's own health bar closes the panel; the game fills it, as WoW Forever keeps unit health from addons. Elites, rares, rare elites, and bosses show the dragon from the game's target frame behind the header, and players their faction's crest.
 
-**Class colors** under **Unit Details** in the style editor has a swatch for each of the nine classes. Overrides apply to player names, panel tints and glows, the guild's lighter shade, and player targets. Click to choose a color, right-click for the default, or reset the row to clear all class overrides. With no override, the game's current class color is used, including changes made by other addons.
+**Class Colors** under **Unit Details** in the style editor has a swatch for each of the nine classes. Overrides apply to player names, panel tints and glows, the guild's lighter shade, and player targets. Click to choose a color, right-click for the default, or reset the row to clear all class overrides. With no override, the game's current class color is used, including changes made by other addons.
 
 ## Buffs and debuffs
 
@@ -86,13 +86,13 @@ Auras show their icon and name, badges for buff or debuff, the dispel type in th
 
 ## Quests
 
-With **DialogueUI** installed, enable **Quest parchment** under **Quest Details** or **Item Details** in the style editor for its brown parchment and darker ink. The shared toggle applies to quest tooltips, items marked **Quest Item**, and items that begin a quest; the **Quest item** sample on the Items tab previews it. It is off by default. Per-part custom text colors still take precedence, and the artwork is read from DialogueUI's folder.
+With **DialogueUI** installed, enable **Quest Parchment** under **Quest Details** or **Item Details** in the style editor for its brown parchment and darker ink. The shared toggle applies to quest tooltips, items marked **Quest Item**, and items that begin a quest; the **Quest item** sample on the Items page previews it. It is off by default. Per-part custom text colors still take precedence, and the artwork is read from DialogueUI's folder.
 
-Quest links read like a page of the quest log: the quest's name and the dungeon it is in, then badges for its level in the game's difficulty color, tags such as Elite or Dungeon, and where it stands (in progress, ready to turn in, completed, failed, repeatable). Below sit the quest giver's words in quotes and the objectives as a checklist with their progress, ticked and green once finished. The header has no icon unless **Show icon** is turned on in the style editor. With **Questie** installed, which draws quest links itself, the panel is built from Questie's tooltip, both for a clicked link and for one hovered in chat; who starts or ends the quest and where follow as label and value rows. Quests hovered in the world map's quest log get the same panel, with the level from your quest log; rows other addons add, such as a guide's note, are kept below.
+Quest links read like a page of the quest log: the quest's name and the dungeon it is in, then badges for its level in the game's difficulty color, tags such as Elite or Dungeon, and where it stands (in progress, ready to turn in, completed, failed, repeatable). Below sit the quest giver's words in quotes and the objectives as a checklist with their progress, ticked and green once finished. The header has no icon unless **Show Icon** is turned on in the style editor. With **Questie** installed, which draws quest links itself, the panel is built from Questie's tooltip, both for a clicked link and for one hovered in chat; who starts or ends the quest and where follow as label and value rows. Quests hovered in the world map's quest log get the same panel, with the level from your quest log; rows other addons add, such as a guide's note, are kept below.
 
 ## Mail
 
-Mail attachment summaries have their own **Mail** category and style-editor preview. They show item icons, quality-colored names and quantities, with Auctionator's price rows beneath each attachment and its total in the footer. Individual attachments retain their normal item tooltips. Turn off **Mail** under Restyle to keep the native summary.
+Mail attachment summaries have their own **Mail** category and style-editor preview. They show item icons, quality-colored names and quantities, with Auctionator's price rows beneath each attachment and its total in the footer. Individual attachments retain their normal item tooltips. Turn off **Restyle** on the Mail page to keep the native summary.
 
 ## World objects
 
@@ -102,42 +102,60 @@ Herbs, ore, chests, and quest objects get a panel too. A herb or ore node shows 
 
 - Rows other addons add to a tooltip are kept, below a thin rule in smaller, muted text, in their original order and colors.
 - Comparison tooltips, screen-edge clamping, and anything anchored to the tooltip follow the panel's real size.
-- With **DialogueUI** installed, the panel uses its dark tooltip backdrop, unless another **Panel style** is picked in the style editor. Text uses the game's own tooltip fonts, so a UI addon that changes the default font is followed; with **EllesmereUI** installed, names use its Expressway font. Both are used from those addons' own folders; nothing of theirs is bundled.
+- With **DialogueUI** installed, the panel uses its dark tooltip backdrop, unless another **Panel Style** is picked in the style editor. Text uses the game's own tooltip fonts, so a UI addon that changes the default font is followed; with **EllesmereUI** installed, names use its Expressway font. Both are used from those addons' own folders; nothing of theirs is bundled.
 - Whenever a tooltip cannot be read safely, such as spell details restricted during combat, the game's own tooltip is shown instead.
 
 ## Style editor
 
-The editor uses Blizzard's settings frame borders and native controls by default. Choose **Blizzard** or **Flat** under **AddOns > PrettyTooltip > Style Editor Appearance** in the game's settings. This choice affects the editor window; **Panel style** inside the editor controls the tooltips themselves.
+Type `/ptip` (or `/prettytooltip`) to open the editor. Its sidebar has two top-level pages:
 
-Type `/ptip` (or `/prettytooltip`) to open the style editor, where everything about the tooltip's look is set. **Items**, **Spells**, **Objects**, **Units**, **Buffs**, and **Quests** switch between the kinds of panel. The editor shows a sample tooltip; click any part of it, such as the name, the stats, or a spell's description, to change that part's font, size, color, and outline. The samples (for items a weapon, the equipped item it is compared with, a set piece, and a potion; for spells a damage spell, an ability with a cooldown and an unmet requirement, and a heal, and on retail a spell with charges; for objects a herb, an ore node you cannot mine yet, a locked chest, and a quest object; for units a player, a hostile elite with a quest, a friendly innkeeper, a rare, a rare elite, and a boss; for buffs a buff, a curse, and a stacked poison; for quests one in progress, one ready to turn in, and one not taken) cover every part, and the editor switches to one that has the part you pick from its list.
+- **General** holds the PrettyTooltip/Blizzard layout choice, original-tooltip and details modifier keys, and the editor's Blizzard or Flat appearance.
+- **Tooltips** opens **All Tooltips**, the shared styling and behavior defaults. Its children are **Items**, **Spells**, **Units**, **Objects**, **Buffs**, **Quests**, **Macros**, **Mail**, and **Other Tooltips**. The small plus/minus button expands or collapses the children; clicking Tooltips itself always opens the shared settings.
 
-To preview a real item or spell instead (objects, units, auras, and quests have no ID), type its ID in the box at the top right and press Enter, or click the box and shift-click the item or spell, as you would to link it in chat. **Clear**, or a sample tab, goes back to the samples.
+The editor opens on All Tooltips. Choose a preview type at the top right to see how a shared change affects different kinds of tooltip. Changes appear in the preview immediately and on actual tooltips the next time they open. A message explains when the previewed style is disabled by the Blizzard layout or that type's Restyle setting.
 
-The controls on the right follow the kind of panel shown, top to bottom (hover a setting for its description):
+### Shared styling and overrides
 
-- **Selected Part**: the part you clicked, or picked from the list. **Font** offers every font registered with LibSharedMedia, which includes EllesmereUI's fonts when it is installed, plus the game's own; a part's own font overrides the ones below. A custom **Color** replaces every color the part would have had, including quality, category, and red or grey states; **Automatic** goes back to the normal colors. **All caps** is on by default for item, spell, and set names (off, they keep the game's capitalization) and off for every other part. **Reset this part** puts it back.
-- **All Tooltips**: **Global scale** resizes every PrettyTooltip panel together, including text, icons, spacing, and bars, from 50% to 150% (100% by default). It is also on the main options page and preserves individual text settings. The text and name fonts, outline, **Text size** multiplier, **Panel style** (the game's tooltip border, flat, or DialogueUI's art), padding, minimum width, **Row spacing** (the space between lines), and **Section spacing** (the space around dividers, rules, and captions, and under the header) follow, the two spacings from 50% to 150%; **Icon on the right** moves the icon and its item level badge to the right of the name, **Tint the panel** off leaves every panel neutral (names keep their quality color), and **Separators** off hides the gold dividers and thin rules with the space around them.
-- **School colors**, below the shared switches: a swatch for each of the six spell schools, followed by Holyfire and Frostfire. These colors apply across tooltip types, including item stats.
-- **Enable tooltip fading**, last in All Tooltips: panels for units, unit frames, and world objects hide as soon as the cursor leaves them. Turned on (it is off by default), they fade out instead, with a **Fade delay** and **Fade duration** of 0 to 5 seconds each; both at zero hides them at once. Other tooltips always hide at once, as the game's do.
-- **Items Panel**, **Spells Panel**, and so on, for the kind shown: **Show icon**, and the opacity of the header band at its top and bottom edges, of the panel's body (**Backdrop**), and of the soft rarity **Glow** around it.
-- The kind's own details:
-  - **Item Details**: the item level badge, the stat markers, **Stat colors** (off, every stat is parchment) with each stat category's color below, a swatch each (click to choose, right-click for the default; the stat's name takes a lighter shade), **Armor colors** (see *Colors* above) with a swatch each for cloth, leather, mail, and plate, **Abbreviated Equip Effects** (see *The Blizzard layout* above), the disenchant section, and the sell price.
-  - **Spell Details**: the spell power breakdown, marked experimental as not all its values are correct yet, and the damage and healing rates under it; on retail, the rates alone.
-  - **Unit Details**: the level badge (off, the level stays in the info line), the health bar, what a skinnable creature gives, and the nine **Class colors** swatches. Hover a swatch for its class name.
-  - **Object Details**: what herbs and ore give: a node's yield over all its taps and the stone, gems, or other herbs it may give, with the chance each tap.
+Style settings inherit independently: **All Tooltips**, then the **tooltip type**, then an **individual text part**. For example, set the shared title font and size, give Items its own title size, and change the shared font again: Items picks up the new font while keeping its own size. Existing saved per-type and per-part settings remain overrides.
 
-**Reset all fonts and colors** puts every part back and clears custom stat-category, school, and class colors. The restyle and detail switches keep their settings. Tooltips use the new look the next time they open.
+Both All Tooltips and type pages use expandable groups. A group's header shows how many settings it overrides; a type with no overrides in a group shows **All shared**. Expand a group to edit its fields:
+
+| Group | Settings |
+| --- | --- |
+| **Appearance** | Panel Style, Panel Tint, Separators, Show Icon, Backdrop Opacity, Glow Strength, and both Header Opacity controls. All Tooltips also has School Colors. |
+| **Layout** | Global Scale (Scale on a type), Padding, Minimum Width, Row Spacing, Section Spacing, and Icon Placement. |
+| **Text** | Text Size, followed by Title and Body Text subheadings with Font, Size, Outline, Color, and Capitalization. |
+| **Behavior** | Restyle and Follow Cursor, where the type supports it. All Tooltips also has Show IDs, tooltip fading, and Follow Cursor in Combat. |
+
+A type's dropdown names its inherited value, such as **All Tooltips: Arial Narrow**. Choosing a value or moving a slider creates an override for that property; its reset arrow means **Use All Tooltips setting**. The remaining fields keep following their shared defaults.
+
+**Default** in a shared list keeps each part's built-in value: sizes keep the differences between parts until a shared size is chosen, fonts are the game's, and Show Icon and Follow Cursor keep each type's own default (quest icons are off, and only world objects follow the cursor). **Capitalization** offers **Default** and **All Caps** and shows what is in effect: names start in All Caps, body text in Default. Each type can inherit the shared choice or override it; a type's Default writes names as they are and undoes a shared All Caps on body text, while section captions keep their capitals. Existing individual text-part overrides still take precedence. **Default** color preserves semantic colors such as item quality, player class, NPC reaction, spell school, and unmet requirements. Choosing a custom title or body color replaces those colors; a type or individual part can choose Default to restore them.
+
+**School Colors** is under **Appearance**. **Behavior** includes Show IDs, tooltip fading with its delay and duration, and Follow Cursor in Combat. Fading applies to units and world objects; other tooltips hide immediately. With **Follow Cursor in Combat** off, each type keeps its preference but uses the default position during combat.
+
+### Type-specific content and text parts
+
+Below the common styling groups, each type keeps its own content controls:
+
+- **Item Details**: level badge, stat markers and category colors, armor colors, damage/DPS ordering, abbreviated native Equip effects, disenchant results, sell price, and Retail's socket hint.
+- **Spell Details**: the experimental spell-power breakdown on Forever, and damage/healing rates.
+- **Unit Details**: level badge, guild realm, health bar, class colors, and skinning contents.
+- **Object Details**: gathering contents for herbs and ore.
+- **Quest Parchment**, available with DialogueUI, is shared by Quests and quest-related Items. **Gathering** is shared by Objects and Units. Resetting one type leaves these shared switches unchanged.
+
+Click a part of the live sample to open **Selected Part** on its type's page and scroll to it, or expand Selected Part and use its picker. The part can override its font, size, color, outline, and capitalization. A reset arrow restores the type's text style; **Reset this part** removes all of that part's overrides. Fonts include the game's faces and those registered with LibSharedMedia. The samples cover the available parts, and picking a part can select a sample that contains it.
+
+To preview a real item or spell, enter its ID in the top-right field and press Enter, or focus the field and shift-click a link. **Clear**, or a sample button, returns to the examples. Other types use built-in samples.
+
+**Other tooltips** contains the Restyle and Follow cursor controls for kinds without their own preview page, such as weapon imbues, flight paths, pet abilities, and the minimap. Unsupported restyles are disabled.
+
+A gold sidebar dot marks a page with custom settings. **Reset page** on a type removes its style/part overrides and restores its own content defaults; its styling then follows All tooltips. Resetting All tooltips restores the shared defaults and shared text parts while preserving type overrides. Resetting General restores addon preferences without changing tooltip styles. **Reset all fonts and colors**, at the end of General, clears text styles and color/opacity overrides across all types while preserving layout, restyle, and content preferences.
+
+Long labels and sample buttons wrap within their columns. The window scales down to fit smaller UI dimensions, and each type remembers which groups are expanded during the session.
 
 ## Options
 
-Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor, which has every setting about the look and each kind's details, and holds the rest; hover a setting for what it does.
-
-- **Layout Style**: **PrettyTooltip** (the default) draws the panel for each kind turned on under **Restyled Tooltips**; **Blizzard** keeps the game's own tooltips everywhere, as described in *The Blizzard layout* above, and greys out the **Restyle** column.
-- **Restyled Tooltips** is a table with a row for every kind of tooltip the game has: items, spells, players and NPCs, buffs and debuffs, herbs, ore, chests and other objects, quests, currencies, lockouts, pet abilities, the minimap, mounts, toys and pets, achievements, totems, and flyout buttons.
-  - **Restyle**: **Items**, **Spells**, **Players and NPCs**, **Buffs and debuffs**, **Herbs, ore, chests, and other objects**, and **Quests** can each be turned off, and that kind then keeps the game's own tooltip, with the details added while their modifier is held. The other kinds are greyed out until PrettyTooltip restyles them.
-  - **Follow cursor** (on by default for herbs, ore, chests, and other objects; off for the rest): the kind's tooltip appears at the cursor and follows it whenever the game would show it in its default corner, as for units, world objects, and action buttons. Tooltips that bags, the character pane, and other panels place beside themselves stay there. While it is off, PrettyTooltip leaves the tooltip's position to the game and to any other addon that places tooltips.
-  - **Disable in combat**, under **Follow cursor** (on by default): use the default tooltip position during combat, then resume following the cursor afterward. Each kind's Follow cursor preference is kept.
-- **Default Tooltip Modifier** picks the key you hold to see the game's own tooltip: CTRL, ALT (the default), or **Never**.
+Open the game's options, then **AddOns > PrettyTooltip**, or type `/ptip options`. The page opens the style editor, which has every setting, including **Global Scale** under **Tooltips > Layout**. Its **Defaults** button puts every setting back.
 
 ## Install
 

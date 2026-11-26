@@ -29,18 +29,13 @@ return function(test)
     test.check("another addon's event does not create UI", #world.objects, before)
     test.check("another addon's event does not register commands", SlashCmdList.PRETTYTOOLTIP, nil)
 
-    PrettyTooltipDB = { itemPanels = false, originalKey = "CTRL" }
+    PrettyTooltipDB = { tooltipScale = 1.2, originalKey = "CTRL" }
     world.fireEvent("ADDON_LOADED", "PrettyTooltip")
     test.check("startup installs no pre-call", world.preCalls[0], nil)
     test.check("startup installs wording post-call", #world.postCalls[0], 1)
     test.check("settings category registered", registered == category, true)
     test.check("settings page starts hidden", page:IsShown(), false)
-    -- The first checkbox controls item panels; it must use the saved false.
-    local firstCheckbox
-    for _, child in ipairs(page._children) do
-        if child._kind == "CheckButton" then firstCheckbox = child break end
-    end
-    test.check("controls use settings saved after file loading", firstCheckbox:GetChecked(), false)
+    test.check("startup preserves the saved scale", ns.tooltipScale(), 1.2)
     test.check("saved settings are retained", PrettyTooltipDB.originalKey, "CTRL")
     test.check("long slash alias", SLASH_PRETTYTOOLTIP1, "/prettytooltip")
     test.check("short slash alias", SLASH_PRETTYTOOLTIP2, "/ptip")
@@ -53,7 +48,7 @@ return function(test)
     test.check("options command opens registered settings", opened, 42)
     local version = ns.settingsVersion
     page.OnDefault()
-    test.check("settings page defaults refresh controls", firstCheckbox:GetChecked(), true)
+    test.check("settings page defaults reset scale", ns.tooltipScale(), 1)
     test.check("settings page defaults invalidate panels", ns.settingsVersion, version + 1)
 
     local after = #world.objects

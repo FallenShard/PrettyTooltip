@@ -94,6 +94,8 @@ A capture holds the game's answers to what the readers ask (item, spell, and uni
 
 Every sample the style editor shows (a weapon, a herb, a hostile elite, a quest in progress, and the rest) is drawn and compared against `tests/outputs/samples/<kind>-<sample>.txt`, so every kind of panel is tested without a capture. The samples have no recorded game answers, so what needs one, as an icon or an item's price, is left out of them.
 
+`unit/style_inheritance.lua` checks shared title/body styles, independent type and part overrides, legacy saved values, semantic colors, false and zero values, and geometry when a panel changes type. `unit/editor_pages.lua` drives shared edits, override resets, inheritance links, and collapsible groups on both clients. `unit/editor_layout.lua` checks expanded layouts in both appearances across all supported locale codes and smaller UI dimensions. These checks use simulated text metrics; native font rendering still needs an in-game visual check.
+
 ### The game's strings, by language
 
 Every client defines the game's strings (`ITEM_MIN_LEVEL`, `DURABILITY_TEMPLATE`, …) as globals in its own language, and the addon reads tooltips through them. `tests/locales/<locale>.lua` holds them for enUS, deDE, frFR, esES, esMX, ptBR, koKR, zhCN, zhTW, and ruRU, and each world defines the ones of its fixture's language (`client.locale`, enUS when a fixture has none). `python tools/make_strings.py` writes them from Forever's own string table on wago.tools: the globals `.luacheckrc` lists, the families a quoted name ending in `_` stands for (`"TOOLTIP_ITEM_STAT_"`), and the names the unit checks use. Run it again after adding a game string to the addon.

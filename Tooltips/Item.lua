@@ -1068,7 +1068,7 @@ end
 
 local function drawSockets(panel, sockets, y, style)
     for _, row in ipairs(sockets) do
-        local x, size = pad() + (row.indent or 0), socketIconSize(style)
+        local x, size = pad(panel) + (row.indent or 0), socketIconSize(style)
         local width = socketArtWidth(row, style)
         if row.icon then
             -- Inside its border, when it has one.
@@ -1099,7 +1099,7 @@ end
 -- names one; enchants read as stats and keep theirs.
 local function drawMarked(panel, list, y, style, color, marker, numbers)
     local hang = markerIndent(panel, style)
-    local width = panel.width - 2 * pad() - hang
+    local width = panel.width - 2 * pad(panel) - hang
     for _, row in ipairs(list) do
         local text, rowStyle, rowColor = row.left, style, color
         if row.inactive then
@@ -1114,12 +1114,12 @@ local function drawMarked(panel, list, y, style, color, marker, numbers)
         elseif hang > 0 then
             local shown = stands and stands[1] or marker
             if row.inactive then shown = ns.Stats.tintedMarker(shown, row.color) end
-            styledAt(panel, shown, pad(), y, hang, rowStyle, rowColor)
+            styledAt(panel, shown, pad(panel), y, hang, rowStyle, rowColor)
         elseif stands then
             -- Without its marker, the line keeps its words.
             text = (stands[2] or "") .. text
         end
-        y = y + styledAt(panel, text, pad() + hang, y, width, rowStyle, rowColor) + 3
+        y = y + styledAt(panel, text, pad(panel) + hang, y, width, rowStyle, rowColor) + 3
     end
     return y
 end
@@ -1227,7 +1227,7 @@ local function setCountStyle(setName)
     local style = {}
     for field, value in pairs(setName) do style[field] = value end
     style.size = math.max(8, setName.size - 3)
-    if not setName.customFont then style.font = bodyFont() end
+    if not setName.customFont then style.font = bodyFont("item") end
     return style
 end
 
@@ -1418,7 +1418,7 @@ local function drawDurability(panel, durability, y, style)
     local current, maximum = durability[1], durability[2]
     local color = durabilityColor(current, maximum)
     local track = acquireTexture(panel, nil, 0)
-    track:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -(y + math.floor(style.size / 2)))
+    track:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(panel), -(y + math.floor(style.size / 2)))
     track:SetSize(DURABILITY_BAR, 4)
     track:SetVertexColor(.16, .14, .13, 1)
     local fill = acquireTexture(panel, nil, 1)
@@ -1428,13 +1428,13 @@ local function drawDurability(panel, durability, y, style)
     fill:SetVertexColor(color[1], color[2], color[3], 1)
     if width < 1 then fill:Hide() end
     local healthy = maximum > 0 and current / maximum >= .5
-    return styledAt(panel, current .. " / " .. maximum, pad() + DURABILITY_BAR + 7, y,
+    return styledAt(panel, current .. " / " .. maximum, pad(panel) + DURABILITY_BAR + 7, y,
         math.max(90, style.size * 8), style, healthy and { .82, .78, .71 } or color)
 end
 
 -- Weapon damage, armor, stats, and effects.
 local function drawStats(panel, model, styles, y)
-    local inner = panel.width - 2 * pad()
+    local inner = panel.width - 2 * pad(panel)
     local top = y
     local swapped = swapsDamage(model)
     if model.weaponDps then
@@ -1445,11 +1445,11 @@ local function drawStats(panel, model, styles, y)
     end
     if model.weaponDamage or #model.weaponBonus > 0 then
         if model.weaponDamage then
-            y = y + styledAt(panel, swapped and rateText(model) or weaponText(model), pad() + 7, y, inner - 7,
+            y = y + styledAt(panel, swapped and rateText(model) or weaponText(model), pad(panel) + 7, y, inner - 7,
                 styles.damage, SMALL_COLOR)
         end
         for _, bonus in ipairs(model.weaponBonus) do
-            y = y + 2 + styledAt(panel, damageText(bonus), pad() + 7, y + 2, inner - 7, styles.damage,
+            y = y + 2 + styledAt(panel, damageText(bonus), pad(panel) + 7, y + 2, inner - 7, styles.damage,
                 SMALL_COLOR)
         end
         y = y + 7
@@ -1468,7 +1468,7 @@ local function drawStats(panel, model, styles, y)
         or #model.weaponBonus > 0
     local underDivider
     if (#model.secondary > 0 or #model.equipEffects > 0) and above then
-        y = divider(panel, y, GOLD_RULE, ui.sectionSpace(DIVIDER_AFTER))
+        y = divider(panel, y, GOLD_RULE, ui.sectionSpace(DIVIDER_AFTER, panel))
         underDivider = y
     end
     y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
@@ -1508,13 +1508,13 @@ end
 
 -- The set's name and count, its pieces, and its bonuses.
 local function drawSet(panel, model, styles, y)
-    local inner = panel.width - 2 * pad()
+    local inner = panel.width - 2 * pad(panel)
     local countStyle = setCountStyle(styles.setName)
     local count = model.setCount or ""
     local countWidth = math.max(42, measureStyled(panel, count, countStyle) + 2)
-    local titleHeight = styledAt(panel, model.setName, pad(), y, inner - countWidth - 3,
+    local titleHeight = styledAt(panel, model.setName, pad(panel), y, inner - countWidth - 3,
         styles.setName, { 1, .76, .18 })
-    local countHeight = styledAt(panel, count, panel.width - pad() - countWidth, y, countWidth,
+    local countHeight = styledAt(panel, count, panel.width - pad(panel) - countWidth, y, countWidth,
         countStyle, { 1, .76, .18 }, "RIGHT")
     y = y + math.max(24, titleHeight + 7, countHeight + 7)
     for _, row in ipairs(model.setItems) do
@@ -1542,14 +1542,14 @@ end
 
 -- The item a recipe crafts: a small header, then its own stats and effects.
 local function drawCreated(panel, created, styles, y)
-    local inner = panel.width - 2 * pad()
+    local inner = panel.width - 2 * pad(panel)
     local quality = QUALITY[created.quality] or created.nameColor or QUALITY[1]
     local indent = 0
     local top = y
     if created.icon then
         local px = ui.pixel(panel)
         local border = acquireTexture(panel, nil, 0)
-        border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -ui.snap(panel, y))
+        border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(panel), -ui.snap(panel, y))
         border:SetSize(CREATED_ICON + 2 * px, CREATED_ICON + 2 * px)
         border:SetVertexColor(quality[1] * .8, quality[2] * .8, quality[3] * .8, 1)
         local icon = acquireTexture(panel, created.icon, 1)
@@ -1558,17 +1558,17 @@ local function drawCreated(panel, created, styles, y)
         icon:SetTexCoord(.08, .92, .08, .92)
         indent = CREATED_ICON + 10
     end
-    y = y + styledAt(panel, created.name, pad() + indent, y, inner - indent, styles.createdName, quality) + 2
+    y = y + styledAt(panel, created.name, pad(panel) + indent, y, inner - indent, styles.createdName, quality) + 2
     local subtitle = createdSubtitle(created)
     if subtitle then
-        y = y + styledAt(panel, subtitle, pad() + indent, y, inner - indent, styles.subtitle,
+        y = y + styledAt(panel, subtitle, pad(panel) + indent, y, inner - indent, styles.subtitle,
             createdUnmet(created) and UNUSABLE_COLOR or { quality[1] * .5 + .5, quality[2] * .5 + .5, quality[3] * .5 + .5 }) + 2
     end
     y = math.max(y, top + CREATED_ICON + 2) + 8
     local stats = hasStats(created)
     if stats then y = drawStats(panel, created, styles, y) end
     if created.setName then y = drawSet(panel, created, styles,
-        divider(panel, y, GOLD_RULE, ui.sectionSpace(stats and 11 or 0)))
+        divider(panel, y, GOLD_RULE, ui.sectionSpace(stats and 11 or 0, panel)))
     end
     -- Its footer's lines, as whose classes may use it or an appearance not yet
     -- collected, under the rest: the recipe's footer is its own.
@@ -1582,7 +1582,7 @@ end
 
 -- Durability and requirements on the left, prices on the right.
 local function drawFooter(panel, model, footerRight, footer, y)
-    local inner = panel.width - 2 * pad()
+    local inner = panel.width - 2 * pad(panel)
     for index = 1, math.max(#model.footerLeft, #footerRight) do
         local left = model.footerLeft[index]
         local right = footerRight[index]
@@ -1595,13 +1595,13 @@ local function drawFooter(panel, model, footerRight, footer, y)
                 color = right.met and { 1, 1, 1 } or { 1, .34, .28 }
             end
             rightWidth = math.min(measureStyled(panel, content, footer) + 2, inner * .6)
-            h2 = styledAt(panel, content, panel.width - pad() - rightWidth, y,
+            h2 = styledAt(panel, content, panel.width - pad(panel) - rightWidth, y,
                 rightWidth, footer, color, "RIGHT")
         end
         if left and left.durability then
             h1 = drawDurability(panel, left.durability, y, footer)
         elseif left then
-            h1 = styledAt(panel, left.left, pad(), y, inner - rightWidth - COLUMN_GAP,
+            h1 = styledAt(panel, left.left, pad(panel), y, inner - rightWidth - COLUMN_GAP,
                 footer, left.color or { .82, .78, .71 })
         end
         y = y + math.max(h1, h2, footer.size + 2) + 4
@@ -1613,7 +1613,7 @@ local function itemStyles()
     local styles = {}
     for _, element in ipairs(ns.ELEMENTS) do
         if not element.tooltipType or element.tooltipType == "shared" then
-            styles[element.key] = styleOf(element.key)
+            styles[element.key] = styleOf(element.key, "item")
         end
     end
     return styles

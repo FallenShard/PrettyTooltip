@@ -33,7 +33,7 @@ return function(test)
     local _, maxY = vertical:GetMinMaxValues()
     test.check("a wide enlarged sample can scroll horizontally", horizontal:IsShown() and maxX > 0, true)
     test.check("vertical scrolling uses the scaled height", maxY,
-        math.max(0, math.ceil(panel:GetHeight() * 1.5 + 52 - host:GetHeight())))
+        math.max(0, math.ceil(panel:GetHeight() * 1.5 + 13 + 26 - host:GetHeight())))
     scaleSlider:GetScript("OnValueChanged")(scaleSlider, 50)
     test.check("the editor slider changes the shared setting and preview",
         { ns.tooltipScale(), panel:GetScale(), horizontal:IsShown() }, { .5, .5, false })
@@ -54,4 +54,6 @@ return function(test)
         end
     end
     test.check("hit detection follows the scaled region", hint, ns.L[ns.ELEMENT_BY_KEY[hit.key].label] .. ": click to edit")
+    scaleSlider:GetScript("OnValueChanged")(scaleSlider, 100)
+    test.check("the editor slider can restore 100% scale", panel:GetScale(), 1)
 end

@@ -478,7 +478,7 @@ end
 -- What the panel shows, for Panel/Render.lua to draw.
 local function unitView(panel, model, healthBar)
     local styles = {}
-    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
+    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key, "unit") end
     local color = model.color or colors.neutral
     local hasIcon = ns.option("iconUnits") and (model.unit or model.iconPath) and true or false
     local plate = levelBadge(model, hasIcon)
@@ -558,8 +558,8 @@ local hookedHealthBars = setmetatable({}, { __mode = "k" })
 local function placeBar(bar, panel)
     local top = -ui.snap(panel, panel.healthTop)
     bar:ClearAllPoints()
-    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", ui.pad(), top)
-    bar:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -ui.pad(), top)
+    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", ui.pad(panel), top)
+    bar:SetPoint("TOPRIGHT", panel, "TOPRIGHT", -ui.pad(panel), top)
     bar:SetHeight(HEALTH_HEIGHT)
 end
 

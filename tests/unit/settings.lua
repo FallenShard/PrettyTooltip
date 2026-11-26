@@ -16,6 +16,8 @@ return function(test)
         headerTopAlphaSpells = 0, styles = { spellTitle = { size = 23, caps = false,
             font = "Arial Narrow", color = { .2, .3, .4 } } } }
     test.check("saved false overrides defaults", ns.option("itemPanels"), false)
+    test.check("saved false remains available to editor reset controls", ns.savedOption("itemPanels"), false)
+    test.check("saved false differs from the enabled default", ns.optionChanged("itemPanels"), true)
     test.check("saved styles arrive after loading", ns.style("spellTitle").size, 23)
     test.check("saved false disables title caps", ns.style("spellTitle").caps, false)
     test.check("saved font resolves without UI", ns.style("spellTitle").font, "Fonts\\ARIALN.TTF")

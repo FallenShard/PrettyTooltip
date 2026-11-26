@@ -183,7 +183,7 @@ end
 
 local function timeBar(model, color)
     return function(panel, y)
-        local bar = { width = panel.width - 2 * ui.pad(), duration = model.duration, expires = model.expires }
+        local bar = { width = panel.width - 2 * ui.pad(panel), duration = model.duration, expires = model.expires }
         bar.fill = ui.drawTrack(panel, y, BAR_HEIGHT)
         bar.fill:SetVertexColor(color[1], color[2], color[3], 1)
         drawBarFill(bar)
@@ -204,7 +204,7 @@ local function timeSections(sections, model, color)
     if time then
         time.rightColor = MUTED
         sections[#sections + 1] = { separator = separator, kind = "rows", rows = { time },
-            style = ui.styleOf("auraTime"), color = TIME_COLOR, gap = 3 }
+            style = ui.styleOf("auraTime", "aura"), color = TIME_COLOR, gap = 3 }
         separator = nil
     end
     if hasBar(model) then
@@ -215,7 +215,7 @@ end
 -- What the panel shows, for Panel/Render.lua to draw.
 local function auraView(panel, model)
     local styles = {}
-    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
+    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key, "aura") end
     local color = model.color or colors.neutral
     local sections = {}
     local sentences = sentencesOf(model)

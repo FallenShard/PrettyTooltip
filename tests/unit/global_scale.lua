@@ -50,7 +50,7 @@ return function(test)
     local _, _, _, x, y = tooltip:GetPoint(1)
     test.check("cursor placement accounts for the scaled height", { x, y }, { 16, 136 })
 
-    -- The options slider edits one shared setting and participates in Defaults.
+    -- Base options link to the editor without duplicating its scale control.
     local page
     Settings = { RegisterCanvasLayoutCategory = function(frame) page = frame return {} end,
         RegisterAddOnCategory = function() end }
@@ -59,14 +59,10 @@ return function(test)
     for _, child in ipairs({ page:GetChildren() }) do
         if child:GetObjectType() == "Slider" then slider = child end
     end
-    test.check("the main options expose the saved percentage", slider:GetValue(), 125)
-    slider:GetScript("OnValueChanged")(slider, 70)
-    test.check("one slider changes all tooltip sizes", ns.tooltipScale(), .7)
-    slider:GetScript("OnValueChanged")(slider, 100)
-    test.check("100% clears the override", ns.savedOption("tooltipScale"), nil)
-    slider:GetScript("OnValueChanged")(slider, 80)
+    test.check("base options do not duplicate the scale slider", slider, nil)
+    test.check("opening base options preserves the chosen scale", ns.tooltipScale(), 1.25)
     page.OnDefault()
-    test.check("Defaults restores both scale and slider", { ns.tooltipScale(), slider:GetValue() }, { 1, 100 })
+    test.check("base options Defaults still restores scale", ns.tooltipScale(), 1)
     for _, value in ipairs({ "invalid", world.secret }) do
         ns.setOption("tooltipScale", value)
         test.check("an invalid saved scale falls back to 100%", ns.tooltipScale(), 1)

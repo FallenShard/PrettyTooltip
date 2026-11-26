@@ -40,4 +40,4 @@ stats.STATS = {
     RANDOM_STAT_2 = { category = "Minor", name = mod("MODIFIED_CRAFTING_STAT_2") },
 }
 
-ns.contribute("stats", { label = "Secondary stat colors", categories = stats.CATEGORIES, stats = stats.STATS })
+ns.contribute("stats", { label = "Secondary Stat Colors", categories = stats.CATEGORIES, stats = stats.STATS })

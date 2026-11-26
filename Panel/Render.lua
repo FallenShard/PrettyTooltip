@@ -111,8 +111,8 @@ end
 -- size and color.
 local function drawTrack(panel, y, height)
     local bar = ui.acquireTexture(panel, nil, 0)
-    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -y)
-    bar:SetSize(panel.width - 2 * pad(), height)
+    bar:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(panel), -y)
+    bar:SetSize(panel.width - 2 * pad(panel), height)
     bar:SetVertexColor(TRACK[1], TRACK[2], TRACK[3], 1)
     local fill = ui.acquireTexture(panel, nil, 1)
     fill:SetPoint("TOPLEFT", bar, "TOPLEFT")
@@ -163,7 +163,7 @@ local function fitWidth(panel, view)
     for _, row in ipairs(footer and footer.rows or {}) do
         consider(ui.rowWidth(panel, row, footer.style))
     end
-    return math.max(view.minWidth or ui.minWidth(), math.min(ui.MAX_WIDTH, math.ceil(need + 2 * pad())))
+    return math.max(view.minWidth or ui.minWidth(panel), math.min(ui.MAX_WIDTH, math.ceil(need + 2 * pad(panel))))
 end
 
 -- The space a divider shows below its line, and a rule: one after a section
@@ -173,19 +173,19 @@ local DIVIDER_SPACE, RULE_SPACE = 13, 9
 
 local function drawSeparator(panel, y, separator, after)
     if not separator then return y end
-    local before = separator.before and ui.sectionSpace(separator.before)
+    local before = separator.before and ui.sectionSpace(separator.before, panel)
     if before == nil and after and panel.rowTail then
         -- A divider draws its line 5 below where it starts.
-        before = separator.divider and ui.sectionSpace(DIVIDER_SPACE) - 5 - panel.rowTail
-            or ui.sectionSpace(RULE_SPACE) - panel.rowTail
+        before = separator.divider and ui.sectionSpace(DIVIDER_SPACE, panel) - 5 - panel.rowTail
+            or ui.sectionSpace(RULE_SPACE, panel) - panel.rowTail
     end
     if separator.divider then return ui.divider(panel, y, separator.divider, before) end
     if separator.rule then return ui.rule(panel, y, separator.rule, before) end
     if separator.caption then
-        return ui.caption(panel, y + ui.sectionSpace(separator.before or 0), separator.caption, separator.style,
+        return ui.caption(panel, y + ui.sectionSpace(separator.before or 0, panel), separator.caption, separator.style,
             separator.color)
     end
-    return y + ui.sectionSpace(separator.space or 0)
+    return y + ui.sectionSpace(separator.space or 0, panel)
 end
 
 local DRAW = {
@@ -214,7 +214,8 @@ local function renderView(panel, tooltip, view)
     -- and drawing below consume the same completed view (including additions).
     -- Whatever a tooltip type lent the panel goes back before anything is drawn.
     if panel.release then panel.release(panel) end
-    local scale = ns.tooltipScale()
+    panel.tooltipType = view.tooltipType
+    local scale = ns.tooltipScale(view.tooltipType)
     if panel:GetScale() ~= scale then panel:SetScale(scale) end
     panel:Show()
     ui.clearPool(panel)
@@ -238,18 +239,18 @@ local function renderView(panel, tooltip, view)
     if view.portrait and SetPortraitTexture then pcall(SetPortraitTexture, panel.icon, view.portrait) end
 
     local indent = indentOf(view)
-    local leftIndent, rightIndent = ui.headerInsets(indent)
-    local inner = panel.width - 2 * pad()
-    local y = ui.titleTop()
+    local leftIndent, rightIndent = ui.headerInsets(indent, panel)
+    local inner = panel.width - 2 * pad(panel)
+    local y = ui.titleTop(panel)
     for _, item in ipairs(view.header) do
         if item.text and item.after then
-            y = y + drawPaired(panel, item, pad() + leftIndent, y) + ui.rowGap(item.gap)
+            y = y + drawPaired(panel, item, pad(panel) + leftIndent, y) + ui.rowGap(item.gap, panel)
         elseif item.text then
-            y = y + ui.styledAt(panel, item.text, pad() + leftIndent, y, inner - indent, item.style, item.color)
-                + ui.rowGap(item.gap)
+            y = y + ui.styledAt(panel, item.text, pad(panel) + leftIndent, y, inner - indent, item.style, item.color)
+                + ui.rowGap(item.gap, panel)
         elseif item.badges and #item.badges > 0 then
-            y = drawBadges(panel, item.badges, pad() + leftIndent, y + (item.before or 0), item.style)
-                + ui.rowGap(item.gap)
+            y = drawBadges(panel, item.badges, pad(panel) + leftIndent, y + (item.before or 0), item.style)
+                + ui.rowGap(item.gap, panel)
         elseif item.rows then
             for _, row in ipairs(item.rows) do
                 y = ui.drawRow(panel, row, y, item.style, item.color, leftIndent, item.gap, rightIndent)
@@ -261,11 +262,11 @@ local function renderView(panel, tooltip, view)
     if #view.header > 0 or view.icon then
         -- A header alone ends as far below its last line as its first is from the top.
         local alone = #view.sections == 0 and not hasFooter
-        y = math.max(alone and y or y + ui.sectionSpace(6), headerMin)
+        y = math.max(alone and y or y + ui.sectionSpace(6, panel), headerMin)
         panel.header:SetHeight(y - panel.inset)
     else
         -- Sections alone, as the minimap's list: as much room above as below.
-        y = pad() - 2
+        y = pad(panel) - 2
         panel.header:SetHeight(0)
     end
 

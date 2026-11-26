@@ -34,8 +34,8 @@ return function(test)
     samples[1].build = function() builds = builds + 1 return build() end
     local editor = PrettyTooltipEditor
     local questTab
-    for _, child in ipairs({ editor:GetChildren() }) do
-        if child.label and child.label:GetText() == ns.L["Quests"] then questTab = child end
+    for _, object in ipairs(world.objects) do
+        if object.label and object.label.GetText and object.label:GetText() == ns.L["Quests"] then questTab = object end
     end
     questTab:GetScript("OnClick")(questTab)
     editor:Show()

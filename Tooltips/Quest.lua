@@ -237,7 +237,7 @@ local function checkbox(panel, y, done, size)
     local top = y + math.max(0, math.floor((size - CHECK_SIZE) / 2)) + 1
     local px = ui.pixel(panel)
     local border = ui.acquireTexture(panel, nil, 0)
-    border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(), -ui.snap(panel, top))
+    border:SetPoint("TOPLEFT", panel, "TOPLEFT", pad(panel), -ui.snap(panel, top))
     border:SetSize(CHECK_SIZE, CHECK_SIZE)
     local edge = done and DONE_COLOR or PARCHMENT
     if panel.parchment then edge = { .35, .21, .10 } end
@@ -270,7 +270,7 @@ local function objectivesSection(model, styles, after)
             return need
         end,
         draw = function(panel, y)
-            y = ui.caption(panel, y + ui.sectionSpace(after and 4 or 0), OBJECTIVES_LABEL, styles.questCaption, colors.caption)
+            y = ui.caption(panel, y + ui.sectionSpace(after and 4 or 0, panel), OBJECTIVES_LABEL, styles.questCaption, colors.caption)
             for _, row in ipairs(model.objectives) do
                 checkbox(panel, y, row.completed, style.size)
                 y = ui.drawRow(panel, row, y, style, row.completed and DONE_COLOR or colors.objective,
@@ -284,7 +284,7 @@ end
 -- What the panel shows, for Panel/Render.lua to draw.
 local function questView(model)
     local styles = {}
-    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
+    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key, "quest") end
     local header = { { text = model.name, style = styles.questTitle, color = colors.title, gap = 3 } }
     if model.zone then header[#header + 1] = { text = model.zone, style = styles.questInfo, color = colors.detail, gap = 3 } end
     header[#header + 1] = { badges = badges(model), style = styles.questBadges, before = 3, gap = 4 }

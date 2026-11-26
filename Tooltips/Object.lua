@@ -209,7 +209,7 @@ end
 -- What the panel shows, for Panel/Render.lua to draw.
 local function objectView(panel, model)
     local styles = {}
-    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key) end
+    for _, key in ipairs(PARTS) do styles[key] = ui.styleOf(key, "object") end
     local look = model.look
     local color = look and look.color or colors.neutral
     local sections = {}

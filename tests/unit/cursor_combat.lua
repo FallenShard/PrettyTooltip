@@ -207,32 +207,6 @@ return function(test)
     parkedNow = false
     ns.Native = nil
 
-    -- The main options control saves the setting and participates in Defaults.
-    local page
-    Settings = {
-        RegisterCanvasLayoutCategory = function(canvas) page = canvas return {} end,
-        RegisterAddOnCategory = function() end,
-    }
-    ns.Options.register()
-    local combatBox
-    for _, child in ipairs({ page:GetChildren() }) do
-        if child:GetObjectType() == "CheckButton" then
-            for _, label in ipairs({ child:GetRegions() }) do
-                if label:GetText() == "Disable in combat" then combatBox = child end
-            end
-        end
-    end
-    test.check("main options reflects the saved combat setting", combatBox:GetChecked(), true)
-    combatBox:SetChecked(false)
-    combatBox:GetScript("OnClick")(combatBox)
-    test.check("unchecking the control saves false", ns.option("cursorDisableInCombat"), false)
-    combatBox:SetChecked(true)
-    combatBox:GetScript("OnClick")(combatBox)
-    test.check("checking the control saves true", ns.option("cursorDisableInCombat"), true)
-    page.OnDefault()
-    test.check("Defaults restores the combat override", ns.option("cursorDisableInCombat"), true)
-    test.check("Defaults refreshes the checkbox", combatBox:GetChecked(), true)
-
     -- A following tooltip that starts fading stops following, in combat or
     -- out, and is never hidden by the addon, which would run its OnHide under
     -- the addon's taint.
