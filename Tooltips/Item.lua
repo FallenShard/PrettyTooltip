@@ -79,6 +79,12 @@ local function imbueLine(text)
     return false
 end
 
+-- The game's green, #00FF00, as enchants and effects are written.
+local function isGreen(color)
+    local c = rgb(color)
+    return c ~= nil and c[1] < .2 and c[2] > .9 and c[3] < .2
+end
+
 local PRIMARY_STATS = { STRENGTH = true, AGILITY = true, STAMINA = true, INTELLECT = true, SPIRIT = true,
     ALL_STATS = true }
 local lineParts = ns.Stats.lineParts
@@ -726,8 +732,10 @@ local function readText(read, line, context)
     elseif extension and extension.readLine and extension.readLine(item, line, context) == true then
         -- The client took the line. Recipe routing, names and levels, and
         -- the sell price stay the shared reader's.
-    elseif right == "" and imbueLine(plainText(trimmed)) then
-        -- A weapon's temporary enchant, "Windfury Weapon (59 min)", under its enchants.
+    elseif right == "" and (imbueLine(plainText(trimmed)) or read.imbueMayFollow and item.weaponDamage
+        and lineType == LINE.None and isGreen(line.leftColor)) then
+        -- A weapon's temporary enchant, "Windfury Weapon (59 min)", under its enchants. Another
+        -- player's names no time left, "Windfury 4": green, after an enchant or effect.
         item.imbues = item.imbues or {}
         for _, row in ipairs(enchantRows(util.trim(plainText(trimmed)))) do add(item.imbues, row, "") end
     elseif lineType == LINE.EquipSlot then
@@ -777,6 +785,7 @@ local function readLine(read, lineNumber, line)
         read.nestedID = number(line.tooltipID)
     end
     local effects, effectCount = item.effects, #item.effects
+    local imbueCount = item.imbues and #item.imbues or 0
     -- The amount is drawn by a money frame, not as text, so take it from the data.
     if LINE.SellPrice and line.type == LINE.SellPrice then
         item.hasSellPrice = true
@@ -784,6 +793,10 @@ local function readLine(read, lineNumber, line)
         if price then item.sellPrice = price end
     end
     if line.lineIndex and not readText(read, line, context) then return false end
+    local kind = line.type
+    read.imbueMayFollow = (item.imbues ~= nil and #item.imbues > imbueCount) or isType(kind, "ItemEnchantmentPermanent")
+        or isType(kind, "ItemSpellTriggerOnProc") or isType(kind, "ItemSpellTriggerOnEquip")
+        or isType(kind, "ItemSpellTriggerOnUse")
     -- An effect the game sets apart from the one before with a blank line
     -- stays apart: "Use:", "When crafting:", "Usable with:".
     if read.blankBefore and effectCount > 0 and #effects > effectCount then effects[effectCount + 1].apart = true end
@@ -1493,30 +1506,18 @@ local function drawStats(panel, model, styles, y)
         underDivider = y
     end
     y = drawGroup(panel, model.secondary, y, secondaryStyle(styles), { .90, .85, .74 })
-    -- Enchants and gems stand apart from the rows around them, once between
-    -- two of them; first under the divider, they start where anything would.
-    local apartAt
-    local function standApart()
-        if y > top and y ~= underDivider and y ~= apartAt then
-            y = y + APART_SPACE
-            apartAt = y
-        end
-    end
-    local enchanted = #model.enchants > 0 or (model.imbues ~= nil and #model.imbues > 0)
-    local socketed = hasSockets(model)
-    if enchanted then standApart() end
+    -- The item's own Equip effects, then what is added to it: enchants and gems.
+    y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
+    -- Enchants follow as effects do.
     y = drawMarked(panel, enchantRowsOf(model, styles), y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER)
     -- Temporary enchants under the permanent ones.
     if model.imbues then y = drawMarked(panel, model.imbues, y, styles.enchants, { .90, .85, .74 }, ENCHANT_MARKER) end
-    -- Use effects and flavor add their own space after them.
-    if enchanted and (socketed or #model.equipEffects > 0) then standApart() end
-    if socketed then
-        standApart()
+    -- Gems stand apart from the rows above them; first under the divider, they
+    -- start where anything would.
+    if hasSockets(model) then
+        if y > top and y ~= underDivider then y = y + APART_SPACE end
         y = drawSockets(panel, model.sockets, y, socketStyle(styles))
-        if #model.equipEffects > 0 then standApart() end
     end
-    -- Equip effects after what is added to the item: its enchants and gems.
-    y = drawMarked(panel, model.equipEffects, y, styles.equipEffects, EQUIP_EFFECT_COLOR, STAT_MARKER, true)
     -- Use effects and flavor stand apart from the stats above them; first under
     -- the divider, they start where anything would.
     if #model.effects > 0 and y > top then y = y + 5 end

@@ -137,7 +137,7 @@ sockets:
     right: ""
 weaponBonus: {}
 == tooltip render
-panel 343 x 601
+panel 343 x 596
 texture at -16,-16 0x0 rgb=1,0.57,0.22,0.55 glow
 texture at 0,0 0x0 rgb=1,0.8065,0.649,0.9 TooltipBackground-Temp.png
 texture at 0,0 0x0 rgb=1,0.57,0.22,0.315 TooltipBackground-Temp.png
@@ -163,19 +163,19 @@ texture TOPRIGHT panel TOPRIGHT -19,-212 144x1 rgb=0.4056,0.3068,0.1664,0.8 WHIT
 texture TOP panel TOP 0,-207 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,225 w=305 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffF2D57C+10|r |cffF3E2B0Haste|r"
 text at 19,243 w=305 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cff86D4CC+10|r |cffBDE6E1Versatility|r"
-texture at 19,266 15x15 rgb=1,1,1,1 3743188
-text at 38,266 w=286 size=12 rgb=0.85,0.7,0 "|cff86D4CC+4|r |cffBDE6E1Versatility|r"
-text at 19,283 w=305 size=12 rgb=0,0.85,0 "<Shift Right Click to Socket>"
-text at 19,305 w=22 size=13 rgb=0.502,0.502,0.502 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2:32:32:0:32:0:32:128:128:128|t"
-text at 41,305 w=283 size=13 rgb=0.502,0.502,0.502 "Gain the legendary effect of Raging Vesper Vortex:\r\n\r\nWhen 3 charges of Vesper Totem are consumed, Vesper Totem will radiate a 15 yd burst of 10,328 Arcane damage and 4,442 healing."
-text at 41,398 w=283 size=13 rgb=1,0.1255,0.1255 "You are in the wrong zone."
-text at 19,421 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-gear:11:11:-1:-2:32:32:0:32:0:32:240:200:90|t"
-text at 41,421 w=283 size=13 rgb=0.48,0.88,0.48 "Shift into a slightly different dimension, making it difficult for enemies to detect you.\r\n\r\n... Unless it backfires.\r\n\r\nCannot be used in combat. (|cffFFF6E42|r Min Cooldown)"
-texture at 19,534 305x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,543 w=305 size=11 rgb=0.6,0.6,0.63 "Item ID: 172328"
-texture at 19,572 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,261 w=22 size=13 rgb=0.502,0.502,0.502 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2:32:32:0:32:0:32:128:128:128|t"
+text at 41,261 w=283 size=13 rgb=0.502,0.502,0.502 "Gain the legendary effect of Raging Vesper Vortex:\r\n\r\nWhen 3 charges of Vesper Totem are consumed, Vesper Totem will radiate a 15 yd burst of 10,328 Arcane damage and 4,442 healing."
+text at 41,354 w=283 size=13 rgb=1,0.1255,0.1255 "You are in the wrong zone."
+texture at 19,377 15x15 rgb=1,1,1,1 3743188
+text at 38,377 w=286 size=12 rgb=0.85,0.7,0 "|cff86D4CC+4|r |cffBDE6E1Versatility|r"
+text at 19,394 w=305 size=12 rgb=0,0.85,0 "<Shift Right Click to Socket>"
+text at 19,416 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-gear:11:11:-1:-2:32:32:0:32:0:32:240:200:90|t"
+text at 41,416 w=283 size=13 rgb=0.48,0.88,0.48 "Shift into a slightly different dimension, making it difficult for enemies to detect you.\r\n\r\n... Unless it backfires.\r\n\r\nCannot be used in combat. (|cffFFF6E42|r Min Cooldown)"
+texture at 19,529 305x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,538 w=305 size=11 rgb=0.6,0.6,0.63 "Item ID: 172328"
+texture at 19,567 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 54x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,567 w=90 size=11 rgb=0.82,0.78,0.71 "70 / 70"
+text at 80,562 w=90 size=11 rgb=0.82,0.78,0.71 "70 / 70"
 
 == comparison 1 model
 armor:

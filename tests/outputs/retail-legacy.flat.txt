@@ -477,7 +477,7 @@ weaponDamage: "70 - 117 Damage"
 weaponDps: "51.9"
 weaponSpeed: "Speed 1.80"
 == comparison 1 render
-panel 340 x 583
+panel 340 x 573
 texture at -16,-16 0x0 rgb=0.72,0.4,0.94,0.55 glow
 texture at 0,0 0x0 rgb=1,1,1,1 color
 texture at 0,0 0x10 rgb=1,1,1,1 color
@@ -515,21 +515,21 @@ texture TOPRIGHT panel TOPRIGHT -19,-251 142x1 rgb=0.4056,0.3068,0.1664,0.8 WHIT
 texture TOP panel TOP 0,-246 10x10 rgb=0.9,0.76,0.48,0.9 stat-marker
 text at 19,264 w=302 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffF7A38E+50|r |cffF5C8BCCritical Strike|r"
 text at 19,282 w=302 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t  |cffF2D57C+50|r |cffF3E2B0Haste|r"
-text at 19,305 w=22 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sparkle:11:11:-1:-2:32:32:0:32:0:32:90:230:60|t"
-text at 41,305 w=280 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei |A:Professions-ChatIcon-Quality-12-Tier2:13:13:0:0|a|r"
-text at 19,328 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t"
-text at 41,328 w=280 size=13 rgb=0.48,0.88,0.48 "Your spells and abilities have the chance to grant |cffFFF6E485|r secondary stats for |cffFFF6E415|r sec based on the target creature's type."
-texture at 19,381 302x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
-text at 19,390 w=302 size=11 rgb=0.85,0.7,0 "If you replace this item, the following stat changes will occur:"
-text at 19,418 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50.4|r Damage Per Second"
-text at 19,433 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-517|r Intellect"
-text at 19,448 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-1,884|r Stamina"
-text at 19,463 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-47|r Critical Strike"
-text at 19,478 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50|r Haste"
-text at 19,493 w=302 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+3|r Mastery"
-text at 19,508 w=302 size=11 rgb=0.6,0.6,0.63 "Item ID: 237838"
-text at 236.5,532 w=84.5 size=11 rgb=0.88,0.78,0.6 "144|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 85|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 63|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
-texture at 19,537 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,300 w=22 size=13 rgb=0.48,0.88,0.48 "|TInterface\\AddOns\\PrettyTooltip\\art\\stat-marker:9:9:0:-2|t"
+text at 41,300 w=280 size=13 rgb=0.48,0.88,0.48 "Your spells and abilities have the chance to grant |cffFFF6E485|r secondary stats for |cffFFF6E415|r sec based on the target creature's type."
+text at 19,348 w=22 size=13 rgb=0.9,0.85,0.74 "|TInterface\\AddOns\\PrettyTooltip\\art\\marker-sparkle:11:11:-1:-2:32:32:0:32:0:32:90:230:60|t"
+text at 41,348 w=280 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei |A:Professions-ChatIcon-Quality-12-Tier2:13:13:0:0|a|r"
+texture at 19,371 302x1 rgb=0.5,0.5,0.54,0.45 WHITE8X8
+text at 19,380 w=302 size=11 rgb=0.85,0.7,0 "If you replace this item, the following stat changes will occur:"
+text at 19,408 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50.4|r Damage Per Second"
+text at 19,423 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-517|r Intellect"
+text at 19,438 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-1,884|r Stamina"
+text at 19,453 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-47|r Critical Strike"
+text at 19,468 w=302 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50|r Haste"
+text at 19,483 w=302 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+3|r Mastery"
+text at 19,498 w=302 size=11 rgb=0.6,0.6,0.63 "Item ID: 237838"
+text at 236.5,522 w=84.5 size=11 rgb=0.88,0.78,0.6 "144|TInterface\\MoneyFrame\\UI-GoldIcon:0:0:2:0|t 85|TInterface\\MoneyFrame\\UI-SilverIcon:0:0:2:0|t 63|TInterface\\MoneyFrame\\UI-CopperIcon:0:0:2:0|t"
+texture at 19,527 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 54x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,532 w=90 size=11 rgb=0.82,0.78,0.71 "80 / 80"
-text at 19,549 w=290 size=11 rgb=0.86,0.74,0.45 "Made by Kaysandra"
+text at 80,522 w=90 size=11 rgb=0.82,0.78,0.71 "80 / 80"
+text at 19,539 w=290 size=11 rgb=0.86,0.74,0.45 "Made by Kaysandra"

@@ -450,7 +450,7 @@ weaponDamage: "70 - 117 Damage"
 weaponDps: "51.9"
 weaponSpeed: "Speed 1.80"
 == comparison 1 render
-panel 318 x 530
+panel 318 x 520
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x136 rgb=1,1,1,1 band
@@ -469,17 +469,17 @@ text at 19,189 w=280 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+534|r |cffA89F8EIntel
 text at 19,207 w=280 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+1888|r |cffA89F8EStamina|r"
 text at 19,225 w=280 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+50|r |cffA89F8ECritical Strike|r"
 text at 19,243 w=280 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+50|r |cffA89F8EHaste|r"
-text at 19,266 w=280 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei |A:Professions-ChatIcon-Quality-12-Tier2:13:13:0:0|a|r"
-text at 19,289 w=280 size=13 rgb=0.48,0.88,0.48 "Your spells and abilities have the chance to grant 85 secondary stats for 15 sec based on the target creature's type."
-text at 19,337 w=280 size=11 rgb=0.85,0.7,0 "If you replace this item, the following stat changes will occur:"
-text at 19,365 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50.4|r Damage Per Second"
-text at 19,380 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-517|r Intellect"
-text at 19,395 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-1,884|r Stamina"
-text at 19,410 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-47|r Critical Strike"
-text at 19,425 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50|r Haste"
-text at 19,440 w=280 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+3|r Mastery"
-text at 19,455 w=280 size=11 rgb=0.6,0.6,0.63 "Item ID: 237838"
-texture at 19,484 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
+text at 19,261 w=280 size=13 rgb=0.48,0.88,0.48 "Your spells and abilities have the chance to grant 85 secondary stats for 15 sec based on the target creature's type."
+text at 19,309 w=280 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei |A:Professions-ChatIcon-Quality-12-Tier2:13:13:0:0|a|r"
+text at 19,327 w=280 size=11 rgb=0.85,0.7,0 "If you replace this item, the following stat changes will occur:"
+text at 19,355 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50.4|r Damage Per Second"
+text at 19,370 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-517|r Intellect"
+text at 19,385 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-1,884|r Stamina"
+text at 19,400 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-47|r Critical Strike"
+text at 19,415 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50|r Haste"
+text at 19,430 w=280 size=11 rgb=0.6,0.6,0.63 "|cff00ff00+3|r Mastery"
+text at 19,445 w=280 size=11 rgb=0.6,0.6,0.63 "Item ID: 237838"
+texture at 19,474 54x4 rgb=0.16,0.14,0.13,1 WHITE8X8
 texture TOPLEFT Texture TOPLEFT 0,0 54x4 rgb=0.45,0.8,0.4,1 WHITE8X8
-text at 80,479 w=90 size=11 rgb=0.82,0.78,0.71 "80 / 80"
-text at 19,496 w=268 size=11 rgb=0.86,0.74,0.45 "Made by Kaysandra"
+text at 80,469 w=90 size=11 rgb=0.82,0.78,0.71 "80 / 80"
+text at 19,486 w=268 size=11 rgb=0.86,0.74,0.45 "Made by Kaysandra"
