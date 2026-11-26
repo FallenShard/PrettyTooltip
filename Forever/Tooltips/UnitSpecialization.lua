@@ -198,14 +198,76 @@ local function SplitPointsByCurrency(configID, treeID, totalSpent)
     if sum == totalSpent then return points end
 end
 
-local function GetTalentInfo(unit, isInspect)
-    if not (C_Traits and C_Traits.GetConfigInfo and C_Traits.GetTreeCurrencyInfo) then
+local SpecIDsByClass = {
+    WARRIOR = { 71, 72, 73 },
+    PALADIN = { 65, 66, 70 },
+    HUNTER = { 253, 254, 255 },
+    ROGUE = { 259, 260, 261 },
+    PRIEST = { 256, 257, 258 },
+    SHAMAN = { 262, 263, 264 },
+    MAGE = { 62, 63, 64 },
+    WARLOCK = { 265, 266, 267 },
+    DRUID = { 102, 103, 104, 105 },
+    DEATHKNIGHT = { 250, 251, 252 },
+}
+
+local function GetUnitSpecialization(unit, isInspect, classFile)
+    local specID, specIndex
+
+    if unit == "player" then
+        if type(GetSpecialization) == "function" then
+            local ok, value = pcall(GetSpecialization)
+            if ok then specIndex = SafeNumber(value) end
+        end
+        if specIndex and type(GetSpecializationInfo) == "function" then
+            local ok, value = pcall(GetSpecializationInfo, specIndex)
+            if ok then specID = SafeNumber(value) end
+        end
+    elseif isInspect and type(GetInspectSpecialization) == "function" then
+        local ok, value = pcall(GetInspectSpecialization, unit)
+        if ok then specID = SafeNumber(value) end
+    end
+
+    if not specIndex and specID and classFile then
+        for index, id in ipairs(SpecIDsByClass[classFile] or {}) do
+            if id == specID then specIndex = index; break end
+        end
+    end
+
+    if not specID and specIndex and type(GetSpecializationInfo) == "function" then
+        local ok, value = pcall(GetSpecializationInfo, specIndex)
+        if ok then specID = SafeNumber(value) end
+    end
+
+    return specIndex, specID
+end
+
+local function GetDisplayGroups(treeID)
+    if not (C_Traits and type(C_Traits.GetGroupDisplayInfoByTreeID) == "function") then
         return nil
     end
+    local ok, groups = pcall(C_Traits.GetGroupDisplayInfoByTreeID, treeID)
+    if ok and type(groups) == "table" then return groups end
+end
+
+local function HasGroupID(groupIDs, wanted)
+    if type(groupIDs) ~= "table" or not wanted then return false end
+    for _, groupID in ipairs(groupIDs) do
+        if groupID == wanted then return true end
+    end
+    return false
+end
+
+local function GetTalentInfo(unit, isInspect)
+    if not (C_Traits and type(C_Traits.GetConfigInfo) == "function"
+        and type(C_Traits.GetTreeCurrencyInfo) == "function") then
+        return nil
+    end
+
     local ok, result = pcall(function()
         local configID
         if unit == "player" then
-            configID = C_ClassTalents and C_ClassTalents.GetActiveConfigID
+            configID = C_ClassTalents and type(C_ClassTalents.GetActiveConfigID) == "function"
                 and C_ClassTalents.GetActiveConfigID()
         else
             configID = GetTalentConfigID(isInspect)
@@ -213,68 +275,129 @@ local function GetTalentInfo(unit, isInspect)
         if not configID then return nil end
 
         local configInfo = C_Traits.GetConfigInfo(configID)
-        if not configInfo or not configInfo.treeIDs then return nil end
+        if type(configInfo) ~= "table" or type(configInfo.treeIDs) ~= "table"
+            or not configInfo.treeIDs[1] then
+            return nil
+        end
 
-        local pointsSpent, totalSpent = {}, 0
-        for _, treeID in ipairs(configInfo.treeIDs) do
-            local treeSpent = 0
-            local currencies = C_Traits.GetTreeCurrencyInfo(configID, treeID, false)
-            if currencies then
-                for _, item in ipairs(currencies) do
-                    local spent = SafeNumber(item.spent)
-                    if spent then treeSpent = treeSpent + spent end
+        local _, classFile = UnitClass(unit)
+        classFile = SafeString(classFile)
+        local specIndex, specID = GetUnitSpecialization(unit, isInspect, classFile)
+
+        -- In Forever, one class tree contains multiple specialization display
+        -- groups. They are not separate treeIDs.
+        local treeID = configInfo.treeIDs[1]
+        local groups = GetDisplayGroups(treeID)
+        local groupPoints, totalSpent = {}, 0
+
+        local currencies = C_Traits.GetTreeCurrencyInfo(configID, treeID, false)
+        if type(currencies) == "table" then
+            for _, currency in ipairs(currencies) do
+                local spent = type(currency) == "table" and SafeNumber(currency.spent)
+                if spent then totalSpent = totalSpent + spent end
+            end
+        end
+
+        local groupByOrder = {}
+        if groups then
+            for _, group in ipairs(groups) do
+                if type(group) == "table" then
+                    local order = SafeNumber(group.orderIndex)
+                    local groupID = SafeNumber(group.groupID)
+                    if order and groupID then
+                        groupByOrder[order + 1] = group
+                        groupPoints[order + 1] = 0
+                    end
                 end
             end
-            pointsSpent[#pointsSpent + 1] = treeSpent
-            totalSpent = totalSpent + treeSpent
         end
-        if totalSpent == 0 then return nil end
 
-        if #pointsSpent < 2 then
-            local treeID = configInfo.treeIDs[1]
-            local split = SplitPointsByTree(configID, treeID)
-                or SplitPointsByCurrency(configID, treeID, totalSpent)
-            if split then
-                pointsSpent, totalSpent = split, 0
-                for _, spent in ipairs(split) do totalSpent = totalSpent + spent end
+        if C_Traits.GetTreeNodes and C_Traits.GetNodeInfo and groups then
+            local nodeIDs = C_Traits.GetTreeNodes(treeID)
+            if type(nodeIDs) == "table" then
+                for _, nodeID in ipairs(nodeIDs) do
+                    local nodeInfo = C_Traits.GetNodeInfo(configID, nodeID)
+                    if type(nodeInfo) == "table" then
+                        local rank = SafeNumber(nodeInfo.currentRank) or 0
+                        if rank > 0 and type(nodeInfo.groupIDs) == "table" then
+                            for index, group in pairs(groupByOrder) do
+                                if HasGroupID(nodeInfo.groupIDs, group.groupID) then
+                                    groupPoints[index] = (groupPoints[index] or 0) + rank
+                                end
+                            end
+                        end
+                    end
+                end
             end
         end
-        if totalSpent == 0 then return nil end
 
-        local mainIndex, maxSpent = 1, -1
-        for i, spent in ipairs(pointsSpent) do
-            if spent > maxSpent then mainIndex, maxSpent = i, spent end
+        local points, maxPoints, selectedIndex = {}, -1, nil
+        for index = 1, #(groups or {}) do
+            local group = groupByOrder[index]
+            if group then
+                local spent = SafeNumber(groupPoints[index]) or 0
+                points[index] = spent
+                if spent > maxPoints then
+                    maxPoints, selectedIndex = spent, index
+                end
+            end
         end
 
+        -- Prefer the actual player/inspect specialization. If that API is
+        -- unavailable, infer it only when one display group has the most ranks.
+        if specIndex and groupByOrder[specIndex] then
+            selectedIndex = specIndex
+        elseif maxPoints <= 0 then
+            selectedIndex = nil
+        end
+
+        local selectedGroup = selectedIndex and groupByOrder[selectedIndex]
         local specName, specIcon
-        local treeID = (#configInfo.treeIDs >= #pointsSpent) and configInfo.treeIDs[mainIndex]
-        if treeID and C_Traits.GetTreeInfo then
-            local okInfo, treeInfo = pcall(C_Traits.GetTreeInfo, configID, treeID)
-            if okInfo and type(treeInfo) == "table" then
-                for _, field in ipairs({ "name", "tabName", "treeName", "displayName", "title" }) do
-                    local value = SafeString(treeInfo[field])
-                    if value and value ~= "" then specName = value; break end
-                end
-                specIcon = treeInfo.iconFileID or treeInfo.icon
+        if selectedGroup then
+            specName = SafeString(selectedGroup.displayName)
+            specIcon = selectedGroup.iconFileID or selectedGroup.icon
+        end
+
+        if (not specName or specName == "") and specID
+            and type(GetSpecializationInfoByID) == "function" then
+            local okSpec, _, name, _, icon = pcall(GetSpecializationInfoByID, specID)
+            if okSpec then
+                specName = SafeString(name)
+                specIcon = specIcon or icon
             end
         end
-        if not specName and GetTalentTabInfo then
-            local okTab, _, tabName, _, tabIcon = pcall(GetTalentTabInfo, mainIndex, isInspect)
-            local value = SafeString(tabName)
-            if okTab and value and value ~= "" then
-                specName, specIcon = value, specIcon or tabIcon
+
+        if not specName and classFile and ForeverSpecs[classFile] then
+            local fallback = ForeverSpecs[classFile][selectedIndex or specIndex or 1]
+            if fallback then
+                specName = fallback.name
+                specIcon = specIcon or fallback.icon
             end
         end
-        if not specName then
-            local _, classFile = UnitClass(unit)
-            if classFile and not IsProtectedValue(classFile)
-                and type(classFile) == "string" and ForeverSpecs[classFile] then
-                local fallback = ForeverSpecs[classFile][mainIndex]
-                if fallback then specName, specIcon = fallback.name, specIcon or fallback.icon end
-            end
+
+        if #points == 0 then
+            -- Keep a truthful total rather than inventing three per-spec values
+            -- when this client build does not expose group membership.
+            if totalSpent <= 0 then return nil end
+            points = { totalSpent }
         end
-        return { name = specName, icon = specIcon, points = pointsSpent }
+
+        local hasPoints = false
+        for _, value in ipairs(points) do
+            if (SafeNumber(value) or 0) > 0 then hasPoints = true; break end
+        end
+        if not hasPoints then
+            if totalSpent <= 0 then return nil end
+            points = { totalSpent }
+        end
+
+        return {
+            name = specName,
+            icon = specIcon,
+            points = points,
+        }
     end)
+
     if ok and type(result) == "table" then return result end
 end
 
