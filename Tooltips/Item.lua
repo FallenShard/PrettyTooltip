@@ -662,6 +662,9 @@ local function readContent(read, line, context, left, right, trimmed, original)
         -- Its gear marker stands for the words.
         add(item.effects, withoutLabel(trimmed, ITEM_SPELL_TRIGGER_ONUSE), "")
         item.effects[#item.effects].use = true
+        -- A hearthstone names the player's home; drawn in the place color.
+        local home = game.bindLocation and game.bindLocation()
+        if home and home ~= "" and trimmed:find(home, 1, true) then item.effects[#item.effects].place = home end
     elseif isType(lineType, "ItemSpellTriggerOnUse") or isType(lineType, "ItemSpellTriggerOnEquip")
         or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONEQUIP) or startsWith(trimmed, ITEM_SPELL_TRIGGER_ONUSE) then
         add(item.effects, left, right)
@@ -1140,6 +1143,13 @@ local function drawMarked(panel, list, y, style, color, marker, numbers)
             text, rowStyle, rowColor = util.uncolored(text), inactiveStyle(style), row.color
         elseif numbers then
             text = ns.Stats.styleEffect(text, ns.option("statColors"))
+        end
+        if row.place and not row.inactive then
+            local first, last = text:find(row.place, 1, true)
+            if first then
+                text = text:sub(1, first - 1) .. "|cff" .. util.hex(ns.Palette.roles.place) .. row.place .. "|r"
+                    .. text:sub(last + 1)
+            end
         end
         local stands = row.onHit and MARKED.onHit or row.use and MARKED.use
         if row.note then

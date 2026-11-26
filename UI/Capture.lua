@@ -135,6 +135,8 @@ local function recordItem(record, tooltip, data)
         record("C_Item.GetItemInfo", C_Item.GetItemInfo, name)
         record("C_Item.GetItemCount", C_Item.GetItemCount, name)
     end
+    -- A hearthstone names the player's home.
+    if GetBindLocation then record("GetBindLocation", GetBindLocation) end
 end
 
 local function recordSpell(record, tooltip, data)

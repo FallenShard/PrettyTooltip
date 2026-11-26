@@ -292,6 +292,12 @@ function game.playerLevel()
     return number((call(UnitLevel, "player")))
 end
 
+-- Where the player's hearthstone returns them.
+function game.bindLocation()
+    if not GetBindLocation then return end
+    return util.safeText((call(GetBindLocation)))
+end
+
 -- The player's bonus damage for a school, by the game's school index.
 function game.spellDamage(school)
     if not GetSpellBonusDamage then return end

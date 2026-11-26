@@ -39,6 +39,8 @@ for _, school in ipairs(palette.SCHOOLS) do
     palette.schools[school.key] = school.color
     SCHOOL[school.key] = school
 end
+-- A place, as where a hearthstone returns you, in Frost's own blue.
+palette.roles.place = palette.schools.Frost
 
 palette.CLASSES = {
     { key = "WARRIOR", label = "Warrior" }, { key = "PALADIN", label = "Paladin" },
