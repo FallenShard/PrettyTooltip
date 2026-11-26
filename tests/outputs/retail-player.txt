@@ -76,7 +76,7 @@ texture TOPLEFT Texture TOPLEFT 1,-1 0x0 rgb=0.0742,0.0742,0.1302,1 WHITE8X8
 text CENTER Texture CENTER 0,0 w=0 size=10 rgb=0.7885,0.7885,0.9685 "90"
 text at 67,21 w=174 size=17 rgb=0.53,0.53,0.93 "SMELLY SOMEBODY"
 text at 67,43 w=174 size=12 rgb=0.765,0.765,0.965 "<Some Guild>"
-text at 67,59 w=174 size=12 rgb=0.82,0.78,0.71 "Dwarf Warlock"
+text at 67,59 w=174 size=12 rgb=0.82,0.78,0.71 "|cff6BA8FFDwarf|r |cff8787EDWarlock|r"
 text at 19,94 w=222 size=11 rgb=0.6,0.6,0.63 "Demonology Warlock"
 text at 19,124 w=222 size=11 rgb=0.08333,0.85,0.08333 "<Right click for Frame Settings>"
 texture at 104,6 150x144 rgb=0.4,0.6,1,0.12 faction-alliance

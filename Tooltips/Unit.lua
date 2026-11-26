@@ -358,9 +358,44 @@ end
 
 -- The level and kind, then an NPC's title after a dot: "Humanoid · Herbalism Supplier".
 local function infoText(model, plated)
-    -- The spec and class as the client wrote them, else the spec before the class.
-    local class = model.specClass or trim(table.concat({ model.spec or "", model.className or "" }, " "))
-    local what = model.isPlayer and table.concat({ model.race or "", class }, " ") or (model.creature or "")
+    -- Keep the original Forever specialization text untouched. Retail uses
+    -- the 1.4.0 repair's separate race, specialization, and class colors.
+    local what
+    local function colored(value, color)
+        if not value or value == "" then return "" end
+        return "|cff" .. hex(color) .. value .. "|r"
+    end
+
+    if model.isPlayer then
+        local factionColor = model.faction == "Alliance" and { .42, .66, 1 }
+            or model.faction == "Horde" and { 1, .37, .33 } or NO_TINT
+        local classColor = model.color or NO_TINT
+
+        if ns.Retail then
+            -- Retail: race = faction color, class = class color,
+            -- specialization = light blue, matching PrettyTooltip 1.4.0 repair.
+            local spec, className = model.spec or "", model.className or ""
+            local coloredClass = colored(className, classColor)
+            local coloredSpec = spec ~= "" and colored(spec, { .60, .80, 1 }) or ""
+            local classText = coloredClass
+            if spec ~= "" then
+                if model.specClass and model.specClass:sub(1, #className) == className then
+                    classText = coloredClass .. " " .. coloredSpec
+                else
+                    classText = coloredSpec .. " " .. coloredClass
+                end
+            end
+            what = trim(colored(model.race or "", factionColor) .. " " .. classText)
+        else
+            -- Forever: only adjust race and class colors. Do not import
+            -- Retail's specialization-name coloring or alter its text.
+            what = trim(colored(model.race or "", factionColor) .. " "
+                .. colored(model.className or "", classColor))
+        end
+    else
+        what = model.creature or ""
+    end
+
     local info
     if plated then
         info = trim(what)
@@ -492,6 +527,8 @@ local function unitView(panel, model, healthBar)
             color = { color[1] * .5 + .5, color[2] * .5 + .5, color[3] * .5 + .5 }, after = realm, gap = 2 }
     end
     local info = infoText(model, plate ~= nil)
+    -- Race/class colors are embedded separately for Forever players; the
+    -- surrounding line keeps the normal detail color on both clients.
     if info then header[#header + 1] = { text = info, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 } end
     if model.factionName then
         header[#header + 1] = { text = model.factionName, style = styles.unitInfo, color = DETAIL_COLOR, gap = 4 }
@@ -677,7 +714,13 @@ end
 
 ui.unitModel = function(fields)
     for _, list in ipairs({ "quests", "extras" }) do fields[list] = fields[list] or {} end
-    return completeModel(fields, nil, ns.Game)
+    fields.isPreview = true
+    local model = completeModel(fields, nil, ns.Game)
+    local extension = descriptor.extension
+    if extension and extension.afterRead then
+        extension.afterRead(model, { game = ns.Game, rootModel = model, preview = true })
+    end
+    return model
 end
 -- Its target, tapped, and dead rows come from the game, not the tooltip's text.
 local function details(model, context)

@@ -306,6 +306,7 @@ function main.unit(testSource, testName, sources, serialize, makeWorld, tocs, en
     -- file, Retail/<file> just before it, or in its place where retail's .toc
     -- leaves the file out; and Retail/<file>Extension.lua just after it. A file
     -- only Forever's .toc loads, with nothing in its place, is left out.
+    -- Unit helpers load after the shared unit reader and before its extension.
     function test.retail(files)
         local retailLoads = {}
         for _, file in ipairs(tocs.retail) do retailLoads[file] = true end
@@ -325,10 +326,23 @@ function main.unit(testSource, testName, sources, serialize, makeWorld, tocs, en
                 local before, after = "Retail/" .. file, "Retail/" .. (file:gsub("%.lua$", "Extension.lua"))
                 if sources[before] then put(before) end
                 if not foreverOnly[file] then put(file) end
+                if file == "Tooltips/Unit.lua" then
+                    put("Retail/Tooltips/MythicScore.lua")
+                    put("Retail/Tooltips/RaidProgress.lua")
+                end
                 if sources[after] then put(after) end
             end
         end
         return list
+    end
+    -- Settings controls live in the scroll child, not directly on the page.
+    function test.settingsCanvas(page)
+        for _, child in ipairs({ page:GetChildren() }) do
+            if child:GetObjectType() == "ScrollFrame" and child:GetScrollChild() then
+                return child:GetScrollChild()
+            end
+        end
+        error("settings page has no scroll canvas", 2)
     end
     function test.check(name, got, expected)
         local gotText = type(got) == "table" and serialize.dump(got) or tostring(got)

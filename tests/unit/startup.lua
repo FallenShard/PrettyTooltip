@@ -37,8 +37,8 @@ return function(test)
     test.check("settings page starts hidden", page:IsShown(), false)
     -- The first checkbox controls item panels; it must use the saved false.
     local firstCheckbox
-    for _, child in ipairs(page._children) do
-        if child._kind == "CheckButton" then firstCheckbox = child break end
+    for _, child in ipairs({ test.settingsCanvas(page):GetChildren() }) do
+        if child:GetObjectType() == "CheckButton" then firstCheckbox = child break end
     end
     test.check("controls use settings saved after file loading", firstCheckbox:GetChecked(), false)
     test.check("saved settings are retained", PrettyTooltipDB.originalKey, "CTRL")

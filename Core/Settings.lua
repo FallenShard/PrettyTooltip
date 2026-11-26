@@ -57,6 +57,9 @@ local DEFAULTS = {
     spellRates = true,
     -- The game's health bar at the bottom of unit panels.
     unitHealthBar = true,
+    -- Player item level is shared; the specialization toggle is Forever-only.
+    unitItemLevelEnabled = false,
+    unitTalentEnabled = false,
     -- The item's, spell's, or NPC's ID under the other addons' rows.
     showIDs = true,
     -- "SHIFT" shows disenchant results, the spell power rows, gathering
@@ -128,7 +131,9 @@ local function changed() ns.settingsVersion = ns.settingsVersion + 1 end
 -- What is saved for a setting: nil while it is at its default.
 function ns.savedOption(key)
     local db = PrettyTooltipDB
-    return type(db) == "table" and db[key] or nil
+    if type(db) ~= "table" then return nil end
+    -- Preserve explicit false values; false is a saved override, not "unset".
+    return db[key]
 end
 
 local function setOption(key, value)
@@ -141,11 +146,18 @@ ns.setOption = setOption
 function ns.migrateOptions()
     local db = PrettyTooltipDB
     if type(db) ~= "table" then return end
+    -- Migrate legacy values only when the corresponding current option has
+    -- never been saved. An explicit current value always takes precedence.
     -- 1.3's item lite mode was the game's item tooltip; it is now items not restyled.
-    if db.itemLite == true then db.itemPanels = false end
+    if db.itemLite == true and db.itemPanels == nil then
+        db.itemPanels = false
+    end
     db.itemLite = nil
+
     -- 1.4.1's custom timings were the only fade a player chose; its default mirrored the game's.
-    if db.customFade == true then db.fadeTooltips = true end
+    if db.customFade == true and db.fadeTooltips == nil then
+        db.fadeTooltips = true
+    end
     db.customFade = nil
 end
 

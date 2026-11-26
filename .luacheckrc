@@ -111,6 +111,11 @@ read_globals = {
     "UnitPowerType", "UnitSpellHaste", "GetSpellPowerCost",
     -- A class's specializations, whose names retail's player tooltips show
     "C_SpecializationInfo", "GetNumSpecializationsForClassID", "GetSpecializationInfoForClassID",
+    -- Unit inspection, legacy talents, Mythic+ and raid progress APIs
+    "Constants", "GetTalentTabInfo", "CanInspect", "NotifyInspect", "GetAverageItemLevel", "wipe",
+    "C_PlayerInfo", "C_ChallengeMode", "GetStatistic", "GetComparisonStatistic",
+    "GetNumSavedInstances", "GetSavedInstanceInfo", "ClearAchievementComparisonUnit",
+    "SetAchievementComparisonUnit", "AchievementFrame_LoadUI", "EJ_GetInstanceInfo",
     -- Other addons, used when installed
     "LibStub", "Auctionator", "QuestieLoader",
 }

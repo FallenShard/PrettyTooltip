@@ -8,6 +8,7 @@ creature: "Beast"
 extras: {}
 healthShare: 0.38
 iconPath: "Interface\\Icons\\Ability_Hunter_Pet_Spider"
+isPreview: true
 level: 10
 name: "Mother Fang"
 quests: {}

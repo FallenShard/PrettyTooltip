@@ -34,14 +34,14 @@ local function quoted(text) return '"' .. text .. '"' end
 -- The types in the editor's order; dataType names the game's tooltip type and
 -- model the completer the tooltip file shares.
 local TYPES = {
-    { key = "mail", label = "Mail", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
+    { key = "mail", label = "Mail messages", dataType = "mail", model = "mailModel", first = "mailTitle", noun = "mail",
         noLookup = true, samples = { { label = "Attachments", fields = {
             attachments = {
-                { link = "|cffffffffCooked Crab Claw|r", count = 9, icon = { item = 2682 },
-                    prices = { { left = "Vendor", right = { money = 25 } }, { left = "Auction", right = { money = 97 } } } },
-                { link = "|cff1eff00Pyrite|r", count = 5, icon = { item = 249391 },
-                    prices = { { left = "Vendor", right = { money = 100 } }, { left = "Auction", right = { money = 109 } } } },
-            }, totals = { { left = "Total: 14 items", right = { money = 1418 } } },
+                { link = "|cffffffff" .. L["Cooked Crab Claw"] .. "|r", count = 9, icon = { item = 2682 },
+                    prices = { { left = L["Vendor"], right = { money = 25 } }, { left = L["Auction"], right = { money = 97 } } } },
+                { link = "|cff1eff00" .. L["Pyrite"] .. "|r", count = 5, icon = { item = 249391 },
+                    prices = { { left = L["Vendor"], right = { money = 100 } }, { left = L["Auction"], right = { money = 109 } } } },
+            }, totals = { { left = L["Total: 14 items"], right = { money = 1418 } } },
         } } } },
     {
         key = "item", label = "Items", dataType = "Item", model = "itemModel", first = "title", noun = "item",
@@ -262,7 +262,7 @@ local TYPES = {
                     className = LOCALIZED_CLASS_NAMES_MALE and LOCALIZED_CLASS_NAMES_MALE.WARRIOR or "Warrior",
                     classFile = "WARRIOR", guild = "Dawnbreakers", guildRealm = "Argent Dawn", faction = "Alliance", pvp = true, healthShare = 1,
                     target = L["Ragnaros"], targetColor = { 1, .27, .22 },
-                    extras = { { left = fill(ITEM_LEVEL, 61), right = "", color = { .60, .60, .63 } } },
+                    extras = {},
                 },
             },
             {
@@ -401,10 +401,22 @@ end
 
 -- Markers ----------------------------------------------------------------------
 
-local function icon(getter, id)
+-- Some retail spell textures are not immediately available on the first editor
+-- open. Keep the sample's known spell artwork instead of drawing a question mark.
+local SAMPLE_SPELL_ICONS = {
+    [72] = "Interface\\Icons\\Ability_Warrior_ShieldBash",
+    [635] = "Interface\\Icons\\Spell_Holy_HolyBolt",
+    [1245] = "Interface\\Icons\\Spell_Holy_WordFortitude",
+    [133] = "Interface\\Icons\\Spell_Fire_FlameBolt",
+    [980] = "Interface\\Icons\\Spell_Shadow_CurseOfSargeras",
+    [2818] = "Interface\\Icons\\Ability_Rogue_DualWeild",
+}
+
+local function icon(getter, id, isSpell)
+    if isSpell and SAMPLE_SPELL_ICONS[id] then return SAMPLE_SPELL_ICONS[id] end
     if getter then
         local ok, found = pcall(getter, id)
-        if ok and found then return found end
+        if ok and found and found ~= QUESTION_MARK then return found end
     end
     return QUESTION_MARK
 end
@@ -419,13 +431,24 @@ end
 local function resolve(value)
     if type(value) ~= "table" then return value end
     if value.item and next(value, next(value)) == nil then
-        return icon(C_Item and C_Item.GetItemIconByID, value.item)
+        return icon(C_Item and C_Item.GetItemIconByID, value.item, false)
     end
     if value.spell and next(value, next(value)) == nil then
-        return icon(C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, value.spell)
+        if C_Spell and C_Spell.RequestLoadSpellData then pcall(C_Spell.RequestLoadSpellData, value.spell) end
+        return icon(C_Spell and C_Spell.GetSpellTexture or GetSpellTexture, value.spell, true)
     end
-    if value.itemName then return ns.Game.itemName(value.itemName) or value[1] end
-    if value.spellName then return ns.Game.spellName(value.spellName) or value[1] end
+    if value.itemName then
+        local name = ns.Game.itemName(value.itemName)
+        if not name and ns.Game.loadItem then ns.Game.loadItem(value.itemName) end
+        return name or L[value[1]] or value[1]
+    end
+    if value.spellName then
+        local name = ns.Game.spellName(value.spellName)
+        if not name and C_Spell and C_Spell.RequestLoadSpellData then
+            pcall(C_Spell.RequestLoadSpellData, value.spellName)
+        end
+        return name or L[value[1]] or value[1]
+    end
     if value.questName then return ns.Game.questName(value.questName) or L[value[1]] end
     if value.money then return money(value) end
     local copy = {}

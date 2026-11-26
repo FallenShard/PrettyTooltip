@@ -56,7 +56,7 @@ return function(test)
         RegisterAddOnCategory = function() end }
     ns.Options.register()
     local slider
-    for _, child in ipairs({ page:GetChildren() }) do
+    for _, child in ipairs({ test.settingsCanvas(page):GetChildren() }) do
         if child:GetObjectType() == "Slider" then slider = child end
     end
     test.check("the main options expose the saved percentage", slider:GetValue(), 125)

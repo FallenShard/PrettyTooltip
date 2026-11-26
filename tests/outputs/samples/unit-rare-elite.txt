@@ -8,6 +8,7 @@ creature: "Mechanical"
 extras: {}
 healthShare: 0.82
 iconPath: "Interface\\Icons\\INV_Misc_Gear_01"
+isPreview: true
 level: 20
 name: "Foe Reaper 4000"
 quests: {}

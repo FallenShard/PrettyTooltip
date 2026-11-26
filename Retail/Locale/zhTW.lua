@@ -36,3 +36,29 @@ L["Death Knight"] = "死亡騎士"
 L["Monk"] = "武僧"
 L["Demon Hunter"] = "惡魔獵人"
 L["Evoker"] = "喚能師"
+
+-- Translations carried forward from the 1.4.1 repaired build.
+L['Mythic+ Rating Modifier'] = '傳奇鑰石評分快捷鍵'
+L['Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Ctrl 顯示傳奇鑰石評分及副本成績。'
+L['Hold Alt to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Alt 顯示傳奇鑰石評分及副本成績。'
+L['Show Mythic+ rating and dungeon scores without holding a modifier key.'] = '無需按鍵，始終顯示傳奇鑰石評分及副本成績。'
+L['Mythic+ Rating'] = '傳奇鑰石評分'
+
+-- Localized progression settings.
+
+L["Mythic+ Rating Modifier"] = "傳奇鑰石評分快捷鍵"
+L["Raid Progress Modifier"] = "團隊副本進度快捷鍵"
+L["Hold the modifier to show the Mythic+ rating and dungeon scores on player tooltips"] = "按住快捷鍵，在玩家浮動提示中顯示傳奇鑰石評分及各地城成績"
+L["Hold the modifier to show the local character's current raid lockouts"] = "按住快捷鍵，在玩家浮動提示中顯示目前角色的團隊副本進度"
+L["Show Mythic+ rating without holding a modifier key."] = "無需按鍵，始終顯示傳奇鑰石評分及地城成績。"
+L["Always show the local character's current raid lockouts."] = "始終顯示目前角色的團隊副本進度。"
+L["Mythic+ Rating"] = "傳奇鑰石評分"
+L["Raid Progress"] = "團隊副本"
+L["Raid Short: Tidal Hollows"] = "潮縛石窟"
+L["Raid Short: Venomous Abyss"] = "烈毒之淵"
+L["Raid Short: Kishix Unbound"] = "基希克斯破封"
+L["Never"] = "永不"
+L["Ctrl"] = "Ctrl"
+L["Alt"] = "Alt"
+L["Always"] = "始終顯示"
+

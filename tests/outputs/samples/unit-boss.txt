@@ -8,6 +8,7 @@ creature: "Dragonkin"
 extras: {}
 healthShare: 0.91
 iconPath: "Interface\\Icons\\INV_Misc_Head_Dragon_01"
+isPreview: true
 level: -1
 name: "Azuregos"
 quests: {}

@@ -10,7 +10,7 @@ return function(test)
     -- The files only Forever's .toc loads; the first two have retail stand-ins.
     local FOREVER_ONLY = { "Data/Schools.lua", "Data/Imbues.lua", "Data/Disenchant.lua", "Data/Nodes.lua",
         "Data/NodeNames.lua", "Data/NodeSkills.lua", "Data/Skinning.lua", "Data/SpellParts.lua",
-        "Data/Coefficients.lua" }
+        "Data/Coefficients.lua", "Forever/Tooltips/UnitSpecialization.lua" }
     local DATA_SETS = { "disenchant", "coefficients", "nodeLoot", "nodeNames", "nodeSkills", "skinningLoot" }
 
     local fromRetail = {}
@@ -36,16 +36,28 @@ return function(test)
     end
     test.check("each says it is Forever's alone", unmarked, {})
 
+    local unitHelpers = { ["Retail/Tooltips/MythicScore.lua"] = true,
+        ["Retail/Tooltips/RaidProgress.lua"] = true }
     local unnamed = {}
     for file in pairs(test.sources) do
         local shared = file:match("^Retail/(.+)$")
-        if shared and file ~= "Retail/Retail.lua" and not test.sources[shared]
+        if shared and file ~= "Retail/Retail.lua" and not unitHelpers[file] and not test.sources[shared]
             and not test.sources[(shared:gsub("Extension%.lua$", ".lua"))] then
             unnamed[#unnamed + 1] = file
         end
     end
     table.sort(unnamed)
     test.check("each Retail/ file is named for a shared one", unnamed, {})
+
+    local positions = {}
+    for i, file in ipairs(test.tocs.retail) do positions[file] = i end
+    for file in pairs(unitHelpers) do
+        test.check(file .. " loads before the unit extension",
+            positions[file] ~= nil and positions[file] > positions["Tooltips/Unit.lua"]
+                and positions[file] < positions["Retail/Tooltips/UnitExtension.lua"], true)
+    end
+    test.check("Forever specialization is not loaded on retail",
+        retailLoads["Forever/Tooltips/UnitSpecialization.lua"], nil)
 
     local function start(files)
         local ns, world = test.load(files, capture)

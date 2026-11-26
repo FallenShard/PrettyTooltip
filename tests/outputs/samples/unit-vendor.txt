@@ -7,6 +7,7 @@ creature: "Humanoid"
 extras: {}
 healthShare: 1
 iconPath: "Interface\\Icons\\INV_Misc_Head_Dwarf_01"
+isPreview: true
 level: 30
 name: "Innkeeper Farley"
 quests: {}

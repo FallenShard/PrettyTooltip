@@ -202,6 +202,7 @@ end)
 local state = { tooltipType = "item", sample = 1, selected = "title", saved = {} }
 local controls = {}
 local refresh, refreshLookup
+local refreshing = false
 
 local function samples()
     return TOOLTIP_TYPES[state.tooltipType].samples
@@ -462,12 +463,23 @@ local function selectPart(key)
     -- The part's settings head the column.
     columnBar:SetValue(0)
     if not hasPart(key) and not state.lookup then
+        local originalSample = state.sample
+        local found = false
         for index = 1, #samples() do
-            if index ~= state.sample then
+            if index ~= originalSample then
                 state.sample = index
                 drawSample()
-                if hasPart(key) then break end
+                if hasPart(key) then
+                    found = true
+                    break
+                end
             end
+        end
+        -- Some parts have no representative sample. Do not leave the editor
+        -- on the last unrelated sample (often a quest item) when none has it.
+        if not found then
+            state.sample = originalSample
+            drawSample()
         end
     end
     refresh()
@@ -1302,6 +1314,17 @@ toggles({
     { "Health bar", "unitHealthBar", "The game's own health bar at the bottom of player and NPC panels. The "
         .. "game fills it, so it stays live without the addon reading health, which WoW Forever keeps from "
         .. "addons.", units },
+    { "Specialization", "unitTalentEnabled",
+        "Show the player's specialization and talent point distribution in unit tooltips.",
+        function() return units() and not ns.Retail end },
+    { "Item Level", "unitItemLevelEnabled",
+        "Show the player's item level in unit tooltips and in the unit preview.", units },
+    { "Mythic+ Rating", "mythicScoreEnabled",
+        "Show the player's Mythic+ rating and dungeon scores in unit tooltips. The modifier key is configured in the main options.",
+        function() return units() and ns.Retail end },
+    { "Raid Progress", "raidProgressEnabled",
+        "Show the player's current raid progression in unit tooltips. The modifier key is configured in the main options.",
+        function() return units() and ns.Retail end },
     { "Gathering", "gatheringLoot", "What a herb or ore node holds: its yield over all the times it can be "
         .. "gathered, then the stone, gems, and other herbs it may give and the chance each time. On a dead "
         .. "creature that can be skinned, the Skinning it needs and the leather, hides, and scales it may give. "
@@ -1372,23 +1395,32 @@ moreOptions:SetPoint("BOTTOMRIGHT", editor, "BOTTOMRIGHT", -18, 16)
 -- Wiring ---------------------------------------------------------------------
 
 refresh = function()
-    drawSample()
-    for tooltipType, tab in pairs(typeTabs) do tab:SetSelected(tooltipType == state.tooltipType) end
-    for index, tab in ipairs(sampleTabs) do
-        local sample = samples()[index]
-        tab:SetShown(sample ~= nil)
-        if sample then
-            tab.label:SetText(L[sample.label])
-            tab:SetWidth(math.max(56, tab.label:GetStringWidth() + 16))
-            tab:SetSelected(not state.lookup and index == state.sample)
+    -- Spell/item data requests made while building a preview may synchronously
+    -- dispatch a load-result event. Ignore nested refreshes to prevent the
+    -- Editor -> Samples.resolve -> load event -> Editor recursion loop.
+    if refreshing then return end
+    refreshing = true
+    local ok, err = pcall(function()
+        drawSample()
+        for tooltipType, tab in pairs(typeTabs) do tab:SetSelected(tooltipType == state.tooltipType) end
+        for index, tab in ipairs(sampleTabs) do
+            local sample = samples()[index]
+            tab:SetShown(sample ~= nil)
+            if sample then
+                tab.label:SetText(L[sample.label])
+                tab:SetWidth(math.max(56, tab.label:GetStringWidth() + 16))
+                tab:SetSelected(not state.lookup and index == state.sample)
+            end
         end
-    end
-    refreshLookup()
-    partNote:SetText(L[selectedElement().note or ""])
-    layoutColumn()
-    for _, control in ipairs(controls) do control.refresh() end
-    paintHighlights()
-    showHint()
+        refreshLookup()
+        partNote:SetText(L[selectedElement().note or ""])
+        layoutColumn()
+        for _, control in ipairs(controls) do control.refresh() end
+        paintHighlights()
+        showHint()
+    end)
+    refreshing = false
+    if not ok then error(err, 0) end
 end
 
 function ns.refreshEditorStyle()
@@ -1400,11 +1432,21 @@ editor:SetScript("OnShow", function() ns.refreshEditorStyle() refresh() end)
 editor:SetScript("OnHide", closeMenu)
 editor:RegisterEvent("GET_ITEM_INFO_RECEIVED")
 editor:RegisterEvent("QUEST_DATA_LOAD_RESULT")
+-- Retail item and spell names can arrive asynchronously on a fresh login.
+-- Refresh the active sample when the client finishes loading its localized data;
+-- otherwise the English fallback can remain visible until the user changes tabs.
+pcall(editor.RegisterEvent, editor, "SPELL_DATA_LOAD_RESULT")
 editor:SetScript("OnEvent", function(_, event, id, success)
     if not editor:IsShown() then return end
     if ns.util.isSecret(id) or ns.util.isSecret(success) then return end
     if event == "GET_ITEM_INFO_RECEIVED" then
-        if state.tooltipType == "item" and id == state.lookup then refresh() end
+        if not state.lookup and state.tooltipType ~= "quest" and success ~= false then
+            refresh()
+        elseif state.tooltipType == "item" and id == state.lookup and success ~= false then
+            refresh()
+        end
+    elseif event == "SPELL_DATA_LOAD_RESULT" then
+        if not state.lookup and state.tooltipType ~= "quest" and success ~= false then refresh() end
     elseif event == "QUEST_DATA_LOAD_RESULT" and success and state.tooltipType == "quest" then
         local sample = samples()[state.sample]
         if sample and sample.questID == id then refresh() end

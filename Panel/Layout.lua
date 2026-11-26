@@ -559,6 +559,7 @@ local function hiddenBlockAt(panel, content, x, y, width, font, color)
 end
 
 local function textWidth(font, text)
+    if type(text) ~= "string" then text = "" end
     font:SetText(text)
     return (font.GetUnboundedStringWidth and font:GetUnboundedStringWidth() or font:GetStringWidth()) or 0
 end
