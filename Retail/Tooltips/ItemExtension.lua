@@ -552,11 +552,6 @@ descriptor.extension = {
         return false
     end,
 
-    -- Retail keeps an active bonus in the set, worded "Set: ...".
-    isSetBonus = function(text)
-        return unformat(text, ITEM_SET_BONUS) ~= nil
-    end,
-
     -- Retail's appearance sets can list more pieces than they count ("(0/3)"
     -- over five), each indented.
     isSetPiece = function(left)

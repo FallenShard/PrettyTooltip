@@ -159,11 +159,15 @@ setBonuses:
   1:
     active: false
     left: "Комплект (2 |4предмет:предмета:предметов;): Атаки ближнего боя с некоторой вероятностью дают эффект \"Злость\", повышающий силу на 50 на 10 сек."
+    pieces: 2
     right: ""
+    text: "Атаки ближнего боя с некоторой вероятностью дают эффект \"Злость\", повышающий силу на 50 на 10 сек."
   2:
     active: false
     left: "Комплект (2 |4предмет:предмета:предметов;): +22 к силе."
+    pieces: 2
     right: ""
+    text: "+22 к силе."
 setCount: "1/2"
 setItems:
   1:
@@ -175,11 +179,12 @@ setItems:
     left: "Перстень второй половинки"
     right: ""
 setName: "Соучастники"
+setWorn: 1
 slot: "Палец"
 sockets: {}
 weaponBonus: {}
 == tooltip render
-panel 311 x 376
+panel 311 x 380
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x100 rgb=1,1,1,1 band
@@ -194,14 +199,16 @@ text at 19,142 w=228 size=15 rgb=1,0.76,0.18 "СОУЧАСТНИКИ"
 text at 250,142 w=42 size=12 rgb=1,0.76,0.18 "1/2"
 text at 24,166 w=268 size=12 rgb=0.94,0.89,0.77 "|cffD9B36A-  |rПерстень первого помощника"
 text at 24,183 w=268 size=12 rgb=0.44,0.42,0.4 "|cff4A4540-  |rПерстень второй половинки"
-text at 22,207 w=270 size=12 rgb=0.44,0.42,0.4 "Комплект (2 |4предмет:предмета:предметов;): Атаки ближнего боя с некоторой вероятностью дают эффект \"Злость\", повышающий силу на 50 на 10 сек."
-text at 22,252 w=270 size=12 rgb=0.44,0.42,0.4 "Комплект (2 |4предмет:предмета:предметов;): +22 к силе."
-text at 19,269 w=273 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
-text at 19,284 w=204 size=11 rgb=0.85,0.7,0 "Торговец"
-text at 235,284 w=57 size=11 rgb=0.85,0.7,0 "|cffffffff9 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 44 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
-text at 19,299 w=215 size=11 rgb=0.85,0.7,0 "Инвентарь"
-text at 246,299 w=46 size=11 rgb=0.85,0.7,0 "|cff66bbffВсего: |cffffffff1|r|r"
-text at 19,314 w=182 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
-text at 213,314 w=79 size=11 rgb=0.85,0.7,0 "|cff66bbffЭкипировано: |cffffffff1|r|r"
-text at 19,329 w=273 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t Мистер Каюк  |cffaa9f85- Мертвые копи|r"
-text at 19,344 w=273 size=11 rgb=0.6,0.6,0.63 "ID предмета: 284715"
+text at 22,207 w=20 size=12 rgb=0.44,0.42,0.4 "(2)"
+text at 46,207 w=246 size=12 rgb=0.44,0.42,0.4 "Атаки ближнего боя с некоторой вероятностью дают эффект \"Злость\", повышающий силу на 50 на 10 сек."
+text at 22,254 w=20 size=12 rgb=0.44,0.42,0.4 "(2)"
+text at 46,254 w=246 size=12 rgb=0.44,0.42,0.4 "+22 к силе."
+text at 19,273 w=273 size=11 rgb=0.85,0.7,0 "|c0042b1fePress F6 to submit an issue for this Item"
+text at 19,288 w=204 size=11 rgb=0.85,0.7,0 "Торговец"
+text at 235,288 w=57 size=11 rgb=0.85,0.7,0 "|cffffffff9 |TInterface\\MoneyFrame\\UI-SilverIcon:12:12:0:0|t 44 |TInterface\\MoneyFrame\\UI-CopperIcon:12:12:0:0|t|r"
+text at 19,303 w=215 size=11 rgb=0.85,0.7,0 "Инвентарь"
+text at 246,303 w=46 size=11 rgb=0.85,0.7,0 "|cff66bbffВсего: |cffffffff1|r|r"
+text at 19,318 w=182 size=11 rgb=0.85,0.7,0 "  |A:raceicon-human-female:13:13|a |cfff48cbaPlayer Dawnbreaker-PvP|r"
+text at 213,318 w=79 size=11 rgb=0.85,0.7,0 "|cff66bbffЭкипировано: |cffffffff1|r|r"
+text at 19,333 w=273 size=11 rgb=0.85,0.6967,0 "|TInterface\\Icons\\INV_Misc_Book_09:14:14:0:0:64:64:5:59:5:59|t Мистер Каюк  |cffaa9f85- Мертвые копи|r"
+text at 19,348 w=273 size=11 rgb=0.6,0.6,0.63 "ID предмета: 284715"

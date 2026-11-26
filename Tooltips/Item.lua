@@ -18,8 +18,8 @@ end
 --   findKind(name, kinds) -> the kind a longer name holds: "Zandalari Crafting Reagent"
 --   isProfession(name, professions, marked) -> whether a requirement names a
 --     profession the shared list does not; marked: the game marks it a requirement
---   isSetBonus(text, line, context), isSetPiece(left, item, context) -> whether
---     a line in an item set is a bonus, or a piece, the shared reader would miss
+--   isSetPiece(left, item, context) -> whether a line in an item set is a piece
+--     the shared reader would miss
 --   readLine(item, line, context) -> true when the client takes the line itself
 --   afterReadLine(item, line, context) after each line, taken or not
 --   afterRead(model, context) once the item is read, a crafted item first
@@ -557,7 +557,7 @@ local function readContent(read, line, context, left, right, trimmed, original)
     local lineType = line.type
     local setName, count, total = unformat(trimmed, ITEM_SET_NAME)
     if setName and tonumber(count) and tonumber(total) and not item.setName then
-        item.setName, item.setCount = setName, count .. "/" .. total
+        item.setName, item.setCount, item.setWorn = setName, count .. "/" .. total, tonumber(count)
         read.inSet, read.setTotal = true, tonumber(total)
     elseif LINE.SellPrice and lineType == LINE.SellPrice then
         item.hasSellPrice = true
@@ -586,11 +586,17 @@ local function readContent(read, line, context, left, right, trimmed, original)
             -- game's color: "You haven't collected this appearance".
             item.footerLeft[#item.footerLeft].color = rgb(line.leftColor)
         end
-    -- A client can recognize more of a set's bonuses, as retail's active "Set: ...".
-    elseif read.inSet and (unformat(trimmed, ITEM_SET_BONUS_GRAY)
-        or (extension and extension.isSetBonus and extension.isSetBonus(trimmed, line, context))) then
+    -- A bonus not yet active has its count, "(3) Set: ..."; the game drops it once active.
+    elseif read.inSet and (unformat(trimmed, ITEM_SET_BONUS_GRAY) or unformat(trimmed, ITEM_SET_BONUS)) then
         add(item.setBonuses, left, right)
-        item.setBonuses[#item.setBonuses].active = isActive(line.leftColor)
+        local bonus = item.setBonuses[#item.setBonuses]
+        bonus.active = isActive(line.leftColor)
+        local pieces, text = unformat(trimmed, ITEM_SET_BONUS_GRAY)
+        if pieces then
+            bonus.pieces, bonus.text = tonumber(pieces), text
+        else
+            bonus.text = unformat(trimmed, ITEM_SET_BONUS)
+        end
     -- Set pieces are names alone: letters (of any alphabet), spaces,
     -- apostrophes, and hyphens. A client can allow more pieces than the
     -- set counts, as retail's appearance sets list.
@@ -898,6 +904,19 @@ local function addSellPrice(read, itemInfo)
     end
 end
 
+-- Bonuses come in count order, active ones first, and a set's first bonus needs
+-- two pieces. When the counts from two to the pieces worn are as many as the
+-- active bonuses without one, each of those counts is known.
+local function countActiveBonuses(item)
+    if not item or not item.setWorn then return end
+    local uncounted = {}
+    for _, bonus in ipairs(item.setBonuses) do
+        if not bonus.pieces and bonus.active then uncounted[#uncounted + 1] = bonus end
+    end
+    if #uncounted == 0 or #uncounted ~= item.setWorn - 1 then return end
+    for index, bonus in ipairs(uncounted) do bonus.pieces = index + 1 end
+end
+
 local function readModel(tooltip, data, game)
     if isSecret(data) or not data or isSecret(data.lines) or not data.lines then return end
     local itemInfo = getItemInfo(tooltip, data)
@@ -914,6 +933,8 @@ local function readModel(tooltip, data, game)
     if not model.name or model.name == "" then return end
     if not readAppended(read) then return end
     findPair(read)
+    countActiveBonuses(model)
+    countActiveBonuses(model.created)
     -- Crafted gear can need a profession too; only a recipe teaches.
     local recipe = (model.created and not model.created.paired) or (model.skill and model.teaches)
     if recipe then
@@ -1528,6 +1549,14 @@ local function drawSet(panel, model, styles, y)
             y, styles.setItems, color, 5)
     end
     if #model.setBonuses > 0 then y = y + 7 end
+    -- Each bonus's count, as (3), in a column of its own, the text wrapping beside
+    -- it; "Set:" goes without saying under the set.
+    local style = styles.setBonuses
+    local piecesWidth = 0
+    for _, row in ipairs(model.setBonuses) do
+        if row.pieces then piecesWidth = math.max(piecesWidth, measureStyled(panel, "(" .. row.pieces .. ")", style)) end
+    end
+    local textIndent = 3 + (piecesWidth > 0 and piecesWidth + 6 or 0)
     for _, row in ipairs(model.setBonuses) do
         local color = { .68, .65, .57 }
         if row.active == true then
@@ -1535,7 +1564,10 @@ local function drawSet(panel, model, styles, y)
         elseif row.active == false then
             color = { .44, .42, .40 }
         end
-        y = drawRow(panel, row, y, styles.setBonuses, color, 3)
+        if row.pieces then
+            styledAt(panel, "(" .. row.pieces .. ")", pad(panel) + 3, y, piecesWidth + 2, style, color)
+        end
+        y = drawRow(panel, { left = row.text or row.left, right = row.right }, y, style, color, textIndent, 5)
     end
     return y
 end

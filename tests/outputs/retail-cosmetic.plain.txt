@@ -70,7 +70,9 @@ setBonuses:
   1:
     active: false
     left: "(3) Set: Full Winter Garb"
+    pieces: 3
     right: ""
+    text: "Full Winter Garb"
 setCount: "0/3"
 setItems:
   1:
@@ -94,11 +96,12 @@ setItems:
     left: "Winter Boots"
     right: ""
 setName: "Winter Garb"
+setWorn: 0
 slot: "Head"
 sockets: {}
 weaponBonus: {}
 == tooltip render
-panel 260 x 272
+panel 260 x 274
 texture at -16,-16 0x0 rgb=0.6,0.6,0.6,0.18 glow
 texture at 0,0 0x0 rgb=1,1,1,0.9 TooltipBackground-Temp.png
 texture at 6,6 0x101 rgb=1,1,1,1 band
@@ -113,5 +116,6 @@ text at 24,148 w=217 size=12 rgb=0.44,0.42,0.4 "|cff4A4540-  |rGreen Winter Hat"
 text at 24,165 w=217 size=12 rgb=0.44,0.42,0.4 "|cff4A4540-  |rRed Winter Clothes"
 text at 24,182 w=217 size=12 rgb=0.44,0.42,0.4 "|cff4A4540-  |rRed Winter Hat"
 text at 24,199 w=217 size=12 rgb=0.44,0.42,0.4 "|cff4A4540-  |rWinter Boots"
-text at 22,223 w=219 size=12 rgb=0.44,0.42,0.4 "(3) Set: Full Winter Garb"
-text at 19,240 w=222 size=11 rgb=0.6,0.6,0.63 "Item ID: 21524"
+text at 22,223 w=20 size=12 rgb=0.44,0.42,0.4 "(3)"
+text at 46,223 w=195 size=12 rgb=0.44,0.42,0.4 "Full Winter Garb"
+text at 19,242 w=222 size=11 rgb=0.6,0.6,0.63 "Item ID: 21524"
