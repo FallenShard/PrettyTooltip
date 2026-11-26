@@ -18,14 +18,16 @@ local function fontOf(object)
     return path or STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF"
 end
 local function bodyFont(tooltipType) return ns.fontPath(ns.option("bodyFont", tooltipType)) or fontOf(GameTooltipText) end
--- A file that fails to load leaves the string without a font, and SetText errors.
+-- A file that fails to load leaves the string without a font, and SetText errors;
+-- on Forever, SetFont itself errors on a missing file.
 -- Each string remembers the font it was given: redrawing a panel mostly sets
 -- the font a string already has, and the call costs the same either way.
 local function setFont(object, path, size, flags)
     flags = flags or ""
     if object.prettyTooltipFont == path and object.prettyTooltipSize == size
         and object.prettyTooltipFlags == flags then return end
-    if not object:SetFont(path, size, flags) then
+    local ok, loaded = pcall(object.SetFont, object, path, size, flags)
+    if not (ok and loaded) then
         object:SetFont(STANDARD_TEXT_FONT or "Fonts\\FRIZQT__.TTF", size, flags)
     end
     object.prettyTooltipFont, object.prettyTooltipSize, object.prettyTooltipFlags = path, size, flags

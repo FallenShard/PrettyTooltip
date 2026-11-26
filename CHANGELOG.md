@@ -1,3 +1,23 @@
+# PrettyTooltip 1.5.0
+
+## Style editor
+
+- The style editor is rebuilt. **All Tooltips** holds the shared look in four groups, **Appearance**, **Layout**, **Text**, and **Behavior**, and every tooltip type's page has the same four. A type follows each shared setting, shown as **All Tooltips: …**, until you choose its own; the reset arrow beside it returns it to the shared one. **Selected Part** still styles a single part of a tooltip.
+- New settings: **Row Spacing** and **Section Spacing**, and per type its own scale, padding, minimum width, panel style, opacities, and icon placement. Tooltip fading, with **Fade Delay** and **Fade Duration**, is now under All Tooltips' Behavior.
+- Labels follow the game's own options, in Title Case, and every list names an unset choice **Default**. Hovering a switch explains what it does on and off; **Panel Style** and **Panel Tint** list what each choice gives.
+- **Capitalization** offers **Default** and **All Caps**, and shows what is in effect: names start in All Caps, other text as written. A type can choose either, whatever All Tooltips says.
+- The outline shared by all text is gone: **Title** and **Body Text** each have their own. An outline you had chosen carries over to both.
+- **Stat Colors** and **Armor Colors** switch on and off beside their colors. **Icon on the right** is now **Icon Placement** (Left or Right), and **Follow cursor off in combat** is now **Follow Cursor in Combat**, checked to keep following.
+- **Reset All Fonts and Colors** moved to the General page.
+- In the Blizzard appearance, the editor's columns have the shading of the game's own options window.
+- Fixed errors when choosing a font for a single part.
+
+## Items
+
+- Set bonuses you have earned stay with their set instead of falling among other addons' rows, and show the pieces they need, as **(2)**, when the pieces you wear leave no doubt. Each bonus wraps beside its count.
+- Enchants come after the item's own Equip and chance on hit effects again, as before 1.4.0, without extra space around them. Another player's temporary weapon enchant, as **Windfury 4**, now shows with the enchants.
+- The Hearthstone shows your home in blue. ([#19](https://github.com/FallenShard/PrettyTooltip/issues/19))
+
 # PrettyTooltip 1.4.2
 
 ## Tooltips

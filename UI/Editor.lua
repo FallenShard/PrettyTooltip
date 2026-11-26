@@ -824,7 +824,8 @@ local function menuFont(path)
     font = CreateFont("PrettyTooltipMenuFont" .. (#menuFonts + 1))
     menuFonts[#menuFonts + 1] = font
     font:CopyFontObject(GameFontHighlight)
-    if not font:SetFont(path, 13, "") then font:CopyFontObject(GameFontHighlight) end
+    local ok, loaded = pcall(font.SetFont, font, path, 13, "")
+    if not (ok and loaded) then font:CopyFontObject(GameFontHighlight) end
     menuFonts[path] = font
     return font
 end
