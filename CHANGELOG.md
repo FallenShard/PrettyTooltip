@@ -2,15 +2,13 @@
 
 ## Style editor
 
-- The style editor is rebuilt. **All Tooltips** holds the shared look in four groups, **Appearance**, **Layout**, **Text**, and **Behavior**, and every tooltip type's page has the same four. A type follows each shared setting, shown as **All Tooltips: …**, until you choose its own; the reset arrow beside it returns it to the shared one. **Selected Part** still styles a single part of a tooltip.
+- The style editor was redone to be more intuitive to use. All options are divided into "General" that concern high-level settings and "All Tooltips" that contain general settings for all tooltips as well as per-tooltip type settings that can override general settings for the given type.
 - New settings: **Row Spacing** and **Section Spacing**, and per type its own scale, padding, minimum width, panel style, opacities, and icon placement. Tooltip fading, with **Fade Delay** and **Fade Duration**, is now under All Tooltips' Behavior.
-- Labels follow the game's own options, in Title Case, and every list names an unset choice **Default**. Hovering a switch explains what it does on and off; **Panel Style** and **Panel Tint** list what each choice gives.
-- **Capitalization** offers **Default** and **All Caps**, and shows what is in effect: names start in All Caps, other text as written. A type can choose either, whatever All Tooltips says.
-- The outline shared by all text is gone: **Title** and **Body Text** each have their own. An outline you had chosen carries over to both.
-- **Stat Colors** and **Armor Colors** switch on and off beside their colors. **Icon on the right** is now **Icon Placement** (Left or Right), and **Follow cursor off in combat** is now **Follow Cursor in Combat**, checked to keep following.
-- **Reset All Fonts and Colors** moved to the General page.
-- In the Blizzard appearance, the editor's columns have the shading of the game's own options window.
 - Fixed errors when choosing a font for a single part.
+
+## Tooltips
+
+- Fixed a Lua error that occurred if a font was found missing.
 
 ## Items
 
