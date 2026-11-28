@@ -67,7 +67,7 @@ return function(test)
 
     local full = "Professions-ChatIcon-Quality-Tier1:16:16:0:0"
     local short = "Professions-ChatIcon-Quality-Tier1:16:16"
-    local expectedIcon = "|A:Professions-ChatIcon-Quality-Tier1:16:16:0:4|a"
+    local expectedIcon = "|A:Professions-ChatIcon-Quality-Tier1:16:16:0:0|a"
 
     -- 1. Already formatted atlas.
     local model, ns = read("enUS",
@@ -99,7 +99,7 @@ return function(test)
         shortText, "Crusader")
 
     test.check("short payload: missing atlas fields are completed",
-        rawRows(model):find("|A:" .. short .. ":0:4|a", 1, true) ~= nil,
+        rawRows(model):find("|A:" .. short .. ":0:0|a", 1, true) ~= nil,
         true)
 
     -- 4. Normalization is idempotent.

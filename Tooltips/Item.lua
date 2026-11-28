@@ -292,18 +292,6 @@ local function extractEnchantQuality(text)
     return text, nil
 end
 
-local function alignCraftingQuality(text)
-    if type(text) ~= "string" then return text end
-    return (text:gsub("|A:(Professions%-ChatIcon%-Quality%-[^|]+)|a", function(payload)
-        local fields = {}
-        for field in (payload .. ":"):gmatch("(.-):") do fields[#fields + 1] = field end
-        if #fields < 3 then return "|A:" .. payload .. "|a" end
-        local y = tonumber(fields[5]) or 0
-        fields[4], fields[5] = fields[4] or "0", tostring(y + 4)
-        return "|A:" .. table.concat(fields, ":") .. "|a"
-    end))
-end
-
 local function localizeEnchantConjunction(text)
     if type(text) ~= "string" then return text end
     local locale = GetLocale and GetLocale()
@@ -324,7 +312,7 @@ local function readCopyLine(model, left, right)
     if enchant then
         for _, row in ipairs(enchantRows(enchant)) do
             if qualityIcon then row = row .. " " .. qualityIcon end
-            add(model.enchants, alignCraftingQuality(localizeEnchantConjunction(row)), "")
+            add(model.enchants, localizeEnchantConjunction(row), "")
         end
         return true
     end
@@ -704,7 +692,7 @@ local function readContent(read, line, context, left, right, trimmed, original)
         local text = util.trim(plainText(cleanLeft))
         for _, row in ipairs(enchantRows(text:match("^[^:]-:%s*(.+)$") or text)) do
             if qualityIcon then row = row .. " " .. qualityIcon end
-            add(item.enchants, alignCraftingQuality(localizeEnchantConjunction(row)), "")
+            add(item.enchants, localizeEnchantConjunction(row), "")
         end
     elseif readCopyLine(item, left, right) then
         -- Crafter or enchant, taken into their own rows.
