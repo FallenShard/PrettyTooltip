@@ -36,3 +36,32 @@ L["Death Knight"] = "死亡骑士"
 L["Monk"] = "武僧"
 L["Demon Hunter"] = "恶魔猎手"
 L["Evoker"] = "唤魔师"
+
+-- Translations carried forward from the 1.4.1 repaired build.
+L['Hold Ctrl to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Ctrl 显示大秘境评分和副本成绩。'
+L['Hold Alt to show Mythic+ rating and dungeon scores on player tooltips.'] = '按住 Alt 显示大秘境评分和副本成绩。'
+L['Show Mythic+ rating and dungeon scores without holding a modifier key.'] = '无需按键，始终显示大秘境评分和副本成绩。'
+L["Item Level"] = "物品等级"
+
+-- Mythic+ and raid progression.
+L["Mythic+ Rating Modifier"] = "大秘境评分修饰键"
+L["Raid Progress Modifier"] = "团队副本进度修饰键"
+L["Hold the modifier to show the Mythic+ rating and dungeon scores on player tooltips"] = "按住修饰键，在玩家鼠标提示中显示大秘境评分和各地下城成绩"
+L["Hold the modifier to show the local character's current raid lockouts"] = "按住修饰键，在玩家鼠标提示中显示当前角色的团队副本进度"
+L["Show Mythic+ rating without holding a modifier key."] = "无需按键，始终显示大秘境评分和副本成绩。"
+L["Always show the local character's current raid lockouts."] = "始终显示当前角色的团队副本进度。"
+L["Mythic+ Rating"] = "大秘境评分"
+L["Raid Progress"] = "团队副本"
+L["Raid Short: Tidal Hollows"] = "潮缚石窟"
+L["Raid Short: Venomous Abyss"] = "烈毒之渊"
+L["Raid Short: Kishix Unbound"] = "基希克斯破封"
+
+-- Localized progression settings.
+
+L["Never"] = "从不"
+L["Ctrl"] = "Ctrl"
+L["Alt"] = "Alt"
+L["Always"] = "始终显示"
+
+
+L["Mail messages"] = "邮件"
