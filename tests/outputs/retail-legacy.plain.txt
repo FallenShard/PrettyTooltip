@@ -230,7 +230,7 @@ comparison: true
 effects: {}
 enchants:
   1:
-    left: "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei |A:Professions-ChatIcon-Quality-12-Tier2:20:20|a|r"
+    left: "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei|r |A:Professions-ChatIcon-Quality-12-Tier2:20:20|a"
     right: ""
 equipEffects:
   1:
@@ -470,7 +470,7 @@ text at 19,207 w=280 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+1888|r |cffA89F8EStam
 text at 19,225 w=280 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+50|r |cffA89F8ECritical Strike|r"
 text at 19,243 w=280 size=13 rgb=0.9,0.85,0.74 "|cffF2E8D5+50|r |cffA89F8EHaste|r"
 text at 19,261 w=280 size=13 rgb=0.48,0.88,0.48 "Your spells and abilities have the chance to grant 85 secondary stats for 15 sec based on the target creature's type."
-text at 19,309 w=280 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei |A:Professions-ChatIcon-Quality-12-Tier2:13:13:0:0|a|r"
+text at 19,309 w=280 size=13 rgb=0.9,0.85,0.74 "|cff4CE64CEnchant Weapon - Acuity of the Ren'dorei|r |A:Professions-ChatIcon-Quality-12-Tier2:13:13:0:0|a"
 text at 19,327 w=280 size=11 rgb=0.85,0.7,0 "If you replace this item, the following stat changes will occur:"
 text at 19,355 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-50.4|r Damage Per Second"
 text at 19,370 w=280 size=11 rgb=0.6,0.6,0.63 "|cffff2020-517|r Intellect"
